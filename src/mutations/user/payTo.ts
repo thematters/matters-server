@@ -35,16 +35,18 @@ const resolver: GQLMutationResolvers['payTo'] = async (
       amount,
       currency,
       password,
-      purpose,
+      purpose: _purpose,
       recipientId,
       targetId,
       chain,
       txHash,
+      id: txId,
     },
   },
   {
     viewer,
     dataSources: {
+      atomService,
       articleService,
       paymentService,
       userService,
@@ -58,7 +60,8 @@ const resolver: GQLMutationResolvers['payTo'] = async (
 
   // check purpose
   // keep purpose params for future usage, but only allow donation for now
-  if (TRANSACTION_PURPOSE[purpose] !== TRANSACTION_PURPOSE.donation) {
+  const purpose = TRANSACTION_PURPOSE[_purpose]
+  if (purpose !== TRANSACTION_PURPOSE.donation) {
     throw new UserInputError('now only support donation')
   }
 
@@ -131,6 +134,27 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     }
   }
 
+  // check tx
+  const txDbId = txId ? fromGlobalId(txId).id : undefined
+  if (txDbId) {
+    const tx = await atomService.findUnique({
+      table: 'transaction',
+      where: { id: txDbId },
+    })
+    if (
+      !tx ||
+      tx.senderId !== viewer.id ||
+      tx.recipientId !== recipient.id ||
+      tx.targetId !== target.id ||
+      parseFloat(tx.amount) !== amount ||
+      tx.currency !== currency ||
+      tx.purpose !== purpose ||
+      tx.state !== TRANSACTION_STATE.pending
+    ) {
+      throw new UserInputError('no matching transaction')
+    }
+  }
+
   let transaction
   let redirectUrl
 
@@ -154,8 +178,8 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     transaction = await paymentService.createTransaction({
       ...baseParams,
       state: TRANSACTION_STATE.pending,
-      currency: PAYMENT_CURRENCY.LIKE,
-      purpose: TRANSACTION_PURPOSE[purpose],
+      currency,
+      purpose,
       provider: PAYMENT_PROVIDER.likecoin,
       providerTxId: pendingTxId,
     })
@@ -199,8 +223,8 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     transaction = await paymentService.createTransaction({
       ...baseParams,
       state: TRANSACTION_STATE.pending,
-      currency: PAYMENT_CURRENCY.HKD,
-      purpose: TRANSACTION_PURPOSE[purpose],
+      currency,
+      purpose,
       provider: PAYMENT_PROVIDER.matters,
       providerTxId: v4(),
     })
@@ -214,22 +238,39 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     if (chain === 'Polygon') {
       throw new UserInputError('Polygon is deprecated')
     }
+
+    // create draft tx only
     if (!txHash) {
-      throw new UserInputError('`txHash` is required if `currency` is `USDT`')
-    }
-    if (!isValidTransactionHash(txHash)) {
-      throw new UserInputError('invalid transaction hash')
-    }
-    transaction =
-      await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      transaction = await paymentService.createTransaction({
         ...baseParams,
-        chainId: BLOCKCHAIN_CHAINID[chain],
-        txHash,
         state: TRANSACTION_STATE.pending,
-        currency: PAYMENT_CURRENCY.USDT,
-        purpose: TRANSACTION_PURPOSE[purpose],
+        currency,
+        purpose,
+        provider: PAYMENT_PROVIDER.blockchain,
+        // will be corrected to blockchainTx.id on settlement
+        // @see {paymentService.ts#findOrCreateTransactionByBlockchainTxHash}
+        providerTxId: v4(),
       })
-    payToByBlockchainQueue.payTo({ txId: transaction.id })
+    }
+    // try to settle the tx with on-chain tx
+    else {
+      if (!isValidTransactionHash(txHash)) {
+        throw new UserInputError('invalid transaction hash')
+      }
+
+      transaction =
+        await paymentService.findOrCreateTransactionByBlockchainTxHash({
+          ...baseParams,
+          chainId: BLOCKCHAIN_CHAINID[chain],
+          txHash,
+          txId: txDbId,
+          state: TRANSACTION_STATE.pending,
+          currency: PAYMENT_CURRENCY.USDT,
+          purpose,
+        })
+
+      payToByBlockchainQueue.payTo({ txId: transaction.id })
+    }
   }
 
   return { transaction, redirectUrl }

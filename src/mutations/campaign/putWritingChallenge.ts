@@ -5,10 +5,6 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import {
-  normalizeCampaignHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
 
 import { CAMPAIGN_STATE, NODE_TYPES } from 'common/enums'
 import {
@@ -16,8 +12,9 @@ import {
   CampaignNotFoundError,
   AuthenticationError,
   ActionFailedError,
+  ArticleNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, isUrl, toDatetimeRangeString } from 'common/utils'
+import { fromGlobalId, toDatetimeRangeString, isUrl } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   _,
@@ -25,9 +22,9 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     input: {
       id: globalId,
       name,
-      description,
-      link,
       cover,
+      link,
+      announcements: announcementGlobalIds,
       applicationPeriod,
       writingPeriod,
       state,
@@ -72,16 +69,26 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     validateStages(stages)
   }
 
+  let announcementIds: string[] = []
+  if (announcementGlobalIds && announcementGlobalIds.length > 0) {
+    announcementIds = announcementGlobalIds.map((id) => fromGlobalId(id).id)
+    for (const announcementId of announcementIds) {
+      const announcement = await atomService.articleIdLoader.load(
+        announcementId
+      )
+      if (!announcement) {
+        throw new ArticleNotFoundError('Announcement article not found')
+      }
+    }
+  }
+
   let campaign: Campaign
   if (!globalId) {
     // create new campaign
     campaign = await campaignService.createWritingChallenge({
       name: name ? name[0].text : '',
-      description: description
-        ? normalizeCampaignHTML(sanitizeHTML(description[0].text))
-        : '',
       coverId: _cover?.id,
-      link: link ? link : '',
+      link,
       applicationPeriod: applicationPeriod && [
         applicationPeriod.start,
         applicationPeriod.end,
@@ -124,10 +131,8 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 
     const data = {
       name: name && name[0].text,
-      description:
-        description && normalizeCampaignHTML(sanitizeHTML(description[0].text)),
-      link,
       cover: _cover?.id,
+      link,
       applicationPeriod:
         applicationPeriod &&
         toDatetimeRangeString(applicationPeriod.start, applicationPeriod.end),
@@ -144,6 +149,13 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     })
   }
 
+  if (announcementGlobalIds !== undefined) {
+    await campaignService.updateAnnouncements(
+      campaign.id,
+      announcementIds ?? []
+    )
+  }
+
   // create or update translations
   if (name) {
     for (const trans of name) {
@@ -156,39 +168,45 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       })
     }
   }
-  if (description) {
-    for (const trans of description) {
-      await translationService.updateOrCreateTranslation({
-        table: 'campaign',
-        field: 'description',
-        id: campaign.id,
-        language: trans.language,
-        text: normalizeCampaignHTML(sanitizeHTML(trans.text)),
-      })
-    }
-  }
 
   if (stages) {
     const campaiginStages = await campaignService.updateStages(
       campaign.id,
       stages.map((stage) => ({
         name: stage.name[0].text,
+        description:
+          stage.description && stage.description.length > 0
+            ? stage.description[0].text
+            : '',
         period: stage.period
           ? [stage.period.start, stage.period.end]
           : undefined,
       }))
     )
-    stages.forEach(async (stage, index) => {
-      for (const trans of stage.name) {
-        await translationService.updateOrCreateTranslation({
-          table: 'campaign_stage',
-          field: 'name',
-          id: campaiginStages[index].id,
-          language: trans.language,
-          text: trans.text,
-        })
-      }
-    })
+    await Promise.all(
+      stages.map(async (stage, index) => {
+        for (const trans of stage.name) {
+          await translationService.updateOrCreateTranslation({
+            table: 'campaign_stage',
+            field: 'name',
+            id: campaiginStages[index].id,
+            language: trans.language,
+            text: trans.text,
+          })
+        }
+        if (stage.description && stage.description.length > 0) {
+          for (const trans of stage.description) {
+            await translationService.updateOrCreateTranslation({
+              table: 'campaign_stage',
+              field: 'description',
+              id: campaiginStages[index].id,
+              language: trans.language,
+              text: trans.text,
+            })
+          }
+        }
+      })
+    )
   }
 
   return campaign

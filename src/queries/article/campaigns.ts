@@ -16,7 +16,9 @@ const resolver: GQLArticleResolvers['campaigns'] = async (
   return Promise.all(
     campaignArticles.map(async ({ campaignId, campaignStageId }) => ({
       campaign: await atomService.campaignIdLoader.load(campaignId),
-      stage: await atomService.campaignStageIdLoader.load(campaignStageId),
+      stage: campaignStageId
+        ? await atomService.campaignStageIdLoader.load(campaignStageId)
+        : null,
     }))
   )
 }

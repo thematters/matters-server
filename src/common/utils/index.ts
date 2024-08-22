@@ -26,6 +26,7 @@ export * from './counter'
 export * from './verify'
 export * from './nanoid'
 export * from './mention'
+export * from './knex'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
@@ -111,4 +112,8 @@ export const extractRootDomain = (url: string) => {
   }
 
   return parts[2].split('.').slice(-2).join('.')
+}
+
+export const isNumeric = (n: string) => {
+  return /^\d+$/.test(n)
 }

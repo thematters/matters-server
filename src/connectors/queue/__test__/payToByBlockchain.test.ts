@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/ban-ts-comment: 0 */
 import type { Connections } from 'definitions'
+import { v4 } from 'uuid'
 
 import { Knex } from 'knex'
 
@@ -73,6 +74,8 @@ const invalidTxhash =
 const failedTxhash =
   '0xbad52ae6172aa85e1f883967215cbdc5e70ddc479c7ee22da3c23d06820ee29e'
 const txHash =
+  '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215b'
+const txHash1 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
 const txHash2 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215d'
@@ -102,20 +105,28 @@ const validEvent = {
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
   tokenAddress: contract.Optimism.tokenAddress,
-  amount: '1000000',
+  amount: (amount * 1e6).toString(),
 }
 const nativeTokenEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
   tokenAddress: null,
-  amount: '1000000000000000000',
+  amount: (amount * 1e18).toString(),
 }
 const txReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   to: contract.Optimism.curationAddress,
   txHash,
+  reverted: false,
+  events: [validEvent],
+}
+const txReceipt1 = {
+  blockNumber: 1,
+  from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  to: contract.Optimism.curationAddress,
+  txHash: txHash1,
   reverted: false,
   events: [validEvent],
 }
@@ -134,6 +145,8 @@ describe('payToByBlockchainQueue.payTo', () => {
         return failedTxReceipt
       } else if (hash === txHash) {
         return txReceipt
+      } else if (hash === txHash1) {
+        return txReceipt1
       } else {
         return null
       }
@@ -280,6 +293,49 @@ describe('payToByBlockchainQueue.payTo', () => {
     expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
     const blockchainTx = await paymentService.baseFindById(
       tx.providerTxId,
+      'blockchain_transaction'
+    )
+    expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
+  })
+
+  test('settle pending tx with succeeded valid blockchain transaction will mark both as succeeded', async () => {
+    // create pending tx
+    const draftProviderTxId = v4()
+    const tx = await paymentService.createTransaction({
+      amount,
+      state,
+      purpose,
+      currency,
+      provider,
+      providerTxId: draftProviderTxId,
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+
+    // settle tx
+    const tx1 = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chainId,
+      txId: tx.id,
+      txHash: txHash1,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+    expect(tx.id).toBe(tx1.id)
+    expect(tx1.providerTxId).not.toBe(draftProviderTxId)
+    const job = await queue.payTo({ txId: tx.id })
+    expect(await job.finished()).toStrictEqual({ txId: tx.id })
+    const ret = await paymentService.baseFindById(tx.id)
+    expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
+    const blockchainTx = await paymentService.baseFindById(
+      tx1.providerTxId,
       'blockchain_transaction'
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
@@ -481,11 +537,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(await knex(eventTable).count()).toEqual([{ count: '3' }])
   })
   test('valid logs will update tx', async () => {
-    await knex(eventTable).del()
-    await knex(blockchainTxTable).del()
-    await knex(txTable).del()
-
-    // no related tx, insert one
     const logs = [
       {
         txHash,
@@ -497,6 +548,38 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
         },
       },
     ]
+
+    // match a pending tx, update to succeeded
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+    await paymentService.createTransaction({
+      amount,
+      state: TRANSACTION_STATE.pending,
+      purpose,
+      currency,
+      provider,
+      providerTxId: v4(),
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+    // @ts-ignore
+    await queue._syncCurationEvents(logs, 'Optimism')
+    const updatedTx = await knex(txTable).first()
+    const updatedBlockchainTx = await knex(blockchainTxTable).first()
+    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+    expect(updatedBlockchainTx.transactionId).toBe(updatedTx.id)
+    expect(updatedTx.providerTxId).toBe(updatedBlockchainTx.id)
+
+    // no related tx, create a anonymous tx
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
     // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
@@ -504,6 +587,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const blockchainTx = await knex(blockchainTxTable).first()
     expect(tx.state).toBe(TRANSACTION_STATE.succeeded)
     expect(blockchainTx.transactionId).toBe(tx.id)
+    expect(tx.senderId).toBeNull()
 
     // related tx state is not succeeded, update to succeeded
     await knex(eventTable).del()
@@ -511,17 +595,16 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
-
     // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
-    const updatedTx = await knex(txTable).where('id', tx.id).first()
-    const updatedBlockchainTx = await knex(blockchainTxTable)
+    const updatedTx1 = await knex(txTable).where('id', tx.id).first()
+    const updatedBlockchainTx1 = await knex(blockchainTxTable)
       .where('id', blockchainTx.id)
       .first()
 
-    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
-    expect(updatedBlockchainTx.state).toBe(
+    expect(updatedTx1.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx1.state).toBe(
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
 
@@ -533,7 +616,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(blockchainTxTable).update({
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
-
     // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
@@ -548,6 +630,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
   })
+
   test.skip('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
     // mock notify failed below as we have no direct access to paymentService in queue now
     const mockNotify = jest.fn()

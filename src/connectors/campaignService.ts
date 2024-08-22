@@ -6,6 +6,7 @@ import type {
   Campaign,
   User,
   Article,
+  CampaignArticle,
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -36,12 +37,15 @@ import {
   shortHash,
   toDatetimeRangeString,
   fromDatetimeRangeString,
+  excludeSpam,
+  selectWithTotalCount,
 } from 'common/utils'
-import { AtomService, NotificationService } from 'connectors'
+import { AtomService, NotificationService, SystemService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
   name: string
+  description?: string
   period?: readonly [Date, Date | undefined]
 }
 
@@ -66,18 +70,16 @@ export class CampaignService {
 
   public createWritingChallenge = async ({
     name,
-    description,
-    link,
     coverId,
+    link,
     applicationPeriod,
     writingPeriod,
     state,
     creatorId,
   }: {
     name: string
-    description: string
-    link: string
     coverId?: string
+    link?: string
     applicationPeriod?: readonly [Date, Date]
     writingPeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CAMPAIGN_STATE>
@@ -89,7 +91,6 @@ export class CampaignService {
         shortHash: shortHash(),
         type: CAMPAIGN_TYPE.writingChallenge,
         name,
-        description,
         link,
         cover: coverId,
         applicationPeriod: applicationPeriod
@@ -113,15 +114,57 @@ export class CampaignService {
       const knex = this.connections.knex
       return knex<CampaignStage>('campaign_stage')
         .insert(
-          stages.map(({ name, period }) => ({
+          stages.map(({ name, description, period }) => ({
             campaignId,
             name,
+            description: description || '',
             period: period ? toDatetimeRangeString(period[0], period[1]) : null,
           }))
         )
         .returning('*')
     }
     return []
+  }
+
+  public updateAnnouncements = async (
+    campaignId: string,
+    articleIds: string[]
+  ) => {
+    const original = await this.models.findMany({
+      table: 'campaign_article',
+      where: { campaignId, campaignStageId: null },
+      orderBy: [{ column: 'id', order: 'asc' }],
+    })
+    const originalIds = original.map(({ articleId }) => articleId)
+    // delete removed
+    await this.models.deleteMany({
+      table: 'campaign_article',
+      where: {
+        campaignId,
+      },
+      whereIn: [
+        'articleId',
+        originalIds.filter((id) => !articleIds.includes(id)),
+      ],
+    })
+    // insert new
+    for (const newId of articleIds.filter((id) => !originalIds.includes(id))) {
+      await this.models.create({
+        table: 'campaign_article',
+        data: { campaignId, articleId: newId },
+      })
+    }
+  }
+
+  public findAnnouncements = async (campaignId: string) => {
+    const records = await this.models.findMany({
+      table: 'campaign_article',
+      where: { campaignId, campaignStageId: null },
+    })
+    const articles = await this.models.articleIdLoader.loadMany(
+      records.map(({ articleId }) => articleId)
+    )
+    return articles.filter((article) => article.state === ARTICLE_STATE.active)
   }
 
   public apply = async (
@@ -244,28 +287,33 @@ export class CampaignService {
 
   public findAndCountArticles = async (
     campaignId: string,
-    { take, skip }: { take: number; skip: number },
+    { take, skip }: { take: number; skip?: string },
     { filterStageId }: { filterStageId?: string } = {}
-  ): Promise<[Article[], number]> => {
+  ): Promise<[CampaignArticle[], number]> => {
     const knexRO = this.connections.knexRO
-    const records = await knexRO('campaign_article')
+    const systemService = new SystemService(this.connections)
+    const spamThreshold = await systemService.getSpamThreshold()
+    const query = knexRO('campaign_article')
       .join('article', 'article.id', 'campaign_article.article_id')
-      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .select('campaign_article.*')
+      .modify(selectWithTotalCount)
       .where({ campaignId, state: ARTICLE_STATE.active })
       .modify((builder) => {
         if (filterStageId) {
           builder.where({ campaignStageId: filterStageId })
         }
       })
+      .modify(excludeSpam, spamThreshold)
       .orderBy('campaign_article.id', 'desc')
-      .offset(skip)
-      .limit(take)
-    return [
-      await this.models.articleIdLoader.loadMany(
-        records.map(({ articleId }: { articleId: string }) => articleId)
-      ),
-      records.length === 0 ? 0 : +records[0].totalCount,
-    ]
+
+    let records: Array<CampaignArticle & { totalCount: number }> = []
+    if (skip) {
+      records = await knexRO(query.as('t')).where('t.id', '<', skip).limit(take)
+    } else {
+      records = await query.limit(take)
+    }
+
+    return [records, records[0]?.totalCount ?? 0]
   }
 
   public updateArticleCampaigns = async (

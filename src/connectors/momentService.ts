@@ -74,12 +74,18 @@ export class MomentService {
       data: {
         shortHash: shortHash(),
         authorId: user.id,
-        content: normalizeMomentHTML(sanitizeHTML(data.content), {
-          truncate: {
-            maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
-            keepProtocol: false,
-          },
-        }),
+        content: normalizeMomentHTML(
+          sanitizeHTML(data.content, {
+            maxHardBreaks: 1,
+            maxSoftBreaks: 1,
+          }),
+          {
+            truncate: {
+              maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+              keepProtocol: false,
+            },
+          }
+        ),
         state: MOMENT_STATE.active,
       },
     })
@@ -104,7 +110,7 @@ export class MomentService {
           actorId: user.id,
           recipientId: mentionedUserId,
           entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
-          tag: `put-momment:${moment.id}`,
+          tag: `put-moment:${moment.id}`,
         })
       }
     }

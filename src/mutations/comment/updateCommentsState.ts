@@ -74,7 +74,7 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
     })
 
     if (comment.type === COMMENT_TYPE.article) {
-      invalidateFQC({
+      await invalidateFQC({
         node: { type: NODE_TYPES.Article, id: comment.targetId },
         redis: connections.redis,
       })

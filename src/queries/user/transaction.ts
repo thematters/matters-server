@@ -12,7 +12,7 @@ import {
   PAYMENT_PROVIDER,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
-import { toGlobalId } from 'common/utils'
+import { isNumeric, toGlobalId } from 'common/utils'
 
 export const Transaction: GQLTransactionResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),
@@ -22,13 +22,17 @@ export const Transaction: GQLTransactionResolvers = {
     trx.senderId ? atomService.userIdLoader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { atomService } }) =>
     trx.recipientId ? atomService.userIdLoader.load(trx.recipientId) : null,
-  blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
+  blockchainTx: async (trx, _, { dataSources: { atomService } }) => {
     if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
       return null
     }
-    const blockchainTx = await paymentService.findBlockchainTransactionById(
-      trx.providerTxId
-    )
+    if (!isNumeric(trx.providerTxId)) {
+      return null
+    }
+    const blockchainTx = await atomService.findUnique({
+      table: 'blockchain_transaction',
+      where: { id: trx.providerTxId },
+    })
     const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
     if (!chain) {
       throw new ServerError('chain is not supported')

@@ -174,9 +174,11 @@ export class PayToByBlockchainQueue {
     }
 
     // skip if blockchain tx is not found
-    const blockchainTx = await paymentService.findBlockchainTransactionById(
-      tx.providerTxId
-    )
+    const blockchainTx = await atomService.findUnique({
+      table: 'blockchain_transaction',
+      where: { id: tx.providerTxId },
+    })
+
     if (!blockchainTx) {
       job.discard()
       throw new PaymentQueueJobDataError('blockchain transaction not found')
@@ -283,8 +285,7 @@ export class PayToByBlockchainQueue {
    * syncCurationEvents handler, process blockchain tx asynchronously.
    *
    * 1. Fetch and save curation events from blockchain;
-   * 2. Upsert `blockchain_transaction` if needed;
-   * 3. Upsert `transaction` if needed;
+   * 2. Correct or create tx if needed;
    */
   private handleSyncCurationEvents: ProcessCallbackFunction<unknown> = async (
     _
@@ -373,7 +374,7 @@ export class PayToByBlockchainQueue {
   ) => {
     const { paymentService, userService, atomService } = services
 
-    // related tx record has resolved
+    // skip if blockchain tx is already resolved
     if (
       blockchainTx.transactionId &&
       blockchainTx.state === BLOCKCHAIN_TRANSACTION_STATE.succeeded
@@ -414,14 +415,22 @@ export class PayToByBlockchainQueue {
     const amount = parseFloat(
       formatUnits(BigInt(event.amount), contract[chain].tokenDecimals)
     )
-
     let tx
+
+    // can find via `blockchainTx.transactionId`
+    // for tx that is created by `payTo` mutation previously
+    // but haven't resolved by `handlePayTo`
     if (blockchainTx.transactionId) {
       tx = await atomService.findFirst({
         table: 'transaction',
         where: { id: blockchainTx.transactionId },
       })
-    } else {
+    }
+
+    // can find via `blockchainTx.id`
+    // for tx that is created by `payTo` mutation previously
+    // but linked to the wrong blockchainTx
+    if (!tx) {
       tx = await atomService.findFirst({
         table: 'transaction',
         where: {
@@ -429,7 +438,8 @@ export class PayToByBlockchainQueue {
           providerTxId: blockchainTx.id,
         },
       })
-      // correct blockchainTx if its `transactionId` is invalid
+
+      // correct `blockchainTx.transactionId`
       if (tx) {
         await atomService.update({
           table: 'blockchain_transaction',
@@ -444,12 +454,51 @@ export class PayToByBlockchainQueue {
       }
     }
 
+    // can find via matching the tx data (amount, sender, recipient, etc.)
+    // for sender who fails to request the settlement `payTo` mutation
+    if (!tx) {
+      const senderUser = await userService.findByEthAddress(
+        event.curatorAddress
+      )
+      tx = await atomService.findFirst({
+        table: 'transaction',
+        where: {
+          amount: amount.toString(),
+          state: TRANSACTION_STATE.pending,
+          purpose: TRANSACTION_PURPOSE.donation,
+          currency: PAYMENT_CURRENCY.USDT,
+          provider: PAYMENT_PROVIDER.blockchain,
+          recipientId: creatorUser.id,
+          senderId: senderUser.id,
+          targetId: article.id,
+        },
+      })
+
+      // correct `blockchainTx.transactionId` and `tx.providerId`
+      if (tx) {
+        await Promise.all([
+          atomService.update({
+            table: 'blockchain_transaction',
+            where: { id: blockchainTx.id },
+            data: { transactionId: tx.id },
+          }),
+          atomService.update({
+            table: 'transaction',
+            where: { id: tx.id },
+            data: { providerTxId: blockchainTx.id },
+          }),
+        ])
+      }
+    }
+
     if (tx) {
       // correct invalid tx
+      // e.g. sender changes the amount on MetaMask
       const isValidTx =
         tx.targetId === article.id &&
         parseUnits(tx.amount, contract[chain].tokenDecimals).toString() ===
           event.amount
+
       if (!isValidTx) {
         await atomService.update({
           table: 'transaction',
@@ -464,10 +513,11 @@ export class PayToByBlockchainQueue {
         })
       }
 
-      // update tx state
+      // success both tx and blockchain tx
       await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
     } else {
-      // no related tx record (interacted with contract directly), create one
+      // still no related tx record, create a new one with anonymous sender
+      // for sender who interacts with contract directly
       const trx = await this.connections.knex.transaction()
       try {
         tx = await paymentService.createTransaction(
@@ -504,6 +554,7 @@ export class PayToByBlockchainQueue {
         article,
       })
     }
+
     await this.invalidCache(tx.targetType, tx.targetId, userService)
   }
 

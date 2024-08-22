@@ -12,6 +12,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_RESTRICTION_TYPE,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -21,6 +23,7 @@ import {
   UserService,
   PaymentService,
   CampaignService,
+  SystemService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
@@ -40,6 +43,7 @@ let momentService: MomentService
 let userService: UserService
 let paymentService: PaymentService
 let campaignService: CampaignService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -50,6 +54,7 @@ beforeAll(async () => {
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
   campaignService = new CampaignService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -329,12 +334,6 @@ describe('following UserFollowUserActivity', () => {
       { userId: viewerId },
       connections.knexRO
     )
-    console.log(
-      makeUserFollowUserActivityQuery(
-        { userId: viewerId },
-        connections.knexRO
-      ).toString()
-    )
     expect(result.length).toBe(3)
     // ordered by followers amount
     expect(result[0].nodeId).toBe(followerFollowerId1)
@@ -506,7 +505,7 @@ describe('following UserPostMomentActivity', () => {
       toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
 
-    // two same actor moment activities in series
+    // two same actor moment activities in series will not be combined
     const moment2 = await momentService.create({ content: 'test' }, followee1)
     await refreshView(
       MATERIALIZED_VIEW.user_activity_materialized,
@@ -523,9 +522,15 @@ describe('following UserPostMomentActivity', () => {
     expect(data2.viewer.recommendation.following.edges[0].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Moment, id: moment2.id })
     )
+    expect(
+      data2.viewer.recommendation.following.edges[0].node.more.length
+    ).toBe(0)
     expect(data2.viewer.recommendation.following.edges[1].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
+    expect(
+      data2.viewer.recommendation.following.edges[1].node.more.length
+    ).toBe(0)
 
     // three same actor moment activities in series will be combined into one activity
     const moment3 = await momentService.create({ content: 'test' }, followee1)
@@ -577,7 +582,7 @@ describe('following UserPostMomentActivity', () => {
       toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
 
-    // same actor other activities will  reset the combination time window
+    // same actor other activities will reset the combination time window
     const [article] = await articleService.createArticle({
       title: 'test',
       content: 'test',
@@ -609,14 +614,36 @@ describe('following UserPostMomentActivity', () => {
       toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
 
-    // article only
+    // archived moment will not be included
+    await atomService.update({
+      table: 'moment',
+      where: { id: moment7.id },
+      data: { state: 'archived' },
+    })
     const { errors: errors6, data: data6 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors6).toBeUndefined()
+    expect(data6.viewer.recommendation.following.totalCount).toBe(3)
+    expect(data6.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
+    expect(data6.viewer.recommendation.following.edges[1].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment6.id })
+    )
+    expect(data6.viewer.recommendation.following.edges[2].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
+    )
+
+    // article only
+    const { errors: errors7, data: data7 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
       variables: { input: { first: 10, filter: { type: 'article' } } },
     })
-    expect(errors6).toBeUndefined()
-    expect(data6.viewer.recommendation.following.totalCount).toBe(1)
-    expect(data6.viewer.recommendation.following.edges[0].node.node.id).toBe(
+    expect(errors7).toBeUndefined()
+    expect(data7.viewer.recommendation.following.totalCount).toBe(1)
+    expect(data7.viewer.recommendation.following.edges[0].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Article, id: article.id })
     )
   })
@@ -728,5 +755,45 @@ describe('hottest articles', () => {
         _.clamp(tagBoostEff, 0.5, 2) *
         _.clamp(campaignBoostEff, 0.5, 2)
     ).toBe(score)
+  })
+  test('spam are excluded', async () => {
+    const spamThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
+    })
+
+    // both `is_spam` and `spam_score` are null, not excluded
+    const server = await testClient({ connections })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
+
+    // `spam_score` = `spam_threshold`, excluded
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { spamScore: spamThreshold },
+    })
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
+
+    // `is_spam` = false, not excluded
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { isSpam: false },
+    })
+    const { data: data3 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
   })
 })

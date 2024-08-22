@@ -147,6 +147,8 @@ export const environment = {
 
   passphrasesApiUrl: process.env.MATTERS_PASSPHRASES_API_URL || '',
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
+
+  spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
 }
 
 export const contract = {

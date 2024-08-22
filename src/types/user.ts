@@ -610,7 +610,7 @@ export default /* GraphQL */ `
     node: Moment! @logCache(type: "${NODE_TYPES.Moment}")
 
     "Another 3 moments posted by actor"
-    more: [Moment!]!
+    more: [Moment!]! @logCache(type: "${NODE_TYPES.Moment}")
   }
 
   type UserBroadcastCircleActivity {

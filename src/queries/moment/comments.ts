@@ -54,7 +54,6 @@ const resolver: GQLMomentResolvers['comments'] = async (
   }
 
   const [comments, totalCount] = await commentService.find({
-    sort,
     before,
     after,
     first,

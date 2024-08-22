@@ -8,6 +8,7 @@ import type {
   Moment,
 } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeCommentHTML,
@@ -20,7 +21,6 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   BUNDLED_NOTICE_TYPE,
-  CACHE_KEYWORD,
   COMMENT_TYPE,
   COMMENT_STATE,
   NOTICE_TYPE,
@@ -67,6 +67,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       articleService,
       notificationService,
       userService,
+      connections,
     },
   }
 ) => {
@@ -583,14 +584,34 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   })
 
   // invalidate extra nodes
-  ;(newComment as Comment & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
-    parentComment ? { id: parentComment.id, type: NODE_TYPES.Comment } : {},
-    replyToComment ? { id: replyToComment.id, type: NODE_TYPES.Comment } : {},
-    {
-      id: article ? article.id : circle?.id,
-      type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
-    },
-  ]
+  if (parentComment) {
+    await invalidateFQC({
+      node: { id: parentComment.id, type: NODE_TYPES.Comment },
+      redis: connections.redis,
+    })
+  }
+  if (replyToComment) {
+    await invalidateFQC({
+      node: { id: replyToComment.id, type: NODE_TYPES.Comment },
+      redis: connections.redis,
+    })
+  }
+
+  const node = isArticleType
+    ? {
+        id: article?.id as string,
+        type: NODE_TYPES.Article,
+      }
+    : isMoment
+    ? {
+        id: moment?.id as string,
+        type: NODE_TYPES.Moment,
+      }
+    : {
+        id: circle?.id as string,
+        type: NODE_TYPES.Circle,
+      }
+  await invalidateFQC({ node, redis: connections.redis })
 
   return newComment
 }

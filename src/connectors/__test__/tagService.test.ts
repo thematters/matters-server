@@ -1,10 +1,12 @@
 import type { Connections } from 'definitions'
 
+import { FEATURE_NAME, FEATURE_FLAG } from 'common/enums'
 import {
   TagService,
   AtomService,
   ArticleService,
   UserService,
+  SystemService,
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -14,6 +16,7 @@ let tagService: TagService
 let atomService: AtomService
 let articleService: ArticleService
 let userService: UserService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -21,6 +24,7 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
   userService = new UserService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -82,6 +86,40 @@ describe('findArticleIds', () => {
       excludeRestricted: true,
     })
     expect(excluded3).not.toContain(articleIds[0])
+    expect(excluded3).toContain(articleIds[1])
+  })
+  test('exclude spam', async () => {
+    const articleIds = await tagService.findArticleIds({
+      id: '2',
+      excludeSpam: true,
+    })
+    expect(articleIds).toBeDefined()
+
+    const spamThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
+    })
+
+    // spam flag is on but no detected articles
+    const excluded1 = await tagService.findArticleIds({
+      id: '2',
+      excludeSpam: true,
+    })
+    expect(excluded1).toEqual(articleIds)
+
+    // spam detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articleIds[0] },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const excluded2 = await tagService.findArticleIds({
+      id: '2',
+      excludeSpam: true,
+    })
+    expect(excluded2).not.toContain(articleIds[0])
   })
 })
 

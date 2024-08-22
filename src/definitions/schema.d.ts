@@ -445,7 +445,7 @@ export type GQLArticleArticleNoticeType = 'ArticleNewCollected'
 export type GQLArticleCampaign = {
   __typename?: 'ArticleCampaign'
   campaign: GQLCampaign
-  stage: GQLCampaignStage
+  stage?: Maybe<GQLCampaignStage>
 }
 
 export type GQLArticleCampaignInput = {
@@ -536,6 +536,7 @@ export type GQLArticleOss = {
   inRecommendNewest: Scalars['Boolean']['output']
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
+  spamStatus: GQLSpamStatus
 }
 
 export type GQLArticleRecommendationActivity = {
@@ -686,7 +687,6 @@ export type GQLBoostTypes = 'Article' | 'Campaign' | 'Tag' | 'User'
 export type GQLCacheControlScope = 'PRIVATE' | 'PUBLIC'
 
 export type GQLCampaign = {
-  description: Scalars['String']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
   shortHash: Scalars['String']['output']
@@ -756,9 +756,14 @@ export type GQLCampaignParticipantsInput = {
 
 export type GQLCampaignStage = {
   __typename?: 'CampaignStage'
+  description: Scalars['String']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
   period?: Maybe<GQLDatetimeRange>
+}
+
+export type GQLCampaignStageDescriptionArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 export type GQLCampaignStageNameArgs = {
@@ -766,6 +771,7 @@ export type GQLCampaignStageNameArgs = {
 }
 
 export type GQLCampaignStageInput = {
+  description?: InputMaybe<Array<GQLTranslationInput>>
   name: Array<GQLTranslationInput>
   period?: InputMaybe<GQLDatetimeRangeInput>
 }
@@ -1467,6 +1473,7 @@ export type GQLFeature = {
   __typename?: 'Feature'
   enabled: Scalars['Boolean']['output']
   name: GQLFeatureName
+  value?: Maybe<Scalars['Float']['output']>
 }
 
 export type GQLFeatureFlag = 'admin' | 'off' | 'on' | 'seeding'
@@ -1478,6 +1485,7 @@ export type GQLFeatureName =
   | 'fingerprint'
   | 'payment'
   | 'payout'
+  | 'spam_detection'
   | 'tag_adoption'
   | 'verify_appreciate'
 
@@ -1907,6 +1915,7 @@ export type GQLMutation = {
   setFeature: GQLFeature
   /** Set user email login password. */
   setPassword: GQLUser
+  setSpamStatus: GQLArticle
   /** Set user name. */
   setUserName: GQLUser
   /** Upload a single file. */
@@ -2244,6 +2253,10 @@ export type GQLMutationSetPasswordArgs = {
   input: GQLSetPasswordInput
 }
 
+export type GQLMutationSetSpamStatusArgs = {
+  input: GQLSetSpamStatusInput
+}
+
 export type GQLMutationSetUserNameArgs = {
   input: GQLSetUserNameInput
 }
@@ -2551,7 +2564,7 @@ export type GQLOss = {
 }
 
 export type GQLOssArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLOssArticlesInput
 }
 
 export type GQLOssBadgedUsersArgs = {
@@ -2592,6 +2605,16 @@ export type GQLOssTagsArgs = {
 
 export type GQLOssUsersArgs = {
   input: GQLConnectionArgs
+}
+
+export type GQLOssArticlesFilterInput = {
+  isSpam?: InputMaybe<Scalars['Boolean']['input']>
+}
+
+export type GQLOssArticlesInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLOssArticlesFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
 }
 
 export type GQLOauth1CredentialInput = {
@@ -2641,6 +2664,7 @@ export type GQLPayToInput = {
   /** for ERC20/native token payment */
   chain?: InputMaybe<GQLChain>
   currency: GQLTransactionCurrency
+  id?: InputMaybe<Scalars['ID']['input']>
   /** for HKD payment */
   password?: InputMaybe<Scalars['String']['input']>
   purpose: GQLTransactionPurpose
@@ -2844,9 +2868,9 @@ export type GQLPutTagInput = {
 }
 
 export type GQLPutWritingChallengeInput = {
+  announcements?: InputMaybe<Array<Scalars['ID']['input']>>
   applicationPeriod?: InputMaybe<GQLDatetimeRangeInput>
   cover?: InputMaybe<Scalars['ID']['input']>
-  description?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
@@ -3253,10 +3277,16 @@ export type GQLSetEmailInput = {
 export type GQLSetFeatureInput = {
   flag: GQLFeatureFlag
   name: GQLFeatureName
+  value?: InputMaybe<Scalars['Float']['input']>
 }
 
 export type GQLSetPasswordInput = {
   password: Scalars['String']['input']
+}
+
+export type GQLSetSpamStatusInput = {
+  id: Scalars['ID']['input']
+  isSpam: Scalars['Boolean']['input']
 }
 
 export type GQLSetUserNameInput = {
@@ -3341,6 +3371,14 @@ export type GQLSocialLoginInput = {
   oauth1Credential?: InputMaybe<GQLOauth1CredentialInput>
   referralCode?: InputMaybe<Scalars['String']['input']>
   type: GQLSocialAccountType
+}
+
+export type GQLSpamStatus = {
+  __typename?: 'SpamStatus'
+  /** whether this article is labeled as spam by human, null for not labeled yet.  */
+  isSpam?: Maybe<Scalars['Boolean']['output']>
+  /** spam confident score by machine, null for not checked yet.  */
+  score?: Maybe<Scalars['Float']['output']>
 }
 
 export type GQLStripeAccount = {
@@ -4261,11 +4299,12 @@ export type GQLWriting = GQLArticle | GQLMoment
 export type GQLWritingChallenge = GQLCampaign &
   GQLNode & {
     __typename?: 'WritingChallenge'
+    announcements: Array<GQLArticle>
     application?: Maybe<GQLCampaignApplication>
     applicationPeriod?: Maybe<GQLDatetimeRange>
     articles: GQLArticleConnection
     cover?: Maybe<Scalars['String']['output']>
-    description: Scalars['String']['output']
+    description?: Maybe<Scalars['String']['output']>
     id: Scalars['ID']['output']
     link: Scalars['String']['output']
     name: Scalars['String']['output']
@@ -4597,7 +4636,7 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleCampaign: ResolverTypeWrapper<
     Omit<GQLArticleCampaign, 'campaign' | 'stage'> & {
       campaign: GQLResolversTypes['Campaign']
-      stage: GQLResolversTypes['CampaignStage']
+      stage?: Maybe<GQLResolversTypes['CampaignStage']>
     }
   >
   ArticleCampaignInput: GQLArticleCampaignInput
@@ -4926,6 +4965,8 @@ export type GQLResolversTypes = ResolversObject<{
       users: GQLResolversTypes['UserConnection']
     }
   >
+  OSSArticlesFilterInput: GQLOssArticlesFilterInput
+  OSSArticlesInput: GQLOssArticlesInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: ResolverTypeWrapper<GQLOfficial>
   OfficialAnnouncementNotice: ResolverTypeWrapper<NoticeItemModel>
@@ -5029,6 +5070,7 @@ export type GQLResolversTypes = ResolversObject<{
   SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
   SetPasswordInput: GQLSetPasswordInput
+  SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
   SigningMessagePurpose: GQLSigningMessagePurpose
   SigningMessageResult: ResolverTypeWrapper<GQLSigningMessageResult>
@@ -5041,6 +5083,7 @@ export type GQLResolversTypes = ResolversObject<{
   SocialAccount: ResolverTypeWrapper<GQLSocialAccount>
   SocialAccountType: GQLSocialAccountType
   SocialLoginInput: GQLSocialLoginInput
+  SpamStatus: ResolverTypeWrapper<GQLSpamStatus>
   String: ResolverTypeWrapper<Scalars['String']['output']>
   StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
   StripeAccountCountry: GQLStripeAccountCountry
@@ -5239,7 +5282,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleArticleNotice: NoticeItemModel
   ArticleCampaign: Omit<GQLArticleCampaign, 'campaign' | 'stage'> & {
     campaign: GQLResolversParentTypes['Campaign']
-    stage: GQLResolversParentTypes['CampaignStage']
+    stage?: Maybe<GQLResolversParentTypes['CampaignStage']>
   }
   ArticleCampaignInput: GQLArticleCampaignInput
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
@@ -5483,6 +5526,8 @@ export type GQLResolversParentTypes = ResolversObject<{
     tags: GQLResolversParentTypes['TagConnection']
     users: GQLResolversParentTypes['UserConnection']
   }
+  OSSArticlesFilterInput: GQLOssArticlesFilterInput
+  OSSArticlesInput: GQLOssArticlesInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: GQLOfficial
   OfficialAnnouncementNotice: NoticeItemModel
@@ -5560,6 +5605,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
   SetPasswordInput: GQLSetPasswordInput
+  SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
   SigningMessageResult: GQLSigningMessageResult
   SingleFileUploadInput: GQLSingleFileUploadInput
@@ -5569,6 +5615,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SkippedListItemsInput: GQLSkippedListItemsInput
   SocialAccount: GQLSocialAccount
   SocialLoginInput: GQLSocialLoginInput
+  SpamStatus: GQLSpamStatus
   String: Scalars['String']['output']
   StripeAccount: PayoutAccountModel
   SubmitReportInput: GQLSubmitReportInput
@@ -6178,7 +6225,11 @@ export type GQLArticleCampaignResolvers<
   ParentType extends GQLResolversParentTypes['ArticleCampaign'] = GQLResolversParentTypes['ArticleCampaign']
 > = ResolversObject<{
   campaign?: Resolver<GQLResolversTypes['Campaign'], ParentType, ContextType>
-  stage?: Resolver<GQLResolversTypes['CampaignStage'], ParentType, ContextType>
+  stage?: Resolver<
+    Maybe<GQLResolversTypes['CampaignStage']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6289,6 +6340,11 @@ export type GQLArticleOssResolvers<
   >
   inSearch?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6538,6 +6594,12 @@ export type GQLCampaignStageResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignStage'] = GQLResolversParentTypes['CampaignStage']
 > = ResolversObject<{
+  description?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLCampaignStageDescriptionArgs>
+  >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   name?: Resolver<
     GQLResolversTypes['String'],
@@ -7222,6 +7284,7 @@ export type GQLFeatureResolvers<
 > = ResolversObject<{
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   name?: Resolver<GQLResolversTypes['FeatureName'], ParentType, ContextType>
+  value?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7940,6 +8003,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetPasswordArgs, 'input'>
+  >
+  setSpamStatus?: Resolver<
+    GQLResolversTypes['Article'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetSpamStatusArgs, 'input'>
   >
   setUserName?: Resolver<
     GQLResolversTypes['User'],
@@ -8983,6 +9052,19 @@ export type GQLSocialAccountResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLSpamStatusResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['SpamStatus'] = GQLResolversParentTypes['SpamStatus']
+> = ResolversObject<{
+  isSpam?: Resolver<
+    Maybe<GQLResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >
+  score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLStripeAccountResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['StripeAccount'] = GQLResolversParentTypes['StripeAccount']
@@ -9785,6 +9867,11 @@ export type GQLWritingChallengeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['WritingChallenge'] = GQLResolversParentTypes['WritingChallenge']
 > = ResolversObject<{
+  announcements?: Resolver<
+    Array<GQLResolversTypes['Article']>,
+    ParentType,
+    ContextType
+  >
   application?: Resolver<
     Maybe<GQLResolversTypes['CampaignApplication']>,
     ParentType,
@@ -9803,7 +9890,7 @@ export type GQLWritingChallengeResolvers<
   >
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   description?: Resolver<
-    GQLResolversTypes['String'],
+    Maybe<GQLResolversTypes['String']>,
     ParentType,
     ContextType,
     Partial<GQLWritingChallengeDescriptionArgs>
@@ -9987,6 +10074,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   SkippedListItemEdge?: GQLSkippedListItemEdgeResolvers<ContextType>
   SkippedListItemsConnection?: GQLSkippedListItemsConnectionResolvers<ContextType>
   SocialAccount?: GQLSocialAccountResolvers<ContextType>
+  SpamStatus?: GQLSpamStatusResolvers<ContextType>
   StripeAccount?: GQLStripeAccountResolvers<ContextType>
   SubscribeCircleResult?: GQLSubscribeCircleResultResolvers<ContextType>
   Tag?: GQLTagResolvers<ContextType>

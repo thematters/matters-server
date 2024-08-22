@@ -26,9 +26,9 @@ export default /* GraphQL */ `
   input PutWritingChallengeInput {
     id: ID
     name: [TranslationInput!]
-    description: [TranslationInput!]
     cover: ID
     link: String
+    announcements: [ID!]
     applicationPeriod: DatetimeRangeInput
     writingPeriod: DatetimeRangeInput
     stages: [CampaignStageInput!]
@@ -47,6 +47,7 @@ export default /* GraphQL */ `
 
   input CampaignStageInput {
     name: [TranslationInput!]!
+    description: [TranslationInput!]
     period: DatetimeRangeInput
   }
 
@@ -64,7 +65,6 @@ export default /* GraphQL */ `
     id: ID!
     shortHash: String!
     name: String!
-    description: String!
     state: CampaignState!
   }
 
@@ -80,9 +80,10 @@ export default /* GraphQL */ `
     id: ID!
     shortHash: String!
     name(input: TranslationArgs): String!
-    description(input: TranslationArgs): String!
+    description(input: TranslationArgs): String
     cover: String
     link: String!
+    announcements: [Article!]!
 
     applicationPeriod: DatetimeRange
     writingPeriod:DatetimeRange
@@ -139,6 +140,7 @@ export default /* GraphQL */ `
   type CampaignStage {
     id: ID!
     name(input: TranslationArgs): String!
+    description(input: TranslationArgs): String!
     period: DatetimeRange
   }
 

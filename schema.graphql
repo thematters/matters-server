@@ -155,6 +155,7 @@ type Mutation {
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
+  setSpamStatus(input: SetSpamStatusInput!): Article!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -501,7 +502,7 @@ type Article implements Node & PinnableWork {
 
 type ArticleCampaign {
   campaign: Campaign!
-  stage: CampaignStage!
+  stage: CampaignStage
 }
 
 input ArticleVersionsInput {
@@ -608,6 +609,17 @@ type ArticleOSS {
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
   inSearch: Boolean!
+  spamStatus: SpamStatus!
+}
+
+type SpamStatus {
+  """spam confident score by machine, null for not checked yet. """
+  score: Float
+
+  """
+  whether this article is labeled as spam by human, null for not labeled yet. 
+  """
+  isSpam: Boolean
 }
 
 type ArticleTranslation {
@@ -877,9 +889,9 @@ input CampaignsInput {
 input PutWritingChallengeInput {
   id: ID
   name: [TranslationInput!]
-  description: [TranslationInput!]
   cover: ID
   link: String
+  announcements: [ID!]
   applicationPeriod: DatetimeRangeInput
   writingPeriod: DatetimeRangeInput
   stages: [CampaignStageInput!]
@@ -898,6 +910,7 @@ input UpdateCampaignApplicationStateInput {
 
 input CampaignStageInput {
   name: [TranslationInput!]!
+  description: [TranslationInput!]
   period: DatetimeRangeInput
 }
 
@@ -915,7 +928,6 @@ interface Campaign {
   id: ID!
   shortHash: String!
   name: String!
-  description: String!
   state: CampaignState!
 }
 
@@ -930,9 +942,10 @@ type WritingChallenge implements Node & Campaign {
   id: ID!
   shortHash: String!
   name(input: TranslationArgs): String!
-  description(input: TranslationArgs): String!
+  description(input: TranslationArgs): String
   cover: String
   link: String!
+  announcements: [Article!]!
   applicationPeriod: DatetimeRange
   writingPeriod: DatetimeRange
   stages: [CampaignStage!]!
@@ -986,6 +999,7 @@ enum CampaignApplicationState {
 type CampaignStage {
   id: ID!
   name(input: TranslationArgs): String!
+  description(input: TranslationArgs): String!
   period: DatetimeRange
 }
 
@@ -2039,6 +2053,7 @@ type Official {
 type Feature {
   name: FeatureName!
   enabled: Boolean!
+  value: Float
 }
 
 type Announcement {
@@ -2067,7 +2082,7 @@ type TranslatedAnnouncement {
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
   comments(input: ConnectionArgs!): CommentConnection!
-  articles(input: ConnectionArgs!): ArticleConnection!
+  articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
@@ -2273,6 +2288,7 @@ input ToggleItemInput {
 input SetFeatureInput {
   name: FeatureName!
   flag: FeatureFlag!
+  value: Float
 }
 
 input ToggleSeedingUsersInput {
@@ -2411,6 +2427,7 @@ enum FeatureName {
   tag_adoption
   circle_management
   circle_interact
+  spam_detection
 }
 
 enum FeatureFlag {
@@ -2478,6 +2495,21 @@ input PutIcymiTopicInput {
   pinAmount: Int
   note: String
   state: IcymiTopicState
+}
+
+input SetSpamStatusInput {
+  id: ID!
+  isSpam: Boolean!
+}
+
+input OSSArticlesInput {
+  after: String
+  first: Int
+  filter: OSSArticlesFilterInput
+}
+
+input OSSArticlesFilterInput {
+  isSpam: Boolean
 }
 
 enum CacheControlScope {
@@ -3573,6 +3605,7 @@ input PayToInput {
   """for ERC20/native token payment"""
   chain: Chain
   txHash: String
+  id: ID
 }
 
 input PayoutInput {

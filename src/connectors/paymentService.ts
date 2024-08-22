@@ -255,9 +255,6 @@ export class PaymentService extends BaseService<Transaction> {
     )
   }
 
-  public findBlockchainTransactionById = async (id: string) =>
-    this.models.findUnique({ table: 'blockchain_transaction', where: { id } })
-
   public findOrCreateBlockchainTransaction = async (
     { chainId, txHash }: { chainId: string | number; txHash: string },
     data?: {
@@ -289,6 +286,7 @@ export class PaymentService extends BaseService<Transaction> {
   public findOrCreateTransactionByBlockchainTxHash = async ({
     chainId,
     txHash,
+    txId,
 
     amount,
     fee,
@@ -306,6 +304,7 @@ export class PaymentService extends BaseService<Transaction> {
   }: {
     chainId: string
     txHash: string
+    txId?: string
 
     amount: number
     fee?: number
@@ -322,6 +321,7 @@ export class PaymentService extends BaseService<Transaction> {
     remark?: string
   }) => {
     const trx = await this.knex.transaction()
+
     try {
       const blockchainTx = await this.findOrCreateBlockchainTransaction(
         { chainId, txHash },
@@ -333,12 +333,24 @@ export class PaymentService extends BaseService<Transaction> {
       const providerTxId = blockchainTx.id
 
       let tx
-      tx = await trx
-        .select()
-        .from(this.table)
-        .where({ providerTxId, provider })
-        .first()
 
+      // correct an existing transaction with the blockchainTx
+      if (txId) {
+        ;[tx] = await trx
+          .where({ id: txId })
+          .update({ providerTxId })
+          .into(this.table)
+          .returning('*')
+          .transacting(trx)
+      } else {
+        tx = await trx
+          .select()
+          .from(this.table)
+          .where({ providerTxId, provider })
+          .first()
+      }
+
+      // or create a new transaction with the blockchainTx
       if (!tx) {
         tx = await this.createTransaction(
           {
@@ -357,11 +369,13 @@ export class PaymentService extends BaseService<Transaction> {
           },
           trx
         )
-        await trx('blockchain_transaction')
-          .where({ id: blockchainTx.id })
-          .update({ transactionId: tx.id })
-          .transacting(trx)
       }
+
+      await trx('blockchain_transaction')
+        .where({ id: blockchainTx.id })
+        .update({ transactionId: tx.id })
+        .transacting(trx)
+
       await trx.commit()
       return tx
     } catch (error) {

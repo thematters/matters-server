@@ -1,7 +1,8 @@
-import type { GQLMutationResolvers, Comment } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
+
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import {
-  CACHE_KEYWORD,
   COMMENT_STATE,
   COMMENT_TYPE,
   NODE_TYPES,
@@ -18,7 +19,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['deleteComment'] = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { atomService, notificationService } }
+  { viewer, dataSources: { atomService, notificationService, connections } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -36,7 +37,13 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   }
 
   // check permission
-  if (comment.authorId !== viewer.id) {
+  const authorized = [
+    comment.authorId,
+    ...(comment.type === COMMENT_TYPE.moment
+      ? [(await atomService.momentIdLoader.load(comment.targetId)).authorId]
+      : []),
+  ]
+  if (!authorized.includes(viewer.id)) {
     throw new ForbiddenError('viewer has no permission')
   }
 
@@ -51,19 +58,9 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   notificationService.withdraw(`put-comment:${dbId}`)
 
   // invalidate extra nodes
-  const node =
-    comment.type === COMMENT_TYPE.article
-      ? await atomService.articleIdLoader.load(comment.targetId)
-      : comment.type === COMMENT_TYPE.moment
-      ? await atomService.momentIdLoader.load(comment.targetId)
-      : await atomService.circleIdLoader.load(comment.targetId)
-  ;(
-    newComment as Comment & {
-      [CACHE_KEYWORD]: [{ id: string; type: NODE_TYPES }]
-    }
-  )[CACHE_KEYWORD] = [
-    {
-      id: node.id,
+  await invalidateFQC({
+    node: {
+      id: comment.targetId,
       type:
         comment.type === COMMENT_TYPE.article
           ? NODE_TYPES.Article
@@ -71,8 +68,10 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
           ? NODE_TYPES.Moment
           : NODE_TYPES.Circle,
     },
-  ]
+    redis: connections.redis,
+  })
 
   return newComment
 }
+
 export default resolver

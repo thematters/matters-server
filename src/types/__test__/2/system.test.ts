@@ -174,6 +174,7 @@ const QUERY_FEATURES = /* GraphQL */ `
       features {
         name
         enabled
+        value
       }
     }
   }
@@ -184,6 +185,7 @@ const SET_FEATURE = /* GraphQL */ `
     setFeature(input: $input) {
       name
       enabled
+      value
     }
   }
 `
@@ -420,10 +422,10 @@ describe('manage feature flag', () => {
 
   const reducer = (
     result: Record<string, any>,
-    feature: { name: string; enabled: boolean }
+    feature: { name: string; enabled: boolean; value: number | null }
   ) => ({
     ...result,
-    [feature.name]: feature.enabled,
+    [feature.name]: { enabled: feature.enabled, value: feature.value },
   })
 
   test('query feature flag', async () => {
@@ -432,13 +434,15 @@ describe('manage feature flag', () => {
 
     const features = (data?.official?.features || []).reduce(reducer, {})
 
-    expect(features.add_credit).toBe(true)
-    expect(features.circle_management).toBe(true)
-    expect(features.circle_interact).toBe(true)
-    expect(features.fingerprint).toBe(true)
-    expect(features.payment).toBe(true)
-    expect(features.payout).toBe(true)
-    expect(features.verify_appreciate).toBe(false)
+    expect(features.add_credit.enabled).toBe(true)
+    expect(features.circle_management.enabled).toBe(true)
+    expect(features.circle_interact.enabled).toBe(true)
+    expect(features.fingerprint.enabled).toBe(true)
+    expect(features.payment.enabled).toBe(true)
+    expect(features.payout.enabled).toBe(true)
+    expect(features.verify_appreciate.enabled).toBe(false)
+    expect(features.spam_detection.enabled).toBe(false)
+    expect(features.spam_detection.value).not.toBeNull()
   })
 
   test('update feature flag', async () => {
@@ -462,13 +466,13 @@ describe('manage feature flag', () => {
       query: QUERY_FEATURES,
     })
     const features = (queryData?.official?.features || []).reduce(reducer, {})
-    expect(features.circle_management).toBe(false)
+    expect(features.circle_management.enabled).toBe(false)
 
     const { data: queryData2 } = await serverAdmin.executeOperation({
       query: QUERY_FEATURES,
     })
     const features2 = (queryData2?.official?.features || []).reduce(reducer, {})
-    expect(features2.circle_management).toBe(false)
+    expect(features2.circle_management.enabled).toBe(false)
 
     // set feature as admin
     const updateData3 = await serverAdmin.executeOperation({
@@ -481,13 +485,13 @@ describe('manage feature flag', () => {
       query: QUERY_FEATURES,
     })
     const features3 = (queryData3?.official?.features || []).reduce(reducer, {})
-    expect(features3.circle_management).toBe(false)
+    expect(features3.circle_management.enabled).toBe(false)
 
     const { data: queryData4 } = await serverAdmin.executeOperation({
       query: QUERY_FEATURES,
     })
     const features4 = (queryData4?.official?.features || []).reduce(reducer, {})
-    expect(features4.circle_management).toBe(true)
+    expect(features4.circle_management.enabled).toBe(true)
 
     // set feature as seeding
     const updateData4 = await serverAdmin.executeOperation({
@@ -500,13 +504,13 @@ describe('manage feature flag', () => {
       query: QUERY_FEATURES,
     })
     const features5 = (queryData5?.official?.features || []).reduce(reducer, {})
-    expect(features5.circle_management).toBe(true)
+    expect(features5.circle_management.enabled).toBe(true)
 
     const { data: queryData6 } = await serverAdmin.executeOperation({
       query: QUERY_FEATURES,
     })
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
-    expect(features6.circle_management).toBe(true)
+    expect(features6.circle_management.enabled).toBe(true)
 
     // reset feature as on
     const updateData5 = await serverAdmin.executeOperation({
@@ -514,6 +518,14 @@ describe('manage feature flag', () => {
       variables: { input: { name: 'circle_management', flag: 'on' } },
     })
     expect(_get(updateData5, 'data.setFeature.enabled')).toBe(true)
+
+    // set value
+    const updateData6 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
+      variables: { input: { name: 'spam_detection', flag: 'on', value: 0.9 } },
+    })
+    expect(_get(updateData6, 'data.setFeature.enabled')).toBe(true)
+    expect(_get(updateData6, 'data.setFeature.value')).toBe(0.9)
   })
 
   test('manage seeding user', async () => {
@@ -1028,5 +1040,40 @@ describe('setBoost', () => {
     expect(errors2).toBeUndefined()
     expect(data2.setBoost.id).toBeDefined()
     expect(data2.setBoost.oss.boost).toBe(10)
+  })
+})
+
+describe('setSpamStatus', () => {
+  const SET_SPAM_STATUS = /* GraphQL */ `
+    mutation ($input: SetSpamStatusInput!) {
+      setSpamStatus(input: $input) {
+        id
+        ... on Article {
+          oss {
+            spamStatus {
+              isSpam
+            }
+          }
+        }
+      }
+    }
+  `
+  test('set spam status successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
   })
 })

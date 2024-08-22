@@ -82,3 +82,15 @@ export const inSearch: GQLArticleOssResolvers['inSearch'] = async (
 
   return setting.inSearch
 }
+
+export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
+  { id, spamScore, isSpam },
+  _,
+  { dataSources: { articleService } }
+) => {
+  if (!spamScore) {
+    articleService.detectSpam(id)
+  }
+
+  return { score: spamScore, isSpam }
+}

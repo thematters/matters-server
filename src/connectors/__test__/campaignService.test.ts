@@ -11,20 +11,24 @@ import {
   USER_STATE,
   CAMPAIGN_USER_STATE,
   ARTICLE_STATE,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { CampaignService, AtomService } from 'connectors'
+import { CampaignService, AtomService, SystemService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let campaignService: CampaignService
 let atomService: AtomService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   campaignService = new CampaignService(connections)
   atomService = new AtomService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -32,8 +36,6 @@ afterAll(async () => {
 })
 const campaignData = {
   name: 'test',
-  description: 'test',
-  link: 'https://test.com',
   applicationPeriod: [
     new Date('2010-01-01 11:30'),
     new Date('2010-01-01 15:00'),
@@ -51,14 +53,52 @@ describe('create writing_challenge campaign', () => {
     expect(campaign).toBeDefined()
     expect(campaign.state).toBe(CAMPAIGN_STATE.pending)
 
+    // zero announcements
+    const noAnnouncements = await campaignService.findAnnouncements(campaign.id)
+    expect(noAnnouncements.length).toBe(0)
+
+    // add announcements
+    await campaignService.updateAnnouncements(campaign.id, ['1', '2'])
+    const announcements1 = await campaignService.findAnnouncements(campaign.id)
+    expect(announcements1.length).toBe(2)
+
+    // add more announcements
+    await campaignService.updateAnnouncements(campaign.id, ['1', '2', '3'])
+    const announcements2 = await campaignService.findAnnouncements(campaign.id)
+    expect(announcements2.length).toBe(3)
+
+    // archived articles are excluded
+    const archivedArticleId = '4'
+    await atomService.update({
+      table: 'article',
+      where: { id: archivedArticleId },
+      data: { state: USER_STATE.archived },
+    })
+    await campaignService.updateAnnouncements(campaign.id, [
+      '1',
+      '2',
+      '3',
+      archivedArticleId,
+    ])
+    const announcements3 = await campaignService.findAnnouncements(campaign.id)
+    expect(announcements3.length).toBe(3)
+
     // add stages
 
-    const stages1 = [{ name: 'stage1' }, { name: 'stage2' }]
+    const stageDescription = 'stage description'
+    const stages1 = [
+      { name: 'stage1' },
+      { name: 'stage2', description: stageDescription },
+    ]
     const stages1Result = await campaignService.updateStages(
       campaign.id,
       stages1
     )
     expect(stages1Result.map((s) => s.name)).toEqual(stages1.map((s) => s.name))
+    expect(stages1Result.map((s) => s.description)).toEqual([
+      '',
+      stageDescription,
+    ])
     expect(stages1Result.map((s) => s.period)).toEqual([null, null])
 
     // update stages
@@ -100,8 +140,10 @@ describe('find and count campaigns', () => {
   beforeAll(async () => {
     pendingCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
+      link: 'https://test.com',
       state: CAMPAIGN_STATE.pending,
     })
+    expect(pendingCampaign.link).toBe('https://test.com')
     activeCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,
@@ -207,7 +249,7 @@ describe('find and count articles', () => {
   test('find all', async () => {
     const [_articles, totalCount] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     expect(_articles.length).toBe(2)
     expect(totalCount).toBe(2)
@@ -215,17 +257,17 @@ describe('find and count articles', () => {
   test('find with filterStageId', async () => {
     const [_articles, totalCount] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 },
+      { take: 10 },
       { filterStageId: stages[0].id }
     )
     expect(_articles.length).toBe(1)
-    expect(_articles[0].id).toBe(articles[0].id)
+    expect(_articles[0].articleId).toBe(articles[0].id)
     expect(totalCount).toBe(1)
   })
   test('inactive articles are excluded', async () => {
     const [, totalCount1] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     await atomService.update({
       table: 'article',
@@ -234,7 +276,7 @@ describe('find and count articles', () => {
     })
     const [, totalCount2] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     expect(totalCount2).toBe(totalCount1 - 1)
     await atomService.update({
@@ -242,6 +284,30 @@ describe('find and count articles', () => {
       where: { id: articles[0].id },
       data: { state: ARTICLE_STATE.active },
     })
+  })
+  test('spam are excluded', async () => {
+    const [, totalCount1] = await campaignService.findAndCountArticles(
+      campaign.id,
+      { take: 10 }
+    )
+    const spamThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
+    })
+
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+
+    const [, totalCount2] = await campaignService.findAndCountArticles(
+      campaign.id,
+      { take: 10 }
+    )
+    expect(totalCount2).toBe(totalCount1 - 1)
   })
 })
 
