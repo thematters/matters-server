@@ -20,7 +20,7 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     query: collectionService.findArticles(collectionId),
     args: input,
     orderBy,
-    idCursorColumn: 'id',
+    cursorColumn: 'id',
   })
 }
 

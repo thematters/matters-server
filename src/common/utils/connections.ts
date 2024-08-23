@@ -172,12 +172,12 @@ export const connectionFromQuery = async <T extends { id: string }>({
   query,
   args,
   orderBy,
-  idCursorColumn,
+  cursorColumn,
 }: {
   query: Knex.QueryBuilder<T>
   orderBy: { column: keyof T; order: 'asc' | 'desc' }
 
-  idCursorColumn: keyof T
+  cursorColumn: keyof T
   args: ConnectionArguments
 }): Promise<Connection<T>> => {
   const decodeCursor = (cursor: ConnectionCursor) =>
@@ -197,22 +197,27 @@ export const connectionFromQuery = async <T extends { id: string }>({
   }
 
   const knex = query.client.queryBuilder()
-  const baseTableName = 'connection_base_table'
+  const baseTableName = 'connection_base'
   knex.with(
     baseTableName,
-    query
-      .orderBy([orderBy])
+    query.client
+      .queryBuilder()
+      .from(query.as('base'))
+      .select('*')
+      .orderBy(orderBy.column as string, orderBy.order)
       .modify(selectWithTotalCount)
-      .modify(selectWithRowNumber)
+      .modify(selectWithRowNumber, orderBy)
   )
-  const getOrderCursor = (idCursor: string) =>
-    orderBy.column === idCursorColumn
-      ? idCursor
-      : knex.client.raw(
-          `SELECT ${
-            orderBy.column as string
-          } FROM ${baseTableName} WHERE id = ${idCursor}`
-        )
+  const getOrderCursor = (cursor: string) => {
+    const value = decodeCursor(cursor)
+    return orderBy.column === cursorColumn
+      ? cursor
+      : knex.client.raw('(SELECT ?? FROM ?? WHERE id = ?)', [
+          orderBy.column,
+          baseTableName,
+          value,
+        ])
+  }
 
   // fetch before edges
   let beforeWhereOperator = orderBy.order === 'asc' ? '<' : '>'
@@ -227,13 +232,13 @@ export const connectionFromQuery = async <T extends { id: string }>({
           .where(
             orderBy.column as string,
             beforeWhereOperator,
-            getOrderCursor(decodeCursor(before))
+            getOrderCursor(before)
           )
           .limit(last)
       : []
 
   const beforeEdges = beforeNodes.map((node) => ({
-    cursor: encodeCursor(node[idCursorColumn] as string),
+    cursor: encodeCursor(node[cursorColumn] as string),
     node,
   }))
 
@@ -249,13 +254,13 @@ export const connectionFromQuery = async <T extends { id: string }>({
         .where(
           orderBy.column as string,
           afterWhereOperator,
-          getOrderCursor(decodeCursor(after))
+          getOrderCursor(after)
         )
         .limit(first)
     : await knex.clone().from(baseTableName).limit(first)
 
   const afterEdges = afterNodes.map((node) => ({
-    cursor: encodeCursor(node[idCursorColumn] as string),
+    cursor: encodeCursor(node[cursorColumn] as string),
     node,
   }))
 
