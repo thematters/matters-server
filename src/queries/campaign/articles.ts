@@ -1,38 +1,31 @@
 import type { GQLWritingChallengeResolvers, DataSources } from 'definitions'
 
-import { NODE_TYPES, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
+import { NODE_TYPES } from 'common/enums'
 import { UserInputError } from 'common/errors'
-import {
-  connectionFromArrayWithKeys,
-  cursorToKeys,
-  fromGlobalId,
-} from 'common/utils'
+import { connectionFromQuery, fromGlobalId } from 'common/utils'
 
 const resolver: GQLWritingChallengeResolvers['articles'] = async (
   { id: campaignId },
   { input: { first, after, filter } },
-  { dataSources: { campaignService, atomService } }
+  { dataSources: { campaignService, atomService, systemService } }
 ) => {
   const stageId = filter?.stage
     ? await validateStage(filter.stage, { atomService })
     : undefined
 
-  const [campaignArticles, totalCount] =
-    await campaignService.findAndCountArticles(
-      campaignId,
-      {
-        take: first ?? DEFAULT_TAKE_PER_PAGE,
-        skip: after ? cursorToKeys(after).idCursor : undefined,
-      },
-      { filterStageId: stageId }
-    )
-  const nodes = await Promise.all(
-    campaignArticles.map(async ({ articleId, id }) => {
-      const article = await atomService.articleIdLoader.load(articleId)
-      return { ...article, __cursor: id }
-    })
-  )
-  return connectionFromArrayWithKeys(nodes, { after }, totalCount)
+  const spamThreshold = await systemService.getSpamThreshold()
+
+  const query = campaignService.findArticles(campaignId, {
+    filterStageId: stageId,
+    spamThreshold,
+  })
+
+  return connectionFromQuery({
+    query,
+    orderBy: { column: 'order', order: 'desc' },
+    cursorColumn: 'id',
+    args: { first, after },
+  })
 }
 
 const validateStage = async (
