@@ -23,5 +23,5 @@ export const excludeSpam = (
   }
 }
 
-export const selectWithTotalCount = async (builder: Knex.QueryBuilder) =>
+export const selectWithTotalCount = (builder: Knex.QueryBuilder) =>
   builder.select(builder.client.raw('count(1) OVER() ::integer AS total_count'))
