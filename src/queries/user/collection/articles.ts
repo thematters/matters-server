@@ -1,48 +1,27 @@
 import type { GQLCollectionResolvers } from 'definitions'
 
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-  fromConnectionArgs,
-} from 'common/utils'
+import { connectionFromArray, connectionFromQuery } from 'common/utils'
 
 const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },
-  { input: { first, after, reversed } },
-  { dataSources: { atomService, collectionService } }
+  { input },
+  { dataSources: { collectionService } }
 ) => {
   if (!collectionId) {
-    return connectionFromArray([], { first, after })
+    return connectionFromArray([], input)
   }
 
-  const { skip, take } = fromConnectionArgs({ first, after })
-
-  if (take === 0) {
-    const [, count] = await collectionService.findAndCountArticlesInCollection(
-      collectionId,
-      {
-        skip,
-        take: 1,
-        reversed,
-      }
-    )
-    return connectionFromArray([], { first, after }, count)
+  const orderBy = {
+    column: 'order',
+    order: input.reversed ? ('desc' as const) : ('asc' as const),
   }
 
-  const [articles, totalCount] =
-    await collectionService.findAndCountArticlesInCollection(collectionId, {
-      skip,
-      take,
-      reversed,
-    })
-
-  return connectionFromPromisedArray(
-    atomService.articleIdLoader.loadMany(
-      articles.map(({ articleId }) => articleId)
-    ),
-    { first, after },
-    totalCount
-  )
+  return connectionFromQuery({
+    query: collectionService.findArticles(collectionId),
+    args: input,
+    orderBy,
+    idCursorColumn: 'id',
+  })
 }
 
 export default resolver

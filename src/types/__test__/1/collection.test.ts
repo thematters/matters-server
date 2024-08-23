@@ -553,7 +553,7 @@ describe('add articles to collections', () => {
     expect(data?.addCollectionsArticles).toEqual([])
   })
   test('articles can be empty', async () => {
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
@@ -562,6 +562,7 @@ describe('add articles to collections', () => {
         },
       },
     })
+    expect(errors).toBeUndefined()
     expect(data?.addCollectionsArticles[0].id).toBe(collectionId1)
     expect(data?.addCollectionsArticles[1].id).toBe(collectionId2)
     expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(0)
@@ -581,7 +582,7 @@ describe('add articles to collections', () => {
       articleGlobalId1
     )
 
-    const { data: data2 } = await server.executeOperation({
+    const { errors: errors2, data: data2 } = await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
@@ -590,6 +591,7 @@ describe('add articles to collections', () => {
         },
       },
     })
+    expect(errors2).toBeUndefined()
     expect(data2?.addCollectionsArticles[0].articles.totalCount).toBe(2)
     expect(data2?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
       articleGlobalId4
@@ -688,34 +690,35 @@ describe('delete articles in collections', () => {
 describe('reorder articles in collections', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
-  let collectionId: string
+  let collectionGlobalId: string
   beforeAll(async () => {
     server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'my collection' } },
     })
-    collectionId = data?.putCollection?.id
+    collectionGlobalId = data?.putCollection?.id
     await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
-          collections: [collectionId],
+          collections: [collectionGlobalId],
           articles: [articleGlobalId1, articleGlobalId4],
         },
       },
     })
   })
   test('success', async () => {
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: REORDER_COLLECTION_ARTICLES,
       variables: {
         input: {
-          collection: collectionId,
+          collection: collectionGlobalId,
           moves: { item: articleGlobalId1, newPosition: 0 },
         },
       },
     })
+    expect(errors).toBeUndefined()
     expect(data?.reorderCollectionArticles.articles.edges[0].node.id).toBe(
       articleGlobalId1
     )

@@ -67,7 +67,9 @@ export default /* GraphQL */ `
   input CollectionArticlesInput {
     after: String
     first: Int
-    reversed: Boolean = True
+    includeAfter: Boolean! = false
+    includeBefore: Boolean! = false
+    reversed: Boolean! = true
   }
 
   input PutCollectionInput {

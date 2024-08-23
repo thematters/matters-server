@@ -1,9 +1,4 @@
-import type {
-  Collection,
-  CollectionArticle,
-  Connections,
-  User,
-} from 'definitions'
+import type { Collection, Connections, User, Article } from 'definitions'
 
 import { Knex } from 'knex'
 
@@ -98,7 +93,7 @@ export class CollectionService extends BaseService<Collection> {
 
   public findArticles = (collectionId: string) =>
     this.knexRO('collection_article')
-      .select('article_id', 'order')
+      .select('order', 'article.*')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ collectionId, state: ARTICLE_STATE.active })
 
@@ -109,7 +104,7 @@ export class CollectionService extends BaseService<Collection> {
       take,
       reversed = true,
     }: { skip?: number; take?: number; reversed?: boolean } = {}
-  ): Promise<[CollectionArticle[], number]> => {
+  ): Promise<[Array<Article & { order: string }>, number]> => {
     const query = this.findArticles(collectionId)
     query
       .orderBy('order', reversed ? 'desc' : 'asc')
@@ -190,7 +185,7 @@ export class CollectionService extends BaseService<Collection> {
       throw new UserInputError('Invalid newPosition')
     }
 
-    const articleIds = collectionArticles.map(({ articleId }) => articleId)
+    const articleIds = collectionArticles.map(({ id }) => id)
     if (moves.some(({ articleId }) => !articleIds.includes(articleId))) {
       throw new UserInputError('Invalid articleId')
     }
@@ -200,7 +195,7 @@ export class CollectionService extends BaseService<Collection> {
     for (const { articleId, newPosition } of moves) {
       if (
         newPosition ===
-        collectionArticles.findIndex(({ articleId: id }) => id === articleId)
+        collectionArticles.findIndex(({ id }) => id === articleId)
       ) {
         continue
       } else if (newPosition === 0) {
@@ -209,7 +204,7 @@ export class CollectionService extends BaseService<Collection> {
           .update({ order })
           .where({ articleId, collectionId })
         const [article] = collectionArticles.splice(
-          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          collectionArticles.findIndex(({ id }) => id === articleId),
           1
         )
         collectionArticles.unshift({ ...article, order: order.toString() })
@@ -220,14 +215,14 @@ export class CollectionService extends BaseService<Collection> {
           .update({ order })
           .where({ articleId, collectionId })
         const [article] = collectionArticles.splice(
-          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          collectionArticles.findIndex(({ id }) => id === articleId),
           1
         )
         collectionArticles.push({ ...article, order: order.toString() })
       } else {
         // first put aside the article to be moved
         const [article] = collectionArticles.splice(
-          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          collectionArticles.findIndex(({ id }) => id === articleId),
           1
         )
         const prevOrder = parseFloat(collectionArticles[newPosition].order)

@@ -37,6 +37,7 @@ export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
 export const BCRYPT_ROUNDS = 12
 
 export const DEFAULT_TAKE_PER_PAGE = 10
+export const MAX_TAKE_PER_PAGE = 500
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 

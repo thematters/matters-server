@@ -1063,7 +1063,9 @@ export type GQLCollectionContainsArgs = {
 export type GQLCollectionArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
-  reversed?: InputMaybe<Scalars['Boolean']['input']>
+  includeAfter?: Scalars['Boolean']['input']
+  includeBefore?: Scalars['Boolean']['input']
+  reversed?: Scalars['Boolean']['input']
 }
 
 export type GQLCollectionConnection = GQLConnection & {

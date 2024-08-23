@@ -82,7 +82,7 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
         throw new ActionLimitExceededError('Action limit exceeded')
       }
       if (originalArticles.length > 0) {
-        const originalArticleIds = originalArticles.map((a) => a.articleId)
+        const originalArticleIds = originalArticles.map((a) => a.id)
         const duplicatedArticleIds = originalArticleIds.filter((id) =>
           articleIds.includes(id)
         )
