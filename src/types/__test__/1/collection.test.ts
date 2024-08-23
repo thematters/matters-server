@@ -11,7 +11,7 @@ let collectionService: CollectionService
 beforeAll(async () => {
   connections = await genConnections()
   collectionService = new CollectionService(connections)
-}, 50000)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -20,21 +20,6 @@ afterAll(async () => {
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
 
-const GET_COLLECTION = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: $input) {
-      ... on Collection {
-        id
-        title
-        author {
-          id
-        }
-        description
-        cover
-      }
-    }
-  }
-`
 const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
   query {
     viewer {
@@ -53,21 +38,6 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
-const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    viewer {
-      collections(input: { first: null }) {
-        edges {
-          node {
-            id
-            contains(input: $input)
-          }
-        }
-      }
-    }
-  }
-`
-
 const PUT_COLLECTION = /* GraphQL */ `
   mutation ($input: PutCollectionInput!) {
     putCollection(input: $input) {
@@ -77,11 +47,6 @@ const PUT_COLLECTION = /* GraphQL */ `
       cover
       pinned
     }
-  }
-`
-const DEL_COLLECTIONS = /* GraphQL */ `
-  mutation ($input: DeleteCollectionsInput!) {
-    deleteCollections(input: $input)
   }
 `
 const ADD_COLLECTIONS_ARTICLES = /* GraphQL */ `
@@ -116,51 +81,22 @@ const DEL_COLLECTION_ARTICLES = /* GraphQL */ `
     }
   }
 `
-const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
-  mutation ($input: ReorderCollectionArticlesInput!) {
-    reorderCollectionArticles(input: $input) {
-      id
-      title
-      articles(input: { first: null }) {
-        totalCount
-        edges {
-          node {
+describe('get viewer collections', () => {
+  const GET_COLLECTION = /* GraphQL */ `
+    query ($input: NodeInput!) {
+      node(input: $input) {
+        ... on Collection {
+          id
+          title
+          author {
             id
           }
+          description
+          cover
         }
       }
     }
-  }
-`
-
-const GET_PINNED_WORKS = /* GraphQL */ `
-  query {
-    viewer {
-      pinnedWorks {
-        id
-        title
-      }
-    }
-  }
-`
-const GET_LATEST_WORKS = /* GraphQL */ `
-  query {
-    viewer {
-      latestWorks {
-        id
-        title
-        ... on Article {
-          revisedAt
-        }
-        ... on Collection {
-          updatedAt
-        }
-      }
-    }
-  }
-`
-
-describe('get viewer collections', () => {
+  `
   test('not logged-in user', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
@@ -363,6 +299,11 @@ describe('collections CURD', () => {
 })
 
 describe('delete collections', () => {
+  const DEL_COLLECTIONS = /* GraphQL */ `
+    mutation ($input: DeleteCollectionsInput!) {
+      deleteCollections(input: $input)
+    }
+  `
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let id: string
@@ -688,6 +629,23 @@ describe('delete articles in collections', () => {
 })
 
 describe('reorder articles in collections', () => {
+  const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
+    mutation ($input: ReorderCollectionArticlesInput!) {
+      reorderCollectionArticles(input: $input) {
+        id
+        title
+        articles(input: { first: null }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  `
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionGlobalId: string
@@ -726,6 +684,17 @@ describe('reorder articles in collections', () => {
 })
 
 describe('update pinned', () => {
+  const GET_PINNED_WORKS = /* GraphQL */ `
+    query {
+      viewer {
+        pinnedWorks {
+          id
+          title
+        }
+      }
+    }
+  `
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionId: string
@@ -792,6 +761,21 @@ describe('update pinned', () => {
 })
 
 describe('check article if in collections', () => {
+  const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
+    query ($input: NodeInput!) {
+      viewer {
+        collections(input: { first: null }) {
+          edges {
+            node {
+              id
+              contains(input: $input)
+            }
+          }
+        }
+      }
+    }
+  `
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionId: string
@@ -846,6 +830,23 @@ describe('check article if in collections', () => {
 })
 
 test('get latest works', async () => {
+  const GET_LATEST_WORKS = /* GraphQL */ `
+    query {
+      viewer {
+        latestWorks {
+          id
+          title
+          ... on Article {
+            revisedAt
+          }
+          ... on Collection {
+            updatedAt
+          }
+        }
+      }
+    }
+  `
+
   const server = await testClient({ isAuth: true, connections })
   const { data } = await server.executeOperation({
     query: GET_LATEST_WORKS,
@@ -858,7 +859,7 @@ test('get latest works', async () => {
   }
 })
 
-describe('like/unlike moment', () => {
+describe('like/unlike collection', () => {
   const LIKE_COLLECTION = /* GraphQL */ `
     mutation ($input: LikeCollectionInput!) {
       likeCollection(input: $input) {
