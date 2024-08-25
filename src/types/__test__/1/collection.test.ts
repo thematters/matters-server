@@ -2,15 +2,18 @@ import type { Connections } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { CollectionService } from 'connectors'
+import { CollectionService, ArticleService } from 'connectors'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
 let collectionService: CollectionService
+let articleService: ArticleService
+
 beforeAll(async () => {
   connections = await genConnections()
   collectionService = new CollectionService(connections)
+  articleService = new ArticleService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -645,8 +648,6 @@ describe('reorder articles in collections', () => {
       }
     }
   `
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionGlobalId: string
   beforeAll(async () => {
@@ -680,6 +681,178 @@ describe('reorder articles in collections', () => {
     expect(data?.reorderCollectionArticles.articles.edges[0].node.id).toBe(
       articleGlobalId1
     )
+  })
+})
+
+describe('get collection articles', () => {
+  const GET_COLLECTION_ARTICLES = /* GraphQL */ `
+    query (
+      $collectionInput: NodeInput!
+      $articleInput: CollectionArticlesInput!
+    ) {
+      node(input: $collectionInput) {
+        ... on Collection {
+          articles(input: $articleInput) {
+            totalCount
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  const authorId = '1'
+  const title = 'test pagination'
+  let server: any
+  let articleIds: string[]
+  let articleGlobalIds: string[]
+  beforeAll(async () => {
+    server = await testClient({ connections })
+    const articles = await articleService.findByAuthor(authorId)
+    expect(articles.length).toBeGreaterThanOrEqual(3)
+    articleIds = articles.map(({ id }) => id).sort()
+    articleGlobalIds = articleIds.map((id) =>
+      toGlobalId({ type: NODE_TYPES.Article, id })
+    )
+  })
+  test('no articles', async () => {
+    const collection = await collectionService.createCollection({
+      title,
+      authorId,
+    })
+    const collectionGlobalId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: collection.id,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 10 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data?.node.articles.totalCount).toBe(0)
+    expect(data?.node.articles.edges.length).toBe(0)
+  })
+  test('one article', async () => {
+    const collection = await collectionService.createCollection({
+      title,
+      authorId,
+    })
+    await collectionService.addArticles(collection.id, articleIds.slice(0, 1))
+    const collectionGlobalId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: collection.id,
+    })
+
+    const { errors, data } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 10 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data?.node.articles.totalCount).toBe(1)
+    expect(data?.node.articles.edges.length).toBe(1)
+    expect(data?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
+    expect(data?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data?.node.articles.pageInfo.hasNextPage).toBe(false)
+  })
+  test('multiple articles', async () => {
+    const collection = await collectionService.createCollection({
+      title,
+      authorId,
+    })
+    await collectionService.addArticles(collection.id, articleIds.slice(0, 3))
+    const collectionGlobalId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: collection.id,
+    })
+
+    // forward pagination
+    const { errors: errors1, data: data1 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 2, reversed: false },
+      },
+    })
+    expect(errors1).toBeUndefined()
+    expect(data1?.node.articles.totalCount).toBe(3)
+    expect(data1?.node.articles.edges.length).toBe(2)
+    expect(data1?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data1?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data1?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
+    expect(data1?.node.articles.edges[1].node.id).toBe(articleGlobalIds[1])
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          first: 2,
+          after: data1?.node.articles.pageInfo.endCursor,
+          reversed: false,
+        },
+      },
+    })
+
+    expect(errors2).toBeUndefined()
+    expect(data2?.node.articles.totalCount).toBe(3)
+    expect(data2?.node.articles.edges.length).toBe(1)
+    expect(data2?.node.articles.pageInfo.hasPreviousPage).toBe(true)
+    expect(data2?.node.articles.pageInfo.hasNextPage).toBe(false)
+    expect(data2?.node.articles.edges[0].node.id).toBe(articleGlobalIds[2])
+
+    // backward pagination
+    const { errors: errors3, data: data3 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          last: 1,
+          // 6
+          before: data2?.node.articles.pageInfo.endCursor,
+          reversed: false,
+        },
+      },
+    })
+    expect(errors3).toBeUndefined()
+    expect(data3?.node.articles.totalCount).toBe(3)
+    expect(data3?.node.articles.edges.length).toBe(1)
+    expect(data3?.node.articles.pageInfo.hasPreviousPage).toBe(true)
+    expect(data3?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data3?.node.articles.edges[0].node.id).toBe(articleGlobalIds[1])
+
+    const { errors: errors4, data: data4 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          last: 1,
+          before: data3?.node.articles.pageInfo.startCursor,
+          reversed: false,
+        },
+      },
+    })
+    expect(errors4).toBeUndefined()
+    expect(data4?.node.articles.totalCount).toBe(3)
+    expect(data4?.node.articles.edges.length).toBe(1)
+    expect(data4?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data4?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data4?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
   })
 })
 

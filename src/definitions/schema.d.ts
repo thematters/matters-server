@@ -1062,9 +1062,11 @@ export type GQLCollectionContainsArgs = {
 
 export type GQLCollectionArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
+  before?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   includeAfter?: Scalars['Boolean']['input']
   includeBefore?: Scalars['Boolean']['input']
+  last?: InputMaybe<Scalars['Int']['input']>
   reversed?: Scalars['Boolean']['input']
 }
 

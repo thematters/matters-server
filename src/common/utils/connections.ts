@@ -180,21 +180,20 @@ export const connectionFromQuery = async <T extends { id: string }>({
   cursorColumn: keyof T
   args: ConnectionArguments
 }): Promise<Connection<T>> => {
-  const decodeCursor = (cursor: ConnectionCursor) =>
-    Base64.decode(cursor).split(':')[1]
-  const encodeCursor = (value: string): ConnectionCursor =>
-    Base64.encodeURI(`${PREFIX}:${value}`)
   const { after, before, includeBefore, includeAfter } = args
+
+  if (after && before) {
+    throw new UserInputError(
+      'Cannot use both `after` and `before` at the same time.'
+    )
+  }
+
   const first =
     args.first === null
       ? MAX_TAKE_PER_PAGE
       : args.first ?? DEFAULT_TAKE_PER_PAGE
   const last =
     args.last === null ? MAX_TAKE_PER_PAGE : args.last ?? DEFAULT_TAKE_PER_PAGE
-
-  if (includeBefore && includeAfter) {
-    throw new UserInputError('Cannot include both before and after.')
-  }
 
   const knex = query.client.queryBuilder()
   const baseTableName = 'connection_base'
@@ -208,13 +207,18 @@ export const connectionFromQuery = async <T extends { id: string }>({
       .modify(selectWithTotalCount)
       .modify(selectWithRowNumber, orderBy)
   )
+  const decodeCursor = (cursor: ConnectionCursor) =>
+    Base64.decode(cursor).split(':')[1]
+  const encodeCursor = (value: string): ConnectionCursor =>
+    Base64.encodeURI(`${PREFIX}:${value}`)
   const getOrderCursor = (cursor: string) => {
     const value = decodeCursor(cursor)
     return orderBy.column === cursorColumn
       ? cursor
-      : knex.client.raw('(SELECT ?? FROM ?? WHERE id = ?)', [
+      : knex.client.raw('(SELECT ?? FROM ?? WHERE ?? = ?)', [
           orderBy.column,
           baseTableName,
+          cursorColumn,
           value,
         ])
   }
@@ -229,6 +233,10 @@ export const connectionFromQuery = async <T extends { id: string }>({
       ? await knex
           .clone()
           .from(baseTableName)
+          .orderBy(
+            orderBy.column as string,
+            orderBy.order === 'asc' ? 'desc' : 'asc'
+          )
           .where(
             orderBy.column as string,
             beforeWhereOperator,
@@ -257,6 +265,8 @@ export const connectionFromQuery = async <T extends { id: string }>({
           getOrderCursor(after)
         )
         .limit(first)
+    : before
+    ? []
     : await knex.clone().from(baseTableName).limit(first)
 
   const afterEdges = afterNodes.map((node) => ({
@@ -264,7 +274,7 @@ export const connectionFromQuery = async <T extends { id: string }>({
     node,
   }))
 
-  const edges = beforeEdges.concat(afterEdges)
+  const edges = before ? beforeEdges : afterEdges
 
   const firstEdge = edges[0]
   const lastEdge = edges[edges.length - 1]
