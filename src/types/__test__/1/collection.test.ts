@@ -823,7 +823,6 @@ describe('get collection articles', () => {
         collectionInput: { id: collectionGlobalId },
         articleInput: {
           last: 1,
-          // 6
           before: data2?.node.articles.pageInfo.endCursor,
           reversed: false,
         },
@@ -854,12 +853,16 @@ describe('get collection articles', () => {
     expect(data4?.node.articles.pageInfo.hasNextPage).toBe(true)
     expect(data4?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
 
-    // reversed by default
+    // backward pagination order is correct
     const { errors: errors5, data: data5 } = await server.executeOperation({
       query: GET_COLLECTION_ARTICLES,
       variables: {
         collectionInput: { id: collectionGlobalId },
-        articleInput: { first: 2 },
+        articleInput: {
+          last: 2,
+          before: data2?.node.articles.pageInfo.endCursor,
+          reversed: false,
+        },
       },
     })
     expect(errors5).toBeUndefined()
@@ -867,28 +870,44 @@ describe('get collection articles', () => {
     expect(data5?.node.articles.edges.length).toBe(2)
     expect(data5?.node.articles.pageInfo.hasPreviousPage).toBe(false)
     expect(data5?.node.articles.pageInfo.hasNextPage).toBe(true)
-    expect(data5?.node.articles.edges[0].node.id).toBe(articleGlobalIds[2])
+    expect(data5?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
     expect(data5?.node.articles.edges[1].node.id).toBe(articleGlobalIds[1])
 
-    // includeAfter
+    // reversed by default
     const { errors: errors6, data: data6 } = await server.executeOperation({
       query: GET_COLLECTION_ARTICLES,
       variables: {
         collectionInput: { id: collectionGlobalId },
-        articleInput: {
-          first: 2,
-          after: data5?.node.articles.pageInfo.endCursor,
-          includeAfter: true,
-        },
+        articleInput: { first: 2 },
       },
     })
     expect(errors6).toBeUndefined()
     expect(data6?.node.articles.totalCount).toBe(3)
     expect(data6?.node.articles.edges.length).toBe(2)
-    expect(data6?.node.articles.pageInfo.hasPreviousPage).toBe(true)
-    expect(data6?.node.articles.pageInfo.hasNextPage).toBe(false)
-    expect(data6?.node.articles.edges[0].node.id).toBe(articleGlobalIds[1])
-    expect(data6?.node.articles.edges[1].node.id).toBe(articleGlobalIds[0])
+    expect(data6?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data6?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data6?.node.articles.edges[0].node.id).toBe(articleGlobalIds[2])
+    expect(data6?.node.articles.edges[1].node.id).toBe(articleGlobalIds[1])
+
+    // includeAfter
+    const { errors: errors7, data: data7 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          first: 2,
+          after: data6?.node.articles.pageInfo.endCursor,
+          includeAfter: true,
+        },
+      },
+    })
+    expect(errors7).toBeUndefined()
+    expect(data7?.node.articles.totalCount).toBe(3)
+    expect(data7?.node.articles.edges.length).toBe(2)
+    expect(data7?.node.articles.pageInfo.hasPreviousPage).toBe(true)
+    expect(data7?.node.articles.pageInfo.hasNextPage).toBe(false)
+    expect(data7?.node.articles.edges[0].node.id).toBe(articleGlobalIds[1])
+    expect(data7?.node.articles.edges[1].node.id).toBe(articleGlobalIds[0])
 
     // return total count if first is 0
     const { errors: errors0, data: data0 } = await server.executeOperation({
