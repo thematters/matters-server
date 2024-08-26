@@ -32,6 +32,7 @@ export interface Draft {
   sensitiveByAuthor: boolean
   archived: boolean
   campaigns: any
+  indentFirstLine: boolean
   createdAt: Date
   updatedAt: Date
 }

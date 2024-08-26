@@ -57,13 +57,11 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       replyToDonator,
       iscnPublish,
       canComment,
+      indentFirstLine,
       campaigns,
     },
   },
-  {
-    viewer,
-    dataSources: { atomService, draftService, systemService, campaignService },
-  }
+  { viewer, dataSources: { atomService, systemService, campaignService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -103,6 +101,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   }
 
   // check collection
+  // TODO: rename collection to connection
   const collection = collectionGlobalId
     ? uniq(
         collectionGlobalId
@@ -163,6 +162,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       replyToDonator,
       iscnPublish,
       canComment,
+      indentFirstLine,
       campaigns:
         campaigns &&
         JSON.stringify(
@@ -256,10 +256,14 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
 
     // update
     const resetCircle = circleGlobalId === null
-    return draftService.baseUpdate(dbId, {
-      ...data,
-      // reset fields
-      circleId: resetCircle ? null : data.circleId,
+    return atomService.update({
+      table: 'draft',
+      where: { id: dbId },
+      data: {
+        ...data,
+        // reset fields
+        circleId: resetCircle ? null : data.circleId,
+      },
     })
   }
 
@@ -276,10 +280,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       )
     }
 
-    const draft = (await draftService.baseCreate(data)) as Draft & {
-      [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
-    }
-    draft[CACHE_KEYWORD] = [
+    const draft = await atomService.create({ table: 'draft', data })
+    ;(
+      draft as Draft & {
+        [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
+      }
+    )[CACHE_KEYWORD] = [
       {
         id: viewer.id,
         type: NODE_TYPES.User,

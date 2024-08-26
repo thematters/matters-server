@@ -22,11 +22,10 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
-  { input: { id, iscnPublish } },
+  { input: { id: globalId, iscnPublish } },
   {
     viewer,
     dataSources: {
-      draftService,
       atomService,
       queues: { publicationQueue },
     },
@@ -45,8 +44,8 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   }
 
   // retrieve data from draft
-  const { id: draftDBId } = fromGlobalId(id)
-  const draft = await atomService.draftIdLoader.load(draftDBId)
+  const { id } = fromGlobalId(globalId)
+  const draft = await atomService.draftIdLoader.load(id)
   const isPublished = draft.publishState === PUBLISH_STATE.published
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
@@ -68,22 +67,26 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     return draft
   }
 
-  const draftPending = await draftService.baseUpdate(draft.id, {
-    content: normalizeArticleHTML(
-      sanitizeHTML(draft.content, { maxHardBreaks: -1, maxSoftBreaks: -1 }),
-      {
-        truncate: {
-          maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
-          keepProtocol: false,
-        },
-      }
-    ),
-    publishState: PUBLISH_STATE.pending,
-    iscnPublish,
+  const draftPending = await atomService.update({
+    table: 'draft',
+    where: { id: draft.id },
+    data: {
+      content: normalizeArticleHTML(
+        sanitizeHTML(draft.content, { maxHardBreaks: -1, maxSoftBreaks: -1 }),
+        {
+          truncate: {
+            maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+            keepProtocol: false,
+          },
+        }
+      ),
+      publishState: PUBLISH_STATE.pending,
+      iscnPublish,
+    },
   })
 
   // add job to queue
-  publicationQueue.publishArticle({ draftId: draftDBId, iscnPublish })
+  publicationQueue.publishArticle({ draftId: draft.id, iscnPublish })
   auditLog({
     actorId: viewer.id,
     action: AUDIT_LOG_ACTION.addPublishArticleJob,

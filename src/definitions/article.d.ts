@@ -45,6 +45,7 @@ export interface ArticleVersion {
   iscnId: string | null
   circleId: string | null
   description: string | null
+  indentFirstLine: boolean
   createdAt: Date
   updatedAt: Date
 }
