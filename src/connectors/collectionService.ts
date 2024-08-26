@@ -1,9 +1,4 @@
-import type {
-  Collection,
-  CollectionArticle,
-  Connections,
-  User,
-} from 'definitions'
+import type { Collection, Connections, User, Article } from 'definitions'
 
 import { Knex } from 'knex'
 
@@ -16,6 +11,7 @@ import {
   ActionLimitExceededError,
   ForbiddenByStateError,
 } from 'common/errors'
+import { selectWithTotalCount } from 'common/utils'
 import { BaseService, UserWorkService, UserService } from 'connectors'
 
 export class CollectionService extends BaseService<Collection> {
@@ -95,6 +91,12 @@ export class CollectionService extends BaseService<Collection> {
     return [records, totalCount]
   }
 
+  public findArticles = (collectionId: string) =>
+    this.knexRO('collection_article')
+      .select('order', 'article.*')
+      .innerJoin('article', 'article.id', 'article_id')
+      .where({ collectionId, state: ARTICLE_STATE.active })
+
   public findAndCountArticlesInCollection = async (
     collectionId: string,
     {
@@ -102,16 +104,11 @@ export class CollectionService extends BaseService<Collection> {
       take,
       reversed = true,
     }: { skip?: number; take?: number; reversed?: boolean } = {}
-  ): Promise<[CollectionArticle[], number]> => {
-    const records = await this.knex('collection_article')
-      .select(
-        'article_id',
-        'order',
-        this.knex.raw('count(1) OVER() AS total_count')
-      )
-      .innerJoin('article', 'article.id', 'article_id')
-      .where({ collectionId, state: ARTICLE_STATE.active })
+  ): Promise<[Array<Article & { order: string }>, number]> => {
+    const query = this.findArticles(collectionId)
+    query
       .orderBy('order', reversed ? 'desc' : 'asc')
+      .modify(selectWithTotalCount)
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -120,8 +117,8 @@ export class CollectionService extends BaseService<Collection> {
           builder.limit(take)
         }
       })
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-    return [records, totalCount]
+    const records = await query
+    return [records, records[0]?.totalCount || 0]
   }
 
   public containsArticle = async (collectionId: string, articleId: string) => {
@@ -188,7 +185,7 @@ export class CollectionService extends BaseService<Collection> {
       throw new UserInputError('Invalid newPosition')
     }
 
-    const articleIds = collectionArticles.map(({ articleId }) => articleId)
+    const articleIds = collectionArticles.map(({ id }) => id)
     if (moves.some(({ articleId }) => !articleIds.includes(articleId))) {
       throw new UserInputError('Invalid articleId')
     }
@@ -198,7 +195,7 @@ export class CollectionService extends BaseService<Collection> {
     for (const { articleId, newPosition } of moves) {
       if (
         newPosition ===
-        collectionArticles.findIndex(({ articleId: id }) => id === articleId)
+        collectionArticles.findIndex(({ id }) => id === articleId)
       ) {
         continue
       } else if (newPosition === 0) {
@@ -207,7 +204,7 @@ export class CollectionService extends BaseService<Collection> {
           .update({ order })
           .where({ articleId, collectionId })
         const [article] = collectionArticles.splice(
-          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          collectionArticles.findIndex(({ id }) => id === articleId),
           1
         )
         collectionArticles.unshift({ ...article, order: order.toString() })
@@ -218,14 +215,14 @@ export class CollectionService extends BaseService<Collection> {
           .update({ order })
           .where({ articleId, collectionId })
         const [article] = collectionArticles.splice(
-          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          collectionArticles.findIndex(({ id }) => id === articleId),
           1
         )
         collectionArticles.push({ ...article, order: order.toString() })
       } else {
         // first put aside the article to be moved
         const [article] = collectionArticles.splice(
-          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          collectionArticles.findIndex(({ id }) => id === articleId),
           1
         )
         const prevOrder = parseFloat(collectionArticles[newPosition].order)

@@ -66,8 +66,12 @@ export default /* GraphQL */ `
 
   input CollectionArticlesInput {
     after: String
-    first: Int
-    reversed: Boolean = True
+    first: Int @constraint(min: 0)
+    before: String
+    last: Int @constraint(min: 0)
+    includeAfter: Boolean! = false
+    includeBefore: Boolean! = false
+    reversed: Boolean! = true
   }
 
   input PutCollectionInput {

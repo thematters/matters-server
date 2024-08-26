@@ -2,16 +2,19 @@ import type { Connections } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { CollectionService } from 'connectors'
+import { CollectionService, ArticleService } from 'connectors'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
 let collectionService: CollectionService
+let articleService: ArticleService
+
 beforeAll(async () => {
   connections = await genConnections()
   collectionService = new CollectionService(connections)
-}, 50000)
+  articleService = new ArticleService(connections)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -20,21 +23,6 @@ afterAll(async () => {
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
 
-const GET_COLLECTION = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: $input) {
-      ... on Collection {
-        id
-        title
-        author {
-          id
-        }
-        description
-        cover
-      }
-    }
-  }
-`
 const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
   query {
     viewer {
@@ -53,21 +41,6 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
-const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    viewer {
-      collections(input: { first: null }) {
-        edges {
-          node {
-            id
-            contains(input: $input)
-          }
-        }
-      }
-    }
-  }
-`
-
 const PUT_COLLECTION = /* GraphQL */ `
   mutation ($input: PutCollectionInput!) {
     putCollection(input: $input) {
@@ -77,11 +50,6 @@ const PUT_COLLECTION = /* GraphQL */ `
       cover
       pinned
     }
-  }
-`
-const DEL_COLLECTIONS = /* GraphQL */ `
-  mutation ($input: DeleteCollectionsInput!) {
-    deleteCollections(input: $input)
   }
 `
 const ADD_COLLECTIONS_ARTICLES = /* GraphQL */ `
@@ -116,51 +84,22 @@ const DEL_COLLECTION_ARTICLES = /* GraphQL */ `
     }
   }
 `
-const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
-  mutation ($input: ReorderCollectionArticlesInput!) {
-    reorderCollectionArticles(input: $input) {
-      id
-      title
-      articles(input: { first: null }) {
-        totalCount
-        edges {
-          node {
+describe('get viewer collections', () => {
+  const GET_COLLECTION = /* GraphQL */ `
+    query ($input: NodeInput!) {
+      node(input: $input) {
+        ... on Collection {
+          id
+          title
+          author {
             id
           }
+          description
+          cover
         }
       }
     }
-  }
-`
-
-const GET_PINNED_WORKS = /* GraphQL */ `
-  query {
-    viewer {
-      pinnedWorks {
-        id
-        title
-      }
-    }
-  }
-`
-const GET_LATEST_WORKS = /* GraphQL */ `
-  query {
-    viewer {
-      latestWorks {
-        id
-        title
-        ... on Article {
-          revisedAt
-        }
-        ... on Collection {
-          updatedAt
-        }
-      }
-    }
-  }
-`
-
-describe('get viewer collections', () => {
+  `
   test('not logged-in user', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
@@ -363,6 +302,11 @@ describe('collections CURD', () => {
 })
 
 describe('delete collections', () => {
+  const DEL_COLLECTIONS = /* GraphQL */ `
+    mutation ($input: DeleteCollectionsInput!) {
+      deleteCollections(input: $input)
+    }
+  `
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let id: string
@@ -553,7 +497,7 @@ describe('add articles to collections', () => {
     expect(data?.addCollectionsArticles).toEqual([])
   })
   test('articles can be empty', async () => {
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
@@ -562,6 +506,7 @@ describe('add articles to collections', () => {
         },
       },
     })
+    expect(errors).toBeUndefined()
     expect(data?.addCollectionsArticles[0].id).toBe(collectionId1)
     expect(data?.addCollectionsArticles[1].id).toBe(collectionId2)
     expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(0)
@@ -581,7 +526,7 @@ describe('add articles to collections', () => {
       articleGlobalId1
     )
 
-    const { data: data2 } = await server.executeOperation({
+    const { errors: errors2, data: data2 } = await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
@@ -590,6 +535,7 @@ describe('add articles to collections', () => {
         },
       },
     })
+    expect(errors2).toBeUndefined()
     expect(data2?.addCollectionsArticles[0].articles.totalCount).toBe(2)
     expect(data2?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
       articleGlobalId4
@@ -686,43 +632,292 @@ describe('delete articles in collections', () => {
 })
 
 describe('reorder articles in collections', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
+    mutation ($input: ReorderCollectionArticlesInput!) {
+      reorderCollectionArticles(input: $input) {
+        id
+        title
+        articles(input: { first: null }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  `
   let server: any
-  let collectionId: string
+  let collectionGlobalId: string
   beforeAll(async () => {
     server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'my collection' } },
     })
-    collectionId = data?.putCollection?.id
+    collectionGlobalId = data?.putCollection?.id
     await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
-          collections: [collectionId],
+          collections: [collectionGlobalId],
           articles: [articleGlobalId1, articleGlobalId4],
         },
       },
     })
   })
   test('success', async () => {
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: REORDER_COLLECTION_ARTICLES,
       variables: {
         input: {
-          collection: collectionId,
+          collection: collectionGlobalId,
           moves: { item: articleGlobalId1, newPosition: 0 },
         },
       },
     })
+    expect(errors).toBeUndefined()
     expect(data?.reorderCollectionArticles.articles.edges[0].node.id).toBe(
       articleGlobalId1
     )
   })
 })
 
+describe('get collection articles', () => {
+  const GET_COLLECTION_ARTICLES = /* GraphQL */ `
+    query (
+      $collectionInput: NodeInput!
+      $articleInput: CollectionArticlesInput!
+    ) {
+      node(input: $collectionInput) {
+        ... on Collection {
+          articles(input: $articleInput) {
+            totalCount
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
+            edges {
+              cursor
+              node {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  const authorId = '1'
+  const title = 'test pagination'
+  let server: any
+  let articleIds: string[]
+  let articleGlobalIds: string[]
+  beforeAll(async () => {
+    server = await testClient({ connections })
+    const articles = await articleService.findByAuthor(authorId)
+    expect(articles.length).toBeGreaterThanOrEqual(3)
+    articleIds = articles.map(({ id }) => id).sort()
+    articleGlobalIds = articleIds.map((id) =>
+      toGlobalId({ type: NODE_TYPES.Article, id })
+    )
+  })
+  test('no articles', async () => {
+    const collection = await collectionService.createCollection({
+      title,
+      authorId,
+    })
+    const collectionGlobalId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: collection.id,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 10 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data?.node.articles.totalCount).toBe(0)
+    expect(data?.node.articles.edges.length).toBe(0)
+  })
+  test('one article', async () => {
+    const collection = await collectionService.createCollection({
+      title,
+      authorId,
+    })
+    await collectionService.addArticles(collection.id, articleIds.slice(0, 1))
+    const collectionGlobalId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: collection.id,
+    })
+
+    const { errors, data } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 10 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data?.node.articles.totalCount).toBe(1)
+    expect(data?.node.articles.edges.length).toBe(1)
+    expect(data?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
+    expect(data?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data?.node.articles.pageInfo.hasNextPage).toBe(false)
+  })
+  test('multiple articles', async () => {
+    const collection = await collectionService.createCollection({
+      title,
+      authorId,
+    })
+    await collectionService.addArticles(collection.id, articleIds.slice(0, 3))
+    const collectionGlobalId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: collection.id,
+    })
+
+    // forward pagination
+    const { errors: errors1, data: data1 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 2, reversed: false },
+      },
+    })
+    expect(errors1).toBeUndefined()
+    expect(data1?.node.articles.totalCount).toBe(3)
+    expect(data1?.node.articles.edges.length).toBe(2)
+    expect(data1?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data1?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data1?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
+    expect(data1?.node.articles.edges[1].node.id).toBe(articleGlobalIds[1])
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          first: 2,
+          after: data1?.node.articles.pageInfo.endCursor,
+          reversed: false,
+        },
+      },
+    })
+
+    expect(errors2).toBeUndefined()
+    expect(data2?.node.articles.totalCount).toBe(3)
+    expect(data2?.node.articles.edges.length).toBe(1)
+    expect(data2?.node.articles.pageInfo.hasPreviousPage).toBe(true)
+    expect(data2?.node.articles.pageInfo.hasNextPage).toBe(false)
+    expect(data2?.node.articles.edges[0].node.id).toBe(articleGlobalIds[2])
+
+    // backward pagination
+    const { errors: errors3, data: data3 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          last: 1,
+          // 6
+          before: data2?.node.articles.pageInfo.endCursor,
+          reversed: false,
+        },
+      },
+    })
+    expect(errors3).toBeUndefined()
+    expect(data3?.node.articles.totalCount).toBe(3)
+    expect(data3?.node.articles.edges.length).toBe(1)
+    expect(data3?.node.articles.pageInfo.hasPreviousPage).toBe(true)
+    expect(data3?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data3?.node.articles.edges[0].node.id).toBe(articleGlobalIds[1])
+
+    const { errors: errors4, data: data4 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          last: 1,
+          before: data3?.node.articles.pageInfo.startCursor,
+          reversed: false,
+        },
+      },
+    })
+    expect(errors4).toBeUndefined()
+    expect(data4?.node.articles.totalCount).toBe(3)
+    expect(data4?.node.articles.edges.length).toBe(1)
+    expect(data4?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data4?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data4?.node.articles.edges[0].node.id).toBe(articleGlobalIds[0])
+
+    // reversed by default
+    const { errors: errors5, data: data5 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: { first: 2 },
+      },
+    })
+    expect(errors5).toBeUndefined()
+    expect(data5?.node.articles.totalCount).toBe(3)
+    expect(data5?.node.articles.edges.length).toBe(2)
+    expect(data5?.node.articles.pageInfo.hasPreviousPage).toBe(false)
+    expect(data5?.node.articles.pageInfo.hasNextPage).toBe(true)
+    expect(data5?.node.articles.edges[0].node.id).toBe(articleGlobalIds[2])
+    expect(data5?.node.articles.edges[1].node.id).toBe(articleGlobalIds[1])
+
+    // includeAfter
+    const { errors: errors6, data: data6 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          first: 2,
+          after: data5?.node.articles.pageInfo.endCursor,
+          includeAfter: true,
+        },
+      },
+    })
+    expect(errors6).toBeUndefined()
+    expect(data6?.node.articles.totalCount).toBe(3)
+    expect(data6?.node.articles.edges.length).toBe(2)
+    expect(data6?.node.articles.pageInfo.hasPreviousPage).toBe(true)
+    expect(data6?.node.articles.pageInfo.hasNextPage).toBe(false)
+    expect(data6?.node.articles.edges[0].node.id).toBe(articleGlobalIds[1])
+    expect(data6?.node.articles.edges[1].node.id).toBe(articleGlobalIds[0])
+
+    // return total count if first is 0
+    const { errors: errors0, data: data0 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLES,
+      variables: {
+        collectionInput: { id: collectionGlobalId },
+        articleInput: {
+          first: 0,
+        },
+      },
+    })
+
+    expect(errors0).toBeUndefined()
+    expect(data0?.node.articles.totalCount).toBe(3)
+  })
+})
+
 describe('update pinned', () => {
+  const GET_PINNED_WORKS = /* GraphQL */ `
+    query {
+      viewer {
+        pinnedWorks {
+          id
+          title
+        }
+      }
+    }
+  `
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionId: string
@@ -789,6 +984,21 @@ describe('update pinned', () => {
 })
 
 describe('check article if in collections', () => {
+  const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
+    query ($input: NodeInput!) {
+      viewer {
+        collections(input: { first: null }) {
+          edges {
+            node {
+              id
+              contains(input: $input)
+            }
+          }
+        }
+      }
+    }
+  `
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionId: string
@@ -843,6 +1053,23 @@ describe('check article if in collections', () => {
 })
 
 test('get latest works', async () => {
+  const GET_LATEST_WORKS = /* GraphQL */ `
+    query {
+      viewer {
+        latestWorks {
+          id
+          title
+          ... on Article {
+            revisedAt
+          }
+          ... on Collection {
+            updatedAt
+          }
+        }
+      }
+    }
+  `
+
   const server = await testClient({ isAuth: true, connections })
   const { data } = await server.executeOperation({
     query: GET_LATEST_WORKS,
@@ -855,7 +1082,7 @@ test('get latest works', async () => {
   }
 })
 
-describe('like/unlike moment', () => {
+describe('like/unlike collection', () => {
   const LIKE_COLLECTION = /* GraphQL */ `
     mutation ($input: LikeCollectionInput!) {
       likeCollection(input: $input) {

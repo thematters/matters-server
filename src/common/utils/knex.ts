@@ -23,5 +23,16 @@ export const excludeSpam = (
   }
 }
 
-export const selectWithTotalCount = async (builder: Knex.QueryBuilder) =>
+export const selectWithTotalCount = (builder: Knex.QueryBuilder) =>
   builder.select(builder.client.raw('count(1) OVER() ::integer AS total_count'))
+
+export const selectWithRowNumber = (
+  builder: Knex.QueryBuilder,
+  orderBy: { column: string; order: 'asc' | 'desc' }
+) =>
+  builder.select(
+    builder.client.raw(
+      `row_number() OVER(ORDER BY ?? ${orderBy.order}) ::integer AS row_number`,
+      [orderBy.column]
+    )
+  )

@@ -3786,7 +3786,11 @@ type CollectionNotice implements Notice {
 input CollectionArticlesInput {
   after: String
   first: Int
-  reversed: Boolean
+  before: String
+  last: Int
+  includeAfter: Boolean! = false
+  includeBefore: Boolean! = false
+  reversed: Boolean! = true
 }
 
 input PutCollectionInput {

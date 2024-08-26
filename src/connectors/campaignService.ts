@@ -6,7 +6,6 @@ import type {
   Campaign,
   User,
   Article,
-  CampaignArticle,
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -38,9 +37,8 @@ import {
   toDatetimeRangeString,
   fromDatetimeRangeString,
   excludeSpam,
-  selectWithTotalCount,
 } from 'common/utils'
-import { AtomService, NotificationService, SystemService } from 'connectors'
+import { AtomService, NotificationService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
@@ -285,35 +283,24 @@ export class CampaignService {
     ]
   }
 
-  public findAndCountArticles = async (
+  public findArticles = (
     campaignId: string,
-    { take, skip }: { take: number; skip?: string },
-    { filterStageId }: { filterStageId?: string } = {}
-  ): Promise<[CampaignArticle[], number]> => {
+    {
+      filterStageId,
+      spamThreshold,
+    }: { filterStageId?: string; spamThreshold?: null | number } = {}
+  ) => {
     const knexRO = this.connections.knexRO
-    const systemService = new SystemService(this.connections)
-    const spamThreshold = await systemService.getSpamThreshold()
     const query = knexRO('campaign_article')
+      .select('article.*', knexRO.raw('campaign_article.id AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
-      .select('campaign_article.*')
-      .modify(selectWithTotalCount)
       .where({ campaignId, state: ARTICLE_STATE.active })
-      .modify((builder) => {
-        if (filterStageId) {
-          builder.where({ campaignStageId: filterStageId })
-        }
-      })
       .modify(excludeSpam, spamThreshold)
-      .orderBy('campaign_article.id', 'desc')
 
-    let records: Array<CampaignArticle & { totalCount: number }> = []
-    if (skip) {
-      records = await knexRO(query.as('t')).where('t.id', '<', skip).limit(take)
-    } else {
-      records = await query.limit(take)
+    if (filterStageId) {
+      query.where({ campaignStageId: filterStageId })
     }
-
-    return [records, records[0]?.totalCount ?? 0]
+    return query
   }
 
   public updateArticleCampaigns = async (
