@@ -235,7 +235,7 @@ export const connectionFromQuery = async <T extends { id: string }>({
           .from(baseTableName)
           .orderBy(
             orderBy.column as string,
-            orderBy.order === 'asc' ? 'desc' : 'asc'
+            orderBy.order === 'asc' ? 'desc' : 'asc' // for fetching records right after cursor by `limit`, will reverse back later
           )
           .where(
             orderBy.column as string,
@@ -245,10 +245,12 @@ export const connectionFromQuery = async <T extends { id: string }>({
           .limit(last)
       : []
 
-  const beforeEdges = beforeNodes.map((node) => ({
-    cursor: encodeCursor(node[cursorColumn] as string),
-    node,
-  }))
+  const beforeEdges = beforeNodes
+    .map((node) => ({
+      cursor: encodeCursor(node[cursorColumn] as string),
+      node,
+    }))
+    .reverse()
 
   // fetch after edges
   let afterWhereOperator = orderBy.order === 'asc' ? '>' : '<'
