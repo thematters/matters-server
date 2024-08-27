@@ -527,16 +527,19 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   }
 
   if (isMoment) {
-    notificationService.trigger({
-      event: NOTICE_TYPE.moment_new_comment,
-      actorId: viewer.id,
-      recipientId: targetAuthor,
-      entities: [
-        { type: 'target', entityTable: 'moment', entity: moment },
-        { type: 'comment', entityTable: 'comment', entity: newComment },
-      ],
-      tag: `put-comment:${newComment.id}`,
-    })
+    const isMentioned = !!data.mentionedUserIds?.includes(targetAuthor)
+    if (!isMentioned) {
+      notificationService.trigger({
+        event: NOTICE_TYPE.moment_new_comment,
+        actorId: viewer.id,
+        recipientId: targetAuthor,
+        entities: [
+          { type: 'target', entityTable: 'moment', entity: moment },
+          { type: 'comment', entityTable: 'comment', entity: newComment },
+        ],
+        tag: `put-comment:${newComment.id}`,
+      })
+    }
   }
 
   // article & circle & moment: notify mentioned users
