@@ -3,6 +3,7 @@ import type { GQLArticleResolvers } from 'definitions'
 import { stripHtml } from '@matters/ipns-site-generator'
 
 import { GCP } from 'connectors'
+import { stripMentions } from 'common/utils'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId },
@@ -22,7 +23,9 @@ const resolver: GQLArticleResolvers['language'] = async (
 
   const { content } = await atomService.articleContentIdLoader.load(contentId)
 
-  gcp.detectLanguage(stripHtml(content).slice(0, 300)).then((language) => {
+  const excerpt = stripHtml(stripMentions(content)).slice(0, 300)
+
+  gcp.detectLanguage(excerpt).then((language) => {
     language &&
       atomService.update({
         table: 'article_version',

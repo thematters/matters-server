@@ -19,3 +19,9 @@ export const extractMentionIds = (content: string): string[] => {
     return id
   })
 }
+
+export const stripMentions = (content: string): string => {
+  const $ = cheerio.load(content, null, false)
+  $('a.mention').remove()
+  return $.html()
+}
