@@ -24,9 +24,11 @@ import {
 const typeResolver = (type: string, result: any) => {
   const unionsAndInterfaces = [
     NODE_TYPES.Node,
+    NODE_TYPES.Notice,
     NODE_TYPES.Response,
     NODE_TYPES.TransactionTarget,
-    NODE_TYPES.Notice,
+    NODE_TYPES.PinnableWork,
+    NODE_TYPES.Writing,
   ]
 
   if (unionsAndInterfaces.indexOf(type as NODE_TYPES) >= 0 && result?.__type) {

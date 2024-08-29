@@ -183,6 +183,7 @@ export enum NODE_TYPES {
   Response = 'Response',
   TransactionTarget = 'TransactionTarget',
   PinnableWork = 'PinnableWork',
+  Writing = 'Writing',
 }
 
 export const APPRECIATION_TYPES = {
