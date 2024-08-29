@@ -82,6 +82,9 @@ export default /* GraphQL */ `
     "whether readers can comment"
     canComment: Boolean!
 
+    "whether the first line of paragraph should be indented"
+    indentFirstLine: Boolean!
+
     "associated campaigns"
     campaigns: [ArticleCampaign!]!
   }
@@ -114,6 +117,7 @@ export default /* GraphQL */ `
     accessType: ArticleAccessType
     sensitive: Boolean
     license: ArticleLicenseType
+    indentFirstLine: Boolean
 
     requestForDonation: String  @constraint(maxLength: 140)
     replyToDonator: String  @constraint(maxLength: 140)

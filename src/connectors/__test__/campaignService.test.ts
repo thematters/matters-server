@@ -11,24 +11,20 @@ import {
   USER_STATE,
   CAMPAIGN_USER_STATE,
   ARTICLE_STATE,
-  FEATURE_NAME,
-  FEATURE_FLAG,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { CampaignService, AtomService, SystemService } from 'connectors'
+import { CampaignService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let campaignService: CampaignService
 let atomService: AtomService
-let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   campaignService = new CampaignService(connections)
   atomService = new AtomService(connections)
-  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -247,38 +243,25 @@ describe('find and count articles', () => {
     )
   })
   test('find all', async () => {
-    const [_articles, totalCount] = await campaignService.findAndCountArticles(
-      campaign.id,
-      { take: 10 }
-    )
+    const _articles = await campaignService.findArticles(campaign.id)
     expect(_articles.length).toBe(2)
-    expect(totalCount).toBe(2)
   })
   test('find with filterStageId', async () => {
-    const [_articles, totalCount] = await campaignService.findAndCountArticles(
-      campaign.id,
-      { take: 10 },
-      { filterStageId: stages[0].id }
-    )
+    const _articles = await campaignService.findArticles(campaign.id, {
+      filterStageId: stages[0].id,
+    })
     expect(_articles.length).toBe(1)
-    expect(_articles[0].articleId).toBe(articles[0].id)
-    expect(totalCount).toBe(1)
+    expect(_articles[0].id).toBe(articles[0].id)
   })
   test('inactive articles are excluded', async () => {
-    const [, totalCount1] = await campaignService.findAndCountArticles(
-      campaign.id,
-      { take: 10 }
-    )
+    const _articles1 = await campaignService.findArticles(campaign.id)
     await atomService.update({
       table: 'article',
       where: { id: articles[0].id },
       data: { state: ARTICLE_STATE.archived },
     })
-    const [, totalCount2] = await campaignService.findAndCountArticles(
-      campaign.id,
-      { take: 10 }
-    )
-    expect(totalCount2).toBe(totalCount1 - 1)
+    const _articles2 = await campaignService.findArticles(campaign.id)
+    expect(_articles2.length).toBe(_articles1.length - 1)
     await atomService.update({
       table: 'article',
       where: { id: articles[0].id },
@@ -286,16 +269,8 @@ describe('find and count articles', () => {
     })
   })
   test('spam are excluded', async () => {
-    const [, totalCount1] = await campaignService.findAndCountArticles(
-      campaign.id,
-      { take: 10 }
-    )
     const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
+    const _articles1 = await campaignService.findArticles(campaign.id)
 
     await atomService.update({
       table: 'article',
@@ -303,11 +278,10 @@ describe('find and count articles', () => {
       data: { spamScore: spamThreshold + 0.1 },
     })
 
-    const [, totalCount2] = await campaignService.findAndCountArticles(
-      campaign.id,
-      { take: 10 }
-    )
-    expect(totalCount2).toBe(totalCount1 - 1)
+    const _articles2 = await campaignService.findArticles(campaign.id, {
+      spamThreshold,
+    })
+    expect(_articles2.length).toBe(_articles1.length - 1)
   })
 })
 

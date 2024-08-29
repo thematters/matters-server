@@ -67,8 +67,6 @@ describe('query draft', () => {
 })
 
 describe('put draft', () => {
-  let draftId: string
-
   test('edit draft summary', async () => {
     const { id, errors } = await putDraft(
       {
@@ -80,20 +78,16 @@ describe('put draft', () => {
       connections
     )
     expect(errors).toBeUndefined()
-    draftId = id
 
     const summary = 'my customized summary'
-    const result = await putDraft(
-      { draft: { id: draftId, summary } },
-      connections
-    )
+    const result = await putDraft({ draft: { id, summary } }, connections)
     expect(_get(result, 'summary')).toBe(summary)
     expect(_get(result, 'summaryCustomized')).toBe(true)
 
     // reset summary
     const resetResult1 = await putDraft(
       {
-        draft: { id: draftId, summary: null as any },
+        draft: { id, summary: null as any },
       },
       connections
     )
@@ -101,7 +95,7 @@ describe('put draft', () => {
     expect(_get(resetResult1, 'summaryCustomized')).toBe(false)
 
     const resetResult2 = await putDraft(
-      { draft: { id: draftId, summary: '' } },
+      { draft: { id, summary: '' } },
       connections
     )
     expect(_get(resetResult2, 'summaryCustomized')).toBe(false)
@@ -149,15 +143,10 @@ describe('put draft', () => {
     expect(_get(draft, 'tags.1')).toBe(tags[1])
     expect(_get(draft, 'tags.2')).toBe(tags[2])
 
-    // const { publishState } = await publishArticle({ id: draft.id })
-    // expect(publishState).toBe(PUBLISH_STATE.pending)
-    // to check dbTags.length should be 2;
-
-    draftId = draft.id
     // should retain the tags after setting something else, without changing tags
     const tagsResult1 = await putDraft(
       {
-        draft: { id: draftId, summary: 'any-summary' },
+        draft: { id: draft.id, summary: 'any-summary' },
       },
       connections
     )
@@ -169,7 +158,7 @@ describe('put draft', () => {
     const editFailedRes = await putDraft(
       {
         draft: {
-          id: draftId,
+          id: draft.id,
           tags: tags.slice(0, limit + 1),
         },
       },
@@ -181,14 +170,14 @@ describe('put draft', () => {
     // reset tags
     const resetResult1 = await putDraft(
       {
-        draft: { id: draftId, tags: null as any },
+        draft: { id: draft.id, tags: null as any },
       },
       connections
     )
     expect(_get(resetResult1, 'tags')).toBeNull()
 
     const resetResult2 = await putDraft(
-      { draft: { id: draftId, tags: [] } },
+      { draft: { id: draft.id, tags: [] } },
       connections
     )
     expect(_get(resetResult2, 'tags')).toBeNull()
@@ -239,7 +228,7 @@ describe('put draft', () => {
       _get(createSucceedRes, 'collection.edges.3.node.id'),
     ]).toEqual(collection.slice(0, limit))
 
-    draftId = createSucceedRes.id
+    const draftId = createSucceedRes.id
 
     // should retain the collection after setting something else, without changing collection
     const editRes = await putDraft(
@@ -362,9 +351,8 @@ describe('put draft', () => {
       },
       connections
     )
-    draftId = id
 
-    const result = await putDraft({ draft: { id: draftId } }, connections)
+    const result = await putDraft({ draft: { id } }, connections)
 
     // default license
     expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
@@ -372,7 +360,7 @@ describe('put draft', () => {
     // set to CC0
     const result2 = await putDraft(
       {
-        draft: { id: draftId, license: ARTICLE_LICENSE_TYPE.cc_0 as any },
+        draft: { id, license: ARTICLE_LICENSE_TYPE.cc_0 as any },
       },
       connections
     )
@@ -382,7 +370,7 @@ describe('put draft', () => {
     const changeCC2Result = await putDraft(
       {
         draft: {
-          id: draftId,
+          id,
           license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2 as any,
         },
       },
@@ -393,7 +381,7 @@ describe('put draft', () => {
     // change license to ARR should succeed
     const changeResult = await putDraft(
       {
-        draft: { id: draftId, license: ARTICLE_LICENSE_TYPE.arr as any },
+        draft: { id, license: ARTICLE_LICENSE_TYPE.arr as any },
       },
       connections
     )
@@ -402,7 +390,7 @@ describe('put draft', () => {
     // after changing only tags, the license and accessType should remain unchanged
     const changeTagsResult = await putDraft(
       {
-        draft: { id: draftId, tags: ['arr license test'] },
+        draft: { id, tags: ['arr license test'] },
       },
       connections
     )
@@ -412,7 +400,7 @@ describe('put draft', () => {
     const resetResult1 = await putDraft(
       {
         draft: {
-          id: draftId,
+          id,
           license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4 as any,
         },
       },
@@ -433,8 +421,7 @@ describe('put draft', () => {
       },
       connections
     )
-    draftId = id
-    const result = await putDraft({ draft: { id: draftId } }, connections)
+    const result = await putDraft({ draft: { id } }, connections)
 
     // default
     expect(_get(result, 'requestForDonation')).toBe(null)
@@ -444,14 +431,14 @@ describe('put draft', () => {
     const longText = 't'.repeat(141)
     const result2 = await putDraft(
       {
-        draft: { id: draftId, requestForDonation: longText },
+        draft: { id, requestForDonation: longText },
       },
       connections
     )
     expect(_get(result2, 'errors')).toBeDefined()
     const result3 = await putDraft(
       {
-        draft: { id: draftId, replyToDonator: longText },
+        draft: { id, replyToDonator: longText },
       },
       connections
     )
@@ -461,7 +448,7 @@ describe('put draft', () => {
     const text = 't'.repeat(140)
     const result4 = await putDraft(
       {
-        draft: { id: draftId, requestForDonation: text, replyToDonator: text },
+        draft: { id, requestForDonation: text, replyToDonator: text },
       },
       connections
     )
@@ -483,9 +470,8 @@ describe('put draft', () => {
     expect(canComment).toBeTruthy()
 
     // turn off canComment
-    draftId = id
     const result = await putDraft(
-      { draft: { id: draftId, canComment: false } },
+      { draft: { id, canComment: false } },
       connections
     )
 
@@ -493,7 +479,7 @@ describe('put draft', () => {
 
     // turn on canComment
     const result2 = await putDraft(
-      { draft: { id: draftId, canComment: true } },
+      { draft: { id, canComment: true } },
       connections
     )
 
@@ -515,19 +501,36 @@ describe('put draft', () => {
     expect(sensitiveByAuthor).toBeFalsy()
 
     // turn on by author
-    draftId = id
     const result = await putDraft(
-      { draft: { id: draftId, sensitive: true } },
+      { draft: { id, sensitive: true } },
       connections
     )
     expect(_get(result, 'sensitiveByAuthor')).toBeTruthy()
 
     // turn off by author
     const result2 = await putDraft(
-      { draft: { id: draftId, sensitive: false } },
+      { draft: { id, sensitive: false } },
       connections
     )
     expect(_get(result2, 'sensitiveByAuthor')).toBeFalsy()
+  })
+  test('edit indent', async () => {
+    const { id, indentFirstLine } = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+      },
+      connections
+    )
+    expect(indentFirstLine).toBeFalsy()
+
+    const { indentFirstLine: indentFirstLineUpdated } = await putDraft(
+      { draft: { id, indentFirstLine: true } },
+      connections
+    )
+    expect(indentFirstLineUpdated).toBeTruthy()
   })
   test('edit campaigns', async () => {
     const campaignData = {

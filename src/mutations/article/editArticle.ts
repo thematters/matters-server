@@ -60,6 +60,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       replyToDonator,
       iscnPublish,
       canComment,
+      indentFirstLine,
       description,
       campaigns,
     },
@@ -314,6 +315,16 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     sensitive !== articleVersion.sensitiveByAuthor
   ) {
     data = { ...data, sensitiveByAuthor: sensitive }
+  }
+
+  /**
+   * Indent settings
+   */
+  if (
+    indentFirstLine !== undefined &&
+    indentFirstLine !== articleVersion.indentFirstLine
+  ) {
+    data = { ...data, indentFirstLine }
   }
 
   /**

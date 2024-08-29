@@ -467,6 +467,9 @@ type Article implements Node & PinnableWork {
   """whether readers can comment"""
   canComment: Boolean!
 
+  """whether the first line of paragraph should be indented"""
+  indentFirstLine: Boolean!
+
   """history versions"""
   versions(input: ArticleVersionsInput!): ArticleVersionsConnection!
 
@@ -702,6 +705,7 @@ input EditArticleInput {
   accessType: ArticleAccessType
   sensitive: Boolean
   license: ArticleLicenseType
+  indentFirstLine: Boolean
   requestForDonation: String
   replyToDonator: String
 
@@ -1708,6 +1712,9 @@ type Draft implements Node {
   """whether readers can comment"""
   canComment: Boolean!
 
+  """whether the first line of paragraph should be indented"""
+  indentFirstLine: Boolean!
+
   """associated campaigns"""
   campaigns: [ArticleCampaign!]!
 }
@@ -1740,6 +1747,7 @@ input PutDraftInput {
   accessType: ArticleAccessType
   sensitive: Boolean
   license: ArticleLicenseType
+  indentFirstLine: Boolean
   requestForDonation: String
   replyToDonator: String
 
@@ -3786,7 +3794,11 @@ type CollectionNotice implements Notice {
 input CollectionArticlesInput {
   after: String
   first: Int
-  reversed: Boolean
+  before: String
+  last: Int
+  includeAfter: Boolean! = false
+  includeBefore: Boolean! = false
+  reversed: Boolean! = true
 }
 
 input PutCollectionInput {

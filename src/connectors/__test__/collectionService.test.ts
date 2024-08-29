@@ -147,7 +147,7 @@ test('deleteCollectionArticles', async () => {
     { skip: 0, take: 10 }
   )
   expect(res[1]).toBe(1)
-  expect(res[0][0].articleId).toBe('2')
+  expect(res[0][0].id).toBe('2')
 
   // will not delete other collection's articles
   const { id: collectionId2 } = await collectionService.createCollection({
@@ -161,7 +161,7 @@ test('deleteCollectionArticles', async () => {
     { skip: 0, take: 10 }
   )
   expect(res2[1]).toBe(1)
-  expect(res2[0][0].articleId).toBe('3')
+  expect(res2[0][0].id).toBe('3')
 })
 
 test('loadByIds', async () => {
@@ -205,10 +205,10 @@ test('addArticles', async () => {
 
   expect(res[1]).toBe(4)
   // order by insert time desc
-  expect(res[0][0].articleId).toBe('4')
-  expect(res[0][1].articleId).toBe('3')
-  expect(res[0][2].articleId).toBe('2')
-  expect(res[0][3].articleId).toBe('1')
+  expect(res[0][0].id).toBe('4')
+  expect(res[0][1].id).toBe('3')
+  expect(res[0][2].id).toBe('2')
+  expect(res[0][3].id).toBe('1')
 })
 
 describe('reorderArticles', () => {
@@ -251,10 +251,10 @@ describe('reorderArticles', () => {
         take: 4,
       }
     )
-    expect(records[0].articleId).toBe('4')
-    expect(records[1].articleId).toBe('3')
-    expect(records[2].articleId).toBe('2')
-    expect(records[3].articleId).toBe('1')
+    expect(records[0].id).toBe('4')
+    expect(records[1].id).toBe('3')
+    expect(records[2].id).toBe('2')
+    expect(records[3].id).toBe('1')
   })
   test('move to first position', async () => {
     await collectionService.reorderArticles(collectionId, [
@@ -267,10 +267,10 @@ describe('reorderArticles', () => {
         take: 4,
       }
     )
-    expect(records[0].articleId).toBe('2')
-    expect(records[1].articleId).toBe('4')
-    expect(records[2].articleId).toBe('3')
-    expect(records[3].articleId).toBe('1')
+    expect(records[0].id).toBe('2')
+    expect(records[1].id).toBe('4')
+    expect(records[2].id).toBe('3')
+    expect(records[3].id).toBe('1')
   })
   test('move to last position', async () => {
     await collectionService.reorderArticles(collectionId, [
@@ -283,10 +283,10 @@ describe('reorderArticles', () => {
         take: 4,
       }
     )
-    expect(records[0].articleId).toBe('4')
-    expect(records[1].articleId).toBe('2')
-    expect(records[2].articleId).toBe('1')
-    expect(records[3].articleId).toBe('3')
+    expect(records[0].id).toBe('4')
+    expect(records[1].id).toBe('2')
+    expect(records[2].id).toBe('1')
+    expect(records[3].id).toBe('3')
   })
   test('move to middle position', async () => {
     await collectionService.reorderArticles(collectionId, [
@@ -299,10 +299,10 @@ describe('reorderArticles', () => {
         take: 4,
       }
     )
-    expect(records[0].articleId).toBe('4')
-    expect(records[1].articleId).toBe('2')
-    expect(records[2].articleId).toBe('3')
-    expect(records[3].articleId).toBe('1')
+    expect(records[0].id).toBe('4')
+    expect(records[1].id).toBe('2')
+    expect(records[2].id).toBe('3')
+    expect(records[3].id).toBe('1')
 
     await collectionService.reorderArticles(collectionId, [
       { articleId: '3', newPosition: 2 - 1 },
@@ -314,10 +314,10 @@ describe('reorderArticles', () => {
         take: 4,
       }
     )
-    expect(records2[0].articleId).toBe('4')
-    expect(records2[1].articleId).toBe('3')
-    expect(records2[2].articleId).toBe('2')
-    expect(records2[3].articleId).toBe('1')
+    expect(records2[0].id).toBe('4')
+    expect(records2[1].id).toBe('3')
+    expect(records2[2].id).toBe('2')
+    expect(records2[3].id).toBe('1')
   })
   test('move multiple articles', async () => {
     await collectionService.reorderArticles(collectionId, [
@@ -333,10 +333,10 @@ describe('reorderArticles', () => {
         take: 4,
       }
     )
-    expect(records[0].articleId).toBe('3')
-    expect(records[1].articleId).toBe('4')
-    expect(records[2].articleId).toBe('1')
-    expect(records[3].articleId).toBe('2')
+    expect(records[0].id).toBe('3')
+    expect(records[1].id).toBe('4')
+    expect(records[2].id).toBe('1')
+    expect(records[3].id).toBe('2')
   })
 })
 

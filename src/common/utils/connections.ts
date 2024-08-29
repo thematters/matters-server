@@ -1,15 +1,20 @@
 import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
+import { Knex } from 'knex'
 
-import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
+import { DEFAULT_TAKE_PER_PAGE, MAX_TAKE_PER_PAGE } from 'common/enums'
+import { UserInputError } from 'common/errors'
+import { selectWithTotalCount, selectWithRowNumber } from 'common/utils'
 
 export type ConnectionCursor = string
 
 export interface ConnectionArguments {
   before?: ConnectionCursor
   after?: ConnectionCursor
-  first?: number
-  // last?: number
+  first?: number | null
+  last?: number | null
+  includeBefore?: boolean
+  includeAfter?: boolean
 }
 
 export interface Connection<T> {
@@ -114,19 +119,13 @@ export const cursorToKeys = (
 }
 
 /**
- * Convert query keys to GQL cursor. For example, the query keys
- * `arrayconnection:10:39` will be converted to `YXJyYXljb25uZWN0aW9uOjEwOjM5`.
- *
- */
-const keysToCursor = (offset: number, idCursor: string): ConnectionCursor =>
-  Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
-
-/**
  * Construct a GQL connection using query keys mechanism. Query keys are
  * composed of `offset` and `idCursor`.
  * `offset` is for managing connection like `merge`,
  * and `idCursor` is for SQL querying.
  * (for detail explain see https://github.com/thematters/matters-server/pull/922#discussion_r409256544)
+ *
+ * @deprecated use `connectionFromQuery` instead
  */
 export const connectionFromArrayWithKeys = <
   T extends { id: string; __cursor?: string }
@@ -138,7 +137,13 @@ export const connectionFromArrayWithKeys = <
   const { after } = args
   const keys = cursorToKeys(after)
 
+  // Convert query keys to GQL cursor. For example, the query keys
+  // `arrayconnection:10:39` will be converted to `YXJyYXljb25uZWN0aW9uOjEwOjM5`.
+  const keysToCursor = (offset: number, idCursor: string): ConnectionCursor =>
+    Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
+
   const edges = data.map((value, index) => ({
+    // TOFIX: offset calculation should consider `includeBefore` and `includeAfter`
     cursor: keysToCursor(index + keys.offset + 1, value.__cursor || value.id),
     node: value,
   }))
@@ -156,6 +161,144 @@ export const connectionFromArrayWithKeys = <
       hasNextPage: lastEdge
         ? cursorToKeys(lastEdge.cursor).offset + 1 < totalCount
         : false,
+    },
+  }
+}
+
+/**
+ * Construct a GQL connection from knex query using cursor based pagination.
+ */
+export const connectionFromQuery = async <T extends { id: string }>({
+  query,
+  args,
+  orderBy,
+  cursorColumn,
+}: {
+  query: Knex.QueryBuilder<T>
+  orderBy: { column: keyof T; order: 'asc' | 'desc' }
+
+  cursorColumn: keyof T
+  args: ConnectionArguments
+}): Promise<Connection<T>> => {
+  const { after, before, includeBefore, includeAfter } = args
+
+  if (after && before) {
+    throw new UserInputError(
+      'Cannot use both `after` and `before` at the same time.'
+    )
+  }
+
+  const first =
+    args.first === null
+      ? MAX_TAKE_PER_PAGE
+      : args.first ?? DEFAULT_TAKE_PER_PAGE
+  const last =
+    args.last === null ? MAX_TAKE_PER_PAGE : args.last ?? DEFAULT_TAKE_PER_PAGE
+
+  const knex = query.client.queryBuilder()
+  const baseTableName = 'connection_base'
+  knex.with(
+    baseTableName,
+    query.client
+      .queryBuilder()
+      .from(query.as('base'))
+      .select('*')
+      .orderBy(orderBy.column as string, orderBy.order)
+      .modify(selectWithTotalCount)
+      .modify(selectWithRowNumber, orderBy)
+  )
+  const decodeCursor = (cursor: ConnectionCursor) =>
+    Base64.decode(cursor).split(':')[1]
+  const encodeCursor = (value: string): ConnectionCursor =>
+    Base64.encodeURI(`${PREFIX}:${value}`)
+  const getOrderCursor = (cursor: string) => {
+    const value = decodeCursor(cursor)
+    return orderBy.column === cursorColumn
+      ? cursor
+      : knex.client.raw('(SELECT ?? FROM ?? WHERE ?? = ?)', [
+          orderBy.column,
+          baseTableName,
+          cursorColumn,
+          value,
+        ])
+  }
+
+  // fetch before edges
+  let beforeWhereOperator = orderBy.order === 'asc' ? '<' : '>'
+  if (includeBefore) {
+    beforeWhereOperator += '='
+  }
+  const beforeNodes: Array<T & { totalCount: number; rowNumber: number }> =
+    before
+      ? await knex
+          .clone()
+          .from(baseTableName)
+          .orderBy(
+            orderBy.column as string,
+            orderBy.order === 'asc' ? 'desc' : 'asc' // for fetching records right after cursor by `limit`, will reverse back later
+          )
+          .where(
+            orderBy.column as string,
+            beforeWhereOperator,
+            getOrderCursor(before)
+          )
+          .limit(last)
+      : []
+
+  const beforeEdges = beforeNodes
+    .map((node) => ({
+      cursor: encodeCursor(node[cursorColumn] as string),
+      node,
+    }))
+    .reverse()
+
+  // fetch after edges
+  let afterWhereOperator = orderBy.order === 'asc' ? '>' : '<'
+  if (includeAfter) {
+    afterWhereOperator += '='
+  }
+  const afterNodes: Array<T & { totalCount: number; rowNumber: number }> = after
+    ? await knex
+        .clone()
+        .from(baseTableName)
+        .where(
+          orderBy.column as string,
+          afterWhereOperator,
+          getOrderCursor(after)
+        )
+        .limit(first)
+    : before
+    ? []
+    : await knex.clone().from(baseTableName).limit(first)
+
+  const afterEdges = afterNodes.map((node) => ({
+    cursor: encodeCursor(node[cursorColumn] as string),
+    node,
+  }))
+
+  const edges = before ? beforeEdges : afterEdges
+
+  const firstEdge = edges[0]
+  const lastEdge = edges[edges.length - 1]
+
+  const totalCount = firstEdge
+    ? firstEdge.node.totalCount
+    : await knex
+        .clone()
+        .from(baseTableName)
+        .count('*')
+        .first()
+        .then((result) => result?.count || 0)
+
+  return {
+    edges,
+    totalCount,
+    pageInfo: {
+      startCursor: firstEdge ? firstEdge.cursor : null,
+      endCursor: lastEdge ? lastEdge.cursor : null,
+      hasPreviousPage: firstEdge && firstEdge.node.rowNumber > 1 ? true : false,
+      hasNextPage:
+        lastEdge && lastEdge.node.rowNumber < totalCount ? true : false,
     },
   }
 }

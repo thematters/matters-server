@@ -235,7 +235,8 @@ export const publishArticle = async (
         content
         createdAt
         iscnPublish
-        article { id iscnId content }
+        indentFirstLine
+        article { id iscnId content indentFirstLine }
       }
     }
   `
@@ -291,6 +292,7 @@ export const putDraft = async (
         replyToDonator
         iscnPublish
         canComment
+        indentFirstLine
         campaigns {
            campaign {
               id

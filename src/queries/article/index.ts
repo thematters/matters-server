@@ -25,6 +25,7 @@ import donationCount from './donationCount'
 import donations from './donations'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
+import indentFirstLine from './indentFirstLine'
 import language from './language'
 import license from './license'
 import mediaHash from './mediaHash'
@@ -126,6 +127,7 @@ const schema: GQLResolvers = {
     revisionCount,
     license,
     canComment,
+    indentFirstLine,
     donated,
     requestForDonation,
     replyToDonator,

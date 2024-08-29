@@ -1,4 +1,4 @@
-import type { Connections, Article } from 'definitions'
+import type { Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -19,7 +19,6 @@ import {
 
 import { genConnections, closeConnections } from './utils'
 
-let articleId: string
 let connections: Connections
 let articleService: ArticleService
 let atomService: AtomService
@@ -30,36 +29,33 @@ beforeAll(async () => {
   articleService = new ArticleService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
-}, 50000)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
 })
 
-test('publish', async () => {
-  // publish article to IPFS
-  // const publishedDraft = await atomService.articleIdLoader.load('1')
-  // const { mediaHash, contentHash: dataHash } =
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  // (await articleService.publishToIPFS(publishedDraft))!
-  const [article] = await articleService.createArticle({
-    authorId: '1',
-    title: 'test',
-    cover: '1',
-    content: '<div>test-html-string</div>',
+describe('create', () => {
+  test('default values', async () => {
+    const [article, articleVersion] = await articleService.createArticle({
+      authorId: '1',
+      title: 'test',
+      cover: '1',
+      content: '<div>test-html-string</div>',
+    })
+    expect(article.state).toBe('active')
+    expect(articleVersion.indentFirstLine).toBe(false)
   })
-  // expect(mediaHash).toBeDefined()
-  // expect(dataHash).toBeDefined()
-  expect(article.state).toBe('active')
-
-  articleId = article.id
-  // publish to IPNS
-  // await articleService.publishFeedToIPNS({ userName: 'test1' })
-})
-
-test('sumAppreciation', async () => {
-  const appreciation = await articleService.sumAppreciation('1')
-  expect(appreciation).toBeDefined()
+  test('indent', async () => {
+    const [, articleVersion] = await articleService.createArticle({
+      authorId: '1',
+      title: 'test',
+      cover: '1',
+      content: '<div>test-html-string</div>',
+      indentFirstLine: true,
+    })
+    expect(articleVersion.indentFirstLine).toBe(true)
+  })
 })
 
 describe('appreciation', () => {
@@ -123,6 +119,10 @@ describe('appreciation', () => {
     expect(appreciation1[0]?.amount ?? appreciation2[0]?.ammount).toBe(
       ARTICLE_APPRECIATE_LIMIT
     )
+  })
+  test('sumAppreciation', async () => {
+    const appreciation = await articleService.sumAppreciation('1')
+    expect(appreciation).toBeDefined()
   })
 })
 
@@ -222,8 +222,6 @@ test('findSubscriptions', async () => {
 })
 
 describe('updatePinned', () => {
-  const getArticleFromDb = async (id: string) =>
-    articleService.baseFindById(id) as Promise<Article>
   test('invaild article id will throw error', async () => {
     await expect(articleService.updatePinned('999', '1', true)).rejects.toThrow(
       'Cannot find article'
@@ -235,35 +233,43 @@ describe('updatePinned', () => {
     )
   })
   test('success', async () => {
+    const getArticleFromDb = async (id: string) =>
+      atomService.findUnique({ table: 'article', where: { id } })
+    const authorId = '2'
+    const articles = await articleService.findByAuthor(authorId)
+    const articleId = articles[0].id
     let article = await new ArticleService(connections).updatePinned(
-      '1',
-      '1',
+      articleId,
+      authorId,
       true
     )
     expect(article.pinned).toBe(true)
-    expect((await getArticleFromDb('1')).pinned).toBe(true)
-    article = await new ArticleService(connections).updatePinned('1', '1', true)
+    expect((await getArticleFromDb(articleId)).pinned).toBe(true)
+    article = await new ArticleService(connections).updatePinned(
+      articleId,
+      authorId,
+      true
+    )
     expect(article.pinned).toBe(true)
-    expect((await getArticleFromDb('1')).pinned).toBe(true)
+    expect((await getArticleFromDb(articleId)).pinned).toBe(true)
   })
   test('cannot toggle more than 3 works', async () => {
-    await articleService.updatePinned('4', '1', true)
-    await articleService.updatePinned('6', '1', true)
+    const authorId = '1'
+    const articles = await articleService.findByAuthor(authorId)
+
+    expect(articles.length).toBeGreaterThan(3)
+
+    await articleService.updatePinned(articles[0].id, authorId, true)
+    await articleService.updatePinned(articles[1].id, authorId, true)
+    await articleService.updatePinned(articles[2].id, authorId, true)
 
     const userWorkService = new UserWorkService(connections)
     const total = await userWorkService.totalPinnedWorks('1')
     expect(total).toBe(3)
     await expect(
-      articleService.updatePinned(articleId, '1', true)
+      articleService.updatePinned(articles[3].id, '1', true)
     ).rejects.toThrow()
   })
-})
-
-test('update', async () => {
-  const article = await articleService.baseUpdate('1', {
-    state: 'archived',
-  })
-  expect(article.state).toEqual('archived')
 })
 
 describe('search', () => {
@@ -713,7 +719,7 @@ describe('findArticleVersions', () => {
 
 describe('spam detection', () => {
   test('detect spam', async () => {
-    articleId = '1'
+    const articleId = '1'
 
     const score = 0.99
     const mockSpamDetoctor = { detect: jest.fn(() => score) }
