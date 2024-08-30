@@ -1092,14 +1092,6 @@ export class UserService extends BaseService<User> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  public countFollowers = async (targetId: string) => {
-    const result = await this.knex('action_user')
-      .where({ targetId, action: USER_ACTION.follow })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   public findFollowees = async ({
     userId,
     take,
@@ -1125,30 +1117,12 @@ export class UserService extends BaseService<User> {
     return query
   }
 
-  public findFollowers = async ({
-    targetId,
-    take,
-    skip,
-  }: {
-    targetId: string
-    take?: number
-    skip?: string
-  }) => {
-    const query = this.knex
-      .select()
+  public findFollowers = (targetId: string) =>
+    this.knexRO
+      .select('user.*', this.knexRO.raw('action_user.id AS order'))
       .from('action_user')
+      .join('user', 'user.id', 'action_user.user_id')
       .where({ targetId, action: USER_ACTION.follow })
-      .orderBy('id', 'desc')
-
-    if (skip) {
-      query.andWhere('id', '<', skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
 
   // retrieve circle members and followers
   public findCircleRecipients = async (circleId: string) => {
