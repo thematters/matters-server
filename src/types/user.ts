@@ -1110,7 +1110,7 @@ export default /* GraphQL */ `
 
   type WritingEdge {
     cursor: String!
-    node: Writing!
+    node: Writing! @logCache(type: "${NODE_TYPES.Writing}")
   }
 
   input RecommendationFollowingInput {
