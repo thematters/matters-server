@@ -801,4 +801,18 @@ describe('follow', () => {
     // follow again will not throw error
     await userService.follow('1', '3')
   })
+  test('blockees not show in follower list', async () => {
+    const blockerId = '3'
+    const blockeeId = '1'
+    await userService.follow('1', '3')
+
+    // before block
+    const users1 = await userService.findFollowers(blockerId)
+    expect(users1.map(({ id }) => id)).toContain(blockeeId)
+
+    // after block
+    await userService.block(blockerId, blockeeId)
+    const users2 = await userService.findFollowers(blockerId)
+    expect(users2.map(({ id }) => id)).not.toContain(blockeeId)
+  })
 })

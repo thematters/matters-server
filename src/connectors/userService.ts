@@ -1123,6 +1123,12 @@ export class UserService extends BaseService<User> {
       .from('action_user')
       .join('user', 'user.id', 'action_user.user_id')
       .where({ targetId, action: USER_ACTION.follow })
+      .whereNotIn(
+        'user.id',
+        this.knexRO('action_user')
+          .select('target_id')
+          .where({ userId: targetId, action: USER_ACTION.block })
+      )
 
   // retrieve circle members and followers
   public findCircleRecipients = async (circleId: string) => {
