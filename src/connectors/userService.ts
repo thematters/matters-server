@@ -1045,14 +1045,28 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public follow = async (userId: string, targetId: string) => {
+    if (userId === targetId) {
+      throw new ActionFailedError('cannot follow or unfollow yourself')
+    }
+
+    // check if viewer is blocked by user to follow
+    const isBlocked = await this.blocked({
+      userId: targetId,
+      targetId: userId,
+    })
+
+    if (isBlocked) {
+      throw new ForbiddenError('viewer is blocked by user to follow')
+    }
     const data = {
       userId,
       targetId,
       action: USER_ACTION.follow,
     }
-    return this.baseUpdateOrCreate({
+    return this.models.upsert({
       where: data,
-      data: data,
+      create: data,
+      update: data,
       table: 'action_user',
     })
   }
