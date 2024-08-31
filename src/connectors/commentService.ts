@@ -18,7 +18,12 @@ import {
   NOTICE_TYPE,
 } from 'common/enums'
 import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
-import { BaseService, PaymentService, NotificationService } from 'connectors'
+import {
+  BaseService,
+  PaymentService,
+  NotificationService,
+  UserService,
+} from 'connectors'
 
 export interface CommentFilter {
   type: ValueOf<typeof COMMENT_TYPE>
@@ -213,7 +218,7 @@ export class CommentService extends BaseService<Comment> {
    *              Vote             *
    *                               *
    *********************************/
-  public upVote = async ({
+  public upvote = async ({
     user,
     comment,
   }: {
@@ -243,6 +248,15 @@ export class CommentService extends BaseService<Comment> {
       targetAuthorId = circle.owner
     }
 
+    const userService = new UserService(this.connections)
+    const isBlocked = await userService.blocked({
+      userId: targetAuthorId,
+      targetId: user.id,
+    })
+    if (isBlocked) {
+      throw new ForbiddenError('blocked user has no permission')
+    }
+
     // check permission
     const isTargetAuthor = targetAuthorId === user.id
 
@@ -269,17 +283,14 @@ export class CommentService extends BaseService<Comment> {
         commentId: comment.id,
       })
     }
-    const data = {
-      userId: user.id,
-      targetId: comment.id,
-      action: 'up_vote' as const,
-    }
 
-    const action = await this.models.upsert({
-      where: data,
-      create: data,
-      update: data,
+    const action = await this.models.create({
       table: 'action_comment',
+      data: {
+        userId: user.id,
+        targetId: comment.id,
+        action: 'up_vote' as const,
+      },
     })
 
     // notification

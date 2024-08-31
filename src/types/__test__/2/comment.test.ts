@@ -423,7 +423,7 @@ describe('vote/unvote commment', () => {
   test('unvote a comment', async () => {
     const comment = await atomService.commentIdLoader.load('1')
     const voter = await userService.create({ userName: 'voter' })
-    await commentService.upVote({ comment, user: voter })
+    await commentService.upvote({ comment, user: voter })
     const upvotes = await commentService.countUpVote(comment.id)
 
     const server = await testClient({

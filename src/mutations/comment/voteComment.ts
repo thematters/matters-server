@@ -18,7 +18,7 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
     throw new CommentNotFoundError('comment not found')
   }
   if (vote === VOTE.up) {
-    await commentService.upVote({ comment, user: viewer })
+    await commentService.upvote({ comment, user: viewer })
   } else {
     logger.warning(`deprecated down vote is called`)
   }
