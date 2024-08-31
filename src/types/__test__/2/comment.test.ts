@@ -4,7 +4,7 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums'
-import { AtomService, MomentService } from 'connectors'
+import { AtomService, MomentService, UserService } from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -12,11 +12,13 @@ import { testClient, genConnections, closeConnections } from '../utils'
 let connections: Connections
 let atomService: AtomService
 let momentService: MomentService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   momentService = new MomentService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -28,8 +30,6 @@ const isDesc = (ints: number[]) =>
     .slice(1)
     .map((e, i) => e <= ints[i])
     .every((x) => x)
-
-const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
 const PUT_COMMENT = /* GraphQL */ `
   mutation ($input: PutCommentInput!) {
@@ -107,6 +107,7 @@ describe('query comment list on article', () => {
       }
     }
   `
+  const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
@@ -349,6 +350,56 @@ describe('put commment', () => {
     })
     expect(errors2).toBeUndefined()
     expect(data2.deleteComment.state).toBe('archived')
+  })
+
+  test("blockees can not comment on blockers' articles", async () => {
+    const article = await atomService.articleIdLoader.load('1')
+    const articleAuthorId = article.authorId
+    const blockeeId = '7'
+    await userService.block(articleAuthorId, blockeeId)
+
+    const server = await testClient({
+      userId: blockeeId,
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            articleId: toGlobalId({ type: NODE_TYPES.Article, id: article.id }),
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+
+    // comment on other user's article and mention blocker
+    const article2 = await atomService.articleIdLoader.load('2')
+    expect(article2.authorId).not.toBe(blockeeId)
+    expect(article2.authorId).not.toBe(articleAuthorId)
+
+    const { errors: errors2 } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: `<p><a class="mention" href="/@test1" data-id="${toGlobalId(
+              { type: NODE_TYPES.User, id: articleAuthorId }
+            )}" data-user-name="testuser" data-display-name="testuser" rel="noopener noreferrer nofollow"><span>@testuser</span></a></p>`,
+            articleId: toGlobalId({
+              type: NODE_TYPES.Article,
+              id: article2.id,
+            }),
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
   })
 })
 
@@ -648,6 +699,7 @@ describe('query responses list on article', () => {
     }
   `
   test('query responses', async () => {
+    const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: GET_ARTILCE_RESPONSES,
