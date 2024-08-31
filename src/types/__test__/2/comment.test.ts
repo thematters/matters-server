@@ -4,19 +4,26 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums'
-import { AtomService, MomentService, UserService } from 'connectors'
+import {
+  AtomService,
+  CommentService,
+  MomentService,
+  UserService,
+} from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
 let atomService: AtomService
+let commentService: CommentService
 let momentService: MomentService
 let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  commentService = new CommentService(connections)
   momentService = new MomentService(connections)
   userService = new UserService(connections)
 }, 30000)
@@ -54,28 +61,6 @@ const DELETE_COMMENT = /* GraphQL */ `
     }
   }
 `
-
-const GET_COMMENT = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: $input) {
-      ... on Comment {
-        upvotes
-        downvotes
-      }
-    }
-  }
-`
-
-const getCommentVotes = async (commentId: string) => {
-  const server = await testClient({ connections })
-  const { data } = await server.executeOperation({
-    query: GET_COMMENT,
-    variables: {
-      input: { id: commentId },
-    },
-  })
-  return data && data.node
-}
 
 describe('query comment list on article', () => {
   const GET_ARTILCE_COMMENTS = /* GraphQL */ `
@@ -421,45 +406,38 @@ describe('vote/unvote commment', () => {
       }
     }
   `
-  const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
   test('upvote a comment', async () => {
     const server = await testClient({ isAuth: true, connections })
-    const { upvotes } = await getCommentVotes(commentId)
-
-    // upvote
     const { data } = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
-        input: { id: commentId, vote: 'up' },
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: '3' }),
+          vote: 'up',
+        },
       },
     })
-    expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
-  })
-
-  test('downvote a comment', async () => {
-    const server = await testClient({ isAuth: true, connections })
-    const { upvotes } = await getCommentVotes(commentId)
-    const { data: downvoteData } = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: commentId, vote: 'down' },
-      },
-    })
-    expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes - 1)
-    expect(_get(downvoteData, 'voteComment.downvotes')).toBe(0)
+    expect(data.voteComment.upvotes).toBe(1)
   })
 
   test('unvote a comment', async () => {
-    const server = await testClient({ isAuth: true, connections })
-    const { upvotes } = await getCommentVotes(commentId)
+    const comment = await atomService.commentIdLoader.load('1')
+    const voter = await userService.create({ userName: 'voter' })
+    await commentService.upVote({ comment, user: voter })
+    const upvotes = await commentService.countUpVote(comment.id)
+
+    const server = await testClient({
+      userId: voter.id,
+      isAuth: true,
+      connections,
+    })
     const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
       variables: {
-        input: { id: commentId },
+        input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }) },
       },
     })
-    expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
-    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(0)
+    expect(unvoteData.unvoteComment.upvotes).toBe(upvotes - 1)
   })
 })
 

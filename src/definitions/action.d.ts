@@ -33,6 +33,15 @@ export interface ActionArticle {
   updatedAt: Date
 }
 
+export interface ActionComment {
+  id: string
+  action: 'up_vote' | 'down_vote'
+  userId: string
+  targetId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface ActionUser {
   id: string
   action: USER_ACTION
