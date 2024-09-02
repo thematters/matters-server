@@ -30,6 +30,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     viewer,
     dataSources: {
       atomService,
+      userService,
       articleService,
       notificationService,
       connections,
@@ -72,6 +73,15 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     )
   }
   const sender = await atomService.userIdLoader.load(viewer.id)
+
+  // check if viewer is blocked by article owner
+  const isBlocked = await userService.blocked({
+    userId: article.authorId,
+    targetId: viewer.id,
+  })
+  if (isBlocked) {
+    throw new ForbiddenError('viewer is blocked by target author')
+  }
 
   const appreciateLeft = await articleService.appreciateLeftByUser({
     articleId: dbId,
