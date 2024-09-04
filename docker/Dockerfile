@@ -3,7 +3,6 @@ FROM node:18
 # install os level packages
 RUN apt-get update && apt-get -y install curl \
   postgresql-client \
-  vim \
   wget \
   python-is-python3
 
