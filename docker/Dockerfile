@@ -10,7 +10,7 @@ RUN apt-get update && apt-get -y install curl \
 # install dependencies
 WORKDIR /var/app
 COPY package*.json ./
-RUN npm install --force
+RUN npm install
 
 ENV NODE_OPTIONS="--no-experimental-fetch"
 CMD ["npm", "run", "start"]
