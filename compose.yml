@@ -5,12 +5,11 @@ services:
     container_name: api
     image: matters-server:latest
     build:
-      context: ../
-      dockerfile: docker/Dockerfile
+      context: .
       target: dev
-    env_file: ../.env
+    env_file: .env
     volumes:
-      - ..:/var/app
+      - .:/var/app
     depends_on:
       - db
       - redis
