@@ -1,10 +1,13 @@
-FROM node:18
+FROM node:18-alpine
 
 # install os level packages
-RUN apt-get update && apt-get -y install \
-  postgresql-client \
-  python-is-python3 \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+  # build tools needed by opencc
+  g++ \
+  make \
+  python3 \
+  # PostgreSQL client library
+  libpq
 
 # install dependencies
 WORKDIR /var/app
