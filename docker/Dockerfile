@@ -13,6 +13,7 @@ RUN apk add --no-cache \
 WORKDIR /var/app
 COPY package*.json ./
 RUN npm install
+COPY . .
 
 ENV NODE_OPTIONS="--no-experimental-fetch"
 CMD ["npm", "run", "start"]
