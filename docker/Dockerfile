@@ -1,9 +1,8 @@
 FROM node:18
 
 # install os level packages
-RUN apt-get update && apt-get -y install curl \
+RUN apt-get update && apt-get -y install \
   postgresql-client \
-  wget \
   python-is-python3
 
 # install dependencies
