@@ -1,8 +1,16 @@
 **/node_modules
-.git
 # Elastic Beanstalk Files
-.elasticbeanstalk/*
-.git
-.gitignore
-.github
-.vscode
+**/.elasticbeanstalk/*
+**/.git
+**/.gitignore
+**/.github
+**/.vscode
+**/.dockerignore
+**/compose.y*ml
+**/build
+**/.editorconfig
+LICENSE.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+README.md
+test_mode.md
