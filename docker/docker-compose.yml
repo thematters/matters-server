@@ -7,7 +7,7 @@ services:
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    command: ['npm', 'run', 'start:dev']
+      target: dev
     env_file: ../.env
     volumes:
       - ..:/var/app
