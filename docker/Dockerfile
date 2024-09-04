@@ -3,7 +3,8 @@ FROM node:18
 # install os level packages
 RUN apt-get update && apt-get -y install \
   postgresql-client \
-  python-is-python3
+  python-is-python3 \
+  && rm -rf /var/lib/apt/lists/*
 
 # install dependencies
 WORKDIR /var/app
