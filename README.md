@@ -35,7 +35,7 @@
 - Create a new seed file: `npm run db:seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
 - Rollback a migration: `npm run db:rollback`
 
-## Email Template
+## Email Template 2
 
 We use [MJML](https://mjml.io) to develop our SendGrid email template.
 
