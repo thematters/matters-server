@@ -220,9 +220,14 @@ const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
   query ($input: ConnectionArgs!) {
     viewer {
       followers(input: $input) {
+        totalCount
         edges {
           node {
             id
+            ... on User {
+              userName
+              displayName
+            }
           }
         }
       }
@@ -563,12 +568,13 @@ describe('user query fields', () => {
       isAuth: true,
       connections,
     })
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWERS,
       variables: { input: {} },
     })
-    const followers = _get(data, 'viewer.followers.edges')
-    expect(followers).toBeDefined()
+    expect(errors).toBeUndefined()
+    expect(data.viewer.followers.totalCount).toBeGreaterThan(0)
+    expect(data.viewer.followers.edges.length).toBeGreaterThan(0)
   })
 
   test('retrive followees', async () => {

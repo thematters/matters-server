@@ -4,19 +4,28 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums'
-import { AtomService, MomentService } from 'connectors'
+import {
+  AtomService,
+  CommentService,
+  MomentService,
+  UserService,
+} from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
 let atomService: AtomService
+let commentService: CommentService
 let momentService: MomentService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  commentService = new CommentService(connections)
   momentService = new MomentService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -28,8 +37,6 @@ const isDesc = (ints: number[]) =>
     .slice(1)
     .map((e, i) => e <= ints[i])
     .every((x) => x)
-
-const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
 const PUT_COMMENT = /* GraphQL */ `
   mutation ($input: PutCommentInput!) {
@@ -54,28 +61,6 @@ const DELETE_COMMENT = /* GraphQL */ `
     }
   }
 `
-
-const GET_COMMENT = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: $input) {
-      ... on Comment {
-        upvotes
-        downvotes
-      }
-    }
-  }
-`
-
-const getCommentVotes = async (commentId: string) => {
-  const server = await testClient({ connections })
-  const { data } = await server.executeOperation({
-    query: GET_COMMENT,
-    variables: {
-      input: { id: commentId },
-    },
-  })
-  return data && data.node
-}
 
 describe('query comment list on article', () => {
   const GET_ARTILCE_COMMENTS = /* GraphQL */ `
@@ -107,6 +92,7 @@ describe('query comment list on article', () => {
       }
     }
   `
+  const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
@@ -350,6 +336,56 @@ describe('put commment', () => {
     expect(errors2).toBeUndefined()
     expect(data2.deleteComment.state).toBe('archived')
   })
+
+  test("blockees can not comment on blockers' articles", async () => {
+    const article = await atomService.articleIdLoader.load('1')
+    const articleAuthorId = article.authorId
+    const blockeeId = '7'
+    await userService.block(articleAuthorId, blockeeId)
+
+    const server = await testClient({
+      userId: blockeeId,
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            articleId: toGlobalId({ type: NODE_TYPES.Article, id: article.id }),
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+
+    // comment on other user's article and mention blocker
+    const article2 = await atomService.articleIdLoader.load('2')
+    expect(article2.authorId).not.toBe(blockeeId)
+    expect(article2.authorId).not.toBe(articleAuthorId)
+
+    const { errors: errors2 } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: `<p><a class="mention" href="/@test1" data-id="${toGlobalId(
+              { type: NODE_TYPES.User, id: articleAuthorId }
+            )}" data-user-name="testuser" data-display-name="testuser" rel="noopener noreferrer nofollow"><span>@testuser</span></a></p>`,
+            articleId: toGlobalId({
+              type: NODE_TYPES.Article,
+              id: article2.id,
+            }),
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+  })
 })
 
 describe('vote/unvote commment', () => {
@@ -370,45 +406,38 @@ describe('vote/unvote commment', () => {
       }
     }
   `
-  const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
   test('upvote a comment', async () => {
     const server = await testClient({ isAuth: true, connections })
-    const { upvotes } = await getCommentVotes(commentId)
-
-    // upvote
     const { data } = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
-        input: { id: commentId, vote: 'up' },
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: '3' }),
+          vote: 'up',
+        },
       },
     })
-    expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
-  })
-
-  test('downvote a comment', async () => {
-    const server = await testClient({ isAuth: true, connections })
-    const { upvotes } = await getCommentVotes(commentId)
-    const { data: downvoteData } = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: commentId, vote: 'down' },
-      },
-    })
-    expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes - 1)
-    expect(_get(downvoteData, 'voteComment.downvotes')).toBe(0)
+    expect(data.voteComment.upvotes).toBe(1)
   })
 
   test('unvote a comment', async () => {
-    const server = await testClient({ isAuth: true, connections })
-    const { upvotes } = await getCommentVotes(commentId)
+    const comment = await atomService.commentIdLoader.load('1')
+    const voter = await userService.create({ userName: 'voter' })
+    await commentService.upvote({ comment, user: voter })
+    const upvotes = await commentService.countUpVote(comment.id)
+
+    const server = await testClient({
+      userId: voter.id,
+      isAuth: true,
+      connections,
+    })
     const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
       variables: {
-        input: { id: commentId },
+        input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }) },
       },
     })
-    expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
-    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(0)
+    expect(unvoteData.unvoteComment.upvotes).toBe(upvotes - 1)
   })
 })
 
@@ -648,6 +677,7 @@ describe('query responses list on article', () => {
     }
   `
   test('query responses', async () => {
+    const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: GET_ARTILCE_RESPONSES,

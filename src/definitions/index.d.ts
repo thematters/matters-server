@@ -1,6 +1,7 @@
 import type {
   ActionArticle,
   ActionCircle,
+  ActionComment,
   ActionMoment,
   ActionTag,
   ActionUser,
@@ -187,6 +188,7 @@ export interface DataSources {
 export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
+  action_comment: ActionComment
   action_moment: ActionMoment
   action_collection: ActionCollection
   action_tag: ActionTag

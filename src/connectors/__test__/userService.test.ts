@@ -785,3 +785,34 @@ describe('isEmailinWhitelist', () => {
     expect(await userService.isEmailinWhitelist('user@evil.town')).toBeFalsy()
   })
 })
+
+describe('follow', () => {
+  test('can not follow yourself', async () => {
+    await expect(userService.follow('1', '1')).rejects.toThrow()
+  })
+  test('can not follow blocker', async () => {
+    const blockerId = '2'
+    const blockeeId = '1'
+    await userService.block(blockerId, blockeeId)
+    await expect(userService.follow(blockeeId, blockerId)).rejects.toThrow()
+  })
+  test('succeed', async () => {
+    await userService.follow('1', '3')
+    // follow again will not throw error
+    await userService.follow('1', '3')
+  })
+  test('blockees not show in follower list', async () => {
+    const blockerId = '3'
+    const blockeeId = '1'
+    await userService.follow('1', '3')
+
+    // before block
+    const users1 = await userService.findFollowers(blockerId)
+    expect(users1.map(({ id }) => id)).toContain(blockeeId)
+
+    // after block
+    await userService.block(blockerId, blockeeId)
+    const users2 = await userService.findFollowers(blockerId)
+    expect(users2.map(({ id }) => id)).not.toContain(blockeeId)
+  })
+})
