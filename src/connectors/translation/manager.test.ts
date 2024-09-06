@@ -1,5 +1,5 @@
-import { TranslatorNotFoundError } from './errors'
-import { Manager } from './manager'
+import { TranslatorNotFoundError, UnsupportedTranslatorError } from './errors'
+import { HtmlTranslator, Manager, Translator } from './manager'
 import { NullTranslator } from './nullTranslator'
 
 it('should return the same instance for multiple calls to getInstance()', () => {
@@ -45,4 +45,38 @@ it('throws error if it get the default driver when there is none', () => {
   expect(() => manager.translator()).toThrow(new TranslatorNotFoundError(
     'Could not find a translation driver.'
   ))
+})
+
+it('can retrieve html translator', () => {
+  const translator = new class implements Translator, HtmlTranslator {
+    async detect(content: string): Promise<string | null> {
+      return content
+    }
+    async translate(content: string): Promise<string | null> {
+      return content
+    }
+    async translateHtml(content: string): Promise<string | null> {
+      return content
+    }
+  }()
+  const manager = new Manager()
+  manager.addTranslator('html', translator)
+  expect(manager.htmlTranslator('html')).toBe(translator)
+})
+
+it('throws error when html translator cannot translate html', () => {
+  const translator = new class implements Translator {
+    async detect(content: string): Promise<string | null> {
+      return content
+    }
+    async translate(content: string): Promise<string | null> {
+      return content
+    }
+  }()
+  const manager = new Manager()
+  manager.addTranslator('html', translator)
+  expect(() => manager.htmlTranslator('html'))
+    .toThrow(new UnsupportedTranslatorError(
+      'The translator does not support HTML translation.'
+    ))
 })

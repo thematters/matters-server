@@ -41,6 +41,16 @@ export class Manager implements TranslationManager
       : this.#getDefaultTranslator()
   }
 
+  htmlTranslator(name?: string): Translator & HtmlTranslator {
+    const translator = this.translator(name)
+
+    if (! ('translateHtml' in translator)) {
+      throw new Error('The translator does not support HTML translation.')
+    }
+
+    return translator as Translator & HtmlTranslator
+  }
+
   #getDefaultTranslator(): Translator {
     const drivers = Object.keys(this.#drivers)
 
