@@ -1,4 +1,8 @@
+import { ClientOptions } from 'google-gax'
+import { TranslationServiceClient } from '@google-cloud/translate'
 import { TranslatorNotFoundError } from './errors'
+import { GoogleTranslate } from './googleTranslate'
+import { NullTranslator } from './nullTranslator'
 
 export interface Translator {
   detect(content: string): Promise<string | null>
@@ -14,24 +18,50 @@ export interface TranslationManager {
   translator(name?: string): Translator
 }
 
+export type TranslationGoogleConfig = {
+  driver: 'google'
+} & ClientOptions
+
+export type TranslationNullConfig = {
+  driver: 'null'
+}
+
+export type TranslationConfig = {
+  default: string
+  drivers: {
+    [key: string]: TranslationGoogleConfig | TranslationNullConfig
+  }
+}
+
 export class Manager implements TranslationManager
 {
   static #instance: Manager
 
-  #drivers: {
+  #config: TranslationConfig
+
+  #resolved: {
     [key: string]: Translator
   } = {}
 
+  constructor(config: TranslationConfig) {
+    this.#config = config
+  }
+
   static getInstance(): Manager {
     if (!Manager.#instance) {
-      Manager.#instance = new Manager()
+      throw new Error('Missing global translation manager.')
     }
 
     return Manager.#instance
   }
 
+  asGlobal() {
+    Manager.#instance = this
+    return this
+  }
+
   addTranslator(name: string, translator: Translator) {
-    this.#drivers[name] = translator
+    this.#resolved[name] = translator
     return this
   }
 
@@ -52,22 +82,53 @@ export class Manager implements TranslationManager
   }
 
   #getDefaultTranslator(): Translator {
-    const drivers = Object.keys(this.#drivers)
+    const defaultDriver = this.#config.default
 
-    if (drivers.length === 0) {
-      throw new TranslatorNotFoundError('Could not find a translation driver.')
-    }
-
-    return this.#drivers[drivers[0]]
+    return this.#getTranslator(defaultDriver)
   }
 
   #getTranslator(name: string): Translator {
-    const driver = this.#drivers[name]
+    const driver = this.#resolved[name]
+
     if (!driver) {
+      return this.#makeTranslator(name)
+    }
+
+    return driver
+  }
+
+  #makeTranslator(name: string): Translator {
+    const config = this.#config.drivers[name]
+
+    if (!config) {
       throw new TranslatorNotFoundError(
         `Could not find "${name}" translator.`
       )
     }
-    return driver
+
+    switch (config.driver) {
+      case 'google':
+        return this.#makeGoogleTranslator(config)
+      case 'null':
+        return this.#makeNullTranslator()
+      default:
+        throw new Error('Unsupported translation driver.')
+    }
+  }
+
+  #makeGoogleTranslator(config: TranslationGoogleConfig) {
+    const projectId = config.projectId
+
+    if (typeof projectId !== 'string') {
+      throw new Error('Missing project ID.')
+    }
+
+    const client = new TranslationServiceClient(config)
+
+    return new GoogleTranslate(client, projectId)
+  }
+
+  #makeNullTranslator() {
+    return new NullTranslator()
   }
 }
