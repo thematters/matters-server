@@ -5,6 +5,10 @@ export interface Translator {
   translate(content: string, targetLanguage: string): Promise<string | null>
 }
 
+export interface HtmlTranslator {
+  translateHtml(content: string, targetLanguage: string): Promise<string | null>
+}
+
 export interface TranslationManager {
   addTranslator(name: string, translator: Translator): TranslationManager
   translator(name?: string): Translator

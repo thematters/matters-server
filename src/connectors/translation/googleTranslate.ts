@@ -1,7 +1,10 @@
-import { TranslationServiceClient } from '@google-cloud/translate'
-import { Translator } from './manager'
+import { TranslationServiceClient, protos } from '@google-cloud/translate'
+import { HtmlTranslator, Translator } from './manager'
 
-export class GoogleTranslate implements Translator {
+type TranslateTextRequest =
+  protos.google.cloud.translation.v3.ITranslateTextRequest
+
+export class GoogleTranslate implements Translator, HtmlTranslator {
   #client: TranslationServiceClient
   #projectId: string
   #location: string
@@ -26,11 +29,25 @@ export class GoogleTranslate implements Translator {
   }
 
   async translate(content: string, targetLanguage: string): Promise<string | null> {
-    const [response] = await this.#client.translateText({
-      parent: `projects/${this.#projectId}/locations/${this.#location}`,
+    return this.#translateText({
       contents: [content],
       mimeType: 'text/plain',
       targetLanguageCode: targetLanguage,
+    })
+  }
+
+  async translateHtml(content: string, targetLanguage: string): Promise<string | null> {
+    return this.#translateText({
+      contents: [content],
+      mimeType: 'text/html',
+      targetLanguageCode: targetLanguage,
+    })
+  }
+
+  async #translateText(request: Partial<TranslateTextRequest>): Promise<string | null> {
+    const [response] = await this.#client.translateText({
+      parent: `projects/${this.#projectId}/locations/${this.#location}`,
+      ...request,
     })
 
     for (const translation of response.translations ?? []) {

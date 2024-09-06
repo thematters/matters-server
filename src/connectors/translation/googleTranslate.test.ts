@@ -70,6 +70,24 @@ describe('google translate', () => {
     )
   })
 
+  it('can translate html content to target language', async () => {
+    const mockResponse: TranslateTextResponse = {
+      translations: [
+        { translatedText: '<p>bar</p>' }
+      ]
+    }
+    mockClient.translateText.mockImplementation(async () => [mockResponse])
+    const translated = await translator.translateHtml('<p>foo</p>', 'beep')
+    expect(translated).toBe('<p>bar</p>')
+    expect(mockClient.translateText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contents: ['<p>foo</p>'],
+        mimeType: 'text/html',
+        targetLanguageCode: 'beep'
+      })
+    )
+  })
+
   it('returns null if missing translations in response', async () => {
     const mockResponse: TranslateTextResponse = {}
     mockClient.translateText.mockImplementation(async () => [mockResponse])
