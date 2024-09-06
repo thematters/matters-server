@@ -149,6 +149,10 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
+
+  translationDefault: process.env.MATTERS_TRANSLATION_DEFAULT,
+  translationGoogleProjectId: process.env.MATTERS_TRANSLATION_GOOGLE_PROJECT_ID,
+  translationGoogleKeyFile: process.env.MATTERS_TRANSLATION_GOOGLE_KEY_FILE,
 }
 
 export const contract = {
