@@ -1,8 +1,9 @@
 import dotenv from 'dotenv'
+import dotenvExpand from 'dotenv-expand'
 import fs from 'fs'
 import path from 'path'
 
-dotenv.config()
+dotenvExpand.expand(dotenv.config())
 
 let OICDPrivateKey = ''
 if (process.env.MATTERS_OICD_PRIVATE_KEY) {
@@ -149,6 +150,10 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
+
+  translationDefault: process.env.MATTERS_TRANSLATION_DEFAULT,
+  translationGoogleProjectId: process.env.MATTERS_TRANSLATION_GOOGLE_PROJECT_ID,
+  translationGoogleKeyFile: process.env.MATTERS_TRANSLATION_GOOGLE_KEY_FILE,
 }
 
 export const contract = {

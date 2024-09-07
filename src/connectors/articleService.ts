@@ -72,9 +72,11 @@ import {
   TagService,
   NotificationService,
   PaymentService,
-  GCP,
   SpamDetector,
 } from 'connectors'
+
+import { HtmlTranslator, Manager, Translator } from './translation/manager'
+import { ManageInternalLanguage } from './translation/matters'
 
 const logger = getLogger('service-article')
 
@@ -2243,15 +2245,18 @@ export class ArticleService extends BaseService<Article> {
       }
     }
 
-    const gcp = new GCP()
+    const translator = Manager.getInstance().htmlTranslator()
+    const targetLanguage =
+      'toTargetLanguage' in translator
+        ? (
+            translator as Translator & HtmlTranslator & ManageInternalLanguage
+          ).toTargetLanguage(language)
+        : language
 
     // or translate and store to db
     const [title, content, summary] = await Promise.all(
       [originTitle, originContent, originSummary].map((text) =>
-        gcp.translate({
-          content: text,
-          target: language,
-        })
+        translator.translateHtml(text, targetLanguage)
       )
     )
 
@@ -2281,10 +2286,10 @@ export class ArticleService extends BaseService<Article> {
               if (tag instanceof Error) {
                 return
               }
-              const translatedTag = await gcp.translate({
-                content: tag.content,
-                target: language,
-              })
+              const translatedTag = await translator.translateHtml(
+                tag.content,
+                targetLanguage
+              )
               const tagData = {
                 tagId: tag.id,
                 content: translatedTag ?? '',
