@@ -1,6 +1,8 @@
 import { TranslationServiceClient, protos } from '@google-cloud/translate'
-import { GoogleTranslate } from './googleTranslate'
+
 import { LANGUAGE } from 'common/enums'
+
+import { GoogleTranslate } from './googleTranslate'
 
 type DetectLanguageResponse =
   protos.google.cloud.translation.v3.IDetectLanguageResponse

@@ -1,5 +1,6 @@
-import { ClientOptions } from 'google-gax'
 import { TranslationServiceClient } from '@google-cloud/translate'
+import { ClientOptions } from 'google-gax'
+
 import { TranslatorNotFoundError } from './errors'
 import { GoogleTranslate } from './googleTranslate'
 import { NullTranslator } from './nullTranslator'

@@ -1,5 +1,5 @@
 abstract class Framework {
-  #language: string = ''
+  #language = ''
   #script: string | null = null
   #region: string | null = null
 

@@ -74,6 +74,7 @@ import {
   PaymentService,
   SpamDetector,
 } from 'connectors'
+
 import { HtmlTranslator, Manager, Translator } from './translation/manager'
 import { ManageInternalLanguage } from './translation/matters'
 

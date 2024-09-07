@@ -1,5 +1,6 @@
-import { getLogger } from 'common/logger'
 import type { GQLArticleVersionResolvers } from 'definitions'
+
+import { getLogger } from 'common/logger'
 
 const resolver: GQLArticleVersionResolvers['translation'] = async (
   root,

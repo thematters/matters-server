@@ -1,5 +1,6 @@
-import { getLogger } from 'common/logger'
 import type { GQLArticleResolvers } from 'definitions'
+
+import { getLogger } from 'common/logger'
 
 const resolver: GQLArticleResolvers['translation'] = async (
   { id: articleId },

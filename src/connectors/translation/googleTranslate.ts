@@ -1,8 +1,10 @@
 import { TranslationServiceClient, protos } from '@google-cloud/translate'
+
+import { LANGUAGE } from 'common/enums'
+
+import { Bcp47, Cldr } from './languageTagFramework'
 import { HtmlTranslator, Translator } from './manager'
 import { ManageInternalLanguage } from './matters'
-import { Bcp47, Cldr } from './languageTagFramework'
-import { LANGUAGE } from 'common/enums'
 
 type TranslateTextRequest =
   protos.google.cloud.translation.v3.ITranslateTextRequest

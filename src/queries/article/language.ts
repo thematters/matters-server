@@ -2,10 +2,10 @@ import type { GQLArticleResolvers } from 'definitions'
 
 import { stripHtml } from '@matters/ipns-site-generator'
 
+import { getLogger } from 'common/logger'
 import { stripMentions } from 'common/utils'
 import { Manager, Translator } from 'connectors/translation/manager'
 import { ManageInternalLanguage } from 'connectors/translation/matters'
-import { getLogger } from 'common/logger'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId },
