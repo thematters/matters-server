@@ -41,6 +41,18 @@ We use [MJML](https://mjml.io) to develop our SendGrid email template.
 
 Please refer to the repo [matters-email](https://github.com/thematters/matters-email) for details.
 
+## Environment Varaibles
+
+The _Matters_ server includes a set of environment variables that can be
+customized for different environments. These variables are systematically
+organized into groups based on their respective components.
+
+### Translation
+
+- **MATTERS_TRANSLATION_DEFAULT**: The default translation driver.
+- **MATTERS_TRANSLATION_GOOGLE_PROJECT_ID**: The [Project ID](https://cloud.google.com/resource-manager/docs/creating-managing-projects) from Google Cloud.
+- **MATTERS_TRANSLATION_GOOGLE_KEY_FILE**: The path to the Google Cloud [service account credentials](https://cloud.google.com/iam/docs/service-account-creds).
+
 ## Test Mode
 
 To make the login flow testing easier, the login-related mutations have hardcoded input values with respective behaviors in the non-production environment.
