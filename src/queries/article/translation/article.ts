@@ -1,3 +1,4 @@
+import { getLogger } from 'common/logger'
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['translation'] = async (
@@ -9,10 +10,17 @@ const resolver: GQLArticleResolvers['translation'] = async (
   const articleVersion = await articleService.loadLatestArticleVersion(
     articleId
   )
-  return articleService.getOrCreateTranslation(
-    articleVersion,
-    language,
-    viewer.id
-  )
+
+  try {
+    return articleService.getOrCreateTranslation(
+      articleVersion,
+      language,
+      viewer.id
+    )
+  } catch (e) {
+    getLogger('translation').error(e)
+
+    return null
+  }
 }
 export default resolver

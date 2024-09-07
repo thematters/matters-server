@@ -5,6 +5,7 @@ import { stripHtml } from '@matters/ipns-site-generator'
 import { stripMentions } from 'common/utils'
 import { Manager, Translator } from 'connectors/translation/manager'
 import { ManageInternalLanguage } from 'connectors/translation/matters'
+import { getLogger } from 'common/logger'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId },
@@ -40,6 +41,9 @@ const resolver: GQLArticleResolvers['language'] = async (
               : language
           },
         })
+    })
+    .catch((e) => {
+      getLogger('translation').error(e)
     })
 
   // return first to prevent blocking
