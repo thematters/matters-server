@@ -112,7 +112,7 @@ export class Manager implements TranslationManager {
       case 'null':
         return this.#makeNullTranslator()
       default:
-        throw new Error('Unsupported translation driver.')
+        throw new UnsupportedTranslatorError('Unsupported translation driver.')
     }
   }
 
