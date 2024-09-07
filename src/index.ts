@@ -10,7 +10,6 @@ import { contextStorage, LoggingContextKey } from 'common/logger'
 
 import { configureTranslation } from './initializers/configureTranslation'
 import * as routes from './routes'
-
 ;(async () => {
   /**
    * Init
