@@ -1,7 +1,7 @@
 import { TranslationServiceClient } from '@google-cloud/translate'
 import { ClientOptions } from 'google-gax'
 
-import { TranslatorNotFoundError } from './errors'
+import { TranslatorNotFoundError, UnsupportedTranslatorError } from './errors'
 import { GoogleTranslate } from './googleTranslate'
 import { NullTranslator } from './nullTranslator'
 
@@ -75,7 +75,9 @@ export class Manager implements TranslationManager {
     const translator = this.translator(name)
 
     if (!('translateHtml' in translator)) {
-      throw new Error('The translator does not support HTML translation.')
+      throw new UnsupportedTranslatorError(
+        'The translator does not support HTML translation.'
+      )
     }
 
     return translator as Translator & HtmlTranslator
