@@ -74,8 +74,8 @@ import {
   PaymentService,
   SpamDetector,
 } from 'connectors'
-import { Manager } from './translation/manager'
-import { toGoogleTargetLanguage } from './translation/utils'
+import { HtmlTranslator, Manager, Translator } from './translation/manager'
+import { ManageInternalLanguage } from './translation/matters'
 
 const logger = getLogger('service-article')
 
@@ -2245,11 +2245,15 @@ export class ArticleService extends BaseService<Article> {
     }
 
     const translator = Manager.getInstance().htmlTranslator()
+    const targetLanguage = 'toTargetLanguage' in translator
+      ? (translator as Translator & HtmlTranslator & ManageInternalLanguage)
+        .toTargetLanguage(language)
+      : language
 
     // or translate and store to db
     const [title, content, summary] = await Promise.all(
       [originTitle, originContent, originSummary].map((text) =>
-        translator.translateHtml(text, toGoogleTargetLanguage(language))
+        translator.translateHtml(text, targetLanguage)
       )
     )
 
@@ -2280,7 +2284,7 @@ export class ArticleService extends BaseService<Article> {
                 return
               }
               const translatedTag = await translator.translateHtml(
-                tag.content, toGoogleTargetLanguage(language)
+                tag.content, targetLanguage
               )
               const tagData = {
                 tagId: tag.id,

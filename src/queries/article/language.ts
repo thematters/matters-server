@@ -3,8 +3,8 @@ import type { GQLArticleResolvers } from 'definitions'
 import { stripHtml } from '@matters/ipns-site-generator'
 
 import { stripMentions } from 'common/utils'
-import { Manager } from 'connectors/translation/manager'
-import { toInternalLanguage } from 'connectors/translation/utils'
+import { Manager, Translator } from 'connectors/translation/manager'
+import { ManageInternalLanguage } from 'connectors/translation/matters'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId },
@@ -24,15 +24,21 @@ const resolver: GQLArticleResolvers['language'] = async (
 
   const excerpt = stripHtml(stripMentions(content)).slice(0, 300)
 
-  Manager.getInstance()
-    .translator()
+  const translator = Manager.getInstance().translator()
+
+  translator
     .detect(excerpt)
     .then((language) => {
       language &&
         atomService.update({
           table: 'article_version',
           where: { id: versionId },
-          data: { language: toInternalLanguage(language) },
+          data: {
+            language: 'toInternalLanguage' in translator
+              ? (translator as Translator & ManageInternalLanguage)
+                .toInternalLanguage(language)
+              : language
+          },
         })
     })
 

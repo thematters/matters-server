@@ -1,5 +1,6 @@
 import { TranslationServiceClient, protos } from '@google-cloud/translate'
 import { GoogleTranslate } from './googleTranslate'
+import { LANGUAGE } from 'common/enums'
 
 type DetectLanguageResponse =
   protos.google.cloud.translation.v3.IDetectLanguageResponse
@@ -104,5 +105,58 @@ describe('google translate', () => {
     mockClient.translateText.mockImplementation(async () => [mockResponse])
     const translated = await translator.translate('foo', 'beep')
     expect(translated).toBeNull()
+  })
+})
+
+describe('ManageInternalLanguage', () => {
+  const translator = new GoogleTranslate(
+    new TranslationServiceClient(), 'test-project'
+  )
+
+  describe('toTargetLanguage', () => {
+    it('converts language in cldr format to iso-639 code', () => {
+      expect(translator.toTargetLanguage('en')).toBe('en')
+      expect(translator.toTargetLanguage('en_US')).toBe('en')
+    })
+
+    it('converts language to Chinese Simplified if script sub-tag is Hans', () => {
+      expect(translator.toTargetLanguage('zh_Hans')).toBe('zh-CN')
+    })
+
+    it('converts language to Chinese Simplified if region sub-tag is CN', () => {
+      expect(translator.toTargetLanguage('zh_CN')).toBe('zh-CN')
+    })
+
+    it('converts language to Chinese Traditional if script sub-tag is Hant', () => {
+      expect(translator.toTargetLanguage('zh_Hant')).toBe('zh-TW')
+    })
+
+    it('converts language to Chinese Traditional if region sub-tag is TW', () => {
+      expect(translator.toTargetLanguage('zh_TW')).toBe('zh-TW')
+    })
+  })
+
+  describe('toInternalLanguage', () => {
+    it('normalizes to Simplified Chinese if script sub-tag is Hans', () => {
+      expect(translator.toInternalLanguage('zh-Hans')).toBe(LANGUAGE.zh_hans)
+    })
+
+    it('normalizes to Simplified Chinese if region sub-tag is CN', () => {
+      expect(translator.toInternalLanguage('zh-CN')).toBe(LANGUAGE.zh_hans)
+    })
+
+    it('normalizes to Traditional Chinese if script sub-tag is Hant', () => {
+      expect(translator.toInternalLanguage('zh-Hant')).toBe(LANGUAGE.zh_hant)
+    })
+
+    it('normalizes to Traditional Chinese if region sub-tag is TW', () => {
+      expect(translator.toInternalLanguage('zh-TW')).toBe(LANGUAGE.zh_hant)
+    })
+
+    it('skips normalizing for any other BCP 47 codes', () => {
+      expect(translator.toInternalLanguage('en')).toBe(LANGUAGE.en)
+      expect(translator.toInternalLanguage('en-US')).toBe('en-US')
+      expect(translator.toInternalLanguage('fr')).toBe('fr')
+    })
   })
 })
