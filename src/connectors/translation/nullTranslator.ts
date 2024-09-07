@@ -5,11 +5,11 @@ export class NullTranslator implements Translator, HtmlTranslator {
     return 'en'
   }
 
-  async translate(content: string): Promise<string | null> {
-    return content
+  async translate(content: string, targetLanguage: string): Promise<string | null> {
+    return `[${targetLanguage}] ${content}`
   }
 
-  async translateHtml(content: string): Promise<string | null> {
-    return content
+  async translateHtml(content: string, targetLanguage: string): Promise<string | null> {
+    return `[${targetLanguage}] ${content}`
   }
 }
