@@ -1,8 +1,9 @@
 import dotenv from 'dotenv'
+import dotenvExpand from 'dotenv-expand'
 import fs from 'fs'
 import path from 'path'
 
-dotenv.config()
+dotenvExpand.expand(dotenv.config())
 
 let OICDPrivateKey = ''
 if (process.env.MATTERS_OICD_PRIVATE_KEY) {
