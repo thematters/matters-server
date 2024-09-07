@@ -35,6 +35,6 @@ const config: TranslationConfig = {
   },
 }
 
-export default function configureTranslation() {
+export function configureTranslation() {
   new Manager(config).asGlobal()
 }

@@ -8,10 +8,10 @@ import { v4 } from 'uuid'
 import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from 'common/enums'
 import { contextStorage, LoggingContextKey } from 'common/logger'
 
-import configureTranslation from './initializers/configureTranslation'
-;
+import { configureTranslation } from './initializers/configureTranslation'
 import * as routes from './routes'
-(async () => {
+
+;(async () => {
   /**
    * Init
    */
