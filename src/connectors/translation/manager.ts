@@ -33,8 +33,7 @@ export type TranslationConfig = {
   }
 }
 
-export class Manager implements TranslationManager
-{
+export class Manager implements TranslationManager {
   static #instance: Manager
 
   #config: TranslationConfig
@@ -74,7 +73,7 @@ export class Manager implements TranslationManager
   htmlTranslator(name?: string): Translator & HtmlTranslator {
     const translator = this.translator(name)
 
-    if (! ('translateHtml' in translator)) {
+    if (!('translateHtml' in translator)) {
       throw new Error('The translator does not support HTML translation.')
     }
 
@@ -101,9 +100,7 @@ export class Manager implements TranslationManager
     const config = this.#config.drivers[name]
 
     if (!config) {
-      throw new TranslatorNotFoundError(
-        `Could not find "${name}" translator.`
-      )
+      throw new TranslatorNotFoundError(`Could not find "${name}" translator.`)
     }
 
     switch (config.driver) {

@@ -23,9 +23,7 @@ describe('google translate', () => {
 
   it('can detect language of the content', async () => {
     const mockResponse: DetectLanguageResponse = {
-      languages: [
-        { languageCode: 'en' }
-      ]
+      languages: [{ languageCode: 'en' }],
     }
     mockClient.detectLanguage.mockImplementation(async () => [mockResponse])
     const language = await translator.detect('foo')
@@ -45,8 +43,10 @@ describe('google translate', () => {
   it('returns null when missing language code', async () => {
     const mockResponse: DetectLanguageResponse = {
       languages: [
-        { /** intended empty */ }
-      ]
+        {
+          /** intended empty */
+        },
+      ],
     }
     mockClient.detectLanguage.mockImplementation(async () => [mockResponse])
     const languages = await translator.detect('foo')
@@ -55,9 +55,7 @@ describe('google translate', () => {
 
   it('can translate content to target language', async () => {
     const mockResponse: TranslateTextResponse = {
-      translations: [
-        { translatedText: 'bar' }
-      ]
+      translations: [{ translatedText: 'bar' }],
     }
     mockClient.translateText.mockImplementation(async () => [mockResponse])
     const translated = await translator.translate('foo', 'beep')
@@ -66,16 +64,14 @@ describe('google translate', () => {
       expect.objectContaining({
         contents: ['foo'],
         mimeType: 'text/plain',
-        targetLanguageCode: 'beep'
+        targetLanguageCode: 'beep',
       })
     )
   })
 
   it('can translate html content to target language', async () => {
     const mockResponse: TranslateTextResponse = {
-      translations: [
-        { translatedText: '<p>bar</p>' }
-      ]
+      translations: [{ translatedText: '<p>bar</p>' }],
     }
     mockClient.translateText.mockImplementation(async () => [mockResponse])
     const translated = await translator.translateHtml('<p>foo</p>', 'beep')
@@ -84,7 +80,7 @@ describe('google translate', () => {
       expect.objectContaining({
         contents: ['<p>foo</p>'],
         mimeType: 'text/html',
-        targetLanguageCode: 'beep'
+        targetLanguageCode: 'beep',
       })
     )
   })
@@ -99,8 +95,10 @@ describe('google translate', () => {
   it('returns null if missing translation text', async () => {
     const mockResponse: TranslateTextResponse = {
       translations: [
-        { /** intended empty */ }
-      ]
+        {
+          /** intended empty */
+        },
+      ],
     }
     mockClient.translateText.mockImplementation(async () => [mockResponse])
     const translated = await translator.translate('foo', 'beep')
@@ -110,7 +108,8 @@ describe('google translate', () => {
 
 describe('ManageInternalLanguage', () => {
   const translator = new GoogleTranslate(
-    new TranslationServiceClient(), 'test-project'
+    new TranslationServiceClient(),
+    'test-project'
   )
 
   describe('toTargetLanguage', () => {

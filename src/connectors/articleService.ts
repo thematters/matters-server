@@ -2245,10 +2245,12 @@ export class ArticleService extends BaseService<Article> {
     }
 
     const translator = Manager.getInstance().htmlTranslator()
-    const targetLanguage = 'toTargetLanguage' in translator
-      ? (translator as Translator & HtmlTranslator & ManageInternalLanguage)
-        .toTargetLanguage(language)
-      : language
+    const targetLanguage =
+      'toTargetLanguage' in translator
+        ? (
+            translator as Translator & HtmlTranslator & ManageInternalLanguage
+          ).toTargetLanguage(language)
+        : language
 
     // or translate and store to db
     const [title, content, summary] = await Promise.all(
@@ -2284,7 +2286,8 @@ export class ArticleService extends BaseService<Article> {
                 return
               }
               const translatedTag = await translator.translateHtml(
-                tag.content, targetLanguage
+                tag.content,
+                targetLanguage
               )
               const tagData = {
                 tagId: tag.id,

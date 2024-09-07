@@ -2,7 +2,6 @@ import { environment } from 'common/environment'
 import { Manager, TranslationConfig } from 'connectors/translation/manager'
 
 const config: TranslationConfig = {
-
   // --------------------------------------------------------------------
   // Default Driver
   // --------------------------------------------------------------------
@@ -24,7 +23,6 @@ const config: TranslationConfig = {
   // Supported drivers: "google" | "null"
 
   drivers: {
-
     google: {
       driver: 'google',
       projectId: environment.translationGoogleProjectId,
@@ -34,8 +32,7 @@ const config: TranslationConfig = {
     null: {
       driver: 'null',
     },
-
-  }
+  },
 }
 
 export default function configureTranslation() {

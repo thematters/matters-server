@@ -35,10 +35,12 @@ const resolver: GQLArticleResolvers['language'] = async (
           table: 'article_version',
           where: { id: versionId },
           data: {
-            language: 'toInternalLanguage' in translator
-              ? (translator as Translator & ManageInternalLanguage)
-                .toInternalLanguage(language)
-              : language
+            language:
+              'toInternalLanguage' in translator
+                ? (
+                    translator as Translator & ManageInternalLanguage
+                  ).toInternalLanguage(language)
+                : language,
           },
         })
     })

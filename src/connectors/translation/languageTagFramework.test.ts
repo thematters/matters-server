@@ -6,7 +6,7 @@ describe('BCP 47', () => {
     ['Zh-Hans-CN', 'zh'],
     ['ZH-Hans-CN', 'zh'],
     ['zh', 'zh'],
-    ['en', 'en'],   // ISO 639-1
+    ['en', 'en'], // ISO 639-1
     ['eng', 'eng'], // ISO 639-2/3
   ])('parses language sub-tag %s', (tags: string, expected: string) => {
     const bcp47 = new Bcp47(tags)
@@ -41,8 +41,9 @@ describe('BCP 47', () => {
   })
 
   it('throws error when language sub-tag is not iso 639-1 & 639-2/3', () => {
-    expect(() => new Bcp47('fooo'))
-      .toThrow('The language sub-tag does not conform to ISO 639-1 or 639-2/3.')
+    expect(() => new Bcp47('fooo')).toThrow(
+      'The language sub-tag does not conform to ISO 639-1 or 639-2/3.'
+    )
   })
 
   it.each([
@@ -79,7 +80,10 @@ describe('CLDR', () => {
     ['zh-Hans', 'zh_Hans'],
     ['zh-Hans-CN', 'zh_Hans_CN'],
     ['zh', 'zh'],
-  ])('creates an instance from bcp 47 tags %s', (bcp47: string, cldr: string) => {
-    expect(Cldr.from(new Bcp47(bcp47)).value).toBe(cldr)
-  })
+  ])(
+    'creates an instance from bcp 47 tags %s',
+    (bcp47: string, cldr: string) => {
+      expect(Cldr.from(new Bcp47(bcp47)).value).toBe(cldr)
+    }
+  )
 })
