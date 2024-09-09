@@ -45,6 +45,7 @@
     "@apollo/utils.keyvadapter": "^3.0.0",
     "@apollo/utils.keyvaluecache": "^3.0.0",
     "@google-cloud/translate": "^7.2.1",
+    "@google-cloud/vertexai": "^1.7.0",
     "@graphql-tools/schema": "^10.0.0",
     "@graphql-tools/utils": "^10.0.0",
     "@keyv/redis": "^2.6.1",
