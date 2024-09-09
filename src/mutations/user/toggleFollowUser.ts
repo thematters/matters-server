@@ -4,7 +4,6 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import { NOTICE_TYPE, NODE_TYPES, USER_STATE } from 'common/enums'
 import {
-  ActionFailedError,
   ForbiddenError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
@@ -39,10 +38,6 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
 
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
-  }
-
-  if (viewer.id === dbId) {
-    throw new ActionFailedError('cannot follow or unfollow yourself')
   }
 
   // determine action

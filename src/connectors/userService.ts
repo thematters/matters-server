@@ -1045,14 +1045,28 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public follow = async (userId: string, targetId: string) => {
+    if (userId === targetId) {
+      throw new ActionFailedError('cannot follow or unfollow yourself')
+    }
+
+    // check if viewer is blocked by user to follow
+    const isBlocked = await this.blocked({
+      userId: targetId,
+      targetId: userId,
+    })
+
+    if (isBlocked) {
+      throw new ForbiddenError('viewer is blocked by user to follow')
+    }
     const data = {
       userId,
       targetId,
       action: USER_ACTION.follow,
     }
-    return this.baseUpdateOrCreate({
+    return this.models.upsert({
       where: data,
-      data: data,
+      create: data,
+      update: data,
       table: 'action_user',
     })
   }
@@ -1073,14 +1087,6 @@ export class UserService extends BaseService<User> {
         userId,
         action: USER_ACTION.follow,
       })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  public countFollowers = async (targetId: string) => {
-    const result = await this.knex('action_user')
-      .where({ targetId, action: USER_ACTION.follow })
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -1111,30 +1117,18 @@ export class UserService extends BaseService<User> {
     return query
   }
 
-  public findFollowers = async ({
-    targetId,
-    take,
-    skip,
-  }: {
-    targetId: string
-    take?: number
-    skip?: string
-  }) => {
-    const query = this.knex
-      .select()
+  public findFollowers = (targetId: string) =>
+    this.knexRO
+      .select('user.*', this.knexRO.raw('action_user.id AS order'))
       .from('action_user')
+      .join('user', 'user.id', 'action_user.user_id')
       .where({ targetId, action: USER_ACTION.follow })
-      .orderBy('id', 'desc')
-
-    if (skip) {
-      query.andWhere('id', '<', skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
+      .whereNotIn(
+        'user.id',
+        this.knexRO('action_user')
+          .select('target_id')
+          .where({ userId: targetId, action: USER_ACTION.block })
+      )
 
   // retrieve circle members and followers
   public findCircleRecipients = async (circleId: string) => {
