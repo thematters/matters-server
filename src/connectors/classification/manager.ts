@@ -37,6 +37,8 @@ export type ClassificationManagerConfig = {
 }
 
 export class Manager implements ClassificationManager {
+  static #instance: Manager
+
   #config: ClassificationManagerConfig
 
   #resolved: {
@@ -96,5 +98,20 @@ export class Manager implements ClassificationManager {
 
   #makeNullDriver() {
     return new NullClassifier()
+  }
+
+  asGlobal() {
+    Manager.#instance = this
+    return this
+  }
+
+  static getInstance() {
+    const instance = Manager.#instance
+
+    if (!instance) {
+      throw new Error('Missing global classification manager.')
+    }
+
+    return instance
   }
 }

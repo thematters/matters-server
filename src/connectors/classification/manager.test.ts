@@ -26,3 +26,9 @@ it('can resolve classifier through config', () => {
   })
   expect(manager.classifier('default')).toBeInstanceOf(NullClassifier)
 })
+
+it('should return the same instance for multiple calls to getInstance()', () => {
+  const instance1 = new Manager({ default: 'default', drivers: {} }).asGlobal()
+  const instance2 = Manager.getInstance()
+  expect(instance2).toBe(instance1)
+})
