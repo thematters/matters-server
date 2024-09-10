@@ -149,6 +149,11 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
+
+  classificationDefault: process.env.MATTERS_CLASSIFICATION_DEFAULT,
+  classificationGeminiProject: process.env.MATTERS_CLASSIFICATION_GEMINI_PROJECT,
+  classificationGeminiLocation: process.env.MATTERS_CLASSIFICATION_GEMINI_LOCATION,
+  classificationGeminiKeyFile: process.env.MATTERS_CLASSIFICATION_GEMINI_KEY_FILE,
 }
 
 export const contract = {

@@ -9,10 +9,12 @@ import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from 'common/enums'
 import { contextStorage, LoggingContextKey } from 'common/logger'
 
 import * as routes from './routes'
+import { configureClassification } from './initializers/configureClassification'
 ;(async () => {
   /**
    * Init
    */
+  configureClassification()
 
   // Express
   const PORT = 4000
