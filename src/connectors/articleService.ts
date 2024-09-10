@@ -76,6 +76,7 @@ import {
   SpamDetector,
 } from 'connectors'
 import { ClassificationService, Service } from './article/classification'
+import { Manager } from './classification/manager'
 
 const logger = getLogger('service-article')
 
@@ -84,13 +85,14 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   private ipfsServers: typeof ipfsServers
-  private readonly classification: Service
+  private readonly classification: ClassificationService
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
   public constructor(connections: Connections, classification?: ClassificationService) {
     super('article', connections)
     this.ipfsServers = ipfsServers
-    this.classification = classification || new Service()
+    this.classification = classification ??
+      new Service(connections, Manager.getInstance().classifier())
 
     const batchFn = async (
       keys: readonly string[]

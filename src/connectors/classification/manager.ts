@@ -55,7 +55,7 @@ export class Manager implements ClassificationManager {
     return this
   }
 
-  classifier(name: string | null): Classifier {
+  classifier(name?: string | null): Classifier {
     if (typeof name === 'string') {
       return this.#resolve(name)
     }
