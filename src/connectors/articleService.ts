@@ -75,6 +75,7 @@ import {
   GCP,
   SpamDetector,
 } from 'connectors'
+import { ClassificationService, Service } from './article/classification'
 
 const logger = getLogger('service-article')
 
@@ -83,11 +84,13 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   private ipfsServers: typeof ipfsServers
+  private readonly classification: Service
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
-  public constructor(connections: Connections) {
+  public constructor(connections: Connections, classification?: ClassificationService) {
     super('article', connections)
     this.ipfsServers = ipfsServers
+    this.classification = classification || new Service()
 
     const batchFn = async (
       keys: readonly string[]
@@ -483,6 +486,11 @@ export class ArticleService extends BaseService<Article> {
         summary: summaryCustomized ? _summary : undefined,
       })
 
+      this.classification.classify(
+        contentId,
+        [contentMdId].filter(id => typeof id === 'string')
+      )
+
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
         const systemService = new SystemService(this.connections)
@@ -667,6 +675,15 @@ export class ArticleService extends BaseService<Article> {
           : undefined,
       })
     }
+
+    if (data.contentId && data.contentId !== lastData.contentId) {
+      this.classification.classify(
+        data.contentId,
+        [data.contentMdId !== lastData.contentMdId ? data.contentMdId : null]
+          .filter((id) => typeof id === 'string')
+      )
+    }
+
     this.latestArticleVersionLoader.clear(articleId)
     return articleVersion
   }

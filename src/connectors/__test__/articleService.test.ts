@@ -18,6 +18,7 @@ import {
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
+import { ClassificationService, Service } from 'connectors/article/classification'
 
 let connections: Connections
 let articleService: ArticleService
@@ -55,6 +56,19 @@ describe('create', () => {
       indentFirstLine: true,
     })
     expect(articleVersion.indentFirstLine).toBe(true)
+  })
+
+  it('classifies the article content', async () => {
+    const service = {
+      classify: jest.fn(),
+    } as jest.Mocked<ClassificationService>
+    const articles = new ArticleService(connections, service)
+    await articles.createArticle({
+      authorId: '1',
+      title: 'greeting',
+      content: 'Hello, world!',
+    })
+    expect(service.classify).toHaveBeenCalled()
   })
 })
 
@@ -665,6 +679,20 @@ describe('createNewArticleVersion', () => {
       description
     )
     expect(articleVersion3.description).toBe(description)
+  })
+
+  it('classifies the article content', async () => {
+    const service = {
+      classify: jest.fn(),
+    } as jest.Mocked<ClassificationService>
+    const articles = new ArticleService(connections, service)
+    await articles.createNewArticleVersion(
+      '1',
+      '1',
+      { content: 'foo' },
+      'description'
+    )
+    expect(service.classify).toHaveBeenCalled()
   })
 })
 
