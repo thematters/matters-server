@@ -1,9 +1,9 @@
 import { Classification } from 'aws-sdk/clients/glue'
 import { Classifier } from 'connectors/classification/manager'
-import { ArticleContent, Connections } from 'definitions'
+import { ArticleContent, ArticleVersion, Connections } from 'definitions'
 
 export interface ClassificationService {
-  classify(contentId: string, variationIds?: string[]): Promise<void>
+  classify(articleVersionId: string): Promise<void>
 }
 
 export class Service implements ClassificationService {
@@ -15,38 +15,56 @@ export class Service implements ClassificationService {
     this.#classifier = classifier
   }
 
-  async classify(contentId: string, variationIds?: string[]) {
-    const content = await this.#getContent(contentId)
+  async classify(articleVersionId: string) {
+    const version = await this.#getArticleVersion(articleVersionId)
 
-    if (!content) {
-      throw new Error(`The article content "${contentId}" does not exist.`)
+    if (!version) {
+      throw new Error(`The article version "${articleVersionId}" does not exist.`)
     }
 
-    const classification = await this.#classifier.classify(content.content)
+    const classification = await this.#classify(version)
 
     if (classification === null) {
       return
     }
 
-    await this.#persist([
-      contentId,
-      ...variationIds || []
-    ], classification)
+    await this.#persist(articleVersionId, classification)
   }
 
-  async #getContent(contentId: string) {
+  async #getArticleVersion(articleVersionId: string) {
     return await this.#connections
-      .knexRO<ArticleContent>('article_content')
-      .where('id', contentId)
+      .knexRO<ArticleVersion>('article_version')
+      .where('id', articleVersionId)
       .first()
   }
 
-  async #persist(contentIds: string[], classification: Classification) {
+  async #getArticleContent(contentId: string) {
+    const content = await this.#connections
+      .knexRO<ArticleContent>('article_content')
+      .where('id', contentId)
+      .first()
+
+    if (!content) {
+      throw new Error(`Could not find the article content with ID "${contentId}".`)
+    }
+
+    return content
+  }
+
+  async #classify(articleVersion: ArticleVersion) {
+    const { content } = await this.#getArticleContent(articleVersion.contentId)
+
+    return this.#classifier.classify(
+      `${articleVersion.title}\n\n${articleVersion.summary}\n\n${content}`
+    )
+  }
+
+  async #persist(articleVersionId: string, classification: Classification) {
     await this.#connections
-      .knex('article_content_classification')
-      .insert(contentIds.map((id) => ({
-        content_id: id,
+      .knex('article_classification')
+      .insert({
+        article_version_id: articleVersionId,
         classification,
-      })))
+      })
   }
 }

@@ -1,9 +1,9 @@
-import { ArticleContent, Connections } from 'definitions'
+import { Article, ArticleContent, ArticleVersion, Connections } from 'definitions'
 import { Classification, Classifier } from 'connectors/classification/manager'
 import { Service } from './classification'
 import { expect } from '@jest/globals'
 import { genConnections, closeConnections } from 'connectors/__test__/utils'
-import { registerMatcher } from './toHaveContentClassification'
+import { registerMatcher } from './toHaveArticleClassification'
 
 let connections: Connections
 let mockHash = 0
@@ -20,47 +20,60 @@ afterAll(async () => {
 it('classifies the article content', async () => {
   const classifier = createStubClassifier(Classification.NORMAL)
   const service = new Service(connections, classifier)
-  const content = await createTestContent()
-  await service.classify(content.id)
-  await expect(content.id).toHaveContentClassification(Classification.NORMAL)
+  const [version] = await createTestArticleVersion()
+  await service.classify(version.id)
+  await expect(version.id).toHaveArticleClassification(Classification.NORMAL)
 })
 
-it('persists the classification for variant content ids', async () => {
-  const classifier = createStubClassifier(Classification.NORMAL)
-  const service = new Service(connections, classifier)
-  const html = await createTestContent('<h1>Greeting</h1>')
-  const markdown = await createTestContent('# Greeting')
-  await service.classify(html.id, [markdown.id])
-  await expect(html.id).toHaveContentClassification(Classification.NORMAL)
-  await expect(markdown.id).toHaveContentClassification(Classification.NORMAL)
-})
-
-it('throws error when the content could not be found', async () => {
+it('throws error when the article version could not be found', async () => {
   const classifier = createStubClassifier(Classification.NORMAL)
   const service = new Service(connections, classifier)
   await expect(service.classify('0'))
     .rejects
-    .toThrow(new Error('The article content "0" does not exist.'))
+    .toThrow(new Error('The article version "0" does not exist.'))
 })
 
 it('skips classification when classifier does not have a result', async () => {
   const classifier = createStubClassifier(null)
   const service = new Service(connections, classifier)
-  const content = await createTestContent('<h1>Greeting</h1>')
-  await service.classify(content.id)
-  await expect(content.id).not.toHaveContentClassification(Classification.NORMAL)
+  const [version] = await createTestArticleVersion('<h1>Greeting</h1>')
+  await service.classify(version.id)
+  await expect(version.id).not.toHaveArticleClassification(Classification.NORMAL)
 })
 
-async function createTestContent(content = '<p>foo</p>') {
-  const [record] = await connections.knex
+async function createTestArticleVersion(html = '<p>foo</p>') {
+  const [article] = await connections.knex
+    .table<Article>('article')
+    .returning('id')
+    .insert<[Pick<Article, 'id'>]>({ authorId: '1' })
+
+  const [content] = await connections.knex
     .table<ArticleContent>('article_content')
     .returning('id')
     .insert<[Pick<ArticleContent, 'id'>]>({
-      content,
+      content: html,
       hash: 'mock-hash-' + mockHash++,
     })
 
-  return record
+  const [version] = await connections.knex
+    .table<ArticleVersion>('article_version')
+    .returning('id')
+    .insert<[Pick<ArticleVersion, 'id'>]>({
+      articleId: article.id,
+      title: 'Test Title',
+      summary: 'Test summary.',
+      summaryCustomized: true,
+      contentId: content.id,
+      tags: [],
+      connections: [],
+      wordCount: html.length,
+      access: 'public',
+      license: 'cc_0',
+      canComment: true,
+      sensitiveByAuthor: false,
+    })
+
+  return [version, content, article]
 }
 
 function createStubClassifier(classification: Classification | null) {

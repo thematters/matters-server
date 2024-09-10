@@ -18,7 +18,7 @@ import {
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
-import { ClassificationService, Service } from 'connectors/article/classification'
+import { ClassificationService } from 'connectors/article/classification'
 
 let connections: Connections
 let articleService: ArticleService
