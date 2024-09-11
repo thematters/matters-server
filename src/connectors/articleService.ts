@@ -40,6 +40,8 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -390,7 +392,12 @@ export class ArticleService extends BaseService<Article> {
         }
       })
       .modify(withClassificationFiltering, {
-        enable: !oss,
+        enable: !oss && await (async (): Promise<boolean> => {
+          const feature = await systemService.getFeatureFlag(
+            FEATURE_NAME.filter_inappropriate_content_in_latest_feed
+          )
+          return feature && feature.flag === FEATURE_FLAG.on
+        })(),
         articleTable: 'article_set',
       })
       .as('newest')

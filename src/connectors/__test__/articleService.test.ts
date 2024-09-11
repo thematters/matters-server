@@ -570,7 +570,15 @@ describe('latestArticles', () => {
 
     let mockHash = 0
 
+    const setFilterInappropriateContent = async (filter = true) => {
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.filter_inappropriate_content_in_latest_feed,
+        flag: filter ? FEATURE_FLAG.on : FEATURE_FLAG.off,
+      })
+    }
+
     it('includes normal articles', async () => {
+      setFilterInappropriateContent(true)
       const html = '<p>foo.</p>'
       const content = await new ArticleContentFactory().create({
         content: html,
@@ -605,6 +613,7 @@ describe('latestArticles', () => {
       [Classification.VIOLENCE],
       [Classification.AUTO_GENERATED],
     ])('excludes inappropriate articles %s', async (classification: Classification) => {
+      setFilterInappropriateContent(true)
       const html = '<p>foo.</p>'
       const content = await new ArticleContentFactory().create({
         content: html,
@@ -630,6 +639,35 @@ describe('latestArticles', () => {
       })
       expect(latests.some((entry: Article) => entry.id === article.id))
         .toBe(false)
+    })
+
+    it('should not filter inappropriate articles if feature is off', async () => {
+      setFilterInappropriateContent(false)
+      const html = '<p>foo.</p>'
+      const content = await new ArticleContentFactory().create({
+        content: html,
+        hash: `test-latest-articles-classification-${mockHash++}`,
+      })
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const version = await new ArticleVersionFactory().create({
+        articleId: article.id,
+        contentId: content.id,
+        wordCount: html.length,
+      })
+      await new ArticleClassificationFactory().create({
+        articleVersionId: version.id,
+        classification: Classification.SPAM,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id))
+        .toBe(true)
     })
   })
 })
