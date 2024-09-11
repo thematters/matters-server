@@ -9,6 +9,7 @@ export function configureClassification() {
         driver: 'gemini',
         project: environment.classificationGeminiProject,
         location: environment.classificationGeminiLocation,
+        model: environment.classificationGeminiModel,
         googleAuthOptions: {
           keyFile: environment.classificationGeminiKeyFile,
         },

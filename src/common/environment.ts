@@ -156,6 +156,7 @@ export const environment = {
   classificationGeminiProject: process.env.MATTERS_CLASSIFICATION_GEMINI_PROJECT,
   classificationGeminiLocation: process.env.MATTERS_CLASSIFICATION_GEMINI_LOCATION,
   classificationGeminiKeyFile: process.env.MATTERS_CLASSIFICATION_GEMINI_KEY_FILE,
+  classificationGeminiModel: process.env.MATTERS_CLASSIFICATION_GEMINI_MODEL,
 }
 
 export const contract = {
