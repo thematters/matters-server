@@ -1,4 +1,9 @@
-import { HarmBlockThreshold, HarmCategory, SchemaType, VertexAI } from '@google-cloud/vertexai'
+import {
+  HarmBlockThreshold,
+  HarmCategory,
+  SchemaType,
+  VertexAI,
+} from '@google-cloud/vertexai'
 import { Classification, Classifier } from './manager'
 import { createPrompt } from './prompt'
 
@@ -45,13 +50,11 @@ export class Gemini implements Classifier {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
           threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
         },
-      ]
+      ],
     })
 
     const { response } = await generativeModel.generateContent({
-      contents: [
-        { role: 'user', parts: [{ text: createPrompt(content) }] },
-      ],
+      contents: [{ role: 'user', parts: [{ text: createPrompt(content) }] }],
     })
 
     for (const candidate of response.candidates ?? []) {

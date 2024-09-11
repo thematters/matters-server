@@ -1,4 +1,9 @@
-import { Article, ArticleContent, ArticleVersion, Connections } from 'definitions'
+import {
+  Article,
+  ArticleContent,
+  ArticleVersion,
+  Connections,
+} from 'definitions'
 import { Classification, Classifier } from 'connectors/classification/manager'
 import { Service } from './classification'
 import { expect } from '@jest/globals'
@@ -28,9 +33,9 @@ it('classifies the article content', async () => {
 it('throws error when the article version could not be found', async () => {
   const classifier = createStubClassifier(Classification.NORMAL)
   const service = new Service(connections, classifier)
-  await expect(service.classify('0'))
-    .rejects
-    .toThrow(new Error('The article version "0" does not exist.'))
+  await expect(service.classify('0')).rejects.toThrow(
+    new Error('The article version "0" does not exist.')
+  )
 })
 
 it('skips classification when classifier does not have a result', async () => {
@@ -38,7 +43,9 @@ it('skips classification when classifier does not have a result', async () => {
   const service = new Service(connections, classifier)
   const [version] = await createTestArticleVersion('<h1>Greeting</h1>')
   await service.classify(version.id)
-  await expect(version.id).not.toHaveArticleClassification(Classification.NORMAL)
+  await expect(version.id).not.toHaveArticleClassification(
+    Classification.NORMAL
+  )
 })
 
 async function createTestArticleVersion(html = '<p>foo</p>') {

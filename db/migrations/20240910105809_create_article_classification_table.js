@@ -2,7 +2,7 @@ const { baseDown } = require('../utils')
 
 const table = 'article_classification'
 
-exports.up = async knex => {
+exports.up = async (knex) => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()

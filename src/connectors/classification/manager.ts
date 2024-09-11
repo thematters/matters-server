@@ -17,7 +17,7 @@ export interface ClassificationManager {
 }
 
 export type ClassificationGeminiConfig = {
-  driver: 'gemini',
+  driver: 'gemini'
   model?: string
 } & VertexInit
 
@@ -26,7 +26,7 @@ export type ClassificationNullConfig = {
 }
 
 export type ClassificationManagerConfig = {
-  default: string,
+  default: string
   drivers: {
     [name: string]: ClassificationGeminiConfig | ClassificationNullConfig
   }
@@ -66,7 +66,7 @@ export class Manager implements ClassificationManager {
       return classifier
     }
 
-    return this.#resolved[name] = this.#make(name)
+    return (this.#resolved[name] = this.#make(name))
   }
 
   #make(name: string): Classifier {

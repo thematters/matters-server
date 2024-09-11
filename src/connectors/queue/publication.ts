@@ -116,8 +116,14 @@ export class PublicationQueue {
     job,
     done
   ) => {
-    const classificationService = new Service(this.connections, Manager.getInstance().classifier())
-    const articleService = new ArticleService(this.connections, classificationService)
+    const classificationService = new Service(
+      this.connections,
+      Manager.getInstance().classifier()
+    )
+    const articleService = new ArticleService(
+      this.connections,
+      classificationService
+    )
     const userService = new UserService(this.connections)
     const systemService = new SystemService(this.connections)
     const notificationService = new NotificationService(this.connections)

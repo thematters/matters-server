@@ -19,7 +19,9 @@ export class Service implements ClassificationService {
     const version = await this.#getArticleVersion(articleVersionId)
 
     if (!version) {
-      throw new Error(`The article version "${articleVersionId}" does not exist.`)
+      throw new Error(
+        `The article version "${articleVersionId}" does not exist.`
+      )
     }
 
     const classification = await this.#classify(version)
@@ -45,7 +47,9 @@ export class Service implements ClassificationService {
       .first()
 
     if (!content) {
-      throw new Error(`Could not find the article content with ID "${contentId}".`)
+      throw new Error(
+        `Could not find the article content with ID "${contentId}".`
+      )
     }
 
     return content
@@ -60,23 +64,24 @@ export class Service implements ClassificationService {
   }
 
   async #persist(articleVersionId: string, classification: Classification) {
-    await this.#connections
-      .knex('article_classification')
-      .insert({
-        article_version_id: articleVersionId,
-        classification,
-      })
+    await this.#connections.knex('article_classification').insert({
+      article_version_id: articleVersionId,
+      classification,
+    })
   }
 }
 
 /**
  * A query snippet to filter out inappropriate articles by classification.
  */
-export function withClassificationFiltering(query: Knex.QueryBuilder, options: {
-  enable: true,
-  articleTable: 'article',
-  strict: true,
-}) {
+export function withClassificationFiltering(
+  query: Knex.QueryBuilder,
+  options: {
+    enable: true
+    articleTable: 'article'
+    strict: true
+  }
+) {
   if (!options.enable) {
     return
   }

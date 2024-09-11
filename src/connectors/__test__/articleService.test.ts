@@ -20,7 +20,13 @@ import {
 import { genConnections, closeConnections } from './utils'
 import { ClassificationService } from 'connectors/article/classification'
 import { Classification } from 'connectors/classification/manager'
-import { ArticleClassificationFactory, ArticleContentFactory, ArticleFactory, ArticleVersionFactory, Factory } from './factories'
+import {
+  ArticleClassificationFactory,
+  ArticleContentFactory,
+  ArticleFactory,
+  ArticleVersionFactory,
+  Factory,
+} from './factories'
 import { environment } from 'common/environment'
 
 let connections: Connections
@@ -604,8 +610,9 @@ describe('latestArticles', () => {
         take: 10,
         oss: false,
       })
-      expect(latests.some((entry: Article) => entry.id === article.id))
-        .toBe(true)
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        true
+      )
     })
 
     it('excludes spam', async () => {
@@ -633,8 +640,9 @@ describe('latestArticles', () => {
         take: 10,
         oss: false,
       })
-      expect(latests.some((entry: Article) => entry.id === article.id))
-        .toBe(false)
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        false
+      )
     })
 
     it('should not filter spam if feature is off', async () => {
@@ -662,8 +670,9 @@ describe('latestArticles', () => {
         take: 10,
         oss: false,
       })
-      expect(latests.some((entry: Article) => entry.id === article.id))
-        .toBe(true)
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        true
+      )
     })
 
     it('should exclude unclassified articles in strict mode', async () => {
@@ -677,8 +686,9 @@ describe('latestArticles', () => {
         take: 10,
         oss: false,
       })
-      expect(latests.some((entry: Article) => entry.id === article.id))
-        .toBe(false)
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        false
+      )
     })
 
     it('should include unclassified articles when not in strict mode', async () => {
@@ -693,8 +703,9 @@ describe('latestArticles', () => {
         take: 10,
         oss: false,
       })
-      expect(latests.some((entry: Article) => entry.id === article.id))
-        .toBe(true)
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        true
+      )
     })
   })
 })

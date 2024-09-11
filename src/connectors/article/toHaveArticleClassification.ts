@@ -2,7 +2,10 @@ import { Classification } from 'connectors/classification/manager'
 import { Connections } from 'definitions'
 
 export function registerMatcher(connections: Connections) {
-  async function toHaveArticleClassification(versionId: string, expected: Classification) {
+  async function toHaveArticleClassification(
+    versionId: string,
+    expected: Classification
+  ) {
     const record = await connections.knexRO
       .table('article_classification')
       .where({
@@ -13,13 +16,15 @@ export function registerMatcher(connections: Connections) {
 
     if (record) {
       return {
-        message: () => `The article version "${versionId}" has a classification of "${expected}".`,
+        message: () =>
+          `The article version "${versionId}" has a classification of "${expected}".`,
         pass: true,
       }
     }
 
     return {
-      message: () => `The article content "${versionId}" does not have a classification of "${expected}".`,
+      message: () =>
+        `The article content "${versionId}" does not have a classification of "${expected}".`,
       pass: false,
     }
   }

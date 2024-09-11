@@ -8,7 +8,8 @@ export const FEATURE_NAME = {
   circle_management: 'circle_management',
   circle_interact: 'circle_interact',
   spam_detection: 'spam_detection',
-  filter_inappropriate_content_in_latest_feed: 'filter_inappropriate_content_in_latest_feed',
+  filter_inappropriate_content_in_latest_feed:
+    'filter_inappropriate_content_in_latest_feed',
 } as const
 
 export const FEATURE_FLAG = {

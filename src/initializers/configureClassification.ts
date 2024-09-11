@@ -1,9 +1,11 @@
 import { environment } from 'common/environment'
-import { ClassificationManagerConfig, Manager } from 'connectors/classification/manager'
+import {
+  ClassificationManagerConfig,
+  Manager,
+} from 'connectors/classification/manager'
 
 export function configureClassification() {
   const config: ClassificationManagerConfig = {
-
     // --------------------------------------------------------------------
     // Default Driver
     // --------------------------------------------------------------------

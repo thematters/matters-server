@@ -30,14 +30,16 @@ it('classifies HTML content', async () => {
         {
           content: {
             role: 'model',
-            parts: [{ text: JSON.stringify({ category: 'normal' }) }]
+            parts: [{ text: JSON.stringify({ category: 'normal' }) }],
           },
           index: 0,
         },
       ],
     },
   }))
-  mockPreviewClient.getGenerativeModel.mockImplementation(() => mockGenerativeModel)
+  mockPreviewClient.getGenerativeModel.mockImplementation(
+    () => mockGenerativeModel
+  )
   const result = await gemini.classify('<p>Hello world!</p>')
   expect(result).toBe('normal')
 })
@@ -46,7 +48,9 @@ it('returns null if missing candidates', async () => {
   mockGenerativeModel.generateContent.mockImplementation(async () => ({
     response: {},
   }))
-  mockPreviewClient.getGenerativeModel.mockImplementation(() => mockGenerativeModel)
+  mockPreviewClient.getGenerativeModel.mockImplementation(
+    () => mockGenerativeModel
+  )
   const result = await gemini.classify('<p>Hello world!</p>')
   expect(result).toBeNull()
 })
@@ -58,14 +62,16 @@ it('returns null if missing parts in a candidate', async () => {
         {
           content: {
             role: 'model',
-            parts: []
+            parts: [],
           },
           index: 0,
         },
       ],
     },
   }))
-  mockPreviewClient.getGenerativeModel.mockImplementation(() => mockGenerativeModel)
+  mockPreviewClient.getGenerativeModel.mockImplementation(
+    () => mockGenerativeModel
+  )
   const result = await gemini.classify('<p>Hello world!</p>')
   expect(result).toBeNull()
 })
@@ -77,14 +83,16 @@ it('returns null if text in a candidate part is not a valid json', async () => {
         {
           content: {
             role: 'model',
-            parts: [{ text: 'malformed' }]
+            parts: [{ text: 'malformed' }],
           },
           index: 0,
         },
       ],
     },
   }))
-  mockPreviewClient.getGenerativeModel.mockImplementation(() => mockGenerativeModel)
+  mockPreviewClient.getGenerativeModel.mockImplementation(
+    () => mockGenerativeModel
+  )
   const result = await gemini.classify('<p>Hello world!</p>')
   expect(result).toBeNull()
 })
@@ -96,21 +104,23 @@ it('returns the next available candidate when error occurred', async () => {
         {
           content: {
             role: 'model',
-            parts: [{ text: 'malformed' }]
+            parts: [{ text: 'malformed' }],
           },
           index: 0,
         },
         {
           content: {
             role: 'model',
-            parts: [{ text: JSON.stringify({ category: 'normal' }) }]
+            parts: [{ text: JSON.stringify({ category: 'normal' }) }],
           },
           index: 1,
         },
       ],
     },
   }))
-  mockPreviewClient.getGenerativeModel.mockImplementation(() => mockGenerativeModel)
+  mockPreviewClient.getGenerativeModel.mockImplementation(
+    () => mockGenerativeModel
+  )
   const result = await gemini.classify('<p>Hello world!</p>')
   expect(result).toBe('normal')
 })
@@ -122,14 +132,16 @@ it('returns null if the classificaion is not a predefined value', async () => {
         {
           content: {
             role: 'model',
-            parts: [{ text: JSON.stringify({ category: 'foo' }) }]
+            parts: [{ text: JSON.stringify({ category: 'foo' }) }],
           },
           index: 0,
         },
       ],
     },
   }))
-  mockPreviewClient.getGenerativeModel.mockImplementation(() => mockGenerativeModel)
+  mockPreviewClient.getGenerativeModel.mockImplementation(
+    () => mockGenerativeModel
+  )
   const result = await gemini.classify('<p>Hello world!</p>')
   expect(result).toBeNull()
 })

@@ -77,7 +77,10 @@ import {
   GCP,
   SpamDetector,
 } from 'connectors'
-import { ClassificationService, withClassificationFiltering } from './article/classification'
+import {
+  ClassificationService,
+  withClassificationFiltering,
+} from './article/classification'
 
 const logger = getLogger('service-article')
 
@@ -89,7 +92,10 @@ export class ArticleService extends BaseService<Article> {
   private readonly classification?: ClassificationService
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
-  public constructor(connections: Connections, classification?: ClassificationService) {
+  public constructor(
+    connections: Connections,
+    classification?: ClassificationService
+  ) {
     super('article', connections)
     this.ipfsServers = ipfsServers
     this.classification = classification
@@ -392,12 +398,14 @@ export class ArticleService extends BaseService<Article> {
         }
       })
       .modify(withClassificationFiltering, {
-        enable: !oss && await (async (): Promise<boolean> => {
-          const feature = await systemService.getFeatureFlag(
-            FEATURE_NAME.filter_inappropriate_content_in_latest_feed
-          )
-          return feature && feature.flag === FEATURE_FLAG.on
-        })(),
+        enable:
+          !oss &&
+          (await (async (): Promise<boolean> => {
+            const feature = await systemService.getFeatureFlag(
+              FEATURE_NAME.filter_inappropriate_content_in_latest_feed
+            )
+            return feature && feature.flag === FEATURE_FLAG.on
+          })()),
         articleTable: 'article_set',
         strict: environment.latestFeedStrictFiltering,
       })
@@ -498,11 +506,9 @@ export class ArticleService extends BaseService<Article> {
         summary: summaryCustomized ? _summary : undefined,
       })
 
-      this.classification
-        ?.classify(articleVersion.id)
-        .catch((e) => {
-          logger.error(`Failed to classify an article: ${e}`)
-        })
+      this.classification?.classify(articleVersion.id).catch((e) => {
+        logger.error(`Failed to classify an article: ${e}`)
+      })
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -689,11 +695,9 @@ export class ArticleService extends BaseService<Article> {
       })
     }
 
-    this.classification
-      ?.classify(articleVersion.id)
-      .catch((e) => {
-        logger.error(`Failed to classify an article: ${e}`)
-      })
+    this.classification?.classify(articleVersion.id).catch((e) => {
+      logger.error(`Failed to classify an article: ${e}`)
+    })
 
     this.latestArticleVersionLoader.clear(articleId)
     return articleVersion

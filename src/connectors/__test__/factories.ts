@@ -1,4 +1,10 @@
-import { Article, ArticleClassification, ArticleContent, ArticleVersion, Connections } from 'definitions'
+import {
+  Article,
+  ArticleClassification,
+  ArticleContent,
+  ArticleVersion,
+  Connections,
+} from 'definitions'
 
 export abstract class Factory<T extends Record<string, any>> {
   protected static connections: Connections

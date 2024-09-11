@@ -9,7 +9,5 @@ exports.up = async (knex) => {
 }
 
 exports.down = async (knex) => {
-  await knex(table)
-    .where('name', feature)
-    .del()
+  await knex(table).where('name', feature).del()
 }
