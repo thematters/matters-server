@@ -399,6 +399,7 @@ export class ArticleService extends BaseService<Article> {
           return feature && feature.flag === FEATURE_FLAG.on
         })(),
         articleTable: 'article_set',
+        strict: environment.latestFeedStrictFiltering,
       })
       .as('newest')
 

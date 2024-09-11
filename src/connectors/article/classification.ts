@@ -75,6 +75,7 @@ export class Service implements ClassificationService {
 export function withClassificationFiltering(query: Knex.QueryBuilder, options: {
   enable: true,
   articleTable: 'article',
+  strict: true,
 }) {
   if (!options.enable) {
     return
@@ -92,8 +93,10 @@ export function withClassificationFiltering(query: Knex.QueryBuilder, options: {
       'latest.id'
     )
     .andWhere((query) => {
-      query
-        .where('ac.classification', Classification.NORMAL)
-        .orWhereNull('ac.classification')
+      query.where('ac.classification', Classification.NORMAL)
+
+      if (!options.strict) {
+        query.orWhereNull('ac.classification')
+      }
     })
 }

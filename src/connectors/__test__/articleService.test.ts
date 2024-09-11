@@ -21,6 +21,7 @@ import { genConnections, closeConnections } from './utils'
 import { ClassificationService } from 'connectors/article/classification'
 import { Classification } from 'connectors/classification/manager'
 import { ArticleClassificationFactory, ArticleContentFactory, ArticleFactory, ArticleVersionFactory, Factory } from './factories'
+import { environment } from 'common/environment'
 
 let connections: Connections
 let articleService: ArticleService
@@ -566,6 +567,7 @@ describe('latestArticles', () => {
   describe('classification', () => {
     beforeAll(() => {
       Factory.setConnections(connections)
+      environment.latestFeedStrictFiltering = true
     })
 
     let mockHash = 0
@@ -659,6 +661,37 @@ describe('latestArticles', () => {
       await new ArticleClassificationFactory().create({
         articleVersionId: version.id,
         classification: Classification.SPAM,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id))
+        .toBe(true)
+    })
+
+    it('should filter out unclassified articles in strict mode', async () => {
+      setFilterInappropriateContent(true)
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id))
+        .toBe(false)
+    })
+
+    it('should include unclassified articles when not in strict mode', async () => {
+      setFilterInappropriateContent(true)
+      environment.latestFeedStrictFiltering = false
+      const article = await new ArticleFactory().create({
+        authorId: '1',
       })
       const latests = await articleService.latestArticles({
         maxTake: 10,
