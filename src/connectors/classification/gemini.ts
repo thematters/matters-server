@@ -4,6 +4,7 @@ import {
   SchemaType,
   VertexAI,
 } from '@google-cloud/vertexai'
+
 import { Classification, Classifier } from './manager'
 import { createPrompt } from './prompt'
 

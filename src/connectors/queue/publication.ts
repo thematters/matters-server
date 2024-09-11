@@ -34,10 +34,10 @@ import {
   CampaignService,
   aws,
 } from 'connectors'
-
-import { getOrCreateQueue } from './utils'
 import { Service } from 'connectors/article/classification'
 import { Manager } from 'connectors/classification/manager'
+
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-publication')
 

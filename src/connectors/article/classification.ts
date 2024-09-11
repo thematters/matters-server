@@ -1,6 +1,7 @@
+import { Knex } from 'knex'
+
 import { Classification, Classifier } from 'connectors/classification/manager'
 import { ArticleContent, ArticleVersion, Connections } from 'definitions'
-import { Knex } from 'knex'
 
 export interface ClassificationService {
   classify(articleVersionId: string): Promise<void>

@@ -1,4 +1,5 @@
 import { GenerativeModelPreview, VertexAI } from '@google-cloud/vertexai'
+
 import { Gemini } from './gemini'
 
 let mockClient: jest.Mocked<VertexAI>

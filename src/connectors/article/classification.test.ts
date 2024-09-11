@@ -1,13 +1,15 @@
+import { expect } from '@jest/globals'
+
+import { genConnections, closeConnections } from 'connectors/__test__/utils'
+import { Classification, Classifier } from 'connectors/classification/manager'
 import {
   Article,
   ArticleContent,
   ArticleVersion,
   Connections,
 } from 'definitions'
-import { Classification, Classifier } from 'connectors/classification/manager'
+
 import { Service } from './classification'
-import { expect } from '@jest/globals'
-import { genConnections, closeConnections } from 'connectors/__test__/utils'
 import { registerMatcher } from './toHaveArticleClassification'
 
 let connections: Connections

@@ -1,4 +1,5 @@
 import { VertexAI, VertexInit } from '@google-cloud/vertexai'
+
 import { Gemini } from './gemini'
 import { NullClassifier } from './nullClassifier'
 
@@ -56,7 +57,7 @@ export class Manager implements ClassificationManager {
       return this.#resolve(name)
     }
 
-    return this.#resolve(this.#config['default'])
+    return this.#resolve(this.#config.default)
   }
 
   #resolve(name: string): Classifier {
