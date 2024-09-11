@@ -498,7 +498,11 @@ export class ArticleService extends BaseService<Article> {
         summary: summaryCustomized ? _summary : undefined,
       })
 
-      this.classification?.classify(articleVersion.id)
+      this.classification
+        ?.classify(articleVersion.id)
+        .catch((e) => {
+          logger.error(`Failed to classify an article: ${e}`)
+        })
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -685,7 +689,11 @@ export class ArticleService extends BaseService<Article> {
       })
     }
 
-    this.classification?.classify(articleVersion.id)
+    this.classification
+      ?.classify(articleVersion.id)
+      .catch((e) => {
+        logger.error(`Failed to classify an article: ${e}`)
+      })
 
     this.latestArticleVersionLoader.clear(articleId)
     return articleVersion
