@@ -608,13 +608,7 @@ describe('latestArticles', () => {
         .toBe(true)
     })
 
-    it.each([
-      [Classification.SPAM],
-      [Classification.PROMOTION],
-      [Classification.SEXUAL],
-      [Classification.VIOLENCE],
-      [Classification.AUTO_GENERATED],
-    ])('excludes inappropriate articles %s', async (classification: Classification) => {
+    it('excludes spam', async () => {
       setFilterInappropriateContent(true)
       const html = '<p>foo.</p>'
       const content = await new ArticleContentFactory().create({
@@ -631,7 +625,7 @@ describe('latestArticles', () => {
       })
       await new ArticleClassificationFactory().create({
         articleVersionId: version.id,
-        classification,
+        classification: Classification.SPAM,
       })
       const latests = await articleService.latestArticles({
         maxTake: 10,
@@ -643,7 +637,7 @@ describe('latestArticles', () => {
         .toBe(false)
     })
 
-    it('should not filter inappropriate articles if feature is off', async () => {
+    it('should not filter spam if feature is off', async () => {
       setFilterInappropriateContent(false)
       const html = '<p>foo.</p>'
       const content = await new ArticleContentFactory().create({
@@ -672,7 +666,7 @@ describe('latestArticles', () => {
         .toBe(true)
     })
 
-    it('should filter out unclassified articles in strict mode', async () => {
+    it('should exclude unclassified articles in strict mode', async () => {
       setFilterInappropriateContent(true)
       const article = await new ArticleFactory().create({
         authorId: '1',

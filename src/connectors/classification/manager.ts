@@ -5,10 +5,6 @@ import { NullClassifier } from './nullClassifier'
 export enum Classification {
   NORMAL = 'normal',
   SPAM = 'spam',
-  PROMOTION = 'promotion',
-  SEXUAL = 'sexual',
-  VIOLENCE = 'violence',
-  AUTO_GENERATED = 'auto-generated',
 }
 
 export interface Classifier {
