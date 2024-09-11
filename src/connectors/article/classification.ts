@@ -1,6 +1,6 @@
-import { Classification } from 'aws-sdk/clients/glue'
-import { Classifier } from 'connectors/classification/manager'
+import { Classification, Classifier } from 'connectors/classification/manager'
 import { ArticleContent, ArticleVersion, Connections } from 'definitions'
+import { Knex } from 'knex'
 
 export interface ClassificationService {
   classify(articleVersionId: string): Promise<void>
@@ -67,4 +67,33 @@ export class Service implements ClassificationService {
         classification,
       })
   }
+}
+
+/**
+ * A query snippet to filter out inappropriate articles by classification.
+ */
+export function withClassificationFiltering(query: Knex.QueryBuilder, options: {
+  enable: true,
+  articleTable: 'article',
+}) {
+  if (!options.enable) {
+    return
+  }
+
+  query
+    .leftJoin(
+      'article_version_newest as latest',
+      'latest.article_id',
+      `${options.articleTable}.id`
+    )
+    .leftJoin(
+      'article_classification as ac',
+      'ac.article_version_id',
+      'latest.id'
+    )
+    .andWhere((query) => {
+      query
+        .where('ac.classification', Classification.NORMAL)
+        .orWhereNull('ac.classification')
+    })
 }

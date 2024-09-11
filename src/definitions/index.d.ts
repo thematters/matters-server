@@ -23,6 +23,7 @@ import type {
   ArticleVersion,
   ArticleHottestView,
   RecommendedArticlesFromReadTagsMaterialized,
+  ArticleClassification,
 } from './article'
 import type { Asset, AssetMap } from './asset'
 import type { VerificationCode } from './auth'
@@ -208,6 +209,7 @@ export type TableTypeMap = {
   article_translation: ArticleTranslation
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
+  article_classification: ArticleClassification
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord

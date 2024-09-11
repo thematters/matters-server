@@ -75,7 +75,7 @@ import {
   GCP,
   SpamDetector,
 } from 'connectors'
-import { ClassificationService } from './article/classification'
+import { ClassificationService, withClassificationFiltering } from './article/classification'
 
 const logger = getLogger('service-article')
 
@@ -388,6 +388,10 @@ export class ArticleService extends BaseService<Article> {
             .whereRaw('in_newest IS NOT false')
             .modify(excludeSpam, spamThreshold, 'article_set')
         }
+      })
+      .modify(withClassificationFiltering, {
+        enable: !oss,
+        articleTable: 'article_set',
       })
       .as('newest')
 

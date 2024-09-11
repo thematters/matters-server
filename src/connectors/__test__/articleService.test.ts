@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Article, Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -19,6 +19,8 @@ import {
 
 import { genConnections, closeConnections } from './utils'
 import { ClassificationService } from 'connectors/article/classification'
+import { Classification } from 'connectors/classification/manager'
+import { ArticleClassificationFactory, ArticleContentFactory, ArticleFactory, ArticleVersionFactory, Factory } from './factories'
 
 let connections: Connections
 let articleService: ArticleService
@@ -559,6 +561,76 @@ describe('latestArticles', () => {
       oss: false,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
+  })
+
+  describe('classification', () => {
+    beforeAll(() => {
+      Factory.setConnections(connections)
+    })
+
+    let mockHash = 0
+
+    it('includes normal articles', async () => {
+      const html = '<p>foo.</p>'
+      const content = await new ArticleContentFactory().create({
+        content: html,
+        hash: `test-latest-articles-classification-${mockHash++}`,
+      })
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const version = await new ArticleVersionFactory().create({
+        articleId: article.id,
+        contentId: content.id,
+        wordCount: html.length,
+      })
+      await new ArticleClassificationFactory().create({
+        articleVersionId: version.id,
+        classification: Classification.NORMAL,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id))
+        .toBe(true)
+    })
+
+    it.each([
+      [Classification.SPAM],
+      [Classification.PROMOTION],
+      [Classification.SEXUAL],
+      [Classification.VIOLENCE],
+      [Classification.AUTO_GENERATED],
+    ])('excludes inappropriate articles %s', async (classification: Classification) => {
+      const html = '<p>foo.</p>'
+      const content = await new ArticleContentFactory().create({
+        content: html,
+        hash: `test-latest-articles-classification-${mockHash++}`,
+      })
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const version = await new ArticleVersionFactory().create({
+        articleId: article.id,
+        contentId: content.id,
+        wordCount: html.length,
+      })
+      await new ArticleClassificationFactory().create({
+        articleVersionId: version.id,
+        classification,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id))
+        .toBe(false)
+    })
   })
 })
 
