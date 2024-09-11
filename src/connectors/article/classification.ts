@@ -98,11 +98,11 @@ export function withClassificationFiltering(
       'ac.article_version_id',
       'latest.id'
     )
-    .andWhere((query) => {
-      query.where('ac.classification', Classification.NORMAL)
+    .andWhere((builder) => {
+      builder.where('ac.classification', Classification.NORMAL)
 
       if (!options.strict) {
-        query.orWhereNull('ac.classification')
+        builder.orWhereNull('ac.classification')
       }
     })
 }
