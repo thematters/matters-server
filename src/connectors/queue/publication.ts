@@ -39,6 +39,11 @@ import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-publication')
 
+export interface PublishArticleData {
+  draftId: string
+  iscnPublish?: boolean
+}
+
 export class PublicationQueue {
   private connections: Connections
   private q: Queue
@@ -55,10 +60,7 @@ export class PublicationQueue {
   public publishArticle = ({
     draftId,
     iscnPublish,
-  }: {
-    draftId: string
-    iscnPublish?: boolean
-  }) =>
+  }: PublishArticleData) =>
     this.q.add(
       QUEUE_JOB.publishArticle,
       { draftId, iscnPublish },
@@ -110,7 +112,7 @@ export class PublicationQueue {
   /**
    * Publish Article
    */
-  private handlePublishArticle: ProcessCallbackFunction<unknown> = async (
+  private handlePublishArticle: ProcessCallbackFunction<PublishArticleData> = async (
     job,
     done
   ) => {
@@ -120,10 +122,7 @@ export class PublicationQueue {
     const notificationService = new NotificationService(this.connections)
     const atomService = new AtomService(this.connections)
 
-    const { draftId, iscnPublish } = job.data as {
-      draftId: string
-      iscnPublish?: boolean
-    }
+    const { draftId, iscnPublish } = job.data
     const draft = await atomService.findUnique({
       table: 'draft',
       where: { id: draftId },
