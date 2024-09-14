@@ -30,6 +30,9 @@ export function chainJobs<T>(callback: () => Job<T>[]): ProcessCallbackFunction<
       try {
         const result = await current.handle()
 
+        // Here, we have the opportunity to terminate the chained job early
+        // if something goes wrong. To do so, simply return false in the
+        // job's "handle" method and the subsequent jobs will not run.
         if (result === false) {
           break
         }
