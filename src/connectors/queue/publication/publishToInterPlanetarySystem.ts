@@ -1,22 +1,22 @@
-import Bull from 'bull'
 import { ArticleService } from 'connectors/articleService'
 import { AtomService } from 'connectors/atomService'
 import { PublishArticleData } from '../publication'
 import { UserService } from 'connectors/userService'
 import { Article, ArticleVersion, User, UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
+import { Job } from './job'
 
-export class PublishToInterPlanetarySystem {
+export class PublishToInterPlanetarySystem extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
     private readonly userService: UserService
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId, iscnPublish } = job.data
+  async handle(): Promise<any> {
+    const { draftId, iscnPublish } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 
@@ -36,7 +36,7 @@ export class PublishToInterPlanetarySystem {
 
     await this.#persistHashes(articleVersion, { dataHash, mediaHash })
 
-    await job.progress(80)
+    await this.job.progress(80)
 
     if (key && articleVersion.circleId) {
       this.#persistKey(article, articleVersion, key)
@@ -48,13 +48,13 @@ export class PublishToInterPlanetarySystem {
       this.#registerIscn(article, articleVersion, author)
     }
 
-    await job.progress(90)
+    await this.job.progress(90)
 
     if (author.userName) {
       await this.articleService.publishFeedToIPNS({ userName: author.userName })
     }
 
-    await job.progress(95)
+    await this.job.progress(95)
   }
 
   async #publishToIpfs(article: Article, articleVersion: ArticleVersion, content: string) {

@@ -1,20 +1,20 @@
-import Bull from 'bull'
 import { CircleHandler } from './circleHandler'
 import { PublishArticleData } from '../publication'
 import { AtomService } from 'connectors/atomService'
 import { ArticleService } from 'connectors/articleService'
+import { Job } from './job'
 
-export class HandleCircle {
+export class HandleCircle extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
     private readonly handler: CircleHandler
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 
@@ -31,6 +31,6 @@ export class HandleCircle {
       // secret: key // TO update secret in 'article_circle' later after IPFS published
     )
 
-    await job.progress(45)
+    await this.job.progress(45)
   }
 }

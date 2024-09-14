@@ -1,4 +1,3 @@
-import { DoneCallback, Job } from 'bull'
 import { Article, Connections } from 'definitions'
 import { PublishArticleData } from '../publication'
 import { METRICS_NAMES, NODE_TYPES } from 'common/enums'
@@ -6,18 +5,19 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import { AtomService } from 'connectors/atomService'
 import { aws } from 'connectors/aws'
 import { ArticleService } from 'connectors/articleService'
+import { Job } from './job'
 
-export class InvalidateArticleCache {
+export class InvalidateArticleCache extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
     private readonly redis: Connections['redis']
   ) {
-    //
+    super()
   }
 
-  async handle(job: Job<PublishArticleData>, done: DoneCallback): Promise<any> {
-    const { draftId, iscnPublish } = job.data
+  async handle(): Promise<any> {
+    const { draftId, iscnPublish } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 
@@ -31,7 +31,7 @@ export class InvalidateArticleCache {
     this.#invalidateArticleCache(article)
     this.#measure()
 
-    done(null, {
+    this.done(null, {
       articleId: article.id,
       draftId: draft.id,
       dataHash: articleVersion.dataHash,

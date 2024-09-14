@@ -1,23 +1,27 @@
-import Bull from 'bull'
 import { PublishArticleData } from '../publication'
 import { AtomService } from 'connectors/atomService'
 import { CampaignHandler } from './campaignHandler'
+import { Job } from './job'
 
-export class HandleCampaign {
+export class HandleCampaign extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly handler: CampaignHandler
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 
     if (!draft.articleId) {
       throw new Error(`Could not find the article with ID "${draft.articleId}".`)
+    }
+
+    if (! Array.isArray(draft.campaigns)) {
+      return
     }
 
     const article = await this.atomService.articleIdLoader.load(draft.articleId)

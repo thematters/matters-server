@@ -1,18 +1,18 @@
-import Bull from 'bull'
 import { PublishArticleData } from '../publication'
 import { SystemService } from 'connectors/systemService'
 import { AtomService } from 'connectors/atomService'
+import { Job } from './job'
 
-export class HandleAsset {
+export class HandleAsset extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly systemService: SystemService
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     /**
      * Relationship between asset_map and entity:
@@ -36,7 +36,7 @@ export class HandleAsset {
 
     // Remove unused assets
     // await this.deleteUnusedAssets({ draftEntityTypeId, draft })
-    await job.progress(70)
+    await this.job.progress(70)
 
     // Swap cover assets from draft to article
     const coverAssets = await this.systemService
@@ -52,6 +52,6 @@ export class HandleAsset {
       draft.articleId
     )
 
-    await job.progress(75)
+    await this.job.progress(75)
   }
 }

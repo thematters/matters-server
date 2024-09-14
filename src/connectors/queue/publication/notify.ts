@@ -1,19 +1,19 @@
-import Bull from 'bull'
 import { AtomService } from 'connectors/atomService'
 import { NotificationService } from 'connectors/notificationService'
 import { PublishArticleData } from '../publication'
 import { NOTICE_TYPE } from 'common/enums'
+import { Job } from './job'
 
-export class Notify {
+export class Notify extends Job<PublishArticleData> {
   constructor(
     private readonly noficiationService: NotificationService,
     private readonly atomService: AtomService
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 

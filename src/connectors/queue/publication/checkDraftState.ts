@@ -1,17 +1,17 @@
-import Bull from 'bull'
 import { PUBLISH_STATE } from 'common/enums'
 import { AtomService } from 'connectors/atomService'
 import { PublishArticleData } from '../publication'
+import { Job } from './job'
 
-export class CheckDraftState {
+export class CheckDraftState extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>, done: Bull.DoneCallback): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     const draft = await this.atomService.findUnique({
       table: 'draft',
@@ -19,13 +19,13 @@ export class CheckDraftState {
     })
 
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
-      await job.progress(100)
+      await this.job.progress(100)
 
-      done(null, `Draft ${draftId} isn't in pending state.`)
+      this.done(null, `Draft ${draftId} isn't in pending state.`)
 
       return false
     }
 
-    await job.progress(5)
+    await this.job.progress(5)
   }
 }

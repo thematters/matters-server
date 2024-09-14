@@ -1,18 +1,18 @@
-import Bull from 'bull'
 import { PublishArticleData } from '../publication'
 import { AtomService } from 'connectors/atomService'
 import { MentionHandler } from './mentionHandler'
+import { Job } from './job'
 
-export class HandleMention {
+export class HandleMention extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly handler: MentionHandler
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 
@@ -24,6 +24,6 @@ export class HandleMention {
 
     await this.handler.handle(article, draft.content)
 
-    await job.progress(60)
+    await this.job.progress(60)
   }
 }

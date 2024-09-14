@@ -1,20 +1,20 @@
-import Bull from 'bull'
 import { ConnectionHandler } from './connectionHandler'
 import { AtomService } from 'connectors/atomService'
 import { ArticleService } from 'connectors/articleService'
 import { PublishArticleData } from '../publication'
+import { Job } from './job'
 
-export class HandleCollection {
+export class HandleCollection extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
     private readonly handler: ConnectionHandler
   ) {
-    //
+    super()
   }
 
-  async handle(job: Bull.Job<PublishArticleData>): Promise<any> {
-    const { draftId } = job.data
+  async handle(): Promise<any> {
+    const { draftId } = this.job.data
 
     const draft = await this.atomService.draftIdLoader.load(draftId)
 
@@ -27,6 +27,6 @@ export class HandleCollection {
 
     await this.handler.handle(article, articleVersion)
 
-    await job.progress(40)
+    await this.job.progress(40)
   }
 }
