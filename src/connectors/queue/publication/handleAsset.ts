@@ -1,12 +1,14 @@
 import { PublishArticleData } from '../publication'
 import { SystemService } from 'connectors/systemService'
 import { AtomService } from 'connectors/atomService'
-import { Job } from './job'
+import { ErrorHandlingJob, Job } from './job'
+import { Logger } from 'winston'
 
-export class HandleAsset extends Job<PublishArticleData> {
+export class HandleAsset extends Job<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
-    private readonly systemService: SystemService
+    private readonly systemService: SystemService,
+    private readonly logger?: Logger
   ) {
     super()
   }
@@ -53,5 +55,13 @@ export class HandleAsset extends Job<PublishArticleData> {
     )
 
     await this.job.progress(75)
+  }
+
+  handleError(err: unknown): void {
+    this.logger?.warn('optional step failed: %j', {
+      err,
+      draftId: this.job.data.draftId,
+      jobId: this.job.id,
+    })
   }
 }

@@ -4,13 +4,15 @@ import { PublishArticleData } from '../publication'
 import { UserService } from 'connectors/userService'
 import { Article, ArticleVersion, User, UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
-import { Job } from './job'
+import { ErrorHandlingJob, Job } from './job'
+import { Logger } from 'winston'
 
-export class PublishToInterPlanetarySystem extends Job<PublishArticleData> {
+export class PublishToInterPlanetarySystem extends Job<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly logger?: Logger
   ) {
     super()
   }
@@ -134,6 +136,14 @@ export class PublishToInterPlanetarySystem extends Job<PublishArticleData> {
       table: 'article_version',
       where: { id: article.id },
       data: { iscnId },
+    })
+  }
+
+  handleError(err: unknown): void {
+    this.logger?.warn('job IPFS optional step failed (will retry async later in listener):', {
+      err,
+      jobId: this.job.id,
+      draftId: this.job.data.draftId,
     })
   }
 }

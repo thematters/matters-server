@@ -2,13 +2,15 @@ import { CircleHandler } from './circleHandler'
 import { PublishArticleData } from '../publication'
 import { AtomService } from 'connectors/atomService'
 import { ArticleService } from 'connectors/articleService'
-import { Job } from './job'
+import { ErrorHandlingJob, Job } from './job'
+import { Logger } from 'winston'
 
-export class HandleCircle extends Job<PublishArticleData> {
+export class HandleCircle extends Job<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
-    private readonly handler: CircleHandler
+    private readonly handler: CircleHandler,
+    private readonly logger?: Logger
   ) {
     super()
   }
@@ -32,5 +34,13 @@ export class HandleCircle extends Job<PublishArticleData> {
     )
 
     await this.job.progress(45)
+  }
+
+  handleError(err: unknown): void {
+    this.logger?.warn('optional step failed: %j', {
+      err,
+      draftId: this.job.data.draftId,
+      jobId: this.job.id,
+    })
   }
 }

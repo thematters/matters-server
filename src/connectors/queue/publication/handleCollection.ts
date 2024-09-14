@@ -2,13 +2,15 @@ import { ConnectionHandler } from './connectionHandler'
 import { AtomService } from 'connectors/atomService'
 import { ArticleService } from 'connectors/articleService'
 import { PublishArticleData } from '../publication'
-import { Job } from './job'
+import { ErrorHandlingJob, Job } from './job'
+import { Logger } from 'winston'
 
-export class HandleCollection extends Job<PublishArticleData> {
+export class HandleCollection extends Job<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
-    private readonly handler: ConnectionHandler
+    private readonly handler: ConnectionHandler,
+    private readonly logger?: Logger
   ) {
     super()
   }
@@ -28,5 +30,13 @@ export class HandleCollection extends Job<PublishArticleData> {
     await this.handler.handle(article, articleVersion)
 
     await this.job.progress(40)
+  }
+
+  handleError(err: unknown): void {
+    this.logger?.warn('optional step failed: %j', {
+      err,
+      draftId: this.job.data.draftId,
+      jobId: this.job.id,
+    })
   }
 }

@@ -134,15 +134,15 @@ export class PublicationQueue {
     return [
       new CheckDraftState(atomService),
       new CreateArticle(articleService, atomService),
-      new HandleCollection(atomService, articleService, connectionHandler),
-      new HandleCircle(atomService, articleService, circleHandler),
-      new HandleTag(atomService, articleService, tagHandler),
-      new HandleMention(atomService, mentionHandler),
-      new HandleCampaign(atomService, campaignHandler),
-      new HandleAsset(atomService, systemService),
+      new HandleCollection(atomService, articleService, connectionHandler, logger),
+      new HandleCircle(atomService, articleService, circleHandler, logger),
+      new HandleTag(atomService, articleService, tagHandler, logger),
+      new HandleMention(atomService, mentionHandler, logger),
+      new HandleCampaign(atomService, campaignHandler, logger),
+      new HandleAsset(atomService, systemService, logger),
       new Notify(notificationService, atomService),
       new InvalidateUserCache(atomService, this.connections.redis),
-      new PublishToInterPlanetarySystem(atomService, articleService, userService),
+      new PublishToInterPlanetarySystem(atomService, articleService, userService, logger),
       new InvalidateArticleCache(atomService, articleService, this.connections.redis),
     ]
   })

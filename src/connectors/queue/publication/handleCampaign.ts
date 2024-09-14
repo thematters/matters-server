@@ -1,12 +1,14 @@
 import { PublishArticleData } from '../publication'
 import { AtomService } from 'connectors/atomService'
 import { CampaignHandler } from './campaignHandler'
-import { Job } from './job'
+import { ErrorHandlingJob, Job } from './job'
+import { Logger } from 'winston'
 
-export class HandleCampaign extends Job<PublishArticleData> {
+export class HandleCampaign extends Job<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
-    private readonly handler: CampaignHandler
+    private readonly handler: CampaignHandler,
+    private readonly logger?: Logger
   ) {
     super()
   }
@@ -27,5 +29,13 @@ export class HandleCampaign extends Job<PublishArticleData> {
     const article = await this.atomService.articleIdLoader.load(draft.articleId)
 
     await this.handler.handle(article, draft.campaigns)
+  }
+
+  handleError(err: unknown): void {
+    this.logger?.warn('optional step failed: %j', {
+      err,
+      draftId: this.job.data.draftId,
+      jobId: this.job.id,
+    })
   }
 }
