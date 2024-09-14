@@ -39,7 +39,7 @@ import { HandleAsset } from './publication/handleAsset'
 import { Notify } from './publication/notify'
 import { InvalidateUserCache } from './publication/invalidateUserCache'
 import { PublishToInterPlanetarySystem } from './publication/publishToInterPlanetarySystem'
-import { InvalidateArticleCache } from './publication/invalidateArticleCache'
+import { CompletePublication } from './publication/invalidateArticleCache'
 import { chainJobs } from './publication/job'
 
 const logger = getLogger('queue-publication')
@@ -143,7 +143,7 @@ export class PublicationQueue {
       new Notify(notificationService, atomService),
       new InvalidateUserCache(atomService, this.connections.redis),
       new PublishToInterPlanetarySystem(atomService, articleService, userService, logger),
-      new InvalidateArticleCache(atomService, articleService, this.connections.redis),
+      new CompletePublication(atomService, articleService, this.connections.redis),
     ]
   })
 

@@ -7,7 +7,7 @@ import { aws } from 'connectors/aws'
 import { ArticleService } from 'connectors/articleService'
 import { Job } from './job'
 
-export class InvalidateArticleCache extends Job<PublishArticleData> {
+export class CompletePublication extends Job<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,
