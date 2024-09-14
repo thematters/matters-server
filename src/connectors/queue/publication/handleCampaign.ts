@@ -16,17 +16,24 @@ export class HandleCampaign extends ChainedJob<PublishArticleData> implements Er
   async handle(): Promise<any> {
     const { draftId } = this.job.data
 
-    const draft = await this.atomService.draftIdLoader.load(draftId)
+    const draft = await this.shared.remember(
+      'draft',
+      async () => await this.atomService.draftIdLoader.load(draftId)
+    )
 
-    if (!draft.articleId) {
-      throw new Error(`Could not find the article with ID "${draft.articleId}".`)
+    const { articleId } = draft
+    if (!articleId) {
+      throw new Error(`Could not find the article with ID "${articleId}".`)
     }
 
     if (! Array.isArray(draft.campaigns)) {
       return
     }
 
-    const article = await this.atomService.articleIdLoader.load(draft.articleId)
+    const article = await this.shared.remember(
+      'article',
+      async () => await this.atomService.articleIdLoader.load(articleId)
+    )
 
     await this.handler.handle(article, draft.campaigns)
   }

@@ -7,6 +7,7 @@ export interface ErrorHandlingJob {
 export abstract class ChainedJob<T = any> {
   job!: Job<T>
   done!: DoneCallback
+  shared: SharedData = new SharedData()
 
   abstract handle(): Promise<any>
 
@@ -17,15 +18,53 @@ export abstract class ChainedJob<T = any> {
   setDoneCallback(done: DoneCallback) {
     this.done = done
   }
+
+  setSharedData(data: SharedData) {
+    this.shared = data
+  }
+}
+
+export class SharedData {
+  constructor(
+    private data: Record<string, any> = {}
+  ) {
+    //
+  }
+
+  set<T = any>(key: string, value: T): T {
+    return this.data[key] = value
+  }
+
+  get<T>(key: string): T {
+    return this.data[key]
+  }
+
+  has(key: string) {
+    return key in this.data
+  }
+
+  async remember<T>(key: string, callback: () => Promise<T>) {
+    if (this.has(key)) {
+      return this.get<T>(key)
+    }
+
+    return this.set<T>(key, await callback())
+  }
+
+  all() {
+    return this.data
+  }
 }
 
 export function chainJobs<T>(callback: () => ChainedJob<T>[]): ProcessCallbackFunction<T> {
   return async (job, done) => {
     const jobs = callback()
+    const shared = new SharedData()
 
     for (const current of jobs) {
       current.setJob(job)
       current.setDoneCallback(done)
+      current.setSharedData(shared)
 
       try {
         const result = await current.handle()

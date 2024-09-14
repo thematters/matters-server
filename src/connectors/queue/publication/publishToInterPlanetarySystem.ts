@@ -20,15 +20,30 @@ export class PublishToInterPlanetarySystem extends ChainedJob<PublishArticleData
   async handle(): Promise<any> {
     const { draftId, iscnPublish } = this.job.data
 
-    const draft = await this.atomService.draftIdLoader.load(draftId)
+    const draft = await this.shared.remember(
+      'draft',
+      async () => await this.atomService.draftIdLoader.load(draftId)
+    )
 
-    if (!draft.articleId) {
-      throw new Error(`Could not find the article with ID "${draft.articleId}".`)
+    const { articleId } = draft
+    if (!articleId) {
+      throw new Error(`Could not find the article with ID "${articleId}".`)
     }
 
-    const article = await this.atomService.articleIdLoader.load(draft.articleId)
-    const articleVersion = await this.articleService.loadLatestArticleVersion(article.id)
-    const author = await this.atomService.userIdLoader.load(article.authorId)
+    const article = await this.shared.remember(
+      'article',
+      async () => await this.atomService.articleIdLoader.load(articleId)
+    )
+
+    const articleVersion = await this.shared.remember(
+      'articleVersion',
+      async () => await this.articleService.loadLatestArticleVersion(articleId)
+    )
+
+    const author = await this.shared.remember(
+      'author',
+      async () => await this.atomService.userIdLoader.load(article.authorId)
+    )
 
     const [dataHash, mediaHash, key] = await this.#publishToIpfs(
       article,
@@ -77,14 +92,17 @@ export class PublishToInterPlanetarySystem extends ChainedJob<PublishArticleData
     articleVersion: ArticleVersion,
     hashes: { dataHash: string, mediaHash: string }
   ) {
-    await this.atomService.update({
-      table: 'article_version',
-      data: {
-        dataHash: hashes.dataHash,
-        mediaHash: hashes.mediaHash,
-      },
-      where: { id: articleVersion.id },
-    })
+    this.shared.set(
+      'articleVersion',
+      await this.atomService.update({
+        table: 'article_version',
+        data: {
+          dataHash: hashes.dataHash,
+          mediaHash: hashes.mediaHash,
+        },
+        where: { id: articleVersion.id },
+      })
+    )
   }
 
   async #persistKey(article: Article, articleVersion: ArticleVersion, key: string) {
@@ -132,11 +150,14 @@ export class PublishToInterPlanetarySystem extends ChainedJob<PublishArticleData
       liker,
     })
 
-    await this.atomService.update({
-      table: 'article_version',
-      where: { id: article.id },
-      data: { iscnId },
-    })
+    this.shared.set(
+      'articleVersion',
+      await this.atomService.update({
+        table: 'article_version',
+        where: { id: article.id },
+        data: { iscnId },
+      })
+    )
   }
 
   handleError(err: unknown): void {

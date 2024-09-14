@@ -13,10 +13,10 @@ export class CheckDraftState extends ChainedJob<PublishArticleData> {
   async handle(): Promise<any> {
     const { draftId } = this.job.data
 
-    const draft = await this.atomService.findUnique({
-      table: 'draft',
-      where: { id: draftId },
-    })
+    const draft = await this.shared.remember(
+      'draft',
+      async () => await this.atomService.draftIdLoader.load(draftId)
+    )
 
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       await this.job.progress(100)

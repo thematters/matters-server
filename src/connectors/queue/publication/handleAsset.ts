@@ -30,10 +30,14 @@ export class HandleAsset extends ChainedJob<PublishArticleData> implements Error
         this.systemService.baseFindEntityTypeId('article'),
       ])
 
-    const draft = await this.atomService.draftIdLoader.load(draftId)
+    const draft = await this.shared.remember(
+      'draft',
+      async () => await this.atomService.draftIdLoader.load(draftId)
+    )
 
-    if (!draft.articleId) {
-      throw new Error(`Could not find the article with ID "${draft.articleId}".`)
+    const { articleId } = draft
+    if (!articleId) {
+      throw new Error(`Could not find the article with ID "${articleId}".`)
     }
 
     // Remove unused assets
@@ -51,7 +55,7 @@ export class HandleAsset extends ChainedJob<PublishArticleData> implements Error
     await this.systemService.swapAssetMapEntity(
       coverAssets.map((ast: { id: string }) => ast.id),
       articleEntityTypeId,
-      draft.articleId
+      articleId
     )
 
     await this.job.progress(75)

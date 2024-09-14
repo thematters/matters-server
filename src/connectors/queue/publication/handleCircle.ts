@@ -18,14 +18,25 @@ export class HandleCircle extends ChainedJob<PublishArticleData> implements Erro
   async handle(): Promise<any> {
     const { draftId } = this.job.data
 
-    const draft = await this.atomService.draftIdLoader.load(draftId)
+    const draft = await this.shared.remember(
+      'draft',
+      async () => await this.atomService.draftIdLoader.load(draftId)
+    )
 
-    if (!draft.articleId) {
-      throw new Error(`Could not find the article with ID "${draft.articleId}".`)
+    const { articleId } = draft
+    if (!articleId) {
+      throw new Error(`Could not find the article with ID "${articleId}".`)
     }
 
-    const article = await this.atomService.articleIdLoader.load(draft.articleId)
-    const articleVersion = await this.articleService.loadLatestArticleVersion(article.id)
+    const article = await this.shared.remember(
+      'article',
+      async () => await this.atomService.articleIdLoader.load(articleId)
+    )
+
+    const articleVersion = await this.shared.remember(
+      'articleVersion',
+      async () => await this.articleService.loadLatestArticleVersion(articleId)
+    )
 
     await this.handler.handle(
       article,
