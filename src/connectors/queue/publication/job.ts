@@ -1,16 +1,16 @@
-import { Job as BullJob, DoneCallback, ProcessCallbackFunction } from 'bull'
+import { Job, DoneCallback, ProcessCallbackFunction } from 'bull'
 
 export interface ErrorHandlingJob {
   handleError(e: unknown): void
 }
 
-export abstract class Job<T = any> {
-  job!: BullJob<T>
+export abstract class ChainedJob<T = any> {
+  job!: Job<T>
   done!: DoneCallback
 
   abstract handle(): Promise<any>
 
-  setJob(job: BullJob) {
+  setJob(job: Job) {
     this.job = job
   }
 
@@ -19,7 +19,7 @@ export abstract class Job<T = any> {
   }
 }
 
-export function chainJobs<T>(callback: () => Job<T>[]): ProcessCallbackFunction<T> {
+export function chainJobs<T>(callback: () => ChainedJob<T>[]): ProcessCallbackFunction<T> {
   return async (job, done) => {
     const jobs = callback()
 

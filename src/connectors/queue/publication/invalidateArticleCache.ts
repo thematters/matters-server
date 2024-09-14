@@ -5,9 +5,9 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import { AtomService } from 'connectors/atomService'
 import { aws } from 'connectors/aws'
 import { ArticleService } from 'connectors/articleService'
-import { Job } from './job'
+import { ChainedJob } from './job'
 
-export class CompletePublication extends Job<PublishArticleData> {
+export class CompletePublication extends ChainedJob<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,

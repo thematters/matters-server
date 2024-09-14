@@ -1,10 +1,10 @@
 import { PublishArticleData } from '../publication'
 import { AtomService } from 'connectors/atomService'
 import { CampaignHandler } from './campaignHandler'
-import { ErrorHandlingJob, Job } from './job'
+import { ErrorHandlingJob, ChainedJob } from './job'
 import { Logger } from 'winston'
 
-export class HandleCampaign extends Job<PublishArticleData> implements ErrorHandlingJob {
+export class HandleCampaign extends ChainedJob<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
     private readonly handler: CampaignHandler,

@@ -4,10 +4,10 @@ import { PublishArticleData } from '../publication'
 import { UserService } from 'connectors/userService'
 import { Article, ArticleVersion, User, UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
-import { ErrorHandlingJob, Job } from './job'
+import { ErrorHandlingJob, ChainedJob } from './job'
 import { Logger } from 'winston'
 
-export class PublishToInterPlanetarySystem extends Job<PublishArticleData> implements ErrorHandlingJob {
+export class PublishToInterPlanetarySystem extends ChainedJob<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
     private readonly articleService: ArticleService,

@@ -1,10 +1,10 @@
 import { PublishArticleData } from '../publication'
 import { SystemService } from 'connectors/systemService'
 import { AtomService } from 'connectors/atomService'
-import { ErrorHandlingJob, Job } from './job'
+import { ErrorHandlingJob, ChainedJob } from './job'
 import { Logger } from 'winston'
 
-export class HandleAsset extends Job<PublishArticleData> implements ErrorHandlingJob {
+export class HandleAsset extends ChainedJob<PublishArticleData> implements ErrorHandlingJob {
   constructor(
     private readonly atomService: AtomService,
     private readonly systemService: SystemService,

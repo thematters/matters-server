@@ -1,9 +1,9 @@
 import { PUBLISH_STATE } from 'common/enums'
 import { AtomService } from 'connectors/atomService'
 import { PublishArticleData } from '../publication'
-import { Job } from './job'
+import { ChainedJob } from './job'
 
-export class CheckDraftState extends Job<PublishArticleData> {
+export class CheckDraftState extends ChainedJob<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService
   ) {

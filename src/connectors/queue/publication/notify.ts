@@ -2,9 +2,9 @@ import { AtomService } from 'connectors/atomService'
 import { NotificationService } from 'connectors/notificationService'
 import { PublishArticleData } from '../publication'
 import { NOTICE_TYPE } from 'common/enums'
-import { Job } from './job'
+import { ChainedJob } from './job'
 
-export class Notify extends Job<PublishArticleData> {
+export class Notify extends ChainedJob<PublishArticleData> {
   constructor(
     private readonly noficiationService: NotificationService,
     private readonly atomService: AtomService

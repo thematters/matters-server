@@ -3,9 +3,9 @@ import { Connections } from 'definitions'
 import { PublishArticleData } from '../publication'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { NODE_TYPES } from 'common/enums'
-import { Job } from './job'
+import { ChainedJob } from './job'
 
-export class InvalidateUserCache extends Job<PublishArticleData> {
+export class InvalidateUserCache extends ChainedJob<PublishArticleData> {
   constructor(
     private readonly atomService: AtomService,
     private readonly redis: Connections['redis']
