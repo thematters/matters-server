@@ -110,4 +110,23 @@ describe('chainJobs', () => {
     await run(mockJob, jest.fn())
     expect(handled).toBe(true)
   })
+
+  it('has shared data', async () => {
+    let value = ''
+    const mockJob = {} as unknown as jest.Mocked<Job>
+    const run = chainJobs(() => ([
+      new (class extends ChainedJob {
+        async handle() {
+          this.shared.set('value', 'foo')
+        }
+      })(),
+      new (class extends ChainedJob {
+        async handle() {
+          value = this.shared.get('value')
+        }
+      })(),
+    ]))
+    await run(mockJob, jest.fn())
+    expect(value).toBe('foo')
+  })
 })
