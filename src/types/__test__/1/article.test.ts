@@ -734,8 +734,7 @@ describe('query article campaigns', () => {
       table: 'user',
       where: { id: article.authorId },
     })
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
     await campaignService.submitArticleToCampaign(
       article,
       campaign.id,
