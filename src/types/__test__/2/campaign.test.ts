@@ -540,7 +540,7 @@ describe('application', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.applyCampaign.application.state).toBe(
-      CAMPAIGN_USER_STATE.pending
+      CAMPAIGN_USER_STATE.succeeded
     )
     expect(data.applyCampaign.application.createdAt).toBeDefined()
 

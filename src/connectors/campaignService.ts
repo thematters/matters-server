@@ -188,9 +188,7 @@ export class CampaignService {
       },
     })
 
-    await this.approve(application.id)
-
-    return application
+    return await this.approve(application.id)
   }
 
   public getApplication = async (campaignId: string, userId: string) =>

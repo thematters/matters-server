@@ -287,13 +287,13 @@ describe('application', () => {
     })
     const application = await campaignService.apply(campaign, user)
     expect(application).toBeDefined()
-    expect(application.state).toBe(CAMPAIGN_USER_STATE.pending)
+    expect(application.state).toBe(CAMPAIGN_USER_STATE.succeeded)
 
     const [, totalCount1] = await campaignService.findAndCountParticipants(
       application.campaignId,
       { take: 10, skip: 0 }
     )
-    expect(totalCount1).toBe(0)
+    expect(totalCount1).toBe(1)
 
     const [, totalCount2] = await campaignService.findAndCountParticipants(
       application.campaignId,
