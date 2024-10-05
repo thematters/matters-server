@@ -314,9 +314,7 @@ const normalizeAndValidateSummary = (summary: string) => {
 }
 
 const normalizeAndValidateContent = (content: string) => {
-  const _content = normalizeArticleHTML(
-    sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
-  )
+  const _content = normalizeArticleHTML(sanitizeHTML(content))
   if (stripHtml(_content).length > MAX_ARTICLE_CONTENT_LENGTH) {
     throw new UserInputError('content reach length limit')
   }
