@@ -152,12 +152,11 @@ export const createCampaign = async (
     { name: 'stage1' },
   ])
   if (article) {
-    const application = await campaignService.apply(campaign, {
+    await campaignService.apply(campaign, {
       id: article.authorId,
       userName: 'test',
       state: USER_STATE.active,
     })
-    await campaignService.approve(application.id)
     await campaignService.submitArticleToCampaign(
       article,
       campaign.id,

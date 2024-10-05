@@ -1,4 +1,3 @@
-import type { Queue, ProcessPromiseFunction } from 'bull'
 import type {
   Connections,
   ValueOf,
@@ -14,10 +13,6 @@ import {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
-  QUEUE_NAME,
-  QUEUE_JOB,
-  QUEUE_CONCURRENCY,
-  QUEUE_DELAY,
   NODE_TYPES,
   USER_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -39,7 +34,6 @@ import {
   excludeSpam,
 } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
-import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
   name: string
@@ -50,20 +44,10 @@ interface Stage {
 export class CampaignService {
   private connections: Connections
   private models: AtomService
-  private q: Queue
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.models = new AtomService(connections)
-    const [queue, created] = getOrCreateQueue(QUEUE_NAME.campaign)
-    if (created) {
-      queue.process(
-        QUEUE_JOB.approveCampaignApplication,
-        QUEUE_CONCURRENCY.approveCampaignApplication,
-        this.handleApproval
-      )
-    }
-    this.q = queue
   }
 
   public createWritingChallenge = async ({
@@ -203,9 +187,8 @@ export class CampaignService {
         state: CAMPAIGN_USER_STATE.pending,
       },
     })
-    this.delayedApprove(application.id)
 
-    return application
+    return await this.approve(application.id)
   }
 
   public getApplication = async (campaignId: string, userId: string) =>
@@ -529,21 +512,4 @@ export class CampaignService {
       update: { campaignId: id, boost },
       where: { campaignId: id },
     })
-
-  private handleApproval: ProcessPromiseFunction<{
-    applicationId: string
-  }> = async (job) => {
-    const { applicationId } = job.data
-    await this.approve(applicationId)
-  }
-
-  private delayedApprove = async (applicationId: string) => {
-    return this.q.add(
-      QUEUE_JOB.approveCampaignApplication,
-      { applicationId },
-      {
-        delay: QUEUE_DELAY.approveCampaignApplication,
-      }
-    )
-  }
 }
