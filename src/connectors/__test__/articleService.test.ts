@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Article, Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -18,6 +18,16 @@ import {
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
+import { ClassificationService } from 'connectors/article/classification'
+import { Classification } from 'connectors/classification/manager'
+import {
+  ArticleClassificationFactory,
+  ArticleContentFactory,
+  ArticleFactory,
+  ArticleVersionFactory,
+  Factory,
+} from './factories'
+import { environment } from 'common/environment'
 
 let connections: Connections
 let articleService: ArticleService
@@ -55,6 +65,19 @@ describe('create', () => {
       indentFirstLine: true,
     })
     expect(articleVersion.indentFirstLine).toBe(true)
+  })
+
+  it('classifies the article content', async () => {
+    const service = {
+      classify: jest.fn(),
+    } as jest.Mocked<ClassificationService>
+    const articles = new ArticleService(connections, service)
+    await articles.createArticle({
+      authorId: '1',
+      title: 'greeting',
+      content: 'Hello, world!',
+    })
+    expect(service.classify).toHaveBeenCalled()
   })
 })
 
@@ -546,6 +569,145 @@ describe('latestArticles', () => {
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
   })
+
+  describe('classification', () => {
+    beforeAll(() => {
+      Factory.setConnections(connections)
+      environment.latestFeedStrictFiltering = true
+    })
+
+    let mockHash = 0
+
+    const setFilterInappropriateContent = async (filter = true) => {
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.filter_inappropriate_content_in_latest_feed,
+        flag: filter ? FEATURE_FLAG.on : FEATURE_FLAG.off,
+      })
+    }
+
+    it('includes normal articles', async () => {
+      setFilterInappropriateContent(true)
+      const html = '<p>foo.</p>'
+      const content = await new ArticleContentFactory().create({
+        content: html,
+        hash: `test-latest-articles-classification-${mockHash++}`,
+      })
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const version = await new ArticleVersionFactory().create({
+        articleId: article.id,
+        contentId: content.id,
+        wordCount: html.length,
+      })
+      await new ArticleClassificationFactory().create({
+        articleVersionId: version.id,
+        classification: Classification.NORMAL,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        true
+      )
+    })
+
+    it('excludes spam', async () => {
+      setFilterInappropriateContent(true)
+      const html = '<p>foo.</p>'
+      const content = await new ArticleContentFactory().create({
+        content: html,
+        hash: `test-latest-articles-classification-${mockHash++}`,
+      })
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const version = await new ArticleVersionFactory().create({
+        articleId: article.id,
+        contentId: content.id,
+        wordCount: html.length,
+      })
+      await new ArticleClassificationFactory().create({
+        articleVersionId: version.id,
+        classification: Classification.SPAM,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        false
+      )
+    })
+
+    it('should not filter spam if feature is off', async () => {
+      setFilterInappropriateContent(false)
+      const html = '<p>foo.</p>'
+      const content = await new ArticleContentFactory().create({
+        content: html,
+        hash: `test-latest-articles-classification-${mockHash++}`,
+      })
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const version = await new ArticleVersionFactory().create({
+        articleId: article.id,
+        contentId: content.id,
+        wordCount: html.length,
+      })
+      await new ArticleClassificationFactory().create({
+        articleVersionId: version.id,
+        classification: Classification.SPAM,
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        true
+      )
+    })
+
+    it('should exclude unclassified articles in strict mode', async () => {
+      setFilterInappropriateContent(true)
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        false
+      )
+    })
+
+    it('should include unclassified articles when not in strict mode', async () => {
+      setFilterInappropriateContent(true)
+      environment.latestFeedStrictFiltering = false
+      const article = await new ArticleFactory().create({
+        authorId: '1',
+      })
+      const latests = await articleService.latestArticles({
+        maxTake: 10,
+        skip: 0,
+        take: 10,
+        oss: false,
+      })
+      expect(latests.some((entry: Article) => entry.id === article.id)).toBe(
+        true
+      )
+    })
+  })
 })
 
 describe('findResponses', () => {
@@ -665,6 +827,20 @@ describe('createNewArticleVersion', () => {
       description
     )
     expect(articleVersion3.description).toBe(description)
+  })
+
+  it('classifies the article content', async () => {
+    const service = {
+      classify: jest.fn(),
+    } as jest.Mocked<ClassificationService>
+    const articles = new ArticleService(connections, service)
+    await articles.createNewArticleVersion(
+      '1',
+      '1',
+      { content: 'foo' },
+      'description'
+    )
+    expect(service.classify).toHaveBeenCalled()
   })
 })
 

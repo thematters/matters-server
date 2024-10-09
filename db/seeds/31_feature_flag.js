@@ -36,5 +36,9 @@ exports.seed = async (knex) => {
       flag: 'off',
       value: 0.5,
     },
+    {
+      name: 'filter_inappropriate_content_in_latest_feed',
+      flag: 'off',
+    },
   ])
 }

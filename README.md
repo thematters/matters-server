@@ -41,6 +41,26 @@ We use [MJML](https://mjml.io) to develop our SendGrid email template.
 
 Please refer to the repo [matters-email](https://github.com/thematters/matters-email) for details.
 
+## Environment Varaibles
+
+The _Matters_ server includes a set of environment variables that can be
+customized for different environments. These variables are systematically
+organized into groups based on their respective components.
+
+### Homepage
+
+- **MATTERS_LATEST_FEED_STRICT_FILTERING**: Exclude unclassified articles,
+only if the classification filter is enabled in the latest feed
+(feature flag: `filter_inappropriate_content_in_latest_feed`).
+
+### Classification
+
+- **MATTERS_CLASSIFICATION_DEFAULT**: The default classification driver, accepted values are `gemini` and `null`.
+- **MATTERS_CLASSIFICATION_GEMINI_PROJECT**: The [Project ID](https://cloud.google.com/resource-manager/docs/creating-managing-projects) from Google Cloud.
+- **MATTERS_CLASSIFICATION_GEMINI_LOCATION**:  The [location](https://cloud.google.com/about/locations/) of the Google Cloud endpoint.
+- **MATTERS_CLASSIFICATION_GEMINI_KEY_FILE**: The path to the Google Cloud [service account credentials](https://cloud.google.com/iam/docs/service-account-creds).
+- **MATTERS_CLASSIFICATION_GEMINI_MODEL**: The AI [model](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models) that performs the classification task.
+
 ## Test Mode
 
 To make the login flow testing easier, the login-related mutations have hardcoded input values with respective behaviors in the non-production environment.

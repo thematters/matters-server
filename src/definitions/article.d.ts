@@ -3,6 +3,7 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
 } from 'common/enums'
+import { Classification } from 'connectors/classification/manager'
 
 export interface Article {
   id: string
@@ -143,4 +144,10 @@ export interface ArticleHottestView {
   tagBoostEff: number
   campaignBoostEff: number
   createdAt: Date
+}
+
+export interface ArticleClassification {
+  id: string
+  articleVersionId: string
+  classification: Classification
 }

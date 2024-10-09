@@ -34,6 +34,8 @@ import {
   CampaignService,
   aws,
 } from 'connectors'
+import { Service } from 'connectors/article/classification'
+import { Manager } from 'connectors/classification/manager'
 
 import { getOrCreateQueue } from './utils'
 
@@ -114,7 +116,14 @@ export class PublicationQueue {
     job,
     done
   ) => {
-    const articleService = new ArticleService(this.connections)
+    const classificationService = new Service(
+      this.connections,
+      Manager.getInstance().classifier()
+    )
+    const articleService = new ArticleService(
+      this.connections,
+      classificationService
+    )
     const userService = new UserService(this.connections)
     const systemService = new SystemService(this.connections)
     const notificationService = new NotificationService(this.connections)

@@ -40,6 +40,8 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -76,6 +78,11 @@ import {
   SpamDetector,
 } from 'connectors'
 
+import {
+  ClassificationService,
+  withClassificationFiltering,
+} from './article/classification'
+
 const logger = getLogger('service-article')
 
 const SEARCH_TITLE_RANK_THRESHOLD = 0.001
@@ -83,11 +90,16 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   private ipfsServers: typeof ipfsServers
+  private readonly classification?: ClassificationService
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
-  public constructor(connections: Connections) {
+  public constructor(
+    connections: Connections,
+    classification?: ClassificationService
+  ) {
     super('article', connections)
     this.ipfsServers = ipfsServers
+    this.classification = classification
 
     const batchFn = async (
       keys: readonly string[]
@@ -386,6 +398,18 @@ export class ArticleService extends BaseService<Article> {
             .modify(excludeSpam, spamThreshold, 'article_set')
         }
       })
+      .modify(withClassificationFiltering, {
+        enable:
+          !oss &&
+          (await (async (): Promise<boolean> => {
+            const feature = await systemService.getFeatureFlag(
+              FEATURE_NAME.filter_inappropriate_content_in_latest_feed
+            )
+            return feature && feature.flag === FEATURE_FLAG.on
+          })()),
+        articleTable: 'article_set',
+        strict: environment.latestFeedStrictFiltering,
+      })
       .as('newest')
 
     return this.knexRO
@@ -481,6 +505,10 @@ export class ArticleService extends BaseService<Article> {
         title,
         content,
         summary: summaryCustomized ? _summary : undefined,
+      })
+
+      this.classification?.classify(articleVersion.id).catch((e) => {
+        logger.error(`Failed to classify an article: ${e}`)
       })
 
       // copy asset_map from draft to article if there is a draft
@@ -667,6 +695,11 @@ export class ArticleService extends BaseService<Article> {
           : undefined,
       })
     }
+
+    this.classification?.classify(articleVersion.id).catch((e) => {
+      logger.error(`Failed to classify an article: ${e}`)
+    })
+
     this.latestArticleVersionLoader.clear(articleId)
     return articleVersion
   }

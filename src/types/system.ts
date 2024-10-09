@@ -477,6 +477,7 @@ export default /* GraphQL */ `
     circle_management
     circle_interact
     spam_detection
+    filter_inappropriate_content_in_latest_feed
   }
 
   enum FeatureFlag {
