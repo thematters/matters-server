@@ -76,8 +76,8 @@ export class MomentService {
         authorId: user.id,
         content: normalizeMomentHTML(
           sanitizeHTML(data.content, {
-            maxHardBreaks: 0,
-            maxSoftBreaks: 1,
+            maxHardBreaks: 1,
+            maxSoftBreaks: 2,
           }),
           {
             truncate: {
