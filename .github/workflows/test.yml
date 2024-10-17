@@ -7,6 +7,9 @@ on:
       - main
       - master
       - stage
+  pull_request:
+    branches:
+      - develop
 
 jobs:
   build_and_test:

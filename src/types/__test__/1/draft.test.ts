@@ -557,8 +557,7 @@ describe('put draft', () => {
     ])
     const atomService = new AtomService(connections)
     const user = await atomService.userIdLoader.load('1')
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
 
     const campaignGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,

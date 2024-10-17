@@ -113,8 +113,7 @@ const createPendingDraft = async () => {
     { name: 'stage1' },
   ])
   const user = await atomService.userIdLoader.load('1')
-  const application = await campaignService.apply(campaign, user)
-  await campaignService.approve(application.id)
+  await campaignService.apply(campaign, user)
 
   return {
     draft: await atomService.create({

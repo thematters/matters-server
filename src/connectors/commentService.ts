@@ -1,9 +1,11 @@
 import type {
-  GQLCommentCommentsInput,
-  GQLCommentsInput,
-  GQLVote,
+  Article,
+  Circle,
   Comment,
   Connections,
+  GQLCommentCommentsInput,
+  GQLCommentsInput,
+  User,
   ValueOf,
 } from 'definitions'
 
@@ -13,8 +15,15 @@ import {
   COMMENT_TYPE,
   USER_STATE,
   USER_ACTION,
+  NOTICE_TYPE,
 } from 'common/enums'
-import { BaseService } from 'connectors'
+import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
+import {
+  BaseService,
+  PaymentService,
+  NotificationService,
+  UserService,
+} from 'connectors'
 
 export interface CommentFilter {
   type: ValueOf<typeof COMMENT_TYPE>
@@ -209,26 +218,103 @@ export class CommentService extends BaseService<Comment> {
    *              Vote             *
    *                               *
    *********************************/
-  public vote = async ({
-    userId,
-    commentId,
-    vote,
+  public upvote = async ({
+    user,
+    comment,
   }: {
-    userId: string
-    commentId: string
-    vote: GQLVote
+    user: User
+    comment: Comment
   }) => {
-    const data = {
-      userId,
-      targetId: commentId,
-      action: `${vote}_vote`,
+    if (!user.userName) {
+      throw new ForbiddenError('user has no username')
     }
 
-    return this.baseUpdateOrCreate({
-      where: data,
-      data: data,
-      table: 'action_comment',
+    if (user.state !== USER_STATE.active) {
+      throw new ForbiddenByStateError(`${user.state} user has no permission`)
+    }
+
+    // check target
+    let article: Article
+    let circle: Circle | undefined = undefined
+    let targetAuthorId: string
+    if (comment.type === COMMENT_TYPE.article) {
+      article = await this.models.articleIdLoader.load(comment.targetId)
+      targetAuthorId = article.authorId
+    } else if (comment.type === COMMENT_TYPE.moment) {
+      const moment = await this.models.momentIdLoader.load(comment.targetId)
+      targetAuthorId = moment.authorId
+    } else {
+      circle = await this.models.circleIdLoader.load(comment.targetId)
+      targetAuthorId = circle.owner
+    }
+
+    const userService = new UserService(this.connections)
+    const isBlocked = await userService.blocked({
+      userId: targetAuthorId,
+      targetId: user.id,
     })
+    if (isBlocked) {
+      throw new ForbiddenError('blocked user has no permission')
+    }
+
+    // check permission
+    const isTargetAuthor = targetAuthorId === user.id
+
+    if (circle && !isTargetAuthor) {
+      const paymentService = new PaymentService(this.connections)
+      const isCircleMember = await paymentService.isCircleMember({
+        userId: user.id,
+        circleId: circle.id,
+      })
+
+      if (!isCircleMember) {
+        throw new ForbiddenError('only circle members have the permission')
+      }
+    }
+
+    // check is voted before
+    const voted = await this.findVotesByUserId({
+      userId: user.id,
+      commentId: comment.id,
+    })
+    if (voted && voted.length > 0) {
+      await this.removeVotesByUserId({
+        userId: user.id,
+        commentId: comment.id,
+      })
+    }
+
+    const action = await this.models.create({
+      table: 'action_comment',
+      data: {
+        userId: user.id,
+        targetId: comment.id,
+        action: 'up_vote' as const,
+      },
+    })
+
+    // notification
+    if (
+      [COMMENT_TYPE.article as string, COMMENT_TYPE.moment as string].includes(
+        comment.type
+      )
+    ) {
+      const noticeType =
+        comment.type === COMMENT_TYPE.moment
+          ? NOTICE_TYPE.moment_comment_liked
+          : NOTICE_TYPE.article_comment_liked
+
+      const notificationService = new NotificationService(this.connections)
+      notificationService.trigger({
+        event: noticeType,
+        actorId: user.id,
+        recipientId: comment.authorId,
+        entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+        tag: `${noticeType}:${user.id}:${comment.id}`,
+      })
+    }
+
+    return action
   }
 
   public unvote = async ({
