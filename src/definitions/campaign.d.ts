@@ -47,6 +47,7 @@ export interface CampaignArticle {
   campaignStageId: string | null
   articleId: string
   createdAt: Date
+  featured: boolean
 }
 
 export interface CampaignBoost {

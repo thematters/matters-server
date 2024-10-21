@@ -514,6 +514,18 @@ describe('application', () => {
       }
     }
   `
+  const TOGGLE_FEATURED_ARTICLES = /* GraphQL */ `
+    mutation ($input: ToggleWritingChallengeFeaturedArticlesInput!) {
+      toggleWritingChallengeFeaturedArticles(input: $input) {
+        id
+        ... on WritingChallenge {
+          articles(input: { first: null, filter: { featured: true } }) {
+            totalCount
+          }
+        }
+      }
+    }
+  `
   test('apply campaign successfully', async () => {
     const campaign = await campaignService.createWritingChallenge({
       ...campaignData,
@@ -575,6 +587,79 @@ describe('application', () => {
       updatedData.updateCampaignApplicationState.participants.edges[0]
         .application.createdAt
     ).toBeDefined()
+  })
+  test('toggle featured articles', async () => {
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
+    await campaignService.apply(campaign, user)
+
+    const articles = await atomService.findMany({
+      table: 'article',
+      where: { authorId: user.id },
+    })
+    await campaignService.submitArticleToCampaign(
+      articles[0],
+      campaign.id,
+      stages[0].id
+    )
+
+    // add featured articles
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+    const campaignGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaign.id,
+    })
+    const articleGlobalId = toGlobalId({
+      type: NODE_TYPES.Article,
+      id: articles[0].id,
+    })
+    const { data: updatedData, errors: updatedErrors } =
+      await adminServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            articles: [articleGlobalId],
+            enabled: true,
+          },
+        },
+      })
+    expect(updatedErrors).toBeUndefined()
+    expect(
+      updatedData.toggleWritingChallengeFeaturedArticles.articles.totalCount
+    ).toBe(1)
+
+    // remove featured articles
+    const { data: updatedData2, errors: updatedErrors2 } =
+      await adminServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            articles: [articleGlobalId],
+            enabled: false,
+          },
+        },
+      })
+    expect(updatedErrors2).toBeUndefined()
+    expect(
+      updatedData2.toggleWritingChallengeFeaturedArticles.articles.totalCount
+    ).toBe(0)
   })
 })
 

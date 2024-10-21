@@ -17,6 +17,7 @@ const resolver: GQLWritingChallengeResolvers['articles'] = async (
 
   const query = campaignService.findArticles(campaignId, {
     filterStageId: stageId,
+    featured: filter?.featured,
     spamThreshold,
   })
 
