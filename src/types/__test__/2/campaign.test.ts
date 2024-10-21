@@ -518,8 +518,10 @@ describe('application', () => {
     mutation ($input: ToggleWritingChallengeFeaturedArticlesInput!) {
       toggleWritingChallengeFeaturedArticles(input: $input) {
         id
-        articles(input: { first: null, filter: { featured: true } }) {
-          totalCount
+        ... on WritingChallenge {
+          articles(input: { first: null, filter: { featured: true } }) {
+            totalCount
+          }
         }
       }
     }
@@ -595,10 +597,13 @@ describe('application', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
+
     const user = await atomService.findUnique({
       table: 'user',
       where: { id: '1' },
     })
+    await campaignService.apply(campaign, user)
+
     const articles = await atomService.findMany({
       table: 'article',
       where: { authorId: user.id },

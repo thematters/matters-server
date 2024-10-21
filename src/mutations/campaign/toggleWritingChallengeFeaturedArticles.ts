@@ -60,6 +60,8 @@ const resolver: GQLMutationResolvers['toggleWritingChallengeFeaturedArticles'] =
       data: { featured: enabled },
     })
 
+    // TODO: notice
+
     return campaign
   }
 
