@@ -56,7 +56,8 @@ const resolver: GQLMutationResolvers['toggleWritingChallengeFeaturedArticles'] =
     // update featured articles
     await atomService.updateMany({
       table: 'campaign_article',
-      where: { campaignId, articleId: { in: articleIds } },
+      where: { campaignId },
+      whereIn: ['articleId', articleIds],
       data: { featured: enabled },
     })
 

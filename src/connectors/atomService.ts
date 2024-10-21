@@ -104,6 +104,7 @@ type UpdateManyFn = <
 >(params: {
   table: Table
   where: Partial<Record<keyof D, any>>
+  whereIn?: [string, string[]]
   data: Partial<D>
   columns?: Array<keyof D> | '*'
 }) => Promise<D[]>
@@ -416,10 +417,11 @@ export class AtomService {
   public updateMany: UpdateManyFn = async ({
     table,
     where,
+    whereIn,
     data,
     columns = '*',
   }) => {
-    const records = await this.knex
+    const action = this.knex
       .where(where)
       .update(
         isUpdateableTable(table)
@@ -428,6 +430,13 @@ export class AtomService {
       )
       .into(table)
       .returning(columns as string)
+
+    if (whereIn) {
+      action.whereIn(...whereIn)
+    }
+
+    const records = await action
+
     return records
   }
 
