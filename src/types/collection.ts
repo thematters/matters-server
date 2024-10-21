@@ -13,6 +13,7 @@ export default /* GraphQL */ `
 
     "Remove articles from the collection."
     deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @complexity(value: 10, multipliers: ["input.articles"]) @auth(mode: "${AUTH_MODE.oauth}")
+
     "Reorder articles in the collection."
     reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
@@ -21,32 +22,32 @@ export default /* GraphQL */ `
   }
 
   type Collection implements Node & PinnableWork  {
-     id: ID!
-     title: String!
-     cover: String
-     description: String
-     author: User!
-     articles(input: CollectionArticlesInput!): ArticleConnection!
-     pinned: Boolean!
-     updatedAt: DateTime!
+    id: ID!
+    title: String!
+    cover: String
+    description: String
+    author: User!
+    articles(input: CollectionArticlesInput!): ArticleConnection!
+    pinned: Boolean!
+    updatedAt: DateTime!
 
-     likeCount: Int!
-     """whether current user has liked it"""
-     liked: Boolean! @privateCache
+    likeCount: Int!
+    """whether current user has liked it"""
+    liked: Boolean! @privateCache
 
-     "Check if the collection contains the article"
-     contains(input: NodeInput!): Boolean!
+    "Check if the collection contains the article"
+    contains(input: NodeInput!): Boolean!
   }
 
   type CollectionEdge {
-     cursor: String!
-     node: Collection! @logCache(type: "${NODE_TYPES.Collection}")
+    cursor: String!
+    node: Collection! @logCache(type: "${NODE_TYPES.Collection}")
   }
 
   type CollectionConnection implements Connection {
-     totalCount: Int!
-     pageInfo: PageInfo!
-     edges: [CollectionEdge!]
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CollectionEdge!]
   }
 
   type CollectionNotice implements Notice {

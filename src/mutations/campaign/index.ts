@@ -1,5 +1,6 @@
 import applyCampaign from './applyCampaign'
 import putWritingChallenge from './putWritingChallenge'
+import toggleWritingChallengeFeaturedArticles from './toggleWritingChallengeFeaturedArticles'
 import updateCampaignApplicationState from './updateCampaignApplicationState'
 
 export default {
@@ -7,5 +8,6 @@ export default {
     applyCampaign,
     putWritingChallenge,
     updateCampaignApplicationState,
+    toggleWritingChallengeFeaturedArticles,
   },
 }

@@ -79,6 +79,7 @@ type Mutation {
   putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
   applyCampaign(input: ApplyCampaignInput!): Campaign!
   updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
+  toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign!
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -912,6 +913,12 @@ input UpdateCampaignApplicationStateInput {
   state: CampaignApplicationState!
 }
 
+input ToggleWritingChallengeFeaturedArticlesInput {
+  campaign: ID!
+  articles: [ID!]!
+  enabled: Boolean!
+}
+
 input CampaignStageInput {
   name: [TranslationInput!]!
   description: [TranslationInput!]
@@ -1014,7 +1021,8 @@ input CampaignArticlesInput {
 }
 
 input CampaignArticlesFilter {
-  stage: ID!
+  stage: ID
+  featured: Boolean
 }
 
 type CampaignConnection implements Connection {

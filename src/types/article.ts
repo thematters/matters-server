@@ -255,14 +255,14 @@ export default /* GraphQL */ `
   }
 
   type ArticleVersionsConnection implements Connection {
-     totalCount: Int!
-     pageInfo: PageInfo!
-     edges: [ArticleVersionEdge]!
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [ArticleVersionEdge]!
   }
 
   type ArticleVersionEdge {
-     node: ArticleVersion!
-     cursor: String!
+    node: ArticleVersion!
+    cursor: String!
   }
 
   type ArticleVersion implements Node {
@@ -465,8 +465,8 @@ export default /* GraphQL */ `
     "whether readers can comment"
     canComment: Boolean
 
-     "which campaigns to attach"
-     campaigns: [ArticleCampaignInput!]
+    "which campaigns to attach"
+    campaigns: [ArticleCampaignInput!]
   }
 
   input ArticleCampaignInput {

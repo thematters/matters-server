@@ -704,7 +704,8 @@ export type GQLCampaignApplication = {
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
 export type GQLCampaignArticlesFilter = {
-  stage: Scalars['ID']['input']
+  featured?: InputMaybe<Scalars['Boolean']['input']>
+  stage?: InputMaybe<Scalars['ID']['input']>
 }
 
 export type GQLCampaignArticlesInput = {
@@ -1954,6 +1955,7 @@ export type GQLMutation = {
   toggleSubscribeArticle: GQLArticle
   toggleTagRecommend: GQLTag
   toggleUsersBadge: Array<Maybe<GQLUser>>
+  toggleWritingChallengeFeaturedArticles: GQLCampaign
   unbindLikerId: GQLUser
   unlikeCollection: GQLCollection
   unlikeMoment: GQLMoment
@@ -2324,6 +2326,10 @@ export type GQLMutationToggleTagRecommendArgs = {
 
 export type GQLMutationToggleUsersBadgeArgs = {
   input: GQLToggleUsersBadgeInput
+}
+
+export type GQLMutationToggleWritingChallengeFeaturedArticlesArgs = {
+  input: GQLToggleWritingChallengeFeaturedArticlesInput
 }
 
 export type GQLMutationUnbindLikerIdArgs = {
@@ -3600,6 +3606,12 @@ export type GQLToggleUsersBadgeInput = {
   enabled: Scalars['Boolean']['input']
   ids: Array<Scalars['ID']['input']>
   type: GQLBadgeType
+}
+
+export type GQLToggleWritingChallengeFeaturedArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  campaign: Scalars['ID']['input']
+  enabled: Scalars['Boolean']['input']
 }
 
 export type GQLTopDonatorConnection = GQLConnection & {
@@ -5125,6 +5137,7 @@ export type GQLResolversTypes = ResolversObject<{
   ToggleRecommendInput: GQLToggleRecommendInput
   ToggleSeedingUsersInput: GQLToggleSeedingUsersInput
   ToggleUsersBadgeInput: GQLToggleUsersBadgeInput
+  ToggleWritingChallengeFeaturedArticlesInput: GQLToggleWritingChallengeFeaturedArticlesInput
   TopDonatorConnection: ResolverTypeWrapper<
     Omit<GQLTopDonatorConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['TopDonatorEdge']>>
@@ -5648,6 +5661,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ToggleRecommendInput: GQLToggleRecommendInput
   ToggleSeedingUsersInput: GQLToggleSeedingUsersInput
   ToggleUsersBadgeInput: GQLToggleUsersBadgeInput
+  ToggleWritingChallengeFeaturedArticlesInput: GQLToggleWritingChallengeFeaturedArticlesInput
   TopDonatorConnection: Omit<GQLTopDonatorConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TopDonatorEdge']>>
   }
@@ -8119,6 +8133,15 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationToggleUsersBadgeArgs, 'input'>
+  >
+  toggleWritingChallengeFeaturedArticles?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<
+      GQLMutationToggleWritingChallengeFeaturedArticlesArgs,
+      'input'
+    >
   >
   unbindLikerId?: Resolver<
     GQLResolversTypes['User'],
