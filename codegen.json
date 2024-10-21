@@ -59,6 +59,7 @@
           "TagNotice": "./notification#NoticeItem",
           "CommentNotice": "./notification#NoticeItem",
           "CommentCommentNotice": "./notification#NoticeItem",
+          "CampaignArticleNotice": "./notification#NoticeItem",
           "TransactionNotice": "./notification#NoticeItem",
           "CircleNotice": "./notification#NoticeItem",
           "OfficialNotice": "./notification#NoticeItem",

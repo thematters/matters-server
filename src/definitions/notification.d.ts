@@ -144,6 +144,17 @@ interface NoticeMomentMentionedYouParams extends NotificationRequiredParams {
   tag: string
 }
 
+// Campaign-Article
+interface NoticeCampaignArticleFeaturedParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.campaign_article_featured
+  recipientId: string
+  entities: [
+    NotificationEntity<'target', 'campaign'>,
+    NotificationEntity<'article', 'article'>
+  ]
+}
+
 /**
  * Comment
  */
@@ -398,6 +409,8 @@ export type NotificationParams =
   | NoticeCircleNewBroadcastParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
+  // Campaign-Article
+  | NoticeCampaignArticleFeaturedParams
   // Payment
   | NoticePaymentReceivedDonationParams
   // Circle
