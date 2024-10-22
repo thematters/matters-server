@@ -57,6 +57,7 @@ export default /* GraphQL */ `
     campaign: ID!
     announcement: [TranslationInput!]!
     link: String! @constraint(format: "uri")
+    password: String! # admin verification
   }
 
   input CampaignStageInput {

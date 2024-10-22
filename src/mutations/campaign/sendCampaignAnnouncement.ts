@@ -10,11 +10,18 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['sendCampaignAnnouncement'] = async (
   _,
-  { input: { campaign: campaignGlobalId, announcement, link } },
-  { viewer, dataSources: { atomService, notificationService } }
+  { input: { campaign: campaignGlobalId, announcement, link, password } },
+  { viewer, dataSources: { userService, atomService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // validate password
+  if (!password) {
+    throw new UserInputError('`password` is required')
+  } else {
+    await userService.verifyPassword({ password, hash: viewer.passwordHash })
   }
 
   // validate campaign

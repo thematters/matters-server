@@ -3289,6 +3289,7 @@ export type GQLSendCampaignAnnouncementInput = {
   announcement: Array<GQLTranslationInput>
   campaign: Scalars['ID']['input']
   link: Scalars['String']['input']
+  password: Scalars['String']['input']
 }
 
 export type GQLSendVerificationCodeInput = {

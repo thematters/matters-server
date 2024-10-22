@@ -924,6 +924,7 @@ input SendCampaignAnnouncementInput {
   campaign: ID!
   announcement: [TranslationInput!]!
   link: String!
+  password: String!
 }
 
 input CampaignStageInput {
