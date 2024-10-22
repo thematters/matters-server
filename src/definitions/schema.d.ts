@@ -703,6 +703,23 @@ export type GQLCampaignApplication = {
 
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
+export type GQLCampaignArticleNotice = GQLNotice & {
+  __typename?: 'CampaignArticleNotice'
+  /** List of notice actors. */
+  actors?: Maybe<Array<GQLUser>>
+  article: GQLArticle
+  /** Time of this notice was created. */
+  createdAt: Scalars['DateTime']['output']
+  /** Unique ID of this notice. */
+  id: Scalars['ID']['output']
+  target: GQLCampaign
+  type: GQLCampaignArticleNoticeType
+  /** The value determines if the notice is unread or not. */
+  unread: Scalars['Boolean']['output']
+}
+
+export type GQLCampaignArticleNoticeType = 'CampaignArticleFeatured'
+
 export type GQLCampaignArticlesFilter = {
   featured?: InputMaybe<Scalars['Boolean']['input']>
   stage?: InputMaybe<Scalars['ID']['input']>
@@ -4620,6 +4637,7 @@ export type GQLResolversInterfaceTypes<
     | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
+    | NoticeItemModel
   PinnableWork: ArticleModel | CollectionModel
 }>
 
@@ -4730,6 +4748,8 @@ export type GQLResolversTypes = ResolversObject<{
   Campaign: ResolverTypeWrapper<CampaignModel>
   CampaignApplication: ResolverTypeWrapper<GQLCampaignApplication>
   CampaignApplicationState: GQLCampaignApplicationState
+  CampaignArticleNotice: ResolverTypeWrapper<NoticeItemModel>
+  CampaignArticleNoticeType: GQLCampaignArticleNoticeType
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignConnection: ResolverTypeWrapper<
@@ -5352,6 +5372,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean']['output']
   Campaign: CampaignModel
   CampaignApplication: GQLCampaignApplication
+  CampaignArticleNotice: NoticeItemModel
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignConnection: Omit<GQLCampaignConnection, 'edges'> & {
@@ -6557,6 +6578,28 @@ export type GQLCampaignApplicationResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCampaignArticleNoticeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignArticleNotice'] = GQLResolversParentTypes['CampaignArticleNotice']
+> = ResolversObject<{
+  actors?: Resolver<
+    Maybe<Array<GQLResolversTypes['User']>>,
+    ParentType,
+    ContextType
+  >
+  article?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Campaign'], ParentType, ContextType>
+  type?: Resolver<
+    GQLResolversTypes['CampaignArticleNoticeType'],
+    ParentType,
+    ContextType
+  >
+  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8337,6 +8380,7 @@ export type GQLNoticeResolvers<
   __resolveType: TypeResolveFn<
     | 'ArticleArticleNotice'
     | 'ArticleNotice'
+    | 'CampaignArticleNotice'
     | 'CircleNotice'
     | 'CollectionNotice'
     | 'CommentCommentNotice'
@@ -10022,6 +10066,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   BlockedSearchKeyword?: GQLBlockedSearchKeywordResolvers<ContextType>
   Campaign?: GQLCampaignResolvers<ContextType>
   CampaignApplication?: GQLCampaignApplicationResolvers<ContextType>
+  CampaignArticleNotice?: GQLCampaignArticleNoticeResolvers<ContextType>
   CampaignConnection?: GQLCampaignConnectionResolvers<ContextType>
   CampaignEdge?: GQLCampaignEdgeResolvers<ContextType>
   CampaignOSS?: GQLCampaignOssResolvers<ContextType>

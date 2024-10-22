@@ -1,5 +1,6 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import { NOTICE_TYPE } from 'common/enums'
 import {
   AuthenticationError,
   UserInputError,
@@ -17,7 +18,7 @@ const resolver: GQLMutationResolvers['toggleWritingChallengeFeaturedArticles'] =
         enabled,
       },
     },
-    { viewer, dataSources: { atomService } }
+    { viewer, dataSources: { atomService, notificationService } }
   ) => {
     if (!viewer.id) {
       throw new AuthenticationError('visitor has no permission')
@@ -61,7 +62,20 @@ const resolver: GQLMutationResolvers['toggleWritingChallengeFeaturedArticles'] =
       data: { featured: enabled },
     })
 
-    // TODO: notice
+    for (const articleId of articleIds) {
+      const article = await atomService.findUnique({
+        table: 'article',
+        where: { id: articleId },
+      })
+      notificationService.trigger({
+        event: NOTICE_TYPE.campaign_article_featured,
+        recipientId: article.authorId,
+        entities: [
+          { type: 'target', entityTable: 'campaign', entity: campaign },
+          { type: 'article', entityTable: 'article', entity: article },
+        ],
+      })
+    }
 
     return campaign
   }
