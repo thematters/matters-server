@@ -54,15 +54,34 @@ const resolver: GQLMutationResolvers['toggleWritingChallengeFeaturedArticles'] =
       articleIds.push(articleId)
     }
 
+    const campaignArticles = await atomService.findMany({
+      table: 'campaign_article',
+      where: { campaignId },
+      whereIn: ['articleId', articleIds],
+    })
+    const updatedArticleIds = articleIds.filter(
+      (articleId) =>
+        !campaignArticles.some(
+          (campaignArticle) =>
+            campaignArticle.articleId === articleId &&
+            campaignArticle.featured === enabled
+        )
+    )
+
     // update featured articles
     await atomService.updateMany({
       table: 'campaign_article',
       where: { campaignId },
-      whereIn: ['articleId', articleIds],
+      whereIn: ['articleId', updatedArticleIds],
       data: { featured: enabled },
     })
 
-    for (const articleId of articleIds) {
+    // send notifications to new featured articles
+    if (!enabled) {
+      return campaign
+    }
+
+    for (const articleId of updatedArticleIds) {
       const article = await atomService.findUnique({
         table: 'article',
         where: { id: articleId },
