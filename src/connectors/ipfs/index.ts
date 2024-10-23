@@ -12,10 +12,7 @@ const logger = getLogger('service-ipfs')
 
 const generateKeyPairPromisified = promisify(generateKeyPair)
 
-const ipfsServerUrls = (
-  environment.ipfsServers ||
-  `http://${environment.ipfsHost}:${environment.ipfsPort}/api/v0`
-)
+const ipfsServerUrls = environment.ipfsServers
   .trim()
   .split(/,\s*/)
   .filter(Boolean)
