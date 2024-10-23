@@ -1932,6 +1932,7 @@ export type GQLMutation = {
    * @deprecated use 'removeWalletLogin' instead
    */
   resetWallet: GQLUser
+  sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
   setBoost: GQLNode
@@ -2255,6 +2256,10 @@ export type GQLMutationResetPasswordArgs = {
 
 export type GQLMutationResetWalletArgs = {
   input: GQLResetWalletInput
+}
+
+export type GQLMutationSendCampaignAnnouncementArgs = {
+  input: GQLSendCampaignAnnouncementInput
 }
 
 export type GQLMutationSendVerificationCodeArgs = {
@@ -3279,6 +3284,13 @@ export type GQLSearchResultEdge = {
 }
 
 export type GQLSearchTypes = 'Article' | 'Tag' | 'User'
+
+export type GQLSendCampaignAnnouncementInput = {
+  announcement: Array<GQLTranslationInput>
+  campaign: Scalars['ID']['input']
+  link: Scalars['String']['input']
+  password: Scalars['String']['input']
+}
 
 export type GQLSendVerificationCodeInput = {
   email: Scalars['String']['input']
@@ -5106,6 +5118,7 @@ export type GQLResolversTypes = ResolversObject<{
   SearchResultConnection: ResolverTypeWrapper<GQLSearchResultConnection>
   SearchResultEdge: ResolverTypeWrapper<GQLSearchResultEdge>
   SearchTypes: GQLSearchTypes
+  SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5643,6 +5656,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SearchInput: GQLSearchInput
   SearchResultConnection: GQLSearchResultConnection
   SearchResultEdge: GQLSearchResultEdge
+  SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -8044,6 +8058,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationResetWalletArgs, 'input'>
+  >
+  sendCampaignAnnouncement?: Resolver<
+    Maybe<GQLResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSendCampaignAnnouncementArgs, 'input'>
   >
   sendVerificationCode?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
