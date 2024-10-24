@@ -703,6 +703,20 @@ export type GQLCampaignApplication = {
 
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
+export type GQLCampaignArticleConnection = GQLConnection & {
+  __typename?: 'CampaignArticleConnection'
+  edges: Array<GQLCampaignArticleEdge>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLCampaignArticleEdge = {
+  __typename?: 'CampaignArticleEdge'
+  cursor: Scalars['String']['output']
+  featured: Scalars['Boolean']['output']
+  node: GQLArticle
+}
+
 export type GQLCampaignArticleNotice = GQLNotice & {
   __typename?: 'CampaignArticleNotice'
   /** List of notice actors. */
@@ -4353,7 +4367,7 @@ export type GQLWritingChallenge = GQLCampaign &
     announcements: Array<GQLArticle>
     application?: Maybe<GQLCampaignApplication>
     applicationPeriod?: Maybe<GQLDatetimeRange>
-    articles: GQLArticleConnection
+    articles: GQLCampaignArticleConnection
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
     id: Scalars['ID']['output']
@@ -4566,6 +4580,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLArticleVersionsConnection, 'edges'> & {
         edges: Array<Maybe<RefType['ArticleVersionEdge']>>
       })
+    | (Omit<GQLCampaignArticleConnection, 'edges'> & {
+        edges: Array<RefType['CampaignArticleEdge']>
+      })
     | (Omit<GQLCampaignConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['CampaignEdge']>>
       })
@@ -4760,6 +4777,16 @@ export type GQLResolversTypes = ResolversObject<{
   Campaign: ResolverTypeWrapper<CampaignModel>
   CampaignApplication: ResolverTypeWrapper<GQLCampaignApplication>
   CampaignApplicationState: GQLCampaignApplicationState
+  CampaignArticleConnection: ResolverTypeWrapper<
+    Omit<GQLCampaignArticleConnection, 'edges'> & {
+      edges: Array<GQLResolversTypes['CampaignArticleEdge']>
+    }
+  >
+  CampaignArticleEdge: ResolverTypeWrapper<
+    Omit<GQLCampaignArticleEdge, 'node'> & {
+      node: GQLResolversTypes['Article']
+    }
+  >
   CampaignArticleNotice: ResolverTypeWrapper<NoticeItemModel>
   CampaignArticleNoticeType: GQLCampaignArticleNoticeType
   CampaignArticlesFilter: GQLCampaignArticlesFilter
@@ -5385,6 +5412,12 @@ export type GQLResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean']['output']
   Campaign: CampaignModel
   CampaignApplication: GQLCampaignApplication
+  CampaignArticleConnection: Omit<GQLCampaignArticleConnection, 'edges'> & {
+    edges: Array<GQLResolversParentTypes['CampaignArticleEdge']>
+  }
+  CampaignArticleEdge: Omit<GQLCampaignArticleEdge, 'node'> & {
+    node: GQLResolversParentTypes['Article']
+  }
   CampaignArticleNotice: NoticeItemModel
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
@@ -6595,6 +6628,30 @@ export type GQLCampaignApplicationResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLCampaignArticleConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignArticleConnection'] = GQLResolversParentTypes['CampaignArticleConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Array<GQLResolversTypes['CampaignArticleEdge']>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCampaignArticleEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignArticleEdge'] = GQLResolversParentTypes['CampaignArticleEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  featured?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLCampaignArticleNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignArticleNotice'] = GQLResolversParentTypes['CampaignArticleNotice']
@@ -7168,6 +7225,7 @@ export type GQLConnectionResolvers<
     | 'AppreciationConnection'
     | 'ArticleConnection'
     | 'ArticleVersionsConnection'
+    | 'CampaignArticleConnection'
     | 'CampaignConnection'
     | 'CampaignParticipantConnection'
     | 'CircleConnection'
@@ -9990,7 +10048,7 @@ export type GQLWritingChallengeResolvers<
     ContextType
   >
   articles?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
+    GQLResolversTypes['CampaignArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLWritingChallengeArticlesArgs, 'input'>
@@ -10086,6 +10144,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   BlockedSearchKeyword?: GQLBlockedSearchKeywordResolvers<ContextType>
   Campaign?: GQLCampaignResolvers<ContextType>
   CampaignApplication?: GQLCampaignApplicationResolvers<ContextType>
+  CampaignArticleConnection?: GQLCampaignArticleConnectionResolvers<ContextType>
+  CampaignArticleEdge?: GQLCampaignArticleEdgeResolvers<ContextType>
   CampaignArticleNotice?: GQLCampaignArticleNoticeResolvers<ContextType>
   CampaignConnection?: GQLCampaignConnectionResolvers<ContextType>
   CampaignEdge?: GQLCampaignEdgeResolvers<ContextType>
