@@ -105,7 +105,7 @@ export default /* GraphQL */ `
 
     state: CampaignState!
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
-    articles(input: CampaignArticlesInput!): ArticleConnection!
+    articles(input: CampaignArticlesInput!): CampaignArticleConnection!
 
     application: CampaignApplication @privateCache
 
@@ -131,6 +131,18 @@ export default /* GraphQL */ `
     cursor: String!
     application: CampaignApplication
     node: User! @logCache(type: "${NODE_TYPES.User}")
+  }
+
+  type CampaignArticleConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CampaignArticleEdge!]!
+  }
+
+  type CampaignArticleEdge {
+    cursor: String!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
+    featured: Boolean!
   }
 
   input CampaignParticipantsInput {

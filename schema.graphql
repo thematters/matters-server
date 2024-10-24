@@ -970,7 +970,7 @@ type WritingChallenge implements Node & Campaign {
   stages: [CampaignStage!]!
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
-  articles(input: CampaignArticlesInput!): ArticleConnection!
+  articles(input: CampaignArticlesInput!): CampaignArticleConnection!
   application: CampaignApplication
   oss: CampaignOSS!
 }
@@ -994,6 +994,18 @@ type CampaignParticipantEdge {
   cursor: String!
   application: CampaignApplication
   node: User!
+}
+
+type CampaignArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignArticleEdge!]!
+}
+
+type CampaignArticleEdge {
+  cursor: String!
+  node: Article!
+  featured: Boolean!
 }
 
 input CampaignParticipantsInput {
