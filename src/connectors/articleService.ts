@@ -875,11 +875,12 @@ export class ArticleService extends BaseService<Article> {
       try {
         const results = []
         for await (const result of ipfs.addAll(
-          bundle.map((file) =>
-            file
-              ? { ...file, path: `${directoryName}/${file.path}` }
-              : undefined
-          )
+          bundle
+            .filter((file): file is NonNullable<typeof file> => !!file)
+            .map((file) => ({
+              ...file,
+              path: `${directoryName}/${file.path}`,
+            }))
         )) {
           results.push(result)
         }
@@ -1247,7 +1248,7 @@ export class ArticleService extends BaseService<Article> {
           [articleId, APPRECIATION_PURPOSE.appreciateSubsidy],
         ]
       )
-      .sum('amount', { as: 'sum' })
+      .sum('amount as sum')
       .first()
     return parseInt(result?.sum || '0', 10)
   }
