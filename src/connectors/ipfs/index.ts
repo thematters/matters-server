@@ -1,6 +1,6 @@
 import { generateKeyPair } from 'crypto'
 import FormData from 'form-data'
-import { create } from 'ipfs-http-client'
+import { create, IPFSHTTPClient } from 'ipfs-http-client'
 import fetch from 'node-fetch'
 import { Readable } from 'stream'
 import { promisify } from 'util'
@@ -20,30 +20,30 @@ const ipfsServerUrls = environment.ipfsServers
 // In-App load-balancer, instead of transparent EC2 load balancer
 export class IPFSServer {
   // 1 active primary + multiple backup secondaries
-  clients: any[]
+  public clients: IPFSHTTPClient[]
 
-  constructor() {
+  public constructor() {
     this.clients = ipfsServerUrls.map((url) => create({ url }))
   }
 
-  get size() {
+  public get size() {
     return this.clients.length
   }
-  get client() {
+  public get client() {
     // const idx = active ? 0 : Math.floor(1 + Math.random() * (this.size - 1))
     return this.clients[0]
   }
-  get backupClient() {
+  public get backupClient() {
     const idx = Math.floor(1 + Math.random() * (this.size - 1))
     return this.clients[idx]
   }
 
   // same as `openssl genpkey -algorithm ED25519`
-  genKey = async () => generateKeyPairPromisified('ed25519') // {
+  public genKey = async () => generateKeyPairPromisified('ed25519') // {
 
   // JS implementation of IPFS KEY is incompatible between JS-IPFS vs Go-IPFS (Kubo)
   // https://github.com/ipfs/js-ipfs/issues/3547
-  importKey = async ({
+  public importKey = async ({
     name,
     pem,
     useActive = true,
