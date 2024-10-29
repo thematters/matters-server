@@ -270,8 +270,13 @@ export class CampaignService {
     campaignId: string,
     {
       filterStageId,
+      featured,
       spamThreshold,
-    }: { filterStageId?: string; spamThreshold?: null | number } = {}
+    }: {
+      filterStageId?: string
+      featured?: boolean
+      spamThreshold?: null | number
+    } = {}
   ) => {
     const knexRO = this.connections.knexRO
     const query = knexRO('campaign_article')
@@ -283,6 +288,11 @@ export class CampaignService {
     if (filterStageId) {
       query.where({ campaignStageId: filterStageId })
     }
+
+    if (featured) {
+      query.where({ featured })
+    }
+
     return query
   }
 

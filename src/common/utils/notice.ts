@@ -8,6 +8,7 @@ const actorsOptional: Partial<Record<BaseNoticeType, boolean>> = {
   revised_article_published: true,
   revised_article_not_published: true,
   circle_new_article: true,
+  campaign_article_featured: true,
 }
 
 const entitiesOptional: Partial<Record<BaseNoticeType, boolean>> = {

@@ -703,8 +703,40 @@ export type GQLCampaignApplication = {
 
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
+export type GQLCampaignArticleConnection = GQLConnection & {
+  __typename?: 'CampaignArticleConnection'
+  edges: Array<GQLCampaignArticleEdge>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLCampaignArticleEdge = {
+  __typename?: 'CampaignArticleEdge'
+  cursor: Scalars['String']['output']
+  featured: Scalars['Boolean']['output']
+  node: GQLArticle
+}
+
+export type GQLCampaignArticleNotice = GQLNotice & {
+  __typename?: 'CampaignArticleNotice'
+  /** List of notice actors. */
+  actors?: Maybe<Array<GQLUser>>
+  article: GQLArticle
+  /** Time of this notice was created. */
+  createdAt: Scalars['DateTime']['output']
+  /** Unique ID of this notice. */
+  id: Scalars['ID']['output']
+  target: GQLCampaign
+  type: GQLCampaignArticleNoticeType
+  /** The value determines if the notice is unread or not. */
+  unread: Scalars['Boolean']['output']
+}
+
+export type GQLCampaignArticleNoticeType = 'CampaignArticleFeatured'
+
 export type GQLCampaignArticlesFilter = {
-  stage: Scalars['ID']['input']
+  featured?: InputMaybe<Scalars['Boolean']['input']>
+  stage?: InputMaybe<Scalars['ID']['input']>
 }
 
 export type GQLCampaignArticlesInput = {
@@ -1914,6 +1946,7 @@ export type GQLMutation = {
    * @deprecated use 'removeWalletLogin' instead
    */
   resetWallet: GQLUser
+  sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
   setBoost: GQLNode
@@ -1954,6 +1987,7 @@ export type GQLMutation = {
   toggleSubscribeArticle: GQLArticle
   toggleTagRecommend: GQLTag
   toggleUsersBadge: Array<Maybe<GQLUser>>
+  toggleWritingChallengeFeaturedArticles: GQLCampaign
   unbindLikerId: GQLUser
   unlikeCollection: GQLCollection
   unlikeMoment: GQLMoment
@@ -2238,6 +2272,10 @@ export type GQLMutationResetWalletArgs = {
   input: GQLResetWalletInput
 }
 
+export type GQLMutationSendCampaignAnnouncementArgs = {
+  input: GQLSendCampaignAnnouncementInput
+}
+
 export type GQLMutationSendVerificationCodeArgs = {
   input: GQLSendVerificationCodeInput
 }
@@ -2324,6 +2362,10 @@ export type GQLMutationToggleTagRecommendArgs = {
 
 export type GQLMutationToggleUsersBadgeArgs = {
   input: GQLToggleUsersBadgeInput
+}
+
+export type GQLMutationToggleWritingChallengeFeaturedArticlesArgs = {
+  input: GQLToggleWritingChallengeFeaturedArticlesInput
 }
 
 export type GQLMutationUnbindLikerIdArgs = {
@@ -3257,6 +3299,13 @@ export type GQLSearchResultEdge = {
 
 export type GQLSearchTypes = 'Article' | 'Tag' | 'User'
 
+export type GQLSendCampaignAnnouncementInput = {
+  announcement: Array<GQLTranslationInput>
+  campaign: Scalars['ID']['input']
+  link: Scalars['String']['input']
+  password: Scalars['String']['input']
+}
+
 export type GQLSendVerificationCodeInput = {
   email: Scalars['String']['input']
   /** email content language */
@@ -3600,6 +3649,12 @@ export type GQLToggleUsersBadgeInput = {
   enabled: Scalars['Boolean']['input']
   ids: Array<Scalars['ID']['input']>
   type: GQLBadgeType
+}
+
+export type GQLToggleWritingChallengeFeaturedArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  campaign: Scalars['ID']['input']
+  enabled: Scalars['Boolean']['input']
 }
 
 export type GQLTopDonatorConnection = GQLConnection & {
@@ -4312,7 +4367,7 @@ export type GQLWritingChallenge = GQLCampaign &
     announcements: Array<GQLArticle>
     application?: Maybe<GQLCampaignApplication>
     applicationPeriod?: Maybe<GQLDatetimeRange>
-    articles: GQLArticleConnection
+    articles: GQLCampaignArticleConnection
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
     id: Scalars['ID']['output']
@@ -4525,6 +4580,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLArticleVersionsConnection, 'edges'> & {
         edges: Array<Maybe<RefType['ArticleVersionEdge']>>
       })
+    | (Omit<GQLCampaignArticleConnection, 'edges'> & {
+        edges: Array<RefType['CampaignArticleEdge']>
+      })
     | (Omit<GQLCampaignConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['CampaignEdge']>>
       })
@@ -4598,6 +4656,7 @@ export type GQLResolversInterfaceTypes<
     | UserModel
     | CampaignModel
   Notice:
+    | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
@@ -4718,6 +4777,18 @@ export type GQLResolversTypes = ResolversObject<{
   Campaign: ResolverTypeWrapper<CampaignModel>
   CampaignApplication: ResolverTypeWrapper<GQLCampaignApplication>
   CampaignApplicationState: GQLCampaignApplicationState
+  CampaignArticleConnection: ResolverTypeWrapper<
+    Omit<GQLCampaignArticleConnection, 'edges'> & {
+      edges: Array<GQLResolversTypes['CampaignArticleEdge']>
+    }
+  >
+  CampaignArticleEdge: ResolverTypeWrapper<
+    Omit<GQLCampaignArticleEdge, 'node'> & {
+      node: GQLResolversTypes['Article']
+    }
+  >
+  CampaignArticleNotice: ResolverTypeWrapper<NoticeItemModel>
+  CampaignArticleNoticeType: GQLCampaignArticleNoticeType
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignConnection: ResolverTypeWrapper<
@@ -5074,6 +5145,7 @@ export type GQLResolversTypes = ResolversObject<{
   SearchResultConnection: ResolverTypeWrapper<GQLSearchResultConnection>
   SearchResultEdge: ResolverTypeWrapper<GQLSearchResultEdge>
   SearchTypes: GQLSearchTypes
+  SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5125,6 +5197,7 @@ export type GQLResolversTypes = ResolversObject<{
   ToggleRecommendInput: GQLToggleRecommendInput
   ToggleSeedingUsersInput: GQLToggleSeedingUsersInput
   ToggleUsersBadgeInput: GQLToggleUsersBadgeInput
+  ToggleWritingChallengeFeaturedArticlesInput: GQLToggleWritingChallengeFeaturedArticlesInput
   TopDonatorConnection: ResolverTypeWrapper<
     Omit<GQLTopDonatorConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['TopDonatorEdge']>>
@@ -5339,6 +5412,13 @@ export type GQLResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean']['output']
   Campaign: CampaignModel
   CampaignApplication: GQLCampaignApplication
+  CampaignArticleConnection: Omit<GQLCampaignArticleConnection, 'edges'> & {
+    edges: Array<GQLResolversParentTypes['CampaignArticleEdge']>
+  }
+  CampaignArticleEdge: Omit<GQLCampaignArticleEdge, 'node'> & {
+    node: GQLResolversParentTypes['Article']
+  }
+  CampaignArticleNotice: NoticeItemModel
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignConnection: Omit<GQLCampaignConnection, 'edges'> & {
@@ -5609,6 +5689,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SearchInput: GQLSearchInput
   SearchResultConnection: GQLSearchResultConnection
   SearchResultEdge: GQLSearchResultEdge
+  SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5648,6 +5729,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ToggleRecommendInput: GQLToggleRecommendInput
   ToggleSeedingUsersInput: GQLToggleSeedingUsersInput
   ToggleUsersBadgeInput: GQLToggleUsersBadgeInput
+  ToggleWritingChallengeFeaturedArticlesInput: GQLToggleWritingChallengeFeaturedArticlesInput
   TopDonatorConnection: Omit<GQLTopDonatorConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TopDonatorEdge']>>
   }
@@ -6546,6 +6628,52 @@ export type GQLCampaignApplicationResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLCampaignArticleConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignArticleConnection'] = GQLResolversParentTypes['CampaignArticleConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Array<GQLResolversTypes['CampaignArticleEdge']>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCampaignArticleEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignArticleEdge'] = GQLResolversParentTypes['CampaignArticleEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  featured?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCampaignArticleNoticeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignArticleNotice'] = GQLResolversParentTypes['CampaignArticleNotice']
+> = ResolversObject<{
+  actors?: Resolver<
+    Maybe<Array<GQLResolversTypes['User']>>,
+    ParentType,
+    ContextType
+  >
+  article?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Campaign'], ParentType, ContextType>
+  type?: Resolver<
+    GQLResolversTypes['CampaignArticleNoticeType'],
+    ParentType,
+    ContextType
+  >
+  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLCampaignConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignConnection'] = GQLResolversParentTypes['CampaignConnection']
@@ -7097,6 +7225,7 @@ export type GQLConnectionResolvers<
     | 'AppreciationConnection'
     | 'ArticleConnection'
     | 'ArticleVersionsConnection'
+    | 'CampaignArticleConnection'
     | 'CampaignConnection'
     | 'CampaignParticipantConnection'
     | 'CircleConnection'
@@ -7988,6 +8117,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationResetWalletArgs, 'input'>
   >
+  sendCampaignAnnouncement?: Resolver<
+    Maybe<GQLResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSendCampaignAnnouncementArgs, 'input'>
+  >
   sendVerificationCode?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
@@ -8119,6 +8254,15 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationToggleUsersBadgeArgs, 'input'>
+  >
+  toggleWritingChallengeFeaturedArticles?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<
+      GQLMutationToggleWritingChallengeFeaturedArticlesArgs,
+      'input'
+    >
   >
   unbindLikerId?: Resolver<
     GQLResolversTypes['User'],
@@ -8314,6 +8458,7 @@ export type GQLNoticeResolvers<
   __resolveType: TypeResolveFn<
     | 'ArticleArticleNotice'
     | 'ArticleNotice'
+    | 'CampaignArticleNotice'
     | 'CircleNotice'
     | 'CollectionNotice'
     | 'CommentCommentNotice'
@@ -9903,7 +10048,7 @@ export type GQLWritingChallengeResolvers<
     ContextType
   >
   articles?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
+    GQLResolversTypes['CampaignArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLWritingChallengeArticlesArgs, 'input'>
@@ -9999,6 +10144,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   BlockedSearchKeyword?: GQLBlockedSearchKeywordResolvers<ContextType>
   Campaign?: GQLCampaignResolvers<ContextType>
   CampaignApplication?: GQLCampaignApplicationResolvers<ContextType>
+  CampaignArticleConnection?: GQLCampaignArticleConnectionResolvers<ContextType>
+  CampaignArticleEdge?: GQLCampaignArticleEdgeResolvers<ContextType>
+  CampaignArticleNotice?: GQLCampaignArticleNoticeResolvers<ContextType>
   CampaignConnection?: GQLCampaignConnectionResolvers<ContextType>
   CampaignEdge?: GQLCampaignEdgeResolvers<ContextType>
   CampaignOSS?: GQLCampaignOssResolvers<ContextType>

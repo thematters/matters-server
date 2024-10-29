@@ -129,6 +129,10 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       )
     }
 
+    if (state === CAMPAIGN_STATE.pending) {
+      throw new UserInputError('cannot update state to pending')
+    }
+
     const data = {
       name: name && name[0].text,
       cover: _cover?.id,

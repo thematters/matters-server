@@ -7,9 +7,11 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    putWritingChallenge(input:PutWritingChallengeInput!): WritingChallenge! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
+    putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     applyCampaign(input: ApplyCampaignInput!): Campaign! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
+    toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
+    sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input CampaignInput {
@@ -17,11 +19,11 @@ export default /* GraphQL */ `
   }
 
   input CampaignsInput {
-   after: String
-   first: Int
-   "return pending and archived campaigns"
-   oss: Boolean = false
- }
+    after: String
+    first: Int
+    "return pending and archived campaigns"
+    oss: Boolean = false
+  }
 
   input PutWritingChallengeInput {
     id: ID
@@ -43,6 +45,19 @@ export default /* GraphQL */ `
     campaign: ID!
     user: ID!
     state: CampaignApplicationState!
+  }
+
+  input ToggleWritingChallengeFeaturedArticlesInput {
+    campaign: ID!
+    articles: [ID!]!
+    enabled: Boolean!
+  }
+
+  input SendCampaignAnnouncementInput {
+    campaign: ID!
+    announcement: [TranslationInput!]!
+    link: String! @constraint(format: "uri")
+    password: String! # admin verification
   }
 
   input CampaignStageInput {
@@ -76,7 +91,6 @@ export default /* GraphQL */ `
   }
 
   type WritingChallenge implements Node & Campaign {
-
     id: ID!
     shortHash: String!
     name(input: TranslationArgs): String!
@@ -91,7 +105,7 @@ export default /* GraphQL */ `
 
     state: CampaignState!
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
-    articles(input: CampaignArticlesInput!): ArticleConnection!
+    articles(input: CampaignArticlesInput!): CampaignArticleConnection!
 
     application: CampaignApplication @privateCache
 
@@ -117,6 +131,18 @@ export default /* GraphQL */ `
     cursor: String!
     application: CampaignApplication
     node: User! @logCache(type: "${NODE_TYPES.User}")
+  }
+
+  type CampaignArticleConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CampaignArticleEdge!]!
+  }
+
+  type CampaignArticleEdge {
+    cursor: String!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
+    featured: Boolean!
   }
 
   input CampaignParticipantsInput {
@@ -151,7 +177,8 @@ export default /* GraphQL */ `
   }
 
   input CampaignArticlesFilter{
-    stage: ID!
+    stage: ID
+    featured: Boolean
   }
 
   type CampaignConnection implements Connection {

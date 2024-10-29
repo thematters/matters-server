@@ -538,13 +538,13 @@ export default /* GraphQL */ `
   }
 
   input PutIcymiTopicInput {
-   id: ID
-   title: String
-   articles: [ID!]
-   pinAmount: Int
-   note: String
-   state: IcymiTopicState
- }
+    id: ID
+    title: String
+    articles: [ID!]
+    pinAmount: Int
+    note: String
+    state: IcymiTopicState
+  }
 
   input SetSpamStatusInput {
     id: ID!

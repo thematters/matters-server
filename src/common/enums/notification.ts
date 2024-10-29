@@ -33,6 +33,9 @@ export enum NOTICE_TYPE {
   // comment-comment
   comment_new_reply = 'comment_new_reply',
 
+  // campaign-article
+  campaign_article_featured = 'campaign_article_featured',
+
   // transaction
   payment_received_donation = 'payment_received_donation',
 

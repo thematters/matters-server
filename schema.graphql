@@ -79,6 +79,8 @@ type Mutation {
   putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
   applyCampaign(input: ApplyCampaignInput!): Campaign!
   updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
+  toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign!
+  sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -912,6 +914,19 @@ input UpdateCampaignApplicationStateInput {
   state: CampaignApplicationState!
 }
 
+input ToggleWritingChallengeFeaturedArticlesInput {
+  campaign: ID!
+  articles: [ID!]!
+  enabled: Boolean!
+}
+
+input SendCampaignAnnouncementInput {
+  campaign: ID!
+  announcement: [TranslationInput!]!
+  link: String!
+  password: String!
+}
+
 input CampaignStageInput {
   name: [TranslationInput!]!
   description: [TranslationInput!]
@@ -955,7 +970,7 @@ type WritingChallenge implements Node & Campaign {
   stages: [CampaignStage!]!
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
-  articles(input: CampaignArticlesInput!): ArticleConnection!
+  articles(input: CampaignArticlesInput!): CampaignArticleConnection!
   application: CampaignApplication
   oss: CampaignOSS!
 }
@@ -979,6 +994,18 @@ type CampaignParticipantEdge {
   cursor: String!
   application: CampaignApplication
   node: User!
+}
+
+type CampaignArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignArticleEdge!]!
+}
+
+type CampaignArticleEdge {
+  cursor: String!
+  node: Article!
+  featured: Boolean!
 }
 
 input CampaignParticipantsInput {
@@ -1014,7 +1041,8 @@ input CampaignArticlesInput {
 }
 
 input CampaignArticlesFilter {
-  stage: ID!
+  stage: ID
+  featured: Boolean
 }
 
 type CampaignConnection implements Connection {
@@ -1929,6 +1957,27 @@ type CommentCommentNotice implements Notice {
 
 enum CommentCommentNoticeType {
   CommentNewReply
+}
+
+type CampaignArticleNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CampaignArticleNoticeType!
+  target: Campaign!
+  article: Article!
+}
+
+enum CampaignArticleNoticeType {
+  CampaignArticleFeatured
 }
 
 type TransactionNotice implements Notice {
