@@ -5,7 +5,7 @@ import _ from 'lodash'
 import { ARTICLE_STATE, LATEST_WORKS_NUM } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
-const resolver: GQLArticleResolvers['relatedArticles'] = async (
+const resolver: GQLArticleResolvers['relatedArticlesExcludeSpam'] = async (
   { id: articleId, authorId },
   { input },
   { dataSources: { articleService, tagService, atomService } }
@@ -41,7 +41,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
     const articleIds = await tagService.findArticleIds({
       id: tagId,
       excludeRestricted: true,
-      // excludeSpam: true,
+      excludeSpam: true,
       take,
       skip,
     })
