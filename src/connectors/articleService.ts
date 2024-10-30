@@ -61,7 +61,7 @@ import {
   shortHash,
   normalizeSearchKey,
   genMD5,
-  excludeSpam,
+  excludeSpam as excludeSpamModifier,
 } from 'common/utils'
 import {
   BaseService,
@@ -349,11 +349,13 @@ export class ArticleService extends BaseService<Article> {
     take,
     maxTake,
     oss,
+    excludeSpam,
   }: {
     skip: number
     take: number
     maxTake: number
     oss: boolean
+    excludeSpam: boolean
   }): Promise<Article[]> => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
@@ -381,9 +383,13 @@ export class ArticleService extends BaseService<Article> {
       )
       .where((builder) => {
         if (!oss) {
-          builder
-            .whereRaw('in_newest IS NOT false')
-            .modify(excludeSpam, spamThreshold, 'article_set')
+          if (excludeSpam) {
+            builder
+              .whereRaw('in_newest IS NOT false')
+              .modify(excludeSpamModifier, spamThreshold, 'article_set')
+          } else {
+            builder.whereRaw('in_newest IS NOT false')
+          }
         }
       })
       .as('newest')
