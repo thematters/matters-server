@@ -365,11 +365,14 @@ export default /* GraphQL */ `
   }
 
   type SpamStatus {
-    "spam confident score by machine, null for not checked yet. "
+    "spam confident score by machine, null for not checked yet."
     score: Float
 
     "whether this article is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
+
+    "whether this article is labeled as spam by admin."
+    isSpamByAdmin: Boolean
   }
 
   type ArticleTranslation {

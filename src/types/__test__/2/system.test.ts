@@ -1052,6 +1052,7 @@ describe('setSpamStatus', () => {
           oss {
             spamStatus {
               isSpam
+              isSpamByAdmin
             }
           }
         }
@@ -1074,6 +1075,7 @@ describe('setSpamStatus', () => {
       },
     })
     expect(errors).toBeUndefined()
-    expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
+    expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(false)
+    expect(data.setSpamStatus.oss.spamStatus.isSpamByAdmin).toBe(true)
   })
 })

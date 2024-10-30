@@ -135,11 +135,14 @@ export class ArticleService extends BaseService<Article> {
       const systemService = new SystemService(this.connections)
       const threshold = await systemService.getSpamThreshold()
       query.where((builder) => {
-        builder.where('is_spam', '=', true).orWhere((orWhereBuilder) => {
-          orWhereBuilder
-            .where('spam_score', '>=', threshold ?? 1)
-            .whereNull('is_spam')
-        })
+        builder
+          .where('is_spam', '=', true)
+          .orWhere('is_spam_by_admin', '=', true)
+          .orWhere((orWhereBuilder) => {
+            orWhereBuilder
+              .where('spam_score', '>=', threshold ?? 1)
+              .whereNull('is_spam')
+          })
       })
     }
     const articles = await query

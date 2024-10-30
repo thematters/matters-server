@@ -17,7 +17,7 @@ const resolver: GQLMutationResolvers['setSpamStatus'] = async (
   return atomService.update({
     table: 'article',
     where: { id },
-    data: { isSpam },
+    data: { isSpamByAdmin: isSpam },
   })
 }
 

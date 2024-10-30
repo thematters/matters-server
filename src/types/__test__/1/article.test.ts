@@ -771,6 +771,7 @@ describe('query article oss', () => {
           spamStatus {
             score
             isSpam
+            isSpamByAdmin
           }
         }
       }
@@ -811,5 +812,6 @@ describe('query article oss', () => {
     expect(data.article.oss.spamStatus).toBeDefined()
     expect(data.article.oss.spamStatus.score).toBeDefined()
     expect(data.article.oss.spamStatus.isSpam).toBeDefined()
+    expect(data.article.oss.spamStatus.isSpamByAdmin).toBeDefined()
   })
 })

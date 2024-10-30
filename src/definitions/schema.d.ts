@@ -3436,7 +3436,9 @@ export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
   /** whether this article is labeled as spam by human, null for not labeled yet.  */
   isSpam?: Maybe<Scalars['Boolean']['output']>
-  /** spam confident score by machine, null for not checked yet.  */
+  /** whether this article is labeled as spam by admin. */
+  isSpamByAdmin?: Maybe<Scalars['Boolean']['output']>
+  /** spam confident score by machine, null for not checked yet. */
   score?: Maybe<Scalars['Float']['output']>
 }
 
@@ -9222,6 +9224,11 @@ export type GQLSpamStatusResolvers<
   ParentType extends GQLResolversParentTypes['SpamStatus'] = GQLResolversParentTypes['SpamStatus']
 > = ResolversObject<{
   isSpam?: Resolver<
+    Maybe<GQLResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >
+  isSpamByAdmin?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
