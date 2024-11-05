@@ -27,6 +27,8 @@ interface UserBase {
   state: UserState
   agreeOn: string
   ethAddress: string | null
+  ensName: string | null
+  ensNameUpdatedAt: Date | null
   currency: 'HKD' | 'TWD' | 'USD' | null
   profileCover?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

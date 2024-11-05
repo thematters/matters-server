@@ -74,21 +74,6 @@ export class PublicationQueue {
       }
     )
 
-  public refreshIPNSFeed = ({
-    userName,
-    numArticles = 50,
-    forceReplace,
-  }: {
-    userName: string
-    numArticles?: number
-    forceReplace?: boolean
-  }) =>
-    this.q.add(QUEUE_JOB.refreshIPNSFeed, {
-      userName,
-      numArticles,
-      forceReplace,
-    })
-
   /**
    * Consumers
    */
@@ -98,12 +83,6 @@ export class PublicationQueue {
       QUEUE_JOB.publishArticle,
       QUEUE_CONCURRENCY.publishArticle,
       this.handlePublishArticle
-    )
-
-    this.q.process(
-      QUEUE_JOB.refreshIPNSFeed,
-      QUEUE_CONCURRENCY.refreshIPNSFeed,
-      this.handleRefreshIPNSFeed
     )
   }
 
@@ -587,17 +566,4 @@ export class PublicationQueue {
   //     logger.error(e)
   //   }
   // }
-
-  private handleRefreshIPNSFeed: ProcessCallbackFunction<unknown> = async (
-    job // use Promise based job processing instead of `done`
-  ) => {
-    const articleService = new ArticleService(this.connections)
-    return articleService.publishFeedToIPNS(
-      job.data as {
-        userName: string
-        numArticles: number
-        forceReplace?: boolean
-      }
-    )
-  }
 }

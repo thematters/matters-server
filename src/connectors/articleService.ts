@@ -922,20 +922,26 @@ export class ArticleService extends BaseService<Article> {
     throw new NetworkError('failed publishToIPFS')
   }
 
-  // DEPRECATED, To Be Deleted
-  //  moved to IPNS-Listener
   public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
     const userService = new UserService(this.connections)
 
     try {
+      // skip if no ENS name
+      const ensName = await userService.findEnsName(userName)
+      if (!ensName) {
+        return
+      }
+
       const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
       if (!ipnsKeyRec) {
-        // cannot do anything if no ipns key
+        // cannot do anything if no IPNS key
         logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
         return
       }
+
+      // TODO: trigger lambda handler
     } catch (error) {
-      logger.error('create IPNS key ERROR: %o', error)
+      logger.error('publishFeedToIPNS ERROR: %o', error)
       return
     }
   }
