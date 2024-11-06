@@ -40,6 +40,7 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
+  QUEUE_URL,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -922,20 +923,29 @@ export class ArticleService extends BaseService<Article> {
     throw new NetworkError('failed publishToIPFS')
   }
 
-  // DEPRECATED, To Be Deleted
-  //  moved to IPNS-Listener
   public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
     const userService = new UserService(this.connections)
 
     try {
+      // skip if no ENS name
+      const ensName = await userService.findEnsName(userName)
+      if (!ensName) {
+        return
+      }
+
       const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
       if (!ipnsKeyRec) {
-        // cannot do anything if no ipns key
+        // cannot do anything if no IPNS key
         logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
         return
       }
+
+      this.aws.sqsSendMessage({
+        messageBody: { userName, useMattersIPNS: true },
+        queueUrl: QUEUE_URL.ipnsUserPublication,
+      })
     } catch (error) {
-      logger.error('create IPNS key ERROR: %o', error)
+      logger.error('publishFeedToIPNS ERROR: %o', error)
       return
     }
   }
