@@ -40,6 +40,7 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
+  QUEUE_URL,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -939,7 +940,10 @@ export class ArticleService extends BaseService<Article> {
         return
       }
 
-      // TODO: trigger lambda handler
+      this.aws.sqsSendMessage({
+        messageBody: { userName, useMattersIPNS: true },
+        queueUrl: QUEUE_URL.ipnsUserPublication,
+      })
     } catch (error) {
       logger.error('publishFeedToIPNS ERROR: %o', error)
       return
