@@ -24,7 +24,7 @@ const resolver: GQLTagResolvers['articles'] = async (
       selected,
       sortBy: sortBy as 'byHottestDesc' | 'byCreatedAtDesc' | undefined,
       withSynonyms: isFromRecommendation,
-      // excludeSpam: true,
+      excludeSpam: true,
       skip,
       take,
     }),
