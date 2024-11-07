@@ -121,8 +121,6 @@ export default /* GraphQL */ `
     "Related articles to this article."
     relatedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    relatedArticlesExcludeSpam(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
-
     "Donation-related articles to this article."
     relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
@@ -264,8 +262,6 @@ export default /* GraphQL */ `
 
     "List of how many articles were attached with this tag."
     articles(input: TagArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
-
-    articlesExcludeSpam(input: TagArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Time of this tag was created."
     createdAt: DateTime!

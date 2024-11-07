@@ -346,7 +346,6 @@ type Article implements Node & PinnableWork {
 
   """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
-  relatedArticlesExcludeSpam(input: ConnectionArgs!): ArticleConnection!
 
   """Donation-related articles to this article."""
   relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
@@ -510,7 +509,6 @@ type Tag implements Node {
 
   """List of how many articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
-  articlesExcludeSpam(input: TagArticlesInput!): ArticleConnection!
 
   """Time of this tag was created."""
   createdAt: DateTime!
@@ -2464,11 +2462,9 @@ type Recommendation {
 
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
-  newestExcludeSpam(input: ConnectionArgs!): ArticleConnection!
 
   """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
-  hottestExcludeSpam(input: ConnectionArgs!): ArticleConnection!
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
