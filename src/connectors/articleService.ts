@@ -801,6 +801,7 @@ export class ArticleService extends BaseService<Article> {
       displayName,
       userName,
       paymentPointer,
+      ensName,
     } = author
     if (!userName || !displayName) {
       throw new ServerError('userName or displayName is missing')
@@ -835,6 +836,7 @@ export class ArticleService extends BaseService<Article> {
           userName,
           displayName,
           uri: `https://${environment.siteDomain}/@${userName}`,
+          ipnsKey: ensName && ipnsKey ? ipnsKey : undefined,
         },
         website: {
           name: 'Matters',
