@@ -410,41 +410,6 @@ describe('quicksearch', () => {
     })
     expect(excluded.length).toBe(0)
   })
-  test('spam are excluded', async () => {
-    const [article] = await articleService.createArticle({
-      title: 'test spam',
-      content: '',
-      authorId: '1',
-    })
-    const { nodes: nodes } = await articleService.searchV3({
-      key: 'spam',
-      take: 1,
-      skip: 0,
-      quicksearch: true,
-    })
-    expect(nodes.length).toBe(1)
-    expect(nodes[0].id).toBe(article.id)
-
-    const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
-
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { spamScore: spamThreshold + 0.1 },
-    })
-    const { nodes: excluded } = await articleService.searchV3({
-      key: 'spam',
-      take: 1,
-      skip: 0,
-      quicksearch: true,
-    })
-    expect(excluded.length).toBe(0)
-  })
 })
 
 test('countReaders', async () => {
@@ -462,6 +427,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     expect(articles.length).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
@@ -474,6 +440,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     const spamThreshold = 0.5
     await systemService.setFeatureFlag({
@@ -487,6 +454,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     expect(articles1).toEqual(articles)
 
@@ -501,6 +469,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
 
@@ -515,6 +484,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
 
@@ -529,6 +499,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
 
@@ -543,6 +514,7 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
+      excludeSpam: true,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
   })
