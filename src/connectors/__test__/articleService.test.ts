@@ -416,14 +416,14 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    // const { nodes: nodes } = await articleService.searchV3({
-    //   key: 'spam',
-    //   take: 1,
-    //   skip: 0,
-    //   quicksearch: true,
-    // })
-    // expect(nodes.length).toBe(1)
-    // expect(nodes[0].id).toBe(article.id)
+    const { nodes: nodes } = await articleService.searchV3({
+      key: 'spam',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes.length).toBe(1)
+    expect(nodes[0].id).toBe(article.id)
 
     const spamThreshold = 0.5
     await systemService.setFeatureFlag({
@@ -437,13 +437,13 @@ describe('quicksearch', () => {
       where: { id: article.id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    // const { nodes: excluded } = await articleService.searchV3({
-    //   key: 'spam',
-    //   take: 1,
-    //   skip: 0,
-    //   quicksearch: true,
-    // })
-    // expect(excluded.length).toBe(0)
+    const { nodes: excluded } = await articleService.searchV3({
+      key: 'spam',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(excluded.length).toBe(0)
   })
 })
 
@@ -462,97 +462,90 @@ describe('latestArticles', () => {
       skip: 0,
       take: 10,
       oss: false,
-      excludeSpam: false,
     })
     expect(articles.length).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
-  // test('spam are excluded', async () => {
-  //   const articles = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   const spamThreshold = 0.5
-  //   await systemService.setFeatureFlag({
-  //     name: FEATURE_NAME.spam_detection,
-  //     flag: FEATURE_FLAG.on,
-  //     value: spamThreshold,
-  //   })
-  //   // spam flag is on but no detected articles
-  //   const articles1 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles1).toEqual(articles)
+  test('spam are excluded', async () => {
+    const articles = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    const spamThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
+    })
+    // spam flag is on but no detected articles
+    const articles1 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles1).toEqual(articles)
 
-  //   // spam detected
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[0].id },
-  //     data: { spamScore: spamThreshold + 0.1 },
-  //   })
-  //   const articles2 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
+    // spam detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const articles2 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
 
-  //   // mark as not spam
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[0].id },
-  //     data: { isSpam: false },
-  //   })
-  //   const articles3 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
+    // mark as not spam
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: false },
+    })
+    const articles3 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
 
-  //   // ham detected
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[1].id },
-  //     data: { spamScore: spamThreshold - 0.1 },
-  //   })
-  //   const articles4 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
+    // ham detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { spamScore: spamThreshold - 0.1 },
+    })
+    const articles4 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
 
-  //   // mark as spam
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[1].id },
-  //     data: { isSpam: true },
-  //   })
-  //   const articles5 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
-  // })
+    // mark as spam
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: true },
+    })
+    const articles5 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
+  })
 })
 
 describe('findResponses', () => {

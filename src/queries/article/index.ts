@@ -34,7 +34,6 @@ import pinned from './pinned'
 import readerCount from './readerCount'
 import readTime from './readTime'
 import relatedArticles from './relatedArticles'
-import relatedArticlesExcludeSpam from './relatedArticlesExcludeSpam'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
 import replyToDonator from './replyToDonator'
@@ -52,7 +51,6 @@ import subscribers from './subscribers'
 import summary from './summary'
 import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
-import tagArticlesExcludeSpam from './tag/articlesExcludeSpam'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
 import tagEditors from './tag/editors'
@@ -103,7 +101,6 @@ const schema: GQLResolvers = {
     language,
     oss: (root) => root,
     relatedArticles,
-    relatedArticlesExcludeSpam,
     relatedDonationArticles,
     remark,
     slug,
@@ -142,7 +139,6 @@ const schema: GQLResolvers = {
   Tag: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticles,
-    articlesExcludeSpam: tagArticlesExcludeSpam,
     selected: tagSelected,
     creator: tagCreator,
     editors: tagEditors,

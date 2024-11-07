@@ -31,7 +31,7 @@ import {
   shortHash,
   toDatetimeRangeString,
   fromDatetimeRangeString,
-  // excludeSpam,
+  excludeSpam,
 } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
 
@@ -283,7 +283,7 @@ export class CampaignService {
       .select('article.*', knexRO.raw('campaign_article.id AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
       .where({ campaignId, state: ARTICLE_STATE.active })
-    // .modify(excludeSpam, spamThreshold)
+      .modify(excludeSpam, spamThreshold)
 
     if (filterStageId) {
       query.where({ campaignStageId: filterStageId })

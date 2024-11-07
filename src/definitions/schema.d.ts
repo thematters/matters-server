@@ -259,7 +259,6 @@ export type GQLArticle = GQLNode &
     readerCount: Scalars['Int']['output']
     /** Related articles to this article. */
     relatedArticles: GQLArticleConnection
-    relatedArticlesExcludeSpam: GQLArticleConnection
     /** Donation-related articles to this article. */
     relatedDonationArticles: GQLArticleConnection
     remark?: Maybe<Scalars['String']['output']>
@@ -367,14 +366,6 @@ export type GQLArticleFeaturedCommentsArgs = {
  * want information about article's comments. Please check Comment type.
  */
 export type GQLArticleRelatedArticlesArgs = {
-  input: GQLConnectionArgs
-}
-
-/**
- * This type contains metadata, content, hash and related data of an article. If you
- * want information about article's comments. Please check Comment type.
- */
-export type GQLArticleRelatedArticlesExcludeSpamArgs = {
   input: GQLConnectionArgs
 }
 
@@ -3067,7 +3058,6 @@ export type GQLRecommendation = {
   hottest: GQLArticleConnection
   /** Global circles sort by latest activity time. */
   hottestCircles: GQLCircleConnection
-  hottestExcludeSpam: GQLArticleConnection
   /** Hottest tag list */
   hottestTags: GQLTagConnection
   /** 'In case you missed it' recommendation. */
@@ -3078,7 +3068,6 @@ export type GQLRecommendation = {
   newest: GQLArticleConnection
   /** Global circles sort by created time. */
   newestCircles: GQLCircleConnection
-  newestExcludeSpam: GQLArticleConnection
   /**
    * Articles recommended based on recently read article tags.
    * @deprecated Merged into following
@@ -3106,10 +3095,6 @@ export type GQLRecommendationHottestCirclesArgs = {
   input: GQLConnectionArgs
 }
 
-export type GQLRecommendationHottestExcludeSpamArgs = {
-  input: GQLConnectionArgs
-}
-
 export type GQLRecommendationHottestTagsArgs = {
   input: GQLRecommendInput
 }
@@ -3123,10 +3108,6 @@ export type GQLRecommendationNewestArgs = {
 }
 
 export type GQLRecommendationNewestCirclesArgs = {
-  input: GQLConnectionArgs
-}
-
-export type GQLRecommendationNewestExcludeSpamArgs = {
   input: GQLConnectionArgs
 }
 
@@ -3523,7 +3504,6 @@ export type GQLTag = GQLNode & {
   __typename?: 'Tag'
   /** List of how many articles were attached with this tag. */
   articles: GQLArticleConnection
-  articlesExcludeSpam: GQLArticleConnection
   /** Content of this tag. */
   content: Scalars['String']['output']
   /** Tag's cover link. */
@@ -3562,11 +3542,6 @@ export type GQLTag = GQLNode & {
 
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagArticlesArgs = {
-  input: GQLTagArticlesInput
-}
-
-/** This type contains content, count and related data of an article tag. */
-export type GQLTagArticlesExcludeSpamArgs = {
   input: GQLTagArticlesInput
 }
 
@@ -6215,12 +6190,6 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLArticleRelatedArticlesArgs, 'input'>
-  >
-  relatedArticlesExcludeSpam?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLArticleRelatedArticlesExcludeSpamArgs, 'input'>
   >
   relatedDonationArticles?: Resolver<
     GQLResolversTypes['ArticleConnection'],
@@ -9027,12 +8996,6 @@ export type GQLRecommendationResolvers<
     ContextType,
     RequireFields<GQLRecommendationHottestCirclesArgs, 'input'>
   >
-  hottestExcludeSpam?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLRecommendationHottestExcludeSpamArgs, 'input'>
-  >
   hottestTags?: Resolver<
     GQLResolversTypes['TagConnection'],
     ParentType,
@@ -9061,12 +9024,6 @@ export type GQLRecommendationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLRecommendationNewestCirclesArgs, 'input'>
-  >
-  newestExcludeSpam?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLRecommendationNewestExcludeSpamArgs, 'input'>
   >
   readTagsArticles?: Resolver<
     GQLResolversTypes['ArticleConnection'],
@@ -9304,12 +9261,6 @@ export type GQLTagResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLTagArticlesArgs, 'input'>
-  >
-  articlesExcludeSpam?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLTagArticlesExcludeSpamArgs, 'input'>
   >
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>

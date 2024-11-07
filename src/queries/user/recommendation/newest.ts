@@ -25,7 +25,6 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     skip,
     maxTake: MAX_ITEM_COUNT,
     oss,
-    excludeSpam: false,
   })
 
   return connectionFromPromisedArray(
@@ -34,31 +33,3 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     MAX_ITEM_COUNT // totalCount
   )
 }
-
-export const newestExcludeSpam: GQLRecommendationResolvers['newestExcludeSpam'] =
-  async (_, { input }, { viewer, dataSources: { articleService } }) => {
-    const { oss = false } = input
-
-    if (oss) {
-      if (!viewer.hasRole('admin')) {
-        throw new ForbiddenError('only admin can access oss')
-      }
-    }
-    const { take, skip } = fromConnectionArgs(input)
-
-    const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
-
-    const articles = await articleService.latestArticles({
-      take,
-      skip,
-      maxTake: MAX_ITEM_COUNT,
-      oss,
-      excludeSpam: true,
-    })
-
-    return connectionFromPromisedArray(
-      articles,
-      input,
-      MAX_ITEM_COUNT // totalCount
-    )
-  }
