@@ -54,25 +54,9 @@ type Mutation {
 
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
-
-  """Create or update tag."""
-  putTag(input: PutTagInput!): Tag!
-
-  """Update member, permission and othters of a tag."""
-  updateTagSetting(input: UpdateTagSettingInput!): Tag!
-
-  """Add one tag to articles."""
-  addArticlesTags(input: AddArticlesTagsInput!): Tag!
-
-  """Update articles' tag."""
-  updateArticlesTags(input: UpdateArticlesTagsInput!): Tag!
-
-  """Delete one tag from articles"""
-  deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag!
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article!
-  toggleTagRecommend(input: ToggleRecommendInput!): Tag!
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
@@ -168,9 +152,6 @@ type Mutation {
   """Reset user or payment password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
-  """Change user email."""
-  changeEmail(input: ChangeEmailInput!): User! @deprecated(reason: "use 'setEmail' instead")
-
   """Set user email."""
   setEmail(input: SetEmailInput!): User!
 
@@ -180,11 +161,7 @@ type Mutation {
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
 
-  """Register user, can only be used on matters.{town,news} website."""
-  userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
-
   """Login user."""
-  userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
   emailLogin(input: EmailLoginInput!): AuthResult!
 
   """Get signing message."""
@@ -208,14 +185,8 @@ type Mutation {
   """Remove a social login from current user."""
   removeSocialLogin(input: RemoveSocialLoginInput!): User!
 
-  """Reset crypto wallet."""
-  resetWallet(input: ResetWalletInput!): User! @deprecated(reason: "use 'removeWalletLogin' instead")
-
   """Logout user."""
   userLogout: Boolean!
-
-  """Generate or claim a Liker ID through LikeCoin"""
-  generateLikerId: User! @deprecated(reason: "No longer in use")
 
   """Reset Liker ID"""
   resetLikerId(input: ResetLikerIdInput!): User!
@@ -413,7 +384,6 @@ type Article implements Node & PinnableWork {
   """
   This value determines if this article is an author selected article or not.
   """
-  sticky: Boolean! @deprecated(reason: "Use pinned instead")
   pinned: Boolean!
 
   """Translation of article title and content."""
@@ -430,15 +400,6 @@ type Article implements Node & PinnableWork {
 
   """Cumulative reading time in seconds"""
   readTime: Float!
-
-  """Drafts linked to this article."""
-  drafts: [Draft!] @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
-
-  """Newest unpublished draft linked to this article."""
-  newestUnpublishedDraft: Draft
-
-  """Newest published draft linked to this article."""
-  newestPublishedDraft: Draft!
 
   """Revision Count"""
   revisionCount: Int!
@@ -551,41 +512,14 @@ type Tag implements Node {
   articles(input: TagArticlesInput!): ArticleConnection!
   articlesExcludeSpam(input: TagArticlesInput!): ArticleConnection!
 
-  """This value determines if this article is selected by this tag or not."""
-  selected(input: TagSelectedInput!): Boolean!
-
   """Time of this tag was created."""
   createdAt: DateTime!
-
-  """Tag's cover link."""
-  cover: String
-
-  """Description of this tag."""
-  description: String
-
-  """Editors of this tag."""
-  editors(input: TagEditorsInput): [User!]
-
-  """Creator of this tag."""
-  creator: User
-
-  """Owner of this tag."""
-  owner: User
 
   """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
-  """Followers of this tag."""
-  followers(input: ConnectionArgs!): UserConnection!
-
-  """Participants of this tag."""
-  participants(input: ConnectionArgs!): UserConnection!
-
   """Tags recommended based on relations to current tag."""
   recommended(input: ConnectionArgs!): TagConnection!
-
-  """This value determines if it is official."""
-  isOfficial: Boolean
 
   """Counts of this tag."""
   numArticles: Int!
@@ -639,7 +573,6 @@ type ArticleTranslation {
 type TagOSS {
   boost: Float!
   score: Float!
-  selected: Boolean!
 }
 
 type ArticleConnection implements Connection {
@@ -695,9 +628,6 @@ input PublishArticleInput {
 input EditArticleInput {
   id: ID!
   state: ArticleState
-
-  """deprecated, use pinned instead"""
-  sticky: Boolean
   pinned: Boolean
   title: String
   summary: String
@@ -772,36 +702,6 @@ input MergeTagsInput {
   content: String!
 }
 
-input PutTagInput {
-  id: ID
-  content: String
-  cover: ID
-  description: String
-}
-
-input UpdateTagSettingInput {
-  id: ID!
-  type: UpdateTagSettingType!
-  editors: [ID!]
-}
-
-input AddArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  selected: Boolean
-}
-
-input UpdateArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  isSelected: Boolean!
-}
-
-input DeleteArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-}
-
 enum TagArticlesSortBy {
   byHottestDesc
   byCreatedAtDesc
@@ -813,16 +713,6 @@ input TagArticlesInput {
   oss: Boolean
   selected: Boolean
   sortBy: TagArticlesSortBy = byCreatedAtDesc
-}
-
-input TagSelectedInput {
-  id: ID
-  mediaHash: String
-}
-
-input TagEditorsInput {
-  excludeAdmin: Boolean
-  excludeOwner: Boolean
 }
 
 input TransactionsReceivedByArgs {
@@ -872,14 +762,6 @@ enum RecommendTypes {
   hottest
   newest
   search
-}
-
-enum UpdateTagSettingType {
-  adopt
-  leave
-  add_editor
-  remove_editor
-  leave_editor
 }
 
 input CampaignInput {
@@ -2580,9 +2462,6 @@ type Recommendation {
   """Activities based on user's following, sort by creation time."""
   following(input: RecommendationFollowingInput!): FollowingActivityConnection!
 
-  """Articles recommended based on recently read article tags."""
-  readTagsArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into following")
-
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
   newestExcludeSpam(input: ConnectionArgs!): ArticleConnection!
@@ -2802,9 +2681,6 @@ type Liker {
 
   """Total LIKE left in wallet."""
   total: Float!
-
-  """Rate of LikeCoin/USD"""
-  rateUSD: Float @deprecated(reason: "No longer in use")
 }
 
 type UserOSS {
@@ -3123,11 +2999,6 @@ input UserRegisterInput {
   referralCode: String
 }
 
-input UserLoginInput {
-  email: String!
-  password: String!
-}
-
 input GenerateSigningMessageInput {
   address: String!
   purpose: SigningMessagePurpose
@@ -3144,12 +3015,6 @@ input WalletLoginInput {
 
   """nonce from generateSigningMessage"""
   nonce: String!
-
-  """required for wallet register"""
-  email: String @deprecated(reason: "No longer in use")
-
-  """email verification code, required for wallet register"""
-  codeId: ID @deprecated(reason: "No longer in use")
 
   """used in register"""
   language: UserLanguage
@@ -3171,7 +3036,6 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
-  userName: String @deprecated(reason: "use 'setUserName' instead")
   avatar: ID
   description: String
   language: UserLanguage
@@ -3265,9 +3129,6 @@ enum VerificationCodeType {
   register
   email_verify
   email_otp
-  email_reset @deprecated(reason: "No longer in use")
-  email_reset_confirm @deprecated(reason: "No longer in use")
-  password_reset @deprecated(reason: "No longer in use")
   payment_password_reset
 }
 

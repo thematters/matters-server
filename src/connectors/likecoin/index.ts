@@ -53,19 +53,6 @@ const ERROR_CODES = {
   INSUFFICIENT_PERMISSION: 'INSUFFICIENT_PERMISSION',
 }
 
-type LikeCoinLocale =
-  | 'en'
-  | 'zh'
-  | 'cn'
-  | 'de'
-  | 'es'
-  | 'fr'
-  | 'it'
-  | 'ja'
-  | 'ko'
-  | 'pt'
-  | 'ru'
-
 type RequestProps = {
   endpoint: string
   headers?: { [key: string]: any }
@@ -236,78 +223,6 @@ export class LikeCoin {
   }
 
   /**
-   * Register
-   */
-  public check = async ({ user, email }: { user: string; email?: string }) => {
-    try {
-      const res = await this.request({
-        endpoint: ENDPOINTS.check,
-        method: 'POST',
-        data: {
-          user,
-          email,
-        },
-      })
-      const data = _.get(res, 'data')
-
-      if (data === 'OK') {
-        return user
-      } else {
-        throw res
-      }
-    } catch (e) {
-      const data = _.get(e, 'response.data')
-      const alternative = _.get(data, 'alternative')
-
-      if (alternative) {
-        return alternative
-      }
-
-      throw e
-    }
-  }
-
-  public register = async ({
-    user,
-    token,
-    displayName,
-    email,
-    locale = 'zh',
-    isEmailEnabled,
-    ip,
-  }: {
-    user: string
-    token: string
-    ip?: string
-    displayName?: string
-    email?: string
-    locale?: LikeCoinLocale
-    isEmailEnabled?: boolean
-  }) => {
-    const res = await this.request({
-      endpoint: ENDPOINTS.register,
-      withClientCredential: true,
-      method: 'POST',
-      data: {
-        user,
-        token,
-        displayName,
-        email,
-        locale,
-        isEmailEnabled,
-      },
-      ip,
-    })
-    const data = _.get(res, 'data')
-
-    if (data.accessToken && data.refreshToken) {
-      return data
-    } else {
-      throw res
-    }
-  }
-
-  /**
    * Claim, Transfer or Bind
    */
   public edit = async ({
@@ -354,19 +269,6 @@ export class LikeCoin {
     }
 
     return data.cosmosLIKE || data.walletLIKE
-  }
-
-  public rate = async (currency: 'usd' | 'twd' = 'usd') => {
-    const res = await this.request({
-      endpoint: ENDPOINTS.rate,
-      method: 'GET',
-      params: {
-        currency,
-      },
-    })
-    const price = _.get(res, 'data.price')
-
-    return price
   }
 
   /**

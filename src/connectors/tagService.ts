@@ -6,11 +6,8 @@ import { difference } from 'lodash'
 import {
   ARTICLE_STATE,
   MAX_TAGS_PER_ARTICLE_LIMIT,
-  DEFAULT_TAKE_PER_PAGE,
   TAG_ACTION,
   MATERIALIZED_VIEW,
-  CACHE_PREFIX,
-  CACHE_TTL,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
@@ -20,7 +17,7 @@ import {
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
 } from 'common/utils'
-import { BaseService, CacheService, SystemService } from 'connectors'
+import { BaseService, SystemService } from 'connectors'
 
 const logger = getLogger('service-tag')
 
@@ -99,54 +96,6 @@ export class TagService extends BaseService<Tag> {
       .from('article_tag')
       // .join(this.table, 'tag.id', 'article_tag.tag_id')
       .whereIn('article_id', articleIds)
-
-  /**
-   *  Find tags by a given creator id (user).
-   */
-  public findByCreator = async (userId: string) => {
-    const query = this.knex
-      .select()
-      .from(this.table)
-      .where({ creator: userId })
-      .orderBy('id', 'desc')
-
-    return query
-  }
-
-  /**
-   *  Find tags by a given editor id (user).
-   */
-  public findByEditor = async (userId: string) => {
-    const query = this.knex
-      .select()
-      .from(this.table)
-      .where(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
-      .orderBy('id', 'desc')
-
-    return query
-  }
-
-  /**
-   * Find tags by a given owner id (user).
-   */
-  public findByOwner = async (userId: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ owner: userId })
-      .orderBy('id', 'desc')
-
-  /**
-   * Find tags by a given maintainer id (user).
-   *
-   */
-  public findByMaintainer = async (userId: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ owner: userId })
-      .orWhere(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
-      .orderBy('id', 'desc')
 
   public findByAuthorUsage = async ({
     userId,
@@ -227,21 +176,7 @@ export class TagService extends BaseService<Tag> {
    * this create may return null if skipCreate
    */
   public create = async (
-    {
-      content,
-      cover,
-      creator,
-      description,
-      editors,
-      owner,
-    }: {
-      content: string
-      cover?: string | null
-      creator: string
-      description?: string
-      editors: string[]
-      owner: string
-    },
+    { content, creator }: { content: string; creator: string },
     {
       // options
       columns = ['*'],
@@ -253,7 +188,7 @@ export class TagService extends BaseService<Tag> {
   ) => {
     const tag = await this.baseFindOrCreate({
       where: { content },
-      data: { content, cover, creator, description, editors, owner },
+      data: { content, creator },
       table: this.table,
       columns,
       modifier: (builder: Knex.QueryBuilder) => {
@@ -268,98 +203,6 @@ export class TagService extends BaseService<Tag> {
     })
 
     return tag
-  }
-
-  /**
-   * Count of a tag's participants.
-   *
-   */
-  public countParticipants = async ({
-    id,
-    exclude,
-  }: {
-    id: string
-    exclude?: string[]
-  }) => {
-    const subquery = this.knex.raw(
-      `(
-        SELECT
-            at.*, article.author_id
-        FROM
-            article_tag AS at
-        INNER JOIN
-            article ON article.id = at.article_id
-        WHERE
-            at.tag_id = ?
-    ) AS base`,
-      [id]
-    )
-
-    const result = await this.knex
-      .from(function (this: Knex.QueryBuilder) {
-        this.select('author_id')
-          .from(subquery)
-          .groupBy('author_id')
-          .as('source')
-
-        if (exclude) {
-          this.whereNotIn('author_id', exclude)
-        }
-      })
-      .count()
-      .first()
-
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  /**
-   * Find a tag's participants.
-   *
-   */
-  public findParticipants = async ({
-    id,
-    skip,
-    take,
-    exclude,
-  }: {
-    id: string
-    skip?: number
-    take?: number
-    exclude?: string[]
-  }) => {
-    const subquery = this.knex.raw(
-      `(
-        SELECT
-            at.*, article.author_id
-        FROM
-            article_tag AS at
-        INNER JOIN
-            article ON article.id = at.article_id
-        WHERE
-            at.tag_id = ?
-        ORDER BY
-            at.created_at
-    ) AS base`,
-      [id]
-    )
-
-    const query = this.knex
-      .select('author_id')
-      .from(subquery)
-      .groupBy('author_id')
-
-    if (exclude) {
-      query.whereNotIn('author_id', exclude)
-    }
-
-    if (skip !== undefined && Number.isFinite(skip)) {
-      query.offset(skip)
-    }
-    if (take !== undefined && Number.isFinite(take)) {
-      query.limit(take)
-    }
-
-    return query
   }
 
   /*********************************
@@ -404,35 +247,6 @@ export class TagService extends BaseService<Tag> {
       })
       .del()
 
-  /**
-   * Find followers of a tag using id as pagination index.
-   *
-   */
-  public findFollowers = async ({
-    targetId,
-    skip,
-    take,
-  }: {
-    targetId: string
-    skip?: string
-    take?: number
-  }) => {
-    const query = this.knex
-      .select()
-      .from('action_tag')
-      .where({ targetId, action: TAG_ACTION.follow })
-      .orderBy('id', 'desc')
-
-    if (skip) {
-      query.andWhere('id', '<', skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
-
   public isActionEnabled = async ({
     userId,
     action,
@@ -473,14 +287,6 @@ export class TagService extends BaseService<Tag> {
           table: 'action_tag',
         })
       : this.knex.from('action_tag').where(data).del()
-  }
-
-  public countFollowers = async (targetId: string) => {
-    const result = await this.knex('action_tag')
-      .where({ targetId, action: TAG_ACTION.follow })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************
@@ -787,16 +593,6 @@ export class TagService extends BaseService<Tag> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  public addTagRecommendation = (tagId: string) =>
-    this.baseFindOrCreate<any>({
-      where: { tagId },
-      data: { tagId },
-      table: 'matters_choice_tag',
-    })
-
-  public removeTagRecommendation = (tagId: string) =>
-    this.knex('matters_choice_tag').where({ tagId }).del()
-
   /*********************************
    *                               *
    *            Article            *
@@ -804,28 +600,22 @@ export class TagService extends BaseService<Tag> {
    *********************************/
   public createArticleTags = async ({
     articleIds,
-    creator,
     tagIds,
-    selected,
+    creator,
   }: {
     articleIds: string[]
-    creator: string
     tagIds: string[]
-    selected?: boolean
+    creator: string
   }) => {
     articleIds = Array.from(new Set(articleIds))
     tagIds = Array.from(new Set(tagIds))
 
     const items = articleIds
       .map((articleId) =>
-        tagIds.map((tagId) => ({
-          articleId,
-          creator,
-          tagId,
-          ...(selected === true ? { selected } : {}),
-        }))
+        tagIds.map((tagId) => ({ articleId, creator, tagId }))
       )
       .flat(1)
+
     return this.baseBatchCreate(items, 'article_tag')
   }
 
@@ -1038,18 +828,6 @@ export class TagService extends BaseService<Tag> {
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }
 
-  public deleteArticleTagsByArticleIds = async ({
-    articleIds,
-    tagId,
-  }: {
-    articleIds: string[]
-    tagId: string
-  }) =>
-    this.knex('article_tag')
-      .whereIn('article_id', articleIds)
-      .andWhere({ tagId })
-      .del()
-
   public deleteArticleTagsByTagIds = async ({
     articleId,
     tagIds,
@@ -1061,53 +839,6 @@ export class TagService extends BaseService<Tag> {
       .whereIn('tag_id', tagIds)
       .andWhere({ articleId })
       .del()
-
-  public isArticleSelected = async ({
-    articleId,
-    tagId,
-  }: {
-    articleId: string
-    tagId: string
-  }) => {
-    const result = await this.knex('article_tag').where({
-      articleId,
-      tagId,
-      selected: true,
-    })
-    return result.length > 0
-  }
-
-  /**
-   * Find article covers by tag id.
-   */
-  public findArticleCovers = async ({
-    id,
-  }: {
-    id: string
-  }): Promise<Array<{ cover: string }>> => {
-    const cache = new CacheService(CACHE_PREFIX.TAG_COVERS, this.redis)
-    return cache.getObject({
-      keys: { id },
-      expire: CACHE_TTL.MEDIUM,
-      getter: async () =>
-        this.knexRO
-          .select('article_version_newest.cover')
-          .from('article_tag')
-          .join(
-            'article_version_newest',
-            'article_tag.article_id',
-            'article_version_newest.article_id'
-          )
-          .join('article', 'article_tag.article_id', 'article.id')
-          .whereNotNull('article_version_newest.cover')
-          .andWhere({
-            tagId: id,
-            state: ARTICLE_STATE.active,
-          })
-          .limit(DEFAULT_TAKE_PER_PAGE)
-          .orderBy('article_tag.id', 'asc'),
-    })
-  }
 
   /*********************************
    *                               *
@@ -1126,21 +857,21 @@ export class TagService extends BaseService<Tag> {
     tagIds,
     content,
     creator,
-    editors,
-    owner,
   }: {
     tagIds: string[]
     content: string
     creator: string
-    editors: string[]
-    owner: string
   }) => {
     // create new tag
-    const newTag = await this.create({ content, creator, editors, owner })
+    const newTag = await this.create({ content, creator })
 
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)
-    await this.createArticleTags({ articleIds, creator, tagIds: [newTag.id] })
+    await this.createArticleTags({
+      articleIds,
+      tagIds: [newTag.id],
+      creator,
+    })
 
     // delete article tags
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()
@@ -1225,19 +956,11 @@ export class TagService extends BaseService<Tag> {
     }
 
     // create tag records
-    const tagEditors = environment.mattyId
-      ? [environment.mattyId, article.authorId]
-      : [article.authorId]
     const dbTags = (
       await Promise.all(
         tags.filter(Boolean).map(async (content: string) =>
           this.create(
-            {
-              content,
-              creator: article.authorId,
-              editors: tagEditors,
-              owner: article.authorId,
-            },
+            { content, creator: article.authorId },
             {
               columns: ['id', 'content'],
               skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
@@ -1260,8 +983,8 @@ export class TagService extends BaseService<Tag> {
     // add
     await this.createArticleTags({
       articleIds: [article.id],
-      creator: article.authorId,
       tagIds: addIds,
+      creator: article.authorId,
     })
 
     // delete unwanted

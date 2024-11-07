@@ -128,7 +128,7 @@ const EDIT_ARTICLE = /* GraphQL */ `
         id
         content
       }
-      sticky
+      pinned
       state
       license
       requestForDonation
@@ -691,7 +691,7 @@ describe('edit article', () => {
     globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT = originalCheckRevisionCount
   })
 
-  test('toggle article sticky', async () => {
+  test('toggle article pinned', async () => {
     const server = await testClient({
       isAuth: true,
       connections,
@@ -702,22 +702,22 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          sticky: true,
+          pinned: true,
         },
       },
     })
-    expect(_get(enableResult, 'data.editArticle.sticky')).toBe(true)
+    expect(_get(enableResult, 'data.editArticle.pinned')).toBe(true)
 
     const disableResult = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: articleGlobalId,
-          sticky: false,
+          pinned: false,
         },
       },
     })
-    expect(_get(disableResult, 'data.editArticle.sticky')).toBe(false)
+    expect(_get(disableResult, 'data.editArticle.pinned')).toBe(false)
   })
 
   test('edit license', async () => {

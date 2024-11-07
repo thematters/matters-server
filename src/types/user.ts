@@ -17,9 +17,6 @@ export default /* GraphQL */ `
     "Reset user or payment password."
     resetPassword(input: ResetPasswordInput!): Boolean
 
-    "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'setEmail' instead")
-
     "Set user email."
     setEmail(input: SetEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -29,12 +26,7 @@ export default /* GraphQL */ `
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Register user, can only be used on matters.{town,news} website."
-    userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead") @rateLimit(limit:10, period:86400)
-
     "Login user."
-    userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
-
     emailLogin(input: EmailLoginInput!): AuthResult!
 
     "Get signing message."
@@ -58,14 +50,8 @@ export default /* GraphQL */ `
     "Remove a social login from current user."
     removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Reset crypto wallet."
-    resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'removeWalletLogin' instead")
-
     "Logout user."
     userLogout: Boolean!
-
-    "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "No longer in use")
 
     "Reset Liker ID"
     resetLikerId(input: ResetLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -222,9 +208,6 @@ export default /* GraphQL */ `
   type Recommendation {
     "Activities based on user's following, sort by creation time."
     following(input: RecommendationFollowingInput!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
-
-    "Articles recommended based on recently read article tags."
-    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Merged into following")
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -432,9 +415,6 @@ export default /* GraphQL */ `
 
     "Total LIKE left in wallet."
     total: Float! @auth(mode: "${AUTH_MODE.oauth}")
-
-    "Rate of LikeCoin/USD"
-    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG}) @deprecated(reason: "No longer in use")
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -764,10 +744,6 @@ export default /* GraphQL */ `
     referralCode: String
   }
 
-  input UserLoginInput {
-    email: String! @constraint(format: "email")
-    password: String!
-  }
 
   input GenerateSigningMessageInput {
     address: String!
@@ -785,12 +761,6 @@ export default /* GraphQL */ `
 
     "nonce from generateSigningMessage"
     nonce: String!
-
-    "required for wallet register"
-    email: String @constraint(format: "email") @deprecated(reason: "No longer in use")
-
-    "email verification code, required for wallet register"
-    codeId: ID @deprecated(reason: "No longer in use")
 
     "used in register"
     language: UserLanguage
@@ -813,7 +783,6 @@ export default /* GraphQL */ `
 
   input UpdateUserInfoInput {
     displayName: String
-    userName: String @deprecated(reason: "use 'setUserName' instead")
     avatar: ID
     description: String
     language: UserLanguage
@@ -911,9 +880,6 @@ export default /* GraphQL */ `
     register
     email_verify
     email_otp
-    email_reset @deprecated(reason: "No longer in use")
-    email_reset_confirm @deprecated(reason: "No longer in use")
-    password_reset @deprecated(reason: "No longer in use")
     payment_password_reset
   }
 

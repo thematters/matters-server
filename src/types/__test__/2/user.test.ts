@@ -29,11 +29,11 @@ import {
 import {
   defaultTestUser,
   getUserContext,
-  registerUser,
   testClient,
   updateUserState,
   genConnections,
   closeConnections,
+  registerUser,
 } from '../utils'
 
 let connections: Connections
@@ -54,9 +54,9 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-const USER_LOGIN = /* GraphQL */ `
-  mutation UserLogin($input: UserLoginInput!) {
-    userLogin(input: $input) {
+const EMAIL_LOGIN = /* GraphQL */ `
+  mutation EmailLogin($input: EmailLoginInput!) {
+    emailLogin(input: $input) {
       auth
       token
     }
@@ -410,17 +410,6 @@ const RESET_USER_LIKER_ID = /* GraphQL */ `
   }
 `
 
-const RESET_USER_WALLET = /* GraphQL */ `
-  mutation ResetWallet($input: ResetWalletInput!) {
-    resetWallet(input: $input) {
-      id
-      info {
-        ethAddress
-      }
-    }
-  }
-`
-
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
@@ -434,12 +423,10 @@ describe('register and login functionarlities', () => {
     })
     const user = {
       email,
-      displayName: 'testUser',
-      password: 'Abcd1234',
-      codeId: code.uuid,
+      passwordOrCode: code.code,
     }
-    const registerResult = await registerUser(user, connections)
-    expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
+    const registerResult = await registerUser(user.email, connections)
+    expect(_get(registerResult, 'data.emailLogin.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email }, connections)
     const server = await testClient({
@@ -449,9 +436,7 @@ describe('register and login functionarlities', () => {
     const newUserResult = await server.executeOperation({
       query: GET_VIEWER_INFO,
     })
-    const displayName = _get(newUserResult, 'data.viewer.displayName')
     const info = newUserResult!.data!.viewer.info
-    expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
 
     const status = newUserResult!.data!.viewer.status
@@ -464,8 +449,8 @@ describe('register and login functionarlities', () => {
     const server = await testClient({ connections })
 
     const result = await server.executeOperation({
-      query: USER_LOGIN,
-      variables: { input: { email, password } },
+      query: EMAIL_LOGIN,
+      variables: { input: { email, passwordOrCode: password } },
     })
     expect(_get(result, 'errors.0.extensions.code')).toBe(
       'USER_PASSWORD_INVALID'
@@ -478,10 +463,10 @@ describe('register and login functionarlities', () => {
 
     const server = await testClient({ connections })
     const result = await server.executeOperation({
-      query: USER_LOGIN,
-      variables: { input: { email, password } },
+      query: EMAIL_LOGIN,
+      variables: { input: { email, passwordOrCode: password } },
     })
-    expect(_get(result, 'data.userLogin.auth')).toBe(true)
+    expect(_get(result, 'data.emailLogin.auth')).toBe(true)
   })
 
   test('retrive user info after login', async () => {
@@ -904,19 +889,6 @@ describe('mutations on User object', () => {
     expect(adminReservedNameDisplayName).toEqual(RESERVED_NAMES[0])
   })
 
-  test('updateUserInfoUserName', async () => {
-    const server = await testClient({ isAuth: true, connections })
-
-    const userName2 = 'UPPERTest'
-    const { data } = await server.executeOperation({
-      query: UPDATE_USER_INFO,
-      variables: { input: { userName: userName2 } },
-    })
-    expect(_get(data, 'updateUserInfo.userName')).toEqual(
-      userName2.toLowerCase()
-    )
-  })
-
   test('updateUserInfoDescription', async () => {
     const description = 'foo bar'
     const server = await testClient({
@@ -1334,51 +1306,6 @@ describe('likecoin', () => {
       _get(data, 'user.id')
     )
     expect(_get(resetResult, 'data.resetLikerId.likerId')).toBeFalsy()
-  })
-})
-
-describe('crypto wallet', () => {
-  test('reset wallet', async () => {
-    const server = await testClient({
-      isAuth: true,
-      isAdmin: true,
-      connections,
-    })
-
-    // check if exists
-    const { data } = await server.executeOperation({
-      query: GET_USER_BY_USERNAME,
-      variables: { input: { userName: 'test2' } },
-    })
-
-    // reset
-    const resetResult = await server.executeOperation({
-      query: RESET_USER_WALLET,
-      variables: { input: { id: _get(data, 'user.id') } },
-    })
-    expect(_get(resetResult, 'data.resetWallet.id')).toBe(_get(data, 'user.id'))
-    expect(_get(resetResult, 'data.resetWallet.info.ethAddress')).toBeFalsy()
-  })
-
-  test('reset wallet forbidden', async () => {
-    const server = await testClient({
-      isAuth: true,
-      isAdmin: true,
-      connections,
-    })
-
-    // check if exists
-    const { data } = await server.executeOperation({
-      query: GET_USER_BY_USERNAME,
-      variables: { input: { userName: 'test10' } },
-    })
-
-    // reset
-    const resetResult = await server.executeOperation({
-      query: RESET_USER_WALLET,
-      variables: { input: { id: _get(data, 'user.id') } },
-    })
-    expect(_get(resetResult, 'data.resetWallet.id')).toBeFalsy()
   })
 })
 

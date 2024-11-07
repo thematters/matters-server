@@ -2,7 +2,6 @@ import type {
   GQLPublishArticleInput,
   GQLPutDraftInput,
   GQLSetFeatureInput,
-  GQLUserRegisterInput,
   User,
   Connections,
   DataSources,
@@ -42,6 +41,7 @@ import {
 
 import { genConnections, closeConnections } from 'connectors/__test__/utils'
 import schema from '../../schema'
+import { VERIFICATION_CODE_STATUS } from 'common/enums'
 
 export { genConnections, closeConnections }
 
@@ -326,23 +326,30 @@ export const putDraft = async (
   return putDraftResult
 }
 
-export const registerUser = async (
-  user: GQLUserRegisterInput,
-  connections: Connections
-) => {
-  const USER_REGISTER = `
-    mutation UserRegister($input: UserRegisterInput!) {
-      userRegister(input: $input) {
+export const registerUser = async (email: string, connections: Connections) => {
+  const EMAIL_REGISTER = `
+    mutation EmailRegister($input: EmailLoginInput!) {
+      emailLogin(input: $input) {
         auth
         token
       }
     }
   `
 
+  const userService = new UserService(connections)
+  const code = await userService.createVerificationCode({
+    type: 'register',
+    email,
+  })
+  await userService.markVerificationCodeAs({
+    codeId: code.id,
+    status: VERIFICATION_CODE_STATUS.verified,
+  })
+
   const server = await testClient({ connections })
   return server.executeOperation({
-    query: USER_REGISTER,
-    variables: { input: user },
+    query: EMAIL_REGISTER,
+    variables: { input: { email, passwordOrCode: code.code } },
   })
 }
 
