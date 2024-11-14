@@ -280,7 +280,8 @@ type OtherTable =
   | 'user_notify_setting'
 
 export type View =
-  | 'tag_count_view'
+  // | 'tag_count_view'
+  | 'tag_stats_view'
   | 'user_reader_view'
   | 'article_count_view'
   | 'article_hottest_view'
@@ -290,7 +291,8 @@ export type View =
 
 export type MaterializedView =
   | 'article_count_materialized'
-  | 'tag_count_materialized'
+  // | 'tag_count_materialized'
+  | 'tag_stats_materialized'
   | 'user_reader_materialized'
   | 'article_value_materialized'
   | 'featured_comment_materialized'

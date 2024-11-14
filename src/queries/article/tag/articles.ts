@@ -7,27 +7,26 @@ const resolver: GQLTagResolvers['articles'] = async (
   { input },
   { dataSources: { tagService, atomService } }
 ) => {
-  const { selected, sortBy } = input
+  const { sortBy } = input
   const { take, skip } = fromConnectionArgs(input)
-
-  const isFromRecommendation =
-    ((root as any).numArticles || (root as any).numAuthors) > 0
+  const isHottest = sortBy === 'byHottestDesc'
 
   const [totalCount, articleIds] = await Promise.all([
-    tagService.countArticles({
-      id: root.id,
-      selected,
-      withSynonyms: isFromRecommendation,
-    }),
-    tagService.findArticleIds({
-      id: root.id,
-      selected,
-      sortBy: sortBy as 'byHottestDesc' | 'byCreatedAtDesc' | undefined,
-      withSynonyms: isFromRecommendation,
-      excludeSpam: true,
-      skip,
-      take,
-    }),
+    isHottest
+      ? tagService.countHottestArticles({ id: root.id })
+      : tagService.countArticles({ id: root.id }),
+    isHottest
+      ? tagService.findHottestArticleIds({
+          id: root.id,
+          skip,
+          take,
+        })
+      : tagService.findArticleIds({
+          id: root.id,
+          excludeSpam: true,
+          skip,
+          take,
+        }),
   ])
 
   return connectionFromPromisedArray(

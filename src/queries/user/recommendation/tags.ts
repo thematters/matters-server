@@ -29,8 +29,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
 
     const curationTags = await tagService.findTopTags({
       take: limit * draw,
-      top: 'r2w',
-      minAuthors: 5, // show at least 5 authors in the curation
+      minAuthors: 5,
     })
 
     const chunks = chunk(curationTags, draw)

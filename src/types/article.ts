@@ -272,6 +272,9 @@ export default /* GraphQL */ `
     "Tags recommended based on relations to current tag."
     recommended(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
+    "Authors recommended based on relations to current tag."
+    recommendedAuthors(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
+
     "Counts of this tag."
     numArticles: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM}) ## cache for 1 hour
     numAuthors: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM})  ## cache for 1 hour
@@ -466,7 +469,6 @@ export default /* GraphQL */ `
     after: String
     first: Int @constraint(min: 0)
     oss: Boolean
-    selected: Boolean
     sortBy: TagArticlesSortBy = byCreatedAtDesc
   }
 

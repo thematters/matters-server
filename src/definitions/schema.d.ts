@@ -3397,6 +3397,8 @@ export type GQLTag = GQLNode & {
   oss: GQLTagOss
   /** Tags recommended based on relations to current tag. */
   recommended: GQLTagConnection
+  /** Authors recommended based on relations to current tag. */
+  recommendedAuthors: GQLUserConnection
   remark?: Maybe<Scalars['String']['output']>
 }
 
@@ -3410,11 +3412,15 @@ export type GQLTagRecommendedArgs = {
   input: GQLConnectionArgs
 }
 
+/** This type contains content, count and related data of an article tag. */
+export type GQLTagRecommendedAuthorsArgs = {
+  input: GQLConnectionArgs
+}
+
 export type GQLTagArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   oss?: InputMaybe<Scalars['Boolean']['input']>
-  selected?: InputMaybe<Scalars['Boolean']['input']>
   sortBy?: InputMaybe<GQLTagArticlesSortBy>
 }
 
@@ -8968,6 +8974,12 @@ export type GQLTagResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLTagRecommendedArgs, 'input'>
+  >
+  recommendedAuthors?: Resolver<
+    GQLResolversTypes['UserConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLTagRecommendedAuthorsArgs, 'input'>
   >
   remark?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>

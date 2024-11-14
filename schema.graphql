@@ -519,6 +519,9 @@ type Tag implements Node {
   """Tags recommended based on relations to current tag."""
   recommended(input: ConnectionArgs!): TagConnection!
 
+  """Authors recommended based on relations to current tag."""
+  recommendedAuthors(input: ConnectionArgs!): UserConnection!
+
   """Counts of this tag."""
   numArticles: Int!
   numAuthors: Int!
@@ -709,7 +712,6 @@ input TagArticlesInput {
   after: String
   first: Int
   oss: Boolean
-  selected: Boolean
   sortBy: TagArticlesSortBy = byCreatedAtDesc
 }
 

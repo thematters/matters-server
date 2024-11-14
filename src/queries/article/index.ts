@@ -55,6 +55,7 @@ import tagNumArticles from './tag/numArticles'
 import tagNumAuthors from './tag/numAuthors'
 import * as tagOSS from './tag/oss'
 import tagsRecommended from './tag/recommended'
+import tagsRecommendedAuthors from './tag/recommendedAuthors'
 import tags from './tags'
 import title from './title'
 import transactionsReceivedBy from './transactionsReceivedBy'
@@ -134,6 +135,7 @@ const schema: GQLResolvers = {
     numAuthors: tagNumAuthors,
     oss: (root) => root,
     recommended: tagsRecommended,
+    recommendedAuthors: tagsRecommendedAuthors,
   },
   ArticleVersion: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.ArticleVersion, id }),
