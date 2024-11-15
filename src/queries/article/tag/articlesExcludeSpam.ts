@@ -2,7 +2,7 @@ import type { GQLTagResolvers } from 'definitions'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
-const resolver: GQLTagResolvers['articles'] = async (
+const resolver: GQLTagResolvers['articlesExcludeSpam'] = async (
   root,
   { input },
   { dataSources: { tagService, atomService } }
@@ -24,7 +24,7 @@ const resolver: GQLTagResolvers['articles'] = async (
       selected,
       sortBy: sortBy as 'byHottestDesc' | 'byCreatedAtDesc' | undefined,
       withSynonyms: isFromRecommendation,
-      // excludeSpam: true,
+      excludeSpam: true,
       skip,
       take,
     }),
