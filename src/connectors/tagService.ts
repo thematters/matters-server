@@ -500,6 +500,13 @@ export class TagService extends BaseService<Tag> {
     return tag.tagScore || 0
   }
 
+  public countTopTags = async () => {
+    const result = await this.knex(MATERIALIZED_VIEW.tag_stats_materialized)
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   public findTopTags = ({
     take = 50,
     skip,

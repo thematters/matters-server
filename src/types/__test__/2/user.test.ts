@@ -1032,7 +1032,6 @@ describe('user recommendations', () => {
 
   test('retrieve tags from tags', async () => {
     await refreshView(MATERIALIZED_VIEW.curation_tag_materialized, knex)
-    // await refreshView(MATERIALIZED_VIEW.tag_count_materialized, knex)
 
     const serverNew = await testClient({
       isAuth: true,

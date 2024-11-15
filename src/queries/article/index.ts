@@ -10,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import availableTranslations from './availableTranslations'
+import bookmarked from './bookmarked'
 import campaigns from './campaigns'
 import canComment from './canComment'
 import canSuperLike from './canSuperLike'
@@ -45,8 +46,6 @@ import sensitiveByAuthor from './sensitiveByAuthor'
 import shortHash from './shortHash'
 import slug from './slug'
 import state from './state'
-import subscribed from './subscribed'
-import subscribers from './subscribers'
 import summary from './summary'
 import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
@@ -102,8 +101,8 @@ const schema: GQLResolvers = {
     shortHash,
     state,
     pinned,
-    subscribed,
-    subscribers,
+    subscribed: bookmarked,
+    bookmarked,
     tags,
     translation: articleTranslation,
     availableTranslations,

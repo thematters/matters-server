@@ -43,8 +43,9 @@ type Mutation {
   """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
 
-  """Subscribe or Unsubscribe article"""
-  toggleSubscribeArticle(input: ToggleItemInput!): Article!
+  """Bookmark or unbookmark article"""
+  toggleSubscribeArticle(input: ToggleItemInput!): Article! @deprecated(reason: "Use toggleBookmarkArticle instead")
+  toggleBookmarkArticle(input: ToggleItemInput!): Article!
 
   """Appreciate an article."""
   appreciateArticle(input: AppreciateArticleInput!): Article!
@@ -52,8 +53,9 @@ type Mutation {
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
-  """Follow or unfollow tag."""
-  toggleFollowTag(input: ToggleItemInput!): Tag!
+  """Bookmark or unbookmark tag."""
+  toggleFollowTag(input: ToggleItemInput!): Tag! @deprecated(reason: "Use toggleBookmarkTag instead")
+  toggleBookmarkTag(input: ToggleItemInput!): Tag!
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article!
@@ -362,9 +364,6 @@ type Article implements Node & PinnableWork {
   """Total number of readers of this article."""
   readerCount: Int!
 
-  """Subscribers of this article."""
-  subscribers(input: ConnectionArgs!): UserConnection!
-
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
 
@@ -377,8 +376,9 @@ type Article implements Node & PinnableWork {
   """This value determines if current viewer can SuperLike or not."""
   canSuperLike: Boolean!
 
-  """This value determines if current Viewer has subscribed of not."""
-  subscribed: Boolean!
+  """This value determines if current Viewer has bookmarked of not."""
+  subscribed: Boolean! @deprecated(reason: "Use bookmarked instead")
+  bookmarked: Boolean!
 
   """
   This value determines if this article is an author selected article or not.

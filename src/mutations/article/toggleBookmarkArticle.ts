@@ -14,7 +14,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
+const resolver: GQLMutationResolvers['toggleBookmarkArticle'] = async (
   _,
   { input: { id, enabled } },
   { viewer, dataSources: { atomService, articleService, notificationService } }
@@ -29,7 +29,7 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  // banned and archived articles shall still be able to be unsubscribed
+  // banned and archived articles shall still be able to be unbookmarked
   const article =
     enabled === false
       ? await atomService.findFirst({
