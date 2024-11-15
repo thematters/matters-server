@@ -35,7 +35,7 @@ import {
   recoverMessageAddress,
   trim,
 } from 'viem'
-import { polygon } from 'viem/chains'
+import { mainnet, polygon, sepolia } from 'viem/chains'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -75,6 +75,7 @@ import {
   AUDIT_LOG_STATUS,
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
+  DAY,
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import {
@@ -2072,6 +2073,39 @@ export class UserService extends BaseService<User> {
         privKeyName: kname,
       },
     })
+  }
+
+  public findEnsName = async (userName: string) => {
+    const user = await this.findByUserName(userName)
+    if (!user || !user.ethAddress) {
+      return
+    }
+
+    const now = new Date()
+    const oneDayAgo = new Date(now.getTime() - 1 * DAY)
+
+    if (
+      user.userName &&
+      user.ensNameUpdatedAt &&
+      user.ensNameUpdatedAt > oneDayAgo
+    ) {
+      return user.ensName
+    }
+
+    // Query ENS if data is stale or missing
+    const client = createPublicClient({
+      chain: isProd ? mainnet : sepolia,
+      transport: http(BLOCKCHAIN_RPC[isProd ? mainnet.id : sepolia.id]),
+    })
+    const ensName = await client.getEnsName({
+      address: user.ethAddress as `0x${string}`,
+    })
+    await this.models.update({
+      table: 'user',
+      where: { id: user.id },
+      data: { ensName, ensNameUpdatedAt: now },
+    })
+    return ensName
   }
 
   /*********************************

@@ -1,4 +1,11 @@
-import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
+import {
+  mainnet,
+  optimism,
+  optimismSepolia,
+  polygon,
+  polygonMumbai,
+  sepolia,
+} from 'viem/chains'
 
 import { environment, isProd } from 'common/environment'
 import { GQLChain } from 'definitions'
@@ -66,6 +73,8 @@ export const BLOCKCHAIN_CHAINID = {
 } as const
 
 export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
+  [mainnet.id]: `https://eth-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [sepolia.id]: `https://eth-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
