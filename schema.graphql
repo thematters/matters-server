@@ -2975,13 +2975,6 @@ input ResetPasswordInput {
   type: ResetPasswordType
 }
 
-input ChangeEmailInput {
-  oldEmail: String!
-  oldEmailCodeId: ID!
-  newEmail: String!
-  newEmailCodeId: ID!
-}
-
 input VerifyEmailInput {
   email: String!
   code: String!
@@ -2989,16 +2982,6 @@ input VerifyEmailInput {
 
 input SetCurrencyInput {
   currency: QuoteCurrency
-}
-
-input UserRegisterInput {
-  email: String!
-  userName: String
-  displayName: String!
-  password: String!
-  description: String
-  codeId: ID!
-  referralCode: String
 }
 
 input GenerateSigningMessageInput {
@@ -3024,10 +3007,6 @@ input WalletLoginInput {
 }
 
 input ResetLikerIdInput {
-  id: ID!
-}
-
-input ResetWalletInput {
   id: ID!
 }
 

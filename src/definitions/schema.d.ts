@@ -805,13 +805,6 @@ export type GQLCampaignsInput = {
 
 export type GQLChain = 'Optimism' | 'Polygon'
 
-export type GQLChangeEmailInput = {
-  newEmail: Scalars['String']['input']
-  newEmailCodeId: Scalars['ID']['input']
-  oldEmail: Scalars['String']['input']
-  oldEmailCodeId: Scalars['ID']['input']
-}
-
 export type GQLCircle = GQLNode & {
   __typename?: 'Circle'
   /** Analytics dashboard. */
@@ -3125,10 +3118,6 @@ export type GQLResetPasswordInput = {
 
 export type GQLResetPasswordType = 'account' | 'payment'
 
-export type GQLResetWalletInput = {
-  id: Scalars['ID']['input']
-}
-
 export type GQLResponse = GQLArticle | GQLComment
 
 export type GQLResponseConnection = GQLConnection & {
@@ -4078,16 +4067,6 @@ export type GQLUserRecommendationActivity = {
 
 export type GQLUserRecommendationActivitySource = 'UserFollowing'
 
-export type GQLUserRegisterInput = {
-  codeId: Scalars['ID']['input']
-  description?: InputMaybe<Scalars['String']['input']>
-  displayName: Scalars['String']['input']
-  email: Scalars['String']['input']
-  password: Scalars['String']['input']
-  referralCode?: InputMaybe<Scalars['String']['input']>
-  userName?: InputMaybe<Scalars['String']['input']>
-}
-
 export type GQLUserRestriction = {
   __typename?: 'UserRestriction'
   createdAt: Scalars['DateTime']['output']
@@ -4647,7 +4626,6 @@ export type GQLResolversTypes = ResolversObject<{
   CampaignState: GQLCampaignState
   CampaignsInput: GQLCampaignsInput
   Chain: GQLChain
-  ChangeEmailInput: GQLChangeEmailInput
   Circle: ResolverTypeWrapper<CircleModel>
   CircleAnalytics: ResolverTypeWrapper<CircleModel>
   CircleConnection: ResolverTypeWrapper<
@@ -4955,7 +4933,6 @@ export type GQLResolversTypes = ResolversObject<{
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetPasswordType: GQLResetPasswordType
-  ResetWalletInput: GQLResetWalletInput
   Response: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['Response']
   >
@@ -5137,7 +5114,6 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   UserRecommendationActivitySource: GQLUserRecommendationActivitySource
-  UserRegisterInput: GQLUserRegisterInput
   UserRestriction: ResolverTypeWrapper<GQLUserRestriction>
   UserRestrictionType: GQLUserRestrictionType
   UserRole: GQLUserRole
@@ -5263,7 +5239,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
   CampaignsInput: GQLCampaignsInput
-  ChangeEmailInput: GQLChangeEmailInput
   Circle: CircleModel
   CircleAnalytics: CircleModel
   CircleConnection: Omit<GQLCircleConnection, 'edges'> & {
@@ -5497,7 +5472,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
-  ResetWalletInput: GQLResetWalletInput
   Response: GQLResolversUnionTypes<GQLResolversParentTypes>['Response']
   ResponseConnection: GQLResponseConnection
   ResponseEdge: Omit<GQLResponseEdge, 'node'> & {
@@ -5643,7 +5617,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserRecommendationActivity: Omit<GQLUserRecommendationActivity, 'nodes'> & {
     nodes?: Maybe<Array<GQLResolversParentTypes['User']>>
   }
-  UserRegisterInput: GQLUserRegisterInput
   UserRestriction: GQLUserRestriction
   UserSettings: UserModel
   UserStatus: UserModel

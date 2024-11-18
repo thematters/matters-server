@@ -718,13 +718,6 @@ export default /* GraphQL */ `
     type: ResetPasswordType
   }
 
-  input ChangeEmailInput {
-    oldEmail: String! @constraint(format: "email")
-    oldEmailCodeId: ID!
-    newEmail: String! @constraint(format: "email")
-    newEmailCodeId: ID!
-  }
-
   input VerifyEmailInput {
     email: String!
     code: String!
@@ -733,17 +726,6 @@ export default /* GraphQL */ `
   input SetCurrencyInput {
       currency: QuoteCurrency
   }
-
-  input UserRegisterInput {
-    email: String! @constraint(format: "email")
-    userName: String
-    displayName: String!
-    password: String!
-    description: String
-    codeId: ID!
-    referralCode: String
-  }
-
 
   input GenerateSigningMessageInput {
     address: String!
@@ -769,10 +751,6 @@ export default /* GraphQL */ `
   }
 
   input ResetLikerIdInput {
-    id: ID!
-  }
-
-  input ResetWalletInput {
     id: ID!
   }
 
