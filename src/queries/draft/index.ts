@@ -7,9 +7,6 @@ import { NODE_TYPES } from 'common/enums'
 import { countWords, toGlobalId } from 'common/utils'
 
 import * as draftAccess from './access'
-import articleDrafts from './article/drafts'
-import articleNewestPublishedDraft from './article/newestPublishedDraft'
-import articleNewestUnpublishedDraft from './article/newestUnpublishedDraft'
 import assets from './assets'
 import campaigns from './campaigns'
 import collection from './collection'
@@ -18,11 +15,6 @@ import draftCover from './cover'
 import drafts from './drafts'
 
 const schema: GQLResolvers = {
-  Article: {
-    drafts: articleDrafts,
-    newestUnpublishedDraft: articleNewestUnpublishedDraft,
-    newestPublishedDraft: articleNewestPublishedDraft,
-  },
   User: {
     drafts,
   },

@@ -33,9 +33,6 @@ const userDescription = `test-${Math.floor(Math.random() * 100)}`
 
 const user = {
   email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
-  displayName: 'testUser',
-  password: '12345678',
-  codeId: '123',
 }
 
 let connections: Connections
@@ -44,7 +41,7 @@ beforeAll(async () => {
   connections = await genConnections()
   const { id } = await putDraft({ draft }, connections)
   await publishArticle({ id }, connections)
-  await registerUser(user, connections)
+  await registerUser(user.email, connections)
   await updateUserDescription(
     {
       email: user.email,

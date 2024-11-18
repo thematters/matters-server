@@ -4,7 +4,7 @@ import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
 import { ForbiddenError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: GQLMutationResolvers['toggleFollowTag'] = async (
+const resolver: GQLMutationResolvers['toggleBookmarkTag'] = async (
   _,
   { input: { id, enabled } },
   { viewer, dataSources: { tagService, atomService } }

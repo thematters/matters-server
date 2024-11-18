@@ -11,21 +11,3 @@ export const score: GQLTagOssResolvers['score'] = (
   _,
   { dataSources: { tagService } }
 ) => tagService.findScore(id)
-
-export const selected: GQLTagOssResolvers['selected'] = async (
-  { id },
-  _,
-  {
-    dataSources: {
-      connections: { knex },
-    },
-  }
-) => {
-  const result = await knex
-    .from('matters_choice_tag')
-    .where({ tagId: id })
-    .count()
-    .first()
-
-  return parseInt(result ? (result.count as string) : '0', 10) > 0
-}

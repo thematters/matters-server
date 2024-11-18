@@ -448,22 +448,12 @@ export class PublicationQueue {
     let tags = articleVersion.tags as string[]
 
     if (tags && tags.length > 0) {
-      // get tag editor
-      const tagEditors = environment.mattyId
-        ? [environment.mattyId, article.authorId]
-        : [article.authorId]
-
       // create tag records, return tag record if already exists
       const dbTags = (
         (await Promise.all(
           tags.filter(Boolean).map((content: string) =>
             tagService.create(
-              {
-                content,
-                creator: article.authorId,
-                editors: tagEditors,
-                owner: article.authorId,
-              },
+              { content, creator: article.authorId },
               {
                 columns: ['id', 'content'],
                 skipCreate: normalizeTagInput(content) !== content,

@@ -685,15 +685,15 @@ export class UserService extends BaseService<User> {
       await trx('push_device').where({ userId: id }).del()
 
       // remove tag owner and editors
-      await trx.raw(`
-        UPDATE
-          tag
-        SET
-          owner = NULL,
-          editors = array_remove(editors, owner::text)
-        WHERE
-          owner = ${id}
-      `)
+      // await trx.raw(`
+      //   UPDATE
+      //     tag
+      //   SET
+      //     owner = NULL,
+      //     editors = array_remove(editors, owner::text)
+      //   WHERE
+      //     owner = ${id}
+      // `)
 
       return user
     })
@@ -1892,76 +1892,6 @@ export class UserService extends BaseService<User> {
     })
 
     return user
-  }
-
-  public updateLiker = ({
-    likerId,
-    ...data
-  }: {
-    [key: string]: any
-    likerId: string
-  }) =>
-    this.knex
-      .select()
-      .from('user_oauth_likecoin')
-      .where({ likerId })
-      .update(data)
-
-  // register a new LikerId by a given userName
-  public registerLikerId = async ({
-    userId,
-    userName,
-    ip,
-  }: {
-    userId: string
-    userName: string
-    ip?: string
-  }) => {
-    // check
-    const likerId = await this.likecoin.check({ user: userName })
-
-    // register
-    const oAuthService = new OAuthService(this.connections)
-    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
-    const { accessToken, refreshToken, scope } = await this.likecoin.register({
-      user: likerId,
-      token: tokens.accessToken,
-      ip,
-    })
-
-    // save to db
-    return this.saveLiker({
-      userId,
-      likerId,
-      accountType: 'general',
-      accessToken,
-      refreshToken,
-      scope,
-    })
-  }
-
-  // Promote a platform temp LikerID
-  public claimLikerId = async ({
-    userId,
-    liker,
-    ip,
-  }: {
-    userId: string
-    liker: UserOAuthLikeCoin
-    ip?: string
-  }) => {
-    const oAuthService = new OAuthService(this.connections)
-    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
-
-    await this.likecoin.edit({
-      action: 'claim',
-      payload: { user: liker.likerId, platformToken: tokens.accessToken },
-      ip,
-    })
-
-    return this.knex('user_oauth_likecoin')
-      .where({ likerId: liker.likerId })
-      .update({ accountType: 'general' })
   }
 
   // Transfer a platform temp LikerID's LIKE and binding to target LikerID

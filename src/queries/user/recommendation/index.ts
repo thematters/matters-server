@@ -9,14 +9,12 @@ import { icymi } from './icymi'
 import { icymiTopic } from './icymiTopic'
 import { newest, newestExcludeSpam } from './newest'
 import newestCircles from './newestCircles'
-import readTagsArticles from './readTagsArticles'
 import { selectedTags } from './selectedTags'
 import { tags } from './tags'
 
 const resolvers: GQLRecommendationResolvers = {
   authors,
   following,
-  readTagsArticles,
   hottest,
   hottestExcludeSpam,
   icymi,

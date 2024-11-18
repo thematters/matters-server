@@ -10,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import availableTranslations from './availableTranslations'
+import bookmarked from './bookmarked'
 import campaigns from './campaigns'
 import canComment from './canComment'
 import canSuperLike from './canSuperLike'
@@ -46,26 +47,16 @@ import sensitiveByAuthor from './sensitiveByAuthor'
 import shortHash from './shortHash'
 import slug from './slug'
 import state from './state'
-import sticky from './sticky'
-import subscribed from './subscribed'
-import subscribers from './subscribers'
 import summary from './summary'
 import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
 import tagArticlesExcludeSpam from './tag/articlesExcludeSpam'
-import tagCover from './tag/cover'
-import tagCreator from './tag/creator'
-import tagEditors from './tag/editors'
-import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
-import tagIsOfficial from './tag/isOfficial'
 import tagNumArticles from './tag/numArticles'
 import tagNumAuthors from './tag/numAuthors'
 import * as tagOSS from './tag/oss'
-import tagOwner from './tag/owner'
-import tagParticipants from './tag/participants'
 import tagsRecommended from './tag/recommended'
-import tagSelected from './tag/selected'
+import tagsRecommendedAuthors from './tag/recommendedAuthors'
 import tags from './tags'
 import title from './title'
 import transactionsReceivedBy from './transactionsReceivedBy'
@@ -112,10 +103,9 @@ const schema: GQLResolvers = {
     mediaHash,
     shortHash,
     state,
-    sticky,
     pinned,
-    subscribed,
-    subscribers,
+    subscribed: bookmarked,
+    bookmarked,
     tags,
     translation: articleTranslation,
     availableTranslations,
@@ -143,19 +133,12 @@ const schema: GQLResolvers = {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticles,
     articlesExcludeSpam: tagArticlesExcludeSpam,
-    selected: tagSelected,
-    creator: tagCreator,
-    editors: tagEditors,
-    owner: tagOwner,
     isFollower: tagIsFollower,
-    isOfficial: tagIsOfficial,
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,
-    followers: tagFollowers,
     oss: (root) => root,
-    cover: tagCover,
-    participants: tagParticipants,
     recommended: tagsRecommended,
+    recommendedAuthors: tagsRecommendedAuthors,
   },
   ArticleVersion: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.ArticleVersion, id }),
@@ -183,7 +166,6 @@ const schema: GQLResolvers = {
   TagOSS: {
     boost: tagOSS.boost,
     score: tagOSS.score,
-    selected: tagOSS.selected,
   },
 }
 

@@ -8,9 +8,6 @@ import {
   AssetNotFoundError,
   AuthenticationError,
   DisplayNameInvalidError,
-  ForbiddenError,
-  NameExistsError,
-  NameInvalidError,
   PasswordInvalidError,
   UserInputError,
 } from 'common/errors'
@@ -19,7 +16,6 @@ import {
   generatePasswordhash,
   isValidDisplayName,
   isValidPaymentPassword,
-  isValidUserName,
   setCookie,
 } from 'common/utils'
 import { cfsvc } from 'connectors'
@@ -31,12 +27,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
   { input },
   {
     viewer,
-    dataSources: {
-      userService,
-      systemService,
-      notificationService,
-      atomService,
-    },
+    dataSources: { systemService, notificationService, atomService },
     req,
     res,
   }
@@ -126,52 +117,6 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
     updateParams.profileCover = null
   }
 
-  // check user name is editable
-  if (input.userName) {
-    const isUserNameEditable = await userService.isUserNameEditable(viewer.id)
-    if (!isUserNameEditable) {
-      auditLog({
-        actorId: viewer.id,
-        action: AUDIT_LOG_ACTION.updateUsername,
-        oldValue: viewer.userName,
-        newValue: input.userName,
-        status: AUDIT_LOG_STATUS.failed,
-        remark: 'user name is not allow to edit',
-      })
-      throw new ForbiddenError('userName is not allow to edit')
-    }
-    if (!isValidUserName(input.userName.toLowerCase())) {
-      auditLog({
-        actorId: viewer.id,
-        action: AUDIT_LOG_ACTION.updateUsername,
-        oldValue: viewer.userName,
-        newValue: input.userName,
-        status: AUDIT_LOG_STATUS.failed,
-        remark: 'invalid user name',
-      })
-      throw new NameInvalidError('invalid user name')
-    }
-
-    // allows user to set the same userName
-    const isSameUserName =
-      viewer.userName.toLowerCase() === input.userName.toLowerCase()
-    const isUserNameExists = await userService.checkUserNameExists(
-      input.userName
-    )
-    if (!isSameUserName && isUserNameExists) {
-      auditLog({
-        actorId: viewer.id,
-        action: AUDIT_LOG_ACTION.updateUsername,
-        oldValue: viewer.userName,
-        newValue: input.userName,
-        status: AUDIT_LOG_STATUS.failed,
-        remark: 'user name already exists',
-      })
-      throw new NameExistsError('user name already exists')
-    }
-    updateParams.userName = input.userName.toLowerCase()
-  }
-
   // check user display name
   if (input.displayName) {
     if (!isValidDisplayName(input.displayName) && !viewer.hasRole('admin')) {
@@ -232,24 +177,6 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
     data: { updatedAt: new Date(), ...updateParams },
   })
   logger.info(`Updated id ${viewer.id} in "user"`)
-
-  // add user name edit history
-  if (input.userName) {
-    await atomService.create({
-      table: 'username_edit_history',
-      data: {
-        userId: viewer.id,
-        previous: viewer.userName,
-      },
-    })
-    auditLog({
-      actorId: viewer.id,
-      action: AUDIT_LOG_ACTION.updateUsername,
-      oldValue: viewer.userName,
-      newValue: input.userName,
-      status: AUDIT_LOG_STATUS.succeeded,
-    })
-  }
 
   if (input.displayName && viewer.displayName !== input.displayName) {
     auditLog({

@@ -8,21 +8,12 @@ import type {
 import { Hex } from 'viem'
 
 import {
-  VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
   SIGNING_MESSAGE_PURPOSE,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
 } from 'common/enums'
-import {
-  CodeExpiredError,
-  CodeInactiveError,
-  CodeInvalidError,
-  EmailExistsError,
-  EthAddressNotFoundError,
-  UserInputError,
-} from 'common/errors'
+import { EthAddressNotFoundError, UserInputError } from 'common/errors'
 import { auditLog } from 'common/logger'
 import { getViewerFromUser, setCookie } from 'common/utils'
 
@@ -68,18 +59,7 @@ const _walletLogin: Exclude<
   undefined
 > = async (
   _,
-  {
-    input: {
-      ethAddress,
-      nonce,
-      signedMessage,
-      signature,
-      email,
-      codeId,
-      language,
-      referralCode,
-    },
-  },
+  { input: { ethAddress, nonce, signedMessage, signature, language } },
   context
 ) => {
   const {
@@ -144,59 +124,11 @@ const _walletLogin: Exclude<
     }
   } else {
     // signup
-    if (email) {
-      if (!codeId) {
-        throw new UserInputError('email and codeId are required')
-      }
-      // check verification code
-      const codes = await userService.findVerificationCodes({
-        where: {
-          uuid: codeId,
-          email,
-          type: VERIFICATION_CODE_TYPE.register,
-        },
-      })
-      const code = codes?.length > 0 ? codes[0] : {}
-
-      // check code
-      if (code.status === VERIFICATION_CODE_STATUS.expired) {
-        throw new CodeExpiredError('code is expired')
-      }
-      if (code.status === VERIFICATION_CODE_STATUS.inactive) {
-        throw new CodeInactiveError('code is retired')
-      }
-      if (code.status !== VERIFICATION_CODE_STATUS.verified) {
-        throw new CodeInvalidError('code does not exists')
-      }
-
-      // check email
-      const otherUser = await userService.findByEmail(email)
-      if (otherUser) {
-        throw new EmailExistsError('email address has already been registered')
-      }
-
-      const userName = await userService.generateUserName(email)
-      user = await userService.create({
-        email,
-        userName,
-        displayName: userName,
-        ethAddress: ethAddress.toLowerCase(), // save the lower case ones
-        language: language || viewer.language,
-        referralCode,
-      })
-      // mark code status as used
-      await userService.postRegister(user)
-      await userService.markVerificationCodeAs({
-        codeId: code.id,
-        status: VERIFICATION_CODE_STATUS.used,
-      })
-    } else {
-      user = await userService.create({
-        ethAddress: ethAddress.toLowerCase(),
-        language: language || viewer.language,
-      })
-      await userService.postRegister(user)
-    }
+    user = await userService.create({
+      ethAddress: ethAddress.toLowerCase(),
+      language: language || viewer.language,
+    })
+    await userService.postRegister(user)
   }
   return tryLogin(AUTH_RESULT_TYPE.Signup, user)
 }

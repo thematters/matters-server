@@ -19,8 +19,6 @@ const resolver: GQLMutationResolvers['mergeTags'] = async (
     tagIds,
     content,
     creator: environment.mattyId,
-    editors: [environment.mattyId],
-    owner: environment.mattyId,
   })
 
   // invalidate extra nodes
