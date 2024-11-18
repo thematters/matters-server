@@ -18,8 +18,9 @@ export default /* GraphQL */ `
     "Edit an article."
     editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}")
 
-    "Subscribe or Unsubscribe article"
-    toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}")
+    "Bookmark or unbookmark article"
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}") @deprecated(reason: "Use toggleBookmarkArticle instead")
+    toggleBookmarkArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     "Appreciate an article."
     appreciateArticle(input: AppreciateArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}") @rateLimit(limit:5, period:60)
@@ -31,9 +32,9 @@ export default /* GraphQL */ `
     ##############
     #     Tag    #
     ##############
-    "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
-
+    "Bookmark or unbookmark tag."
+    toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}") @deprecated(reason: "Use toggleBookmarkTag instead")
+    toggleBookmarkTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
     ##############
     #     OSS    #
@@ -136,9 +137,6 @@ export default /* GraphQL */ `
     "Total number of readers of this article."
     readerCount: Int! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
-    "Subscribers of this article."
-    subscribers(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
-
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!
 
@@ -151,8 +149,9 @@ export default /* GraphQL */ `
     "This value determines if current viewer can SuperLike or not."
     canSuperLike: Boolean!
 
-    "This value determines if current Viewer has subscribed of not."
-    subscribed: Boolean!
+    "This value determines if current Viewer has bookmarked of not."
+    subscribed: Boolean! @deprecated(reason: "Use bookmarked instead")
+    bookmarked: Boolean!
 
     "This value determines if this article is an author selected article or not."
     pinned: Boolean!
@@ -271,6 +270,9 @@ export default /* GraphQL */ `
 
     "Tags recommended based on relations to current tag."
     recommended(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Authors recommended based on relations to current tag."
+    recommendedAuthors(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Counts of this tag."
     numArticles: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM}) ## cache for 1 hour
@@ -466,7 +468,6 @@ export default /* GraphQL */ `
     after: String
     first: Int @constraint(min: 0)
     oss: Boolean
-    selected: Boolean
     sortBy: TagArticlesSortBy = byCreatedAtDesc
   }
 

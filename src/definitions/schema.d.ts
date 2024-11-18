@@ -184,6 +184,7 @@ export type GQLArticle = GQLNode &
     author: GQLUser
     /** Available translation languages. */
     availableTranslations?: Maybe<Array<GQLUserLanguage>>
+    bookmarked: Scalars['Boolean']['output']
     /** associated campaigns */
     campaigns: Array<GQLArticleCampaign>
     /** whether readers can comment */
@@ -270,10 +271,11 @@ export type GQLArticle = GQLNode &
     slug: Scalars['String']['output']
     /** State of this article. */
     state: GQLArticleState
-    /** This value determines if current Viewer has subscribed of not. */
+    /**
+     * This value determines if current Viewer has bookmarked of not.
+     * @deprecated Use bookmarked instead
+     */
     subscribed: Scalars['Boolean']['output']
-    /** Subscribers of this article. */
-    subscribers: GQLUserConnection
     /** A short summary for this article. */
     summary: Scalars['String']['output']
     /** This value determines if the summary is customized or not. */
@@ -364,14 +366,6 @@ export type GQLArticleRelatedDonationArticlesArgs = {
  */
 export type GQLArticleResponsesArgs = {
   input: GQLResponsesInput
-}
-
-/**
- * This type contains metadata, content, hash and related data of an article. If you
- * want information about article's comments. Please check Comment type.
- */
-export type GQLArticleSubscribersArgs = {
-  input: GQLConnectionArgs
 }
 
 /**
@@ -1920,19 +1914,27 @@ export type GQLMutation = {
   toggleArticleRecommend: GQLArticle
   /** Block or Unblock a given user. */
   toggleBlockUser: GQLUser
+  toggleBookmarkArticle: GQLArticle
+  toggleBookmarkTag: GQLTag
   /**
    * Follow or unfollow a Circle.
    * @deprecated No longer in use
    */
   toggleFollowCircle: GQLCircle
-  /** Follow or unfollow tag. */
+  /**
+   * Bookmark or unbookmark tag.
+   * @deprecated Use toggleBookmarkTag instead
+   */
   toggleFollowTag: GQLTag
   /** Follow or Unfollow current user. */
   toggleFollowUser: GQLUser
   /** Pin or Unpin a comment. */
   togglePinComment: GQLComment
   toggleSeedingUsers: Array<Maybe<GQLUser>>
-  /** Subscribe or Unsubscribe article */
+  /**
+   * Bookmark or unbookmark article
+   * @deprecated Use toggleBookmarkArticle instead
+   */
   toggleSubscribeArticle: GQLArticle
   toggleUsersBadge: Array<Maybe<GQLUser>>
   toggleWritingChallengeFeaturedArticles: GQLCampaign
@@ -2243,6 +2245,14 @@ export type GQLMutationToggleArticleRecommendArgs = {
 }
 
 export type GQLMutationToggleBlockUserArgs = {
+  input: GQLToggleItemInput
+}
+
+export type GQLMutationToggleBookmarkArticleArgs = {
+  input: GQLToggleItemInput
+}
+
+export type GQLMutationToggleBookmarkTagArgs = {
   input: GQLToggleItemInput
 }
 
@@ -3397,6 +3407,8 @@ export type GQLTag = GQLNode & {
   oss: GQLTagOss
   /** Tags recommended based on relations to current tag. */
   recommended: GQLTagConnection
+  /** Authors recommended based on relations to current tag. */
+  recommendedAuthors: GQLUserConnection
   remark?: Maybe<Scalars['String']['output']>
 }
 
@@ -3410,11 +3422,15 @@ export type GQLTagRecommendedArgs = {
   input: GQLConnectionArgs
 }
 
+/** This type contains content, count and related data of an article tag. */
+export type GQLTagRecommendedAuthorsArgs = {
+  input: GQLConnectionArgs
+}
+
 export type GQLTagArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   oss?: InputMaybe<Scalars['Boolean']['input']>
-  selected?: InputMaybe<Scalars['Boolean']['input']>
   sortBy?: InputMaybe<GQLTagArticlesSortBy>
 }
 
@@ -5860,6 +5876,7 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType
   >
+  bookmarked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   campaigns?: Resolver<
     Array<GQLResolversTypes['ArticleCampaign']>,
     ParentType,
@@ -5993,12 +6010,6 @@ export type GQLArticleResolvers<
   slug?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   state?: Resolver<GQLResolversTypes['ArticleState'], ParentType, ContextType>
   subscribed?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  subscribers?: Resolver<
-    GQLResolversTypes['UserConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLArticleSubscribersArgs, 'input'>
-  >
   summary?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   summaryCustomized?: Resolver<
     GQLResolversTypes['Boolean'],
@@ -7932,6 +7943,18 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationToggleBlockUserArgs, 'input'>
   >
+  toggleBookmarkArticle?: Resolver<
+    GQLResolversTypes['Article'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationToggleBookmarkArticleArgs, 'input'>
+  >
+  toggleBookmarkTag?: Resolver<
+    GQLResolversTypes['Tag'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationToggleBookmarkTagArgs, 'input'>
+  >
   toggleFollowCircle?: Resolver<
     GQLResolversTypes['Circle'],
     ParentType,
@@ -8968,6 +8991,12 @@ export type GQLTagResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLTagRecommendedArgs, 'input'>
+  >
+  recommendedAuthors?: Resolver<
+    GQLResolversTypes['UserConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLTagRecommendedAuthorsArgs, 'input'>
   >
   remark?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>

@@ -6,7 +6,7 @@ import publishArticle from './publishArticle'
 import readArticle from './readArticle'
 import renameTag from './renameTag'
 import toggleArticleRecommend from './toggleArticleRecommend'
-import toggleSubscribeArticle from './toggleSubscribeArticle'
+import toggleBookmarkArticle from './toggleBookmarkArticle'
 import updateArticleSensitive from './updateArticleSensitive'
 import updateArticleState from './updateArticleState'
 
@@ -17,7 +17,8 @@ export default {
     appreciateArticle,
     readArticle,
     toggleArticleRecommend,
-    toggleSubscribeArticle,
+    toggleBookmarkArticle,
+    toggleSubscribeArticle: toggleBookmarkArticle,
     updateArticleState,
     updateArticleSensitive,
     deleteTags,
