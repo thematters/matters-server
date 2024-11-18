@@ -11,8 +11,8 @@ import {
 import { ForbiddenError } from 'common/errors'
 import {
   connectionFromPromisedArray,
-  fromConnectionArgs,
   excludeSpam,
+  fromConnectionArgs,
 } from 'common/utils'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
@@ -21,7 +21,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   {
     viewer,
     dataSources: {
-      systemService,
+      // systemService,
       connections: { knexRO },
     },
   }
@@ -41,7 +41,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
     state: TRANSACTION_STATE.succeeded,
   })
 
-  const spamThreshold = await systemService.getSpamThreshold()
+  // const spamThreshold = await systemService.getSpamThreshold()
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
@@ -72,7 +72,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .where('type', 'articleHottest')
             )
             .whereIn('article.id', donatedArticles)
-            .modify(excludeSpam, spamThreshold)
+          // .modify(excludeSpam, spamThreshold)
         }
       })
       .as('hottest')
@@ -90,3 +90,80 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
 
   return connectionFromPromisedArray(articles, input, totalCount)
 }
+
+export const hottestExcludeSpam: GQLRecommendationResolvers['hottestExcludeSpam'] =
+  async (
+    _,
+    { input },
+    {
+      viewer,
+      dataSources: {
+        systemService,
+        connections: { knexRO },
+      },
+    }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
+    const { take, skip } = fromConnectionArgs(input)
+
+    const donatedArticles = knexRO('transaction').select('target_id').where({
+      purpose: TRANSACTION_PURPOSE.donation,
+      state: TRANSACTION_STATE.succeeded,
+    })
+
+    const spamThreshold = await systemService.getSpamThreshold()
+
+    const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
+    const makeHottestQuery = () => {
+      const query = knexRO
+        .select('article.*', knexRO.raw('count(1) OVER() AS total_count'))
+        .from(
+          knexRO
+            .select()
+            .from(MATERIALIZED_VIEW.article_hottest_materialized)
+            .orderByRaw('score desc nulls last')
+            .limit(MAX_ITEM_COUNT)
+            .as('view')
+        )
+        .leftJoin('article', 'view.id', 'article.id')
+        .leftJoin(
+          'article_recommend_setting AS setting',
+          'view.id',
+          'setting.article_id'
+        )
+        .where((builder: Knex.QueryBuilder) => {
+          if (!oss) {
+            builder
+              .whereRaw('in_hottest IS NOT false')
+              .whereNotIn(
+                'article.author_id',
+                knexRO('user_restriction')
+                  .select('user_id')
+                  .where('type', 'articleHottest')
+              )
+              .whereIn('article.id', donatedArticles)
+              .modify(excludeSpam, spamThreshold)
+          }
+        })
+        .as('hottest')
+
+      return query
+        .orderByRaw('score DESC NULLS LAST')
+        .orderBy([{ column: 'view.id', order: 'desc' }])
+        .offset(skip)
+        .limit(take)
+    }
+
+    const articles = await makeHottestQuery()
+
+    const totalCount = articles.length === 0 ? 0 : +articles[0].totalCount
+
+    return connectionFromPromisedArray(articles, input, totalCount)
+  }

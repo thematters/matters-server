@@ -12,8 +12,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_RESTRICTION_TYPE,
-  FEATURE_NAME,
-  FEATURE_FLAG,
+  // FEATURE_NAME,
+  // FEATURE_FLAG,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -23,7 +23,7 @@ import {
   UserService,
   PaymentService,
   CampaignService,
-  SystemService,
+  // SystemService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
@@ -43,7 +43,7 @@ let momentService: MomentService
 let userService: UserService
 let paymentService: PaymentService
 let campaignService: CampaignService
-let systemService: SystemService
+// let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -54,7 +54,7 @@ beforeAll(async () => {
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
   campaignService = new CampaignService(connections)
-  systemService = new SystemService(connections)
+  // systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -756,44 +756,44 @@ describe('hottest articles', () => {
         _.clamp(campaignBoostEff, 0.5, 2)
     ).toBe(score)
   })
-  test('spam are excluded', async () => {
-    const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
+  // test('spam are excluded', async () => {
+  //   const spamThreshold = 0.5
+  //   await systemService.setFeatureFlag({
+  //     name: FEATURE_NAME.spam_detection,
+  //     flag: FEATURE_FLAG.on,
+  //     value: spamThreshold,
+  //   })
 
-    // both `is_spam` and `spam_score` are null, not excluded
-    const server = await testClient({ connections })
-    const { data: data1 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
-    })
-    expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
+  //   // both `is_spam` and `spam_score` are null, not excluded
+  //   const server = await testClient({ connections })
+  //   const { data: data1 } = await server.executeOperation({
+  //     query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+  //     variables: { input: { first: 10 } },
+  //   })
+  //   expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
 
-    // `spam_score` = `spam_threshold`, excluded
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { spamScore: spamThreshold },
-    })
-    const { data: data2 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
-    })
-    expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
+  //   // `spam_score` = `spam_threshold`, excluded
+  //   await atomService.update({
+  //     table: 'article',
+  //     where: { id: article.id },
+  //     data: { spamScore: spamThreshold },
+  //   })
+  //   const { data: data2 } = await server.executeOperation({
+  //     query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+  //     variables: { input: { first: 10 } },
+  //   })
+  //   expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
 
-    // `is_spam` = false, not excluded
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { isSpam: false },
-    })
-    const { data: data3 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
-    })
-    expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
-  })
+  //   // `is_spam` = false, not excluded
+  //   await atomService.update({
+  //     table: 'article',
+  //     where: { id: article.id },
+  //     data: { isSpam: false },
+  //   })
+  //   const { data: data3 } = await server.executeOperation({
+  //     query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+  //     variables: { input: { first: 10 } },
+  //   })
+  //   expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
+  // })
 })

@@ -212,8 +212,12 @@ export default /* GraphQL */ `
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
+    newestExcludeSpam(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+
     "Global articles sort by latest activity time."
     hottest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+
+    hottestExcludeSpam(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})

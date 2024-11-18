@@ -258,6 +258,21 @@ describe('find and count articles', () => {
       data: { state: ARTICLE_STATE.active },
     })
   })
+  // test('spam are excluded', async () => {
+  //   const spamThreshold = 0.5
+  //   const _articles1 = await campaignService.findArticles(campaign.id)
+
+  //   await atomService.update({
+  //     table: 'article',
+  //     where: { id: articles[0].id },
+  //     data: { spamScore: spamThreshold + 0.1 },
+  //   })
+
+  //   const _articles2 = await campaignService.findArticles(campaign.id, {
+  //     spamThreshold,
+  //   })
+  //   expect(_articles2.length).toBe(_articles1.length - 1)
+  // })
 })
 
 describe('application', () => {

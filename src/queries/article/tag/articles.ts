@@ -23,7 +23,7 @@ const resolver: GQLTagResolvers['articles'] = async (
         })
       : tagService.findArticleIds({
           id: root.id,
-          excludeSpam: true,
+          // excludeSpam: true,
           skip,
           take,
         }),

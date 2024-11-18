@@ -3,7 +3,7 @@ import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from 'common/enums'
 export default /* GraphQL */ `
   extend type Query {
     campaign(input: CampaignInput!): Campaign @logCache(type: "${NODE_TYPES.Campaign}")
-    campaigns(input: CampaignsInput!): CampaignConnection!
+    campaigns(input:CampaignsInput!): CampaignConnection!
   }
 
   extend type Mutation {
@@ -100,7 +100,7 @@ export default /* GraphQL */ `
     announcements: [Article!]!
 
     applicationPeriod: DatetimeRange
-    writingPeriod: DatetimeRange
+    writingPeriod:DatetimeRange
     stages: [CampaignStage!]!
 
     state: CampaignState!
