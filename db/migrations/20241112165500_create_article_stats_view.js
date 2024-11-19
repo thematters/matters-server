@@ -20,8 +20,12 @@ exports.up = async (knex) => {
       GROUP BY reference_id
     ) c ON r.article_id = c.reference_id
   `)
+
+  await knex.raw(`
+    CREATE UNIQUE INDEX ${table}_id ON ${table} (article_id)
+  `)
 }
 
 exports.down = async (knex) => {
-  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${table}`)
+  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${table} CASCADE`)
 }

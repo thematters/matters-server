@@ -64,8 +64,12 @@ exports.up = async (knex) => {
     WHERE base.score > 0
     ORDER BY base.score DESC
   `)
+
+  await knex.raw(`
+    CREATE UNIQUE INDEX ${table}_tag_id ON ${table} (tag_id)
+  `)
 }
 
 exports.down = async (knex) => {
-  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${table}`)
+  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${table} CASCADE`)
 }
