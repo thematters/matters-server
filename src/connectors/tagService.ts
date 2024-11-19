@@ -634,26 +634,42 @@ export class TagService extends BaseService<Tag> {
   }
 
   private getHottestArticlesBaseQuery = (tagId: string) => {
-    return this.knexRO.with('tagged_articles', (builder) =>
-      builder
-        .select('article.id', 'article_stats.reads', 'article_stats.claps')
-        .from('article_tag')
-        .innerJoin('article', 'article.id', 'article_tag.article_id')
-        .innerJoin(
-          'article_version_newest as avn',
-          'avn.article_id',
-          'article_tag.article_id'
-        )
-        .leftJoin(
-          'article_stats_materialized as article_stats',
-          'article_stats.article_id',
-          'article_tag.article_id'
-        )
-        .where({
-          'article_tag.tag_id': tagId,
-          'article.state': ARTICLE_STATE.active,
-        })
-    )
+    return this.knexRO
+      .with('tagged_articles', (builder) =>
+        builder
+          .select(
+            'article.id',
+            'avn.created_at',
+            this.knexRO.raw('COALESCE(article_stats.reads, 0) as reads')
+            // this.knexRO.raw('COALESCE(article_stats.claps, 0) as claps')
+          )
+          .from('article_tag')
+          .innerJoin('article', 'article.id', 'article_tag.article_id')
+          .innerJoin(
+            'article_version_newest as avn',
+            'avn.article_id',
+            'article_tag.article_id'
+          )
+          .leftJoin(
+            'article_stats_materialized as article_stats',
+            'article_stats.article_id',
+            'article_tag.article_id'
+          )
+          .where({
+            'article_tag.tag_id': tagId,
+            'article.state': ARTICLE_STATE.active,
+          })
+      )
+      .with('scored_articles', (builder) =>
+        builder
+          .select('*')
+          .from('tagged_articles')
+          .select(
+            this.knexRO.raw(
+              "ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - created_at)) AS score"
+            )
+          )
+      )
   }
 
   public findHottestArticleIds = async ({
@@ -677,7 +693,8 @@ export class TagService extends BaseService<Tag> {
 
     const results = await this.getHottestArticlesBaseQuery(tagId)
       .select('id as article_id')
-      .orderByRaw('(COALESCE(reads, 0) + COALESCE(claps, 0)) DESC')
+      .from('scored_articles')
+      .orderBy('score', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -701,9 +718,106 @@ export class TagService extends BaseService<Tag> {
       return 0
     }
 
-    const result = await this.getHottestArticlesBaseQuery(tagId).count().first()
+    const result = await this.getHottestArticlesBaseQuery(tagId)
+      .from('scored_articles')
+      .count()
+      .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find related authors by tag id
+   */
+  private getRelatedAuthorsQuery = (tagId: string) => {
+    return this.knex
+      .with('active_articles', (builder) =>
+        builder
+          .select('article.author_id', 'article.id as article_id')
+          .from('article_tag as at')
+          .innerJoin('article', 'article.id', 'at.article_id')
+          .innerJoin('user as u', 'u.id', 'article.author_id')
+          .where({
+            'at.tag_id': tagId,
+            'article.state': ARTICLE_STATE.active,
+          })
+          .whereNotIn('u.state', ['frozen', 'archived'])
+          .whereNotIn(
+            'u.id',
+            this.knex.select('user_id').from('user_restriction')
+          )
+      )
+      .with('author_stats', (builder) =>
+        builder
+          .select(
+            'a.author_id',
+            this.knex.raw('avg(COALESCE(s.reads, 0)) as mean_reads'),
+            this.knex.raw('avg(COALESCE(s.claps, 0)) as mean_claps')
+          )
+          .from('active_articles as a')
+          .leftJoin(
+            'article_stats_materialized as s',
+            's.article_id',
+            'a.article_id'
+          )
+          .groupBy('a.author_id')
+      )
+      .with('author_scores', (builder) =>
+        builder
+          .select(
+            'author_id',
+            'mean_reads',
+            'mean_claps',
+            this.knex.raw('(0.85 * mean_reads + 0.15 * mean_claps) as score')
+          )
+          .from('author_stats')
+      )
+      .with('score_threshold', (builder) =>
+        builder
+          .select(
+            this.knex.raw(
+              'percentile_cont(0.25) within group (order by score) as threshold'
+            )
+          )
+          .from('author_scores')
+      )
+      .select(['u.id', 'author_scores.score'])
+      .from('author_scores')
+      .innerJoin('user as u', 'u.id', 'author_scores.author_id')
+      .where(
+        'author_scores.score',
+        '>',
+        this.knex.select('threshold').from('score_threshold')
+      )
+      .groupBy(['u.id', 'author_scores.score'])
+      .orderBy('author_scores.score', 'desc')
+  }
+
+  public findRelatedAuthors = async ({
+    id: tagId,
+    skip,
+    take,
+  }: {
+    id: string
+    skip?: number
+    take?: number
+  }) => {
+    const result = await this.getRelatedAuthorsQuery(tagId).modify(
+      (builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      }
+    )
+    return result.map(({ id }: { id: string }) => id)
+  }
+
+  public countRelatedAuthors = async ({ id: tagId }: { id: string }) => {
+    const result = await this.getRelatedAuthorsQuery(tagId)
+    return result.length
   }
 
   /**

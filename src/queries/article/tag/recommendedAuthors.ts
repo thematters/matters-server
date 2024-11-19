@@ -1,21 +1,36 @@
 import type { GQLTagResolvers } from 'definitions'
 
-import { connectionFromArray } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils'
 
 const resolver: GQLTagResolvers['recommendedAuthors'] = async (
   { id },
   { input },
   { dataSources: { tagService, atomService } }
 ) => {
-  // const { take, skip } = fromConnectionArgs(input)
+  const { take, skip } = fromConnectionArgs(input)
 
   if (!id) {
     return connectionFromArray([], input)
   }
 
-  return connectionFromArray([], input)
+  const [totalCount, authorIds] = await Promise.all([
+    tagService.countRelatedAuthors({ id }),
+    tagService.findRelatedAuthors({
+      id,
+      skip,
+      take,
+    }),
+  ])
 
-  // return connectionFromPromisedArray(tags.slice(s, end), input, totalCount)
+  return connectionFromPromisedArray(
+    atomService.userIdLoader.loadMany(authorIds),
+    input,
+    totalCount
+  )
 }
 
 export default resolver

@@ -51,8 +51,16 @@ exports.up = async (knex) => {
         ts.all_users DESC,
         ts.all_articles DESC
   `)
+
+  await knex.raw(`
+    CREATE UNIQUE INDEX ${materialized}_tag_id ON ${materialized} (tag_id)
+  `)
+
+  await knex.raw(`
+    CREATE INDEX ${materialized}_all_users ON ${materialized} (all_users DESC)
+  `)
 }
 
 exports.down = async (knex) => {
-  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${materialized}`)
+  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${materialized} CASCADE`)
 }
