@@ -1972,6 +1972,8 @@ export type GQLMutation = {
   voteComment: GQLComment
   /** Login/Signup via a wallet. */
   walletLogin: GQLAuthResult
+  /** Withdraw locked ERC20/native token from donation vault */
+  withdrawLockedTokens: GQLWithdrawLockedTokensResult
 }
 
 export type GQLMutationAddBlockedSearchKeywordArgs = {
@@ -3592,7 +3594,9 @@ export type GQLTransactionNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export type GQLTransactionNoticeType = 'PaymentReceivedDonation'
+export type GQLTransactionNoticeType =
+  | 'PaymentReceivedDonation'
+  | 'WithdrewLockedTokens'
 
 export type GQLTransactionPurpose =
   | 'addCredit'
@@ -4167,6 +4171,11 @@ export type GQLWalletLoginInput = {
   signature: Scalars['String']['input']
   /** the message being sign'ed, including nonce */
   signedMessage: Scalars['String']['input']
+}
+
+export type GQLWithdrawLockedTokensResult = {
+  __typename?: 'WithdrawLockedTokensResult'
+  transaction: GQLTransaction
 }
 
 export type GQLWriting = GQLArticle | GQLMoment
@@ -5126,6 +5135,11 @@ export type GQLResolversTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
+  WithdrawLockedTokensResult: ResolverTypeWrapper<
+    Omit<GQLWithdrawLockedTokensResult, 'transaction'> & {
+      transaction: GQLResolversTypes['Transaction']
+    }
+  >
   Writing: ResolverTypeWrapper<WritingModel>
   WritingChallenge: ResolverTypeWrapper<CampaignModel>
   WritingConnection: ResolverTypeWrapper<
@@ -5624,6 +5638,10 @@ export type GQLResolversParentTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
+  WithdrawLockedTokensResult: Omit<
+    GQLWithdrawLockedTokensResult,
+    'transaction'
+  > & { transaction: GQLResolversParentTypes['Transaction'] }
   Writing: WritingModel
   WritingChallenge: CampaignModel
   WritingConnection: Omit<GQLWritingConnection, 'edges'> & {
@@ -8119,6 +8137,11 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationWalletLoginArgs, 'input'>
   >
+  withdrawLockedTokens?: Resolver<
+    GQLResolversTypes['WithdrawLockedTokensResult'],
+    ParentType,
+    ContextType
+  >
 }>
 
 export type GQLNftAssetResolvers<
@@ -9723,6 +9746,18 @@ export type GQLWalletResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLWithdrawLockedTokensResultResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['WithdrawLockedTokensResult'] = GQLResolversParentTypes['WithdrawLockedTokensResult']
+> = ResolversObject<{
+  transaction?: Resolver<
+    GQLResolversTypes['Transaction'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLWritingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Writing'] = GQLResolversParentTypes['Writing']
@@ -9978,6 +10013,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserSettings?: GQLUserSettingsResolvers<ContextType>
   UserStatus?: GQLUserStatusResolvers<ContextType>
   Wallet?: GQLWalletResolvers<ContextType>
+  WithdrawLockedTokensResult?: GQLWithdrawLockedTokensResultResolvers<ContextType>
   Writing?: GQLWritingResolvers<ContextType>
   WritingChallenge?: GQLWritingChallengeResolvers<ContextType>
   WritingConnection?: GQLWritingConnectionResolvers<ContextType>

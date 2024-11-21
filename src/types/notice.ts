@@ -263,6 +263,7 @@ export default /* GraphQL */ `
 
   enum TransactionNoticeType {
     PaymentReceivedDonation
+    WithdrewLockedTokens
   }
 
 
