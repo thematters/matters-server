@@ -506,7 +506,7 @@ export class PublicationQueue {
     campaigns,
   }: {
     article: Article
-    campaigns: Array<{ campaign: string; stage: string }>
+    campaigns: Array<{ campaign: string; stage?: string }>
   }) => {
     const campaignService = new CampaignService(this.connections)
     for (const { campaign, stage } of campaigns) {

@@ -436,7 +436,7 @@ export type GQLArticleCampaign = {
 
 export type GQLArticleCampaignInput = {
   campaign: Scalars['ID']['input']
-  stage: Scalars['ID']['input']
+  stage?: InputMaybe<Scalars['ID']['input']>
 }
 
 export type GQLArticleConnection = GQLConnection & {

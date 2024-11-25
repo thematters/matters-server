@@ -142,7 +142,7 @@ export default /* GraphQL */ `
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Articles and moments authored by current user."
-    writings(input:WritingInput!): WritingConnection!
+    writings(input: WritingInput!): WritingConnection!
 
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
@@ -193,7 +193,7 @@ export default /* GraphQL */ `
     analytics: UserAnalytics! @auth(mode: "${AUTH_MODE.oauth}")
 
     "active applied campaigns"
-    campaigns(input:ConnectionArgs!): CampaignConnection!
+    campaigns(input: ConnectionArgs!): CampaignConnection!
 
     "Status of current user."
     status: UserStatus
@@ -1068,7 +1068,7 @@ export default /* GraphQL */ `
   }
 
   input RecommendationFollowingFilterInput {
-    type:RecommendationFollowingFilterType
+    type: RecommendationFollowingFilterType
   }
 
   enum RecommendationFollowingFilterType {
