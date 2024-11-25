@@ -33,9 +33,12 @@ exports.up = async (knex) => {
         GROUP BY tag_id
     ),
     user_threshold AS (
-        SELECT DISTINCT
+        SELECT
             PERCENTILE_CONT(0.15) WITHIN GROUP (ORDER BY all_users) AS threshold
-        FROM tag_stats
+        FROM (
+            SELECT DISTINCT all_users
+            FROM tag_stats
+        ) AS source
     )
     SELECT
         ts.tag_id,
@@ -43,10 +46,8 @@ exports.up = async (knex) => {
         ts.all_articles,
         ts.all_users
     FROM tag_stats ts
-        INNER JOIN tag
-            ON tag.id = ts.tag_id
-        CROSS JOIN user_threshold ut
-    WHERE ts.all_users > ut.threshold
+        INNER JOIN tag ON tag.id = ts.tag_id
+    WHERE ts.all_users > (SELECT threshold FROM user_threshold)
     ORDER BY
         ts.all_users DESC,
         ts.all_articles DESC
