@@ -442,6 +442,7 @@ export class CampaignService {
         application.createdAt.getTime() < end.getTime()
           ? OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
           : OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird,
+      entities: [{ type: 'target', entityTable: 'campaign', entity: campaign }],
       recipientId: updated.userId,
       data: { link: campaign.link ?? '' },
     })
