@@ -80,11 +80,11 @@ export class CurationContract extends BaseContract {
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: 'Curation',
-    })
+    }) as Hex[]
     this.nativeTokenCurationEventTopic = encodeEventTopics({
       abi: nativeTokenCurationEventABI,
       eventName: 'Curation',
-    })
+    }) as Hex[]
   }
 
   public fetchLogs = async (

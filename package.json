@@ -39,6 +39,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@alchemy/aa-accounts": "^3.19.0",
+    "@alchemy/aa-core": "^3.19.0",
     "@apollo/cache-control-types": "^1.0.2",
     "@apollo/datasource-rest": "^6.0.0",
     "@apollo/server": "^4.7.4",
@@ -111,7 +113,7 @@
     "typescript": "^5.0.4",
     "uuid": "^9.0.0",
     "validator": "^13.9.0",
-    "viem": "^1.21.1",
+    "viem": "^2.21.52",
     "winston": "^3.8.2",
     "xss": "^1.0.14"
   },

@@ -246,6 +246,13 @@ interface NoticePaymentReceivedDonationParams
   entities: [NotificationEntity<'target', 'transaction'>]
 }
 
+interface NoticeWithdrewLockedTokensParams extends NotificationRequiredParams {
+  event: NOTICE_TYPE.withdrew_locked_tokens
+  recipientId: string
+  actorId: string | null
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
+
 /**
  * Circle
  */
@@ -415,6 +422,7 @@ export type NotificationParams =
   | NoticeCampaignArticleFeaturedParams
   // Payment
   | NoticePaymentReceivedDonationParams
+  | NoticeWithdrewLockedTokensParams
   // Circle
   | NoticeCircleInvitationParams
   | NoticeCircleNewSubscriberParams
