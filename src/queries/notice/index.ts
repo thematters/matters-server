@@ -95,6 +95,7 @@ const notice: {
 
         // transaction
         payment_received_donation: NOTICE_TYPE.TransactionNotice,
+        withdrew_locked_tokens: NOTICE_TYPE.TransactionNotice,
 
         // circle
         circle_invitation: NOTICE_TYPE.CircleNotice,
@@ -307,6 +308,8 @@ const notice: {
       switch (type) {
         case INNER_NOTICE_TYPE.payment_received_donation:
           return 'PaymentReceivedDonation'
+        case INNER_NOTICE_TYPE.withdrew_locked_tokens:
+          return 'WithdrewLockedTokens'
       }
       throw new ServerError(`Unknown TransactionNotice type: ${type}`)
     },

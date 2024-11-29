@@ -130,6 +130,8 @@ export const environment = {
   openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || undefined,
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
+  curationVaultSignerPrivateKey:
+    process.env.MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
@@ -186,6 +188,9 @@ export const contract = {
         tokenAddress:
           '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'.toLowerCase(),
         tokenDecimals: 6,
+        // TODO: update to prod address
+        curationVaultAddress:
+          '0x891060263b8397cB3c69F01E3383e7f8838Fd8a8'.toLowerCase(),
       }
     : {
         curationAddress:
@@ -194,5 +199,7 @@ export const contract = {
         tokenAddress:
           '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'.toLowerCase(),
         tokenDecimals: 6,
+        curationVaultAddress:
+          '0x891060263b8397cB3c69F01E3383e7f8838Fd8a8'.toLowerCase(),
       },
 }

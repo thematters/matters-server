@@ -2222,9 +2222,9 @@ export class UserService extends BaseService<User> {
       if (isSmartContract) {
         // verify the message for a decentralized account (contract wallet)
         const contractWallet = getContract({
-          publicClient: client,
           abi: IERC1271,
           address: ethAddress,
+          client: { public: client },
         })
 
         const verification = await contractWallet.read.isValidSignature([

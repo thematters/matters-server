@@ -34,7 +34,11 @@ export class BaseContract {
       transport: http(BLOCKCHAIN_RPC[chainId]),
     })
 
-    this.contract = getContract({ abi, address, publicClient: this.client })
+    this.contract = getContract({
+      abi,
+      address,
+      client: { public: this.client },
+    })
   }
 
   public fetchBlockNumber = async (): Promise<bigint> =>

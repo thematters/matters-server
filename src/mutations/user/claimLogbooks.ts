@@ -101,10 +101,12 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     transport: http(),
   })
   const logbookContract = getContract({
-    publicClient: client,
     abi,
     address: contract.Polygon.logbookAddress as Address,
-    walletClient,
+    client: {
+      public: client,
+      wallet: walletClient,
+    },
   })
 
   const unclaimedTokenIds = []

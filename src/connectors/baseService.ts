@@ -211,7 +211,7 @@ export class BaseService<T extends BaseDBSchema> {
     trx?: Knex.Transaction
   ): Promise<S[]> => {
     const query = this.knex
-      .batchInsert(table || this.table, dataItems)
+      .batchInsert(table || this.table, dataItems as any)
       .returning('*')
     if (trx) {
       query.transacting(trx)
