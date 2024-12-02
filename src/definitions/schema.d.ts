@@ -1525,15 +1525,10 @@ export type GQLFilterInput = {
 export type GQLFollowing = {
   __typename?: 'Following'
   circles: GQLCircleConnection
-  tags: GQLTagConnection
   users: GQLUserConnection
 }
 
 export type GQLFollowingCirclesArgs = {
-  input: GQLConnectionArgs
-}
-
-export type GQLFollowingTagsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -3755,6 +3750,10 @@ export type GQLUser = GQLNode & {
   avatar?: Maybe<Scalars['String']['output']>
   /** Users that blocked by current user. */
   blockList: GQLUserConnection
+  /** Artilces current user bookmarked. */
+  bookmarkedArticles: GQLArticleConnection
+  /** Tags current user bookmarked. */
+  bookmarkedTags: GQLTagConnection
   /** active applied campaigns */
   campaigns: GQLCampaignConnection
   /** collections authored by current user. */
@@ -3804,8 +3803,6 @@ export type GQLUser = GQLNode & {
   status?: Maybe<GQLUserStatus>
   /** Circles whiches user has subscribed. */
   subscribedCircles: GQLCircleConnection
-  /** Artilces current user subscribed to. */
-  subscriptions: GQLArticleConnection
   /** Tags by usage order of current user. */
   tags: GQLTagConnection
   /** Global unique user name of a user. */
@@ -3821,6 +3818,14 @@ export type GQLUserArticlesArgs = {
 }
 
 export type GQLUserBlockListArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLUserBookmarkedArticlesArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLUserBookmarkedTagsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -3849,10 +3854,6 @@ export type GQLUserNoticesArgs = {
 }
 
 export type GQLUserSubscribedCirclesArgs = {
-  input: GQLConnectionArgs
-}
-
-export type GQLUserSubscriptionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -7219,12 +7220,6 @@ export type GQLFollowingResolvers<
     ContextType,
     RequireFields<GQLFollowingCirclesArgs, 'input'>
   >
-  tags?: Resolver<
-    GQLResolversTypes['TagConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLFollowingTagsArgs, 'input'>
-  >
   users?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
@@ -9234,6 +9229,18 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserBlockListArgs, 'input'>
   >
+  bookmarkedArticles?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLUserBookmarkedArticlesArgs, 'input'>
+  >
+  bookmarkedTags?: Resolver<
+    GQLResolversTypes['TagConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLUserBookmarkedTagsArgs, 'input'>
+  >
   campaigns?: Resolver<
     GQLResolversTypes['CampaignConnection'],
     ParentType,
@@ -9330,12 +9337,6 @@ export type GQLUserResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLUserSubscribedCirclesArgs, 'input'>
-  >
-  subscriptions?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLUserSubscriptionsArgs, 'input'>
   >
   tags?: Resolver<
     GQLResolversTypes['TagConnection'],

@@ -260,13 +260,6 @@ const GET_VIEWER_FOLLOWINGS = /* GraphQL */ `
             }
           }
         }
-        tags(input: $input) {
-          edges {
-            node {
-              id
-            }
-          }
-        }
         users(input: $input) {
           edges {
             node {
@@ -586,10 +579,8 @@ describe('user query fields', () => {
     })
     const circles = _get(data, 'viewer.following.circles.edges')
     const users = _get(data, 'viewer.following.users.edges')
-    const tags = _get(data, 'viewer.following.tags.edges')
     expect(Array.isArray(circles)).toBe(true)
     expect(Array.isArray(users)).toBe(true)
-    expect(Array.isArray(tags)).toBe(true)
   })
 
   test('retrive topDonators by visitor', async () => {

@@ -162,8 +162,11 @@ export default /* GraphQL */ `
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
-    "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
+    "Artilces current user bookmarked."
+    bookmarkedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
+
+    "Tags current user bookmarked."
+    bookmarkedTags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Record of user activity, only accessable by current user."
     activity: UserActivity! @auth(mode: "${AUTH_MODE.oauth}")
@@ -655,7 +658,6 @@ export default /* GraphQL */ `
 
   type Following {
     circles(input: ConnectionArgs!): CircleConnection! @complexity(multipliers: ["input.first"], value: 1)
-    tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
     users(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 

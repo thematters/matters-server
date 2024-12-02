@@ -64,7 +64,7 @@ import rootUser from './rootUser'
 import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
-import subscriptions from './subscriptions'
+// import subscriptions from './subscriptions'
 import tagsUsageRecommendation from './tags/tagsUsageRecommendation'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -114,7 +114,6 @@ const user: {
     likerId,
     liker: (root) => root,
     info: (root) => root,
-    // ipnsAddress,
     wallet: (root) => root,
     settings: (root) => root,
     status: (root) => (root.id ? root : null),
@@ -123,8 +122,7 @@ const user: {
     analytics: (root) => root,
     recommendation: (root) => root,
     oss: (root) => root,
-    // hasFollowed,
-    subscriptions,
+    // subscriptions,
     collections,
     latestWorks,
     pinnedWorks,

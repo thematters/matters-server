@@ -6,7 +6,7 @@ import {
   fromConnectionArgs,
 } from 'common/utils'
 
-const resolver: GQLUserResolvers['subscriptions'] = async (
+const resolver: GQLUserResolvers['bookmarkedArticles'] = async (
   { id },
   { input },
   { dataSources: { atomService, userService } }

@@ -1075,8 +1075,11 @@ type User implements Node {
   """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """Artilces current user subscribed to."""
-  subscriptions(input: ConnectionArgs!): ArticleConnection!
+  """Artilces current user bookmarked."""
+  bookmarkedArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Tags current user bookmarked."""
+  bookmarkedTags(input: ConnectionArgs!): TagConnection!
 
   """Record of user activity, only accessable by current user."""
   activity: UserActivity!
@@ -2911,7 +2914,6 @@ enum CircleRecommendationActivitySource {
 
 type Following {
   circles(input: ConnectionArgs!): CircleConnection!
-  tags(input: ConnectionArgs!): TagConnection!
   users(input: ConnectionArgs!): UserConnection!
 }
 

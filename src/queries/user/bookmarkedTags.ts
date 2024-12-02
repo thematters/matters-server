@@ -1,4 +1,4 @@
-import type { GQLFollowingResolvers } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
 import { TAG_ACTION } from 'common/enums'
 import {
@@ -7,7 +7,7 @@ import {
   fromConnectionArgs,
 } from 'common/utils'
 
-const resolver: GQLFollowingResolvers['tags'] = async (
+const resolver: GQLUserResolvers['bookmarkedTags'] = async (
   { id },
   { input },
   { dataSources: { atomService } }
