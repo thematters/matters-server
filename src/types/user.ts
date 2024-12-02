@@ -154,7 +154,7 @@ export default /* GraphQL */ `
     pinnedWorks: [PinnableWork!]!
 
     "Tags by usage order of current user."
-    tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
+    tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")

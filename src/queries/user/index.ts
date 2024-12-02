@@ -30,6 +30,8 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import bookmarkedArticles from './bookmarkedArticles'
+import bookmarkedTags from './bookmarkedTags'
 import campaigns from './campaigns'
 import changeEmailTimesLeft from './changeEmailTimesLeft'
 import Collection from './collection'
@@ -64,7 +66,6 @@ import rootUser from './rootUser'
 import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
-// import subscriptions from './subscriptions'
 import tagsUsageRecommendation from './tags/tagsUsageRecommendation'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -122,7 +123,8 @@ const user: {
     analytics: (root) => root,
     recommendation: (root) => root,
     oss: (root) => root,
-    // subscriptions,
+    bookmarkedArticles,
+    bookmarkedTags,
     collections,
     latestWorks,
     pinnedWorks,
