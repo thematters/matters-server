@@ -1451,37 +1451,6 @@ export class ArticleService extends BaseService<Article> {
 
   /*********************************
    *                               *
-   *          Subscription         *
-   *                               *
-   *********************************/
-  /**
-   * Find an article's subscribers by a given targetId (article).
-   */
-  public findSubscriptions = async ({
-    id: targetId,
-    take,
-    skip,
-  }: {
-    id: string
-    take?: number
-    skip?: number
-  }) =>
-    this.knex
-      .select()
-      .from('action_article')
-      .where({ targetId, action: USER_ACTION.subscribe })
-      .orderBy('id', 'desc')
-      .modify((builder: Knex.QueryBuilder) => {
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-      })
-
-  /*********************************
-   *                               *
    *         Read History          *
    *                               *
    *********************************/

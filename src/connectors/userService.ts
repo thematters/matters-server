@@ -1452,7 +1452,7 @@ export class UserService extends BaseService<User> {
    *         Subscription          *
    *                               *
    *********************************/
-  public countSubscription = async (userId: string) => {
+  public countBookmarkedArticles = async (userId: string) => {
     const result = await this.knex('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
       .count()
@@ -1460,7 +1460,7 @@ export class UserService extends BaseService<User> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  public findSubscriptions = async ({
+  public findBookmarkedArticles = async ({
     userId,
     take,
     skip,
