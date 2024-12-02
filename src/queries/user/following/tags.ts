@@ -29,6 +29,7 @@ const resolver: GQLFollowingResolvers['tags'] = async (
       where: { userId: id, action: TAG_ACTION.follow },
       skip,
       take,
+      orderBy: [{ column: 'updatedAt', order: 'desc' }],
     }),
   ])
 
