@@ -203,15 +203,15 @@ const GET_VIEWER_SETTINGS = /* GraphQL */ `
   }
 `
 
-const GET_VIEWER_SUBSCRIPTIONS = /* GraphQL */ `
+const GET_VIEWER_BOOKMARKED = /* GraphQL */ `
   query ($input: ConnectionArgs!) {
     viewer {
-      subscriptions(input: $input) {
-        edges {
-          node {
-            id
-          }
-        }
+      id
+      bookmarkedArticles(input: $input) {
+        totalCount
+      }
+      bookmarkedTags(input: $input) {
+        totalCount
       }
     }
   }
@@ -528,17 +528,20 @@ describe('user query fields', () => {
     expect(settings.notification).toBeDefined()
   })
 
-  test('retrive subscriptions', async () => {
+  test('retrive bookmarked', async () => {
     const server = await testClient({
       isAuth: true,
       connections,
     })
     const { data } = await server.executeOperation({
-      query: GET_VIEWER_SUBSCRIPTIONS,
+      query: GET_VIEWER_BOOKMARKED,
       variables: { input: {} },
     })
-    const subscriptions = _get(data, 'viewer.subscriptions.edges')
-    expect(subscriptions.length).toBeTruthy()
+    const articles = _get(data, 'viewer.bookmarkedArticles.totalCount')
+    expect(articles).toBeGreaterThanOrEqual(0)
+
+    const tags = _get(data, 'viewer.bookmarkedTags.totalCount')
+    expect(tags).toBeGreaterThanOrEqual(0)
   })
 
   test('retrive followers', async () => {

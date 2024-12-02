@@ -17,8 +17,8 @@ const resolver: GQLUserResolvers['bookmarkedArticles'] = async (
   const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, actions] = await Promise.all([
-    userService.countSubscription(id),
-    userService.findSubscriptions({ userId: id, skip, take }),
+    userService.countBookmarkedArticles(id),
+    userService.findBookmarkedArticles({ userId: id, skip, take }),
   ])
 
   return connectionFromPromisedArray(
