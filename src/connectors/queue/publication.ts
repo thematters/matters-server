@@ -473,6 +473,13 @@ export class PublicationQueue {
       tags = []
     }
 
+    for (const tag of tags) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Tag, id: tag },
+        redis: this.connections.redis,
+      })
+    }
+
     return tags
   }
 
