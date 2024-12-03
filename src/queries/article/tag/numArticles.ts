@@ -1,14 +1,10 @@
 import type { GQLTagResolvers } from 'definitions'
 
 const resolver: GQLTagResolvers['numArticles'] = async (
-  { id, numArticles }: any,
+  { id }: any,
   _,
   { dataSources: { tagService } }
 ) => {
-  if (numArticles) {
-    return numArticles
-  }
-
   return tagService.countArticles({ id })
 }
 
