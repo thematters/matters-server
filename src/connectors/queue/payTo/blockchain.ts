@@ -335,7 +335,7 @@ export class PayToByBlockchainQueue {
       }
     }
 
-  private _handleSyncCurationEvents = async (
+  public _handleSyncCurationEvents = async (
     chain: GQLChain,
     curation: CurationContract | CurationVaultContract
   ) => {
@@ -586,7 +586,7 @@ export class PayToByBlockchainQueue {
     await this.invalidCache(tx.targetType, tx.targetId, userService)
   }
 
-  private fetchCurationLogs = async (
+  public fetchCurationLogs = async (
     curation: CurationContract | CurationVaultContract,
     savepoint: bigint
   ): Promise<[Array<Log<CurationEvent | CurationVaultEvent>>, bigint]> => {
@@ -602,7 +602,7 @@ export class PayToByBlockchainQueue {
     return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
 
-  private _syncCurationEvents = async (
+  public _syncCurationEvents = async (
     logs: Array<Log<CurationEvent | CurationVaultEvent>>,
     chain: GQLChain
   ) => {
