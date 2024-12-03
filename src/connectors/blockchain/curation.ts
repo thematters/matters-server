@@ -2,10 +2,12 @@ import type { Address, Hash, Hex } from 'viem'
 
 import { decodeEventLog, encodeEventTopics, parseAbiItem } from 'viem'
 
+import { BLOCKCHAIN_CHAINNAME } from 'common/enums'
+import { contract } from 'common/environment'
+
 import { BaseContract } from './baseContract'
 
 // type
-
 export interface CurationEvent {
   curatorAddress: string
   creatorAddress: string
@@ -75,8 +77,16 @@ export class CurationContract extends BaseContract {
   public erc20TokenCurationEventTopic: Hex[]
   public nativeTokenCurationEventTopic: Hex[]
 
-  public constructor(chainId: string, contractAddress: string) {
-    super(chainId, contractAddress as Address, CURATION_ABI)
+  public constructor(chainId: string) {
+    const contractAddress = contract[BLOCKCHAIN_CHAINNAME[chainId]]
+      .curationAddress as Address
+
+    super(
+      chainId,
+      contractAddress,
+      contract[BLOCKCHAIN_CHAINNAME[chainId]].curationBlockNum
+    )
+
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: 'Curation',

@@ -1,10 +1,8 @@
 import {
-  Abi,
   Address,
   PublicClient,
   createPublicClient,
   extractChain,
-  getContract,
   http,
 } from 'viem'
 import * as chains from 'viem/chains'
@@ -14,15 +12,14 @@ import { BLOCKCHAIN_RPC } from 'common/enums'
 export class BaseContract {
   public chainId: string
   public address: Address
-  public abi: Abi
+  public blockNum: string
 
   protected client: PublicClient
-  protected contract: ReturnType<typeof getContract>
 
-  public constructor(chainId: string, address: Address, abi: Abi) {
+  public constructor(chainId: string, address: Address, blockNum: string) {
     this.chainId = chainId
     this.address = address
-    this.abi = abi
+    this.blockNum = blockNum
 
     const chain = extractChain({
       chains: Object.values(chains),
@@ -32,12 +29,6 @@ export class BaseContract {
     this.client = createPublicClient({
       chain,
       transport: http(BLOCKCHAIN_RPC[chainId]),
-    })
-
-    this.contract = getContract({
-      abi,
-      address,
-      client: { public: this.client },
     })
   }
 

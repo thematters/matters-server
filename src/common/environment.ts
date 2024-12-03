@@ -191,6 +191,7 @@ export const contract = {
         // TODO: update to prod address
         curationVaultAddress:
           '0x891060263b8397cB3c69F01E3383e7f8838Fd8a8'.toLowerCase(),
+        curationVaultBlockNum: '20457192',
       }
     : {
         curationAddress:
@@ -201,5 +202,6 @@ export const contract = {
         tokenDecimals: 6,
         curationVaultAddress:
           '0x891060263b8397cB3c69F01E3383e7f8838Fd8a8'.toLowerCase(),
+        curationVaultBlockNum: '20457192',
       },
 }

@@ -423,8 +423,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
   })
   test('fetch logs', async () => {
-    const contractAddress = contract.Optimism.curationAddress
-    const curation = new CurationContract(chainId, contractAddress)
+    const curation = new CurationContract(chainId)
 
     const oldSavepoint1 = BigInt(20000000)
     mockFetchLogs.mockClear()
