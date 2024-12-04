@@ -130,9 +130,15 @@ const txReceipt1 = {
   reverted: false,
   events: [validEvent],
 }
+const vaultNativeTokenEvent = {
+  curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  creatorId: recipientId,
+  uri: 'ipfs://someIpfsDataHash1',
+  tokenAddress: null,
+  amount: (amount * 1e18).toString(),
+}
 
 // tests
-
 describe('payToByBlockchainQueue.payTo', () => {
   let queue: PayToByBlockchainQueue
   beforeAll(async () => {
@@ -617,6 +623,46 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(updatedBlockchainTx2.state).toBe(
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
+  })
+
+  test('valid vault logs will update tx', async () => {
+    const logs = [
+      {
+        txHash,
+        address: contract.Optimism.curationVaultAddress,
+        blockNumber: 1,
+        removed: false,
+        event: {
+          ...vaultNativeTokenEvent,
+        },
+      },
+    ]
+
+    // match a pending tx, update to succeeded
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+    await paymentService.createTransaction({
+      amount,
+      state: TRANSACTION_STATE.pending,
+      purpose,
+      currency,
+      provider,
+      providerTxId: v4(),
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+    await queue._syncCurationEvents(logs, 'Optimism')
+    const updatedTx = await knex(txTable).first()
+    const updatedBlockchainTx = await knex(blockchainTxTable).first()
+    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+    expect(updatedBlockchainTx.transactionId).toBe(updatedTx.id)
+    expect(updatedTx.providerTxId).toBe(updatedBlockchainTx.id)
   })
 
   test.skip('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
