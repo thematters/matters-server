@@ -123,23 +123,10 @@ describe('findArticleIds', () => {
   })
 })
 
-test('findArticleCovers', async () => {
-  const covers = await tagService.findArticleCovers({ id: '2' })
-  expect(covers).toBeDefined()
-
-  const cached = await tagService.findArticleCovers({ id: '2' })
-  expect(cached).toEqual(covers)
-})
-
 test('create', async () => {
   const content = 'foo'
   const tag = await tagService.create(
-    {
-      content,
-      creator: '0',
-      editors: [],
-      owner: '0',
-    },
+    { content, creator: '0' },
     {
       columns: ['id', 'content'],
     }

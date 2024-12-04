@@ -11,8 +11,8 @@ import {
 import { ForbiddenError } from 'common/errors'
 import {
   connectionFromPromisedArray,
-  fromConnectionArgs,
   excludeSpam,
+  fromConnectionArgs,
 } from 'common/utils'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (

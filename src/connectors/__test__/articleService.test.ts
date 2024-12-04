@@ -216,11 +216,6 @@ test('findTagIds', async () => {
   expect(tagIds.length).toEqual(2)
 })
 
-test('findSubscriptions', async () => {
-  const subs = await articleService.findSubscriptions({ id: '2' })
-  expect(subs.length).toEqual(2)
-})
-
 describe('updatePinned', () => {
   test('invaild article id will throw error', async () => {
     await expect(articleService.updatePinned('999', '1', true)).rejects.toThrow(

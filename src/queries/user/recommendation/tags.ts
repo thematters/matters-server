@@ -2,8 +2,6 @@ import type { GQLRecommendationResolvers } from 'definitions'
 
 import { chunk } from 'lodash'
 
-import { VIEW } from 'common/enums'
-// import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
@@ -29,8 +27,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
 
     const curationTags = await tagService.findTopTags({
       take: limit * draw,
-      top: 'r2w',
-      minAuthors: 5, // show at least 5 authors in the curation
+      minAuthors: 5,
     })
 
     const chunks = chunk(curationTags, draw)
@@ -44,10 +41,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     )
   }
 
-  const totalCount = await tagService.baseCount(
-    undefined, // where
-    VIEW.tags_lasts_view
-  )
+  const totalCount = await tagService.countTopTags()
   const items = await tagService.findTopTags({
     skip,
     take,

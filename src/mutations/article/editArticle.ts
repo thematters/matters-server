@@ -44,7 +44,6 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     input: {
       id,
       state,
-      sticky,
       pinned,
       tags,
       title,
@@ -128,9 +127,9 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   /**
-   * Pinned or Sticky
+   * Pinned
    */
-  const isPinned = pinned ?? sticky
+  const isPinned = pinned
   if (typeof isPinned === 'boolean') {
     article = await articleService.updatePinned(article.id, viewer.id, isPinned)
   }

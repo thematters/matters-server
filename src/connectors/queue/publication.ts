@@ -445,43 +445,42 @@ export class PublicationQueue {
     articleVersion: ArticleVersion
   }) => {
     const tagService = new TagService(this.connections)
-    let tags = articleVersion.tags as string[]
+    const tags = articleVersion.tags as string[]
 
-    if (tags && tags.length > 0) {
-      // get tag editor
-      const tagEditors = environment.mattyId
-        ? [environment.mattyId, article.authorId]
-        : [article.authorId]
-
-      // create tag records, return tag record if already exists
-      const dbTags = (
-        (await Promise.all(
-          tags.filter(Boolean).map((content: string) =>
-            tagService.create(
-              {
-                content,
-                creator: article.authorId,
-                editors: tagEditors,
-                owner: article.authorId,
-              },
-              {
-                columns: ['id', 'content'],
-                skipCreate: normalizeTagInput(content) !== content,
-              }
-            )
-          )
-        )) as unknown as [{ id: string; content: string }]
-      ).filter(Boolean)
-
-      // create article_tag record
-      await tagService.createArticleTags({
-        articleIds: [article.id],
-        creator: article.authorId,
-        tagIds: dbTags.map(({ id }) => id),
-      })
-    } else {
-      tags = []
+    if (!tags?.length) {
+      return []
     }
+
+    // create tag records, return tag record if already exists
+    const dbTags = (
+      (await Promise.all(
+        tags.filter(Boolean).map((content: string) =>
+          tagService.create(
+            { content, creator: article.authorId },
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content,
+            }
+          )
+        )
+      )) as unknown as [{ id: string; content: string }]
+    ).filter(Boolean)
+
+    // create article_tag record
+    await tagService.createArticleTags({
+      articleIds: [article.id],
+      creator: article.authorId,
+      tagIds: dbTags.map(({ id }) => id),
+    })
+
+    await Promise.all(
+      dbTags.map((tag) =>
+        invalidateFQC({
+          node: { type: NODE_TYPES.Tag, id: tag.id },
+          redis: this.connections.redis,
+        })
+      )
+    )
 
     return tags
   }
