@@ -130,12 +130,12 @@ const txReceipt1 = {
   reverted: false,
   events: [validEvent],
 }
-const vaultNativeTokenEvent = {
+const vaultTokenEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   creatorId: recipientId,
   uri: 'ipfs://someIpfsDataHash1',
-  tokenAddress: null,
-  amount: (amount * 1e18).toString(),
+  tokenAddress: contract.Optimism.tokenAddress,
+  amount: (amount * 1e6).toString(),
 }
 
 // tests
@@ -633,7 +633,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
         blockNumber: 1,
         removed: false,
         event: {
-          ...vaultNativeTokenEvent,
+          ...vaultTokenEvent,
         },
       },
     ]
