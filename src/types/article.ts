@@ -279,8 +279,8 @@ export default /* GraphQL */ `
     recommendedAuthors(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Counts of this tag."
-    numArticles: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM}) ## cache for 1 hour
-    numAuthors: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM})  ## cache for 1 hour
+    numArticles: Int!
+    numAuthors: Int!
 
     ##############
     #     OSS    #
