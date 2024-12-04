@@ -473,12 +473,14 @@ export class PublicationQueue {
       tagIds: dbTags.map(({ id }) => id),
     })
 
-    for (const tag of dbTags) {
-      invalidateFQC({
-        node: { type: NODE_TYPES.Tag, id: tag.id },
-        redis: this.connections.redis,
-      })
-    }
+    await Promise.all(
+      dbTags.map((tag) =>
+        invalidateFQC({
+          node: { type: NODE_TYPES.Tag, id: tag.id },
+          redis: this.connections.redis,
+        })
+      )
+    )
 
     return tags
   }
