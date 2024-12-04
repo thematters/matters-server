@@ -445,37 +445,37 @@ export class PublicationQueue {
     articleVersion: ArticleVersion
   }) => {
     const tagService = new TagService(this.connections)
-    let tags = articleVersion.tags as string[]
+    const tags = articleVersion.tags as string[]
 
-    if (tags && tags.length > 0) {
-      // create tag records, return tag record if already exists
-      const dbTags = (
-        (await Promise.all(
-          tags.filter(Boolean).map((content: string) =>
-            tagService.create(
-              { content, creator: article.authorId },
-              {
-                columns: ['id', 'content'],
-                skipCreate: normalizeTagInput(content) !== content,
-              }
-            )
-          )
-        )) as unknown as [{ id: string; content: string }]
-      ).filter(Boolean)
-
-      // create article_tag record
-      await tagService.createArticleTags({
-        articleIds: [article.id],
-        creator: article.authorId,
-        tagIds: dbTags.map(({ id }) => id),
-      })
-    } else {
-      tags = []
+    if (!tags?.length) {
+      return []
     }
 
-    for (const tag of tags) {
+    // create tag records, return tag record if already exists
+    const dbTags = (
+      (await Promise.all(
+        tags.filter(Boolean).map((content: string) =>
+          tagService.create(
+            { content, creator: article.authorId },
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content,
+            }
+          )
+        )
+      )) as unknown as [{ id: string; content: string }]
+    ).filter(Boolean)
+
+    // create article_tag record
+    await tagService.createArticleTags({
+      articleIds: [article.id],
+      creator: article.authorId,
+      tagIds: dbTags.map(({ id }) => id),
+    })
+
+    for (const tag of dbTags) {
       invalidateFQC({
-        node: { type: NODE_TYPES.Tag, id: tag },
+        node: { type: NODE_TYPES.Tag, id: tag.id },
         redis: this.connections.redis,
       })
     }
