@@ -21,6 +21,7 @@ type NoticeEntityType =
   | 'tag'
   | 'article'
   | 'circle'
+  | 'campaign'
 
 type NotificationType =
   | BaseNoticeType
@@ -373,6 +374,7 @@ interface NoticeWriteChallengeAppliedParams extends NotificationRequiredParams {
   event:
     | OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
     | OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird
+  entities: [NotificationEntity<'target', 'campaign'>]
   recipientId: string
   data: { link: string }
 }

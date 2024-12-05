@@ -31,6 +31,7 @@ import {
   shortHash,
   toDatetimeRangeString,
   fromDatetimeRangeString,
+  fromGlobalId,
   // excludeSpam,
 } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
@@ -298,7 +299,7 @@ export class CampaignService {
 
   public updateArticleCampaigns = async (
     article: Pick<Article, 'id' | 'authorId'>,
-    newCampaigns: Array<{ campaignId: string; campaignStageId: string }>
+    newCampaigns: Array<{ campaignId: string; campaignStageId?: string }>
   ) => {
     const mutatedCampaignIds = []
     const knexRO = this.connections.knexRO
@@ -326,7 +327,7 @@ export class CampaignService {
           await this.models.update({
             table: 'campaign_article',
             where: { articleId: article.id, campaignId },
-            data: { campaignStageId },
+            data: { campaignStageId: campaignStageId ?? null },
           })
           mutatedCampaignIds.push(campaignId)
         }
@@ -353,7 +354,7 @@ export class CampaignService {
   public submitArticleToCampaign = async (
     article: Pick<Article, 'id' | 'authorId'>,
     campaignId: string,
-    campaignStageId: string
+    campaignStageId?: string
   ) => {
     await this.validate({
       userId: article.authorId,
@@ -372,7 +373,7 @@ export class CampaignService {
     userId,
   }: {
     campaignId: string
-    campaignStageId: string
+    campaignStageId?: string
     userId: string
   }) => {
     const campaign = await this.models.campaignIdLoader.load(campaignId)
@@ -390,6 +391,10 @@ export class CampaignService {
 
     if (!application || application.state !== CAMPAIGN_USER_STATE.succeeded) {
       throw new ActionFailedError(`user not applied to campaign ${campaignId}`)
+    }
+
+    if (!campaignStageId) {
+      return
     }
 
     const stage = await this.models.campaignStageIdLoader.load(campaignStageId)
@@ -437,6 +442,7 @@ export class CampaignService {
         application.createdAt.getTime() < end.getTime()
           ? OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
           : OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird,
+      entities: [{ type: 'target', entityTable: 'campaign', entity: campaign }],
       recipientId: updated.userId,
       data: { link: campaign.link ?? '' },
     })
@@ -522,4 +528,39 @@ export class CampaignService {
       update: { campaignId: id, boost },
       where: { campaignId: id },
     })
+
+  public validateCampaigns = async (
+    campaigns: Array<{ campaign: string; stage?: string }>,
+    userId: string
+  ) => {
+    const _campaigns = campaigns.map(
+      ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
+        const { id: campaignId, type: campaignIdType } =
+          fromGlobalId(campaignGlobalId)
+        if (campaignIdType !== NODE_TYPES.Campaign) {
+          throw new UserInputError('invalid campaign id')
+        }
+
+        if (!stageGlobalId) {
+          return { campaign: campaignId }
+        }
+
+        const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
+        if (stageIdType !== NODE_TYPES.CampaignStage) {
+          throw new UserInputError('invalid stage id')
+        }
+
+        return { campaign: campaignId, stage: stageId }
+      }
+    )
+
+    for (const { campaign, stage } of _campaigns) {
+      await this.validate({
+        userId,
+        campaignId: campaign,
+        campaignStageId: stage,
+      })
+    }
+    return _campaigns
+  }
 }

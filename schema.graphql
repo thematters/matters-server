@@ -661,7 +661,7 @@ input EditArticleInput {
 
 input ArticleCampaignInput {
   campaign: ID!
-  stage: ID!
+  stage: ID
 }
 
 input AppreciateArticleInput {

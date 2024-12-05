@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     #   Article  #
     ##############
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Draft}") @rateLimit(limit:${PUBLISH_ARTICLE_RATE_LIMIT}, period:720)
+    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Draft}") @rateLimit(limit: ${PUBLISH_ARTICLE_RATE_LIMIT}, period: 720)
 
     "Edit an article."
     editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}")
@@ -23,7 +23,7 @@ export default /* GraphQL */ `
     toggleBookmarkArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}") @rateLimit(limit:5, period:60)
+    appreciateArticle(input: AppreciateArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}") @rateLimit(limit: 5, period: 60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
@@ -418,7 +418,7 @@ export default /* GraphQL */ `
 
   input ArticleCampaignInput {
     campaign: ID!
-    stage: ID!
+    stage: ID
   }
 
   input AppreciateArticleInput {

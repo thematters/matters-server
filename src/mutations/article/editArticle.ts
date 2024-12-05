@@ -1,10 +1,4 @@
-import type {
-  Article,
-  Draft,
-  Circle,
-  GQLMutationResolvers,
-  DataSources,
-} from 'definitions'
+import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -330,9 +324,10 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    * campaigns
    */
   if (campaigns !== undefined) {
-    const _campaigns = await validateCampaigns(campaigns ?? [], viewer.id, {
-      campaignService,
-    })
+    const _campaigns = await campaignService.validateCampaigns(
+      campaigns ?? [],
+      viewer.id
+    )
     const mutated = await campaignService.updateArticleCampaigns(
       article,
       _campaigns.map(({ campaign, stage }) => ({
@@ -421,36 +416,6 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   return node
-}
-
-const validateCampaigns = async (
-  campaigns: Array<{ campaign: string; stage: string }>,
-  userId: string,
-  { campaignService }: Pick<DataSources, 'campaignService'>
-) => {
-  const _campaigns = campaigns.map(
-    ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
-      const { id: campaignId, type: campaignIdType } =
-        fromGlobalId(campaignGlobalId)
-      if (campaignIdType !== NODE_TYPES.Campaign) {
-        throw new UserInputError('invalid campaign id')
-      }
-      const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
-      if (stageIdType !== NODE_TYPES.CampaignStage) {
-        throw new UserInputError('invalid stage id')
-      }
-
-      return { campaign: campaignId, stage: stageId }
-    }
-  )
-  for (const { campaign, stage } of _campaigns) {
-    await campaignService.validate({
-      userId,
-      campaignId: campaign,
-      campaignStageId: stage,
-    })
-  }
-  return _campaigns
 }
 
 export default resolver

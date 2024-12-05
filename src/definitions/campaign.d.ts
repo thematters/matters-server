@@ -44,7 +44,7 @@ export interface CampaignUser {
 export interface CampaignArticle {
   id: string
   campaignId: string
-  campaignStageId: string | null
+  campaignStageId?: string | null
   articleId: string
   createdAt: Date
   featured: boolean
