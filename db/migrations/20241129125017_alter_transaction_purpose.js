@@ -11,25 +11,9 @@ exports.up = async (knex) => {
       'payout',
       'subscription',
       'subscription-split',
-      'dispute-withdrawn-funds',
-      'dispute',
-    ])
-  )
-
-  await knex(table)
-    .where({ purpose: 'dispute-withdrawn-funds' })
-    .update({ purpose: 'dispute' })
-
-  await knex.raw(
-    alterEnumString(table, 'purpose', [
-      'donation',
-      'add-credit',
-      'refund',
-      'payout',
-      'subscription',
-      'subscription-split',
       'dispute',
       'payout-reversal',
+      'curation-vault-withdrawal',
     ])
   )
 }
@@ -43,26 +27,8 @@ exports.down = async (knex) => {
       'payout',
       'subscription',
       'subscription-split',
-      'dispute-withdrawn-funds',
       'dispute',
-      'curation-vault-withdrawal',
-    ])
-  )
-
-  await knex(table)
-    .where({ purpose: 'dispute' })
-    .update({ purpose: 'dispute-withdrawn-funds' })
-
-  await knex.raw(
-    alterEnumString(table, 'purpose', [
-      'donation',
-      'add-credit',
-      'refund',
-      'payout',
-      'subscription',
-      'subscription-split',
-      'dispute-withdrawn-funds',
-      'dispute',
+      'payout-reversal',
     ])
   )
 }
