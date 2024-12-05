@@ -11,6 +11,7 @@ import _capitalize from 'lodash/capitalize'
 import { formatUnits, parseUnits } from 'viem'
 
 import {
+  BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_CHAINNAME,
   BLOCKCHAIN_SAFE_CONFIRMS,
@@ -304,7 +305,7 @@ export class PayToByBlockchainQueue {
    */
   private handleSyncCurationEvents: ProcessCallbackFunction<unknown> =
     async () => {
-      const chain = BLOCKCHAIN_CHAINNAME.Optimism
+      const chain = BLOCKCHAIN.Optimism
       const curation = new CurationContract(BLOCKCHAIN_CHAINID[chain])
       const curationVault = new CurationVaultContract()
 
