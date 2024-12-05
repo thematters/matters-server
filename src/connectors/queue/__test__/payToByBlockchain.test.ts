@@ -130,9 +130,15 @@ const txReceipt1 = {
   reverted: false,
   events: [validEvent],
 }
+const vaultTokenEvent = {
+  curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  creatorId: recipientId,
+  uri: 'ipfs://someIpfsDataHash1',
+  tokenAddress: contract.Optimism.tokenAddress,
+  amount: (amount * 1e6).toString(),
+}
 
 // tests
-
 describe('payToByBlockchainQueue.payTo', () => {
   let queue: PayToByBlockchainQueue
   beforeAll(async () => {
@@ -407,15 +413,15 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   //  queue.clearDelayedJobs()
   // })
   test('_handleSyncCurationEvents update sync record', async () => {
+    const curation = new CurationContract(chainId)
+
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
     // create record
-    // @ts-ignore
-    await queue._handleSyncCurationEvents('Optimism')
+    await queue._handleSyncCurationEvents('Optimism', curation)
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
     const oldSavepoint = await knex(syncRecordTable).first()
     // update record
-    // @ts-ignore
-    await queue._handleSyncCurationEvents('Optimism')
+    await queue._handleSyncCurationEvents('Optimism', curation)
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
     const newSavepoint = await knex(syncRecordTable).first()
     expect(new Date(newSavepoint.updatedAt).getTime()).toBeGreaterThan(
@@ -423,12 +429,10 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
   })
   test('fetch logs', async () => {
-    const contractAddress = contract.Optimism.curationAddress
-    const curation = new CurationContract(chainId, contractAddress)
+    const curation = new CurationContract(chainId)
 
     const oldSavepoint1 = BigInt(20000000)
     mockFetchLogs.mockClear()
-    // @ts-ignore
     const [, newSavepoint1] = await queue.fetchCurationLogs(
       curation,
       oldSavepoint1
@@ -440,7 +444,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(newSavepoint1).toBe(safeBlockNum)
 
     mockFetchLogs.mockClear()
-    // @ts-ignore
     const [logs1, newSavepoint3] = await queue.fetchCurationLogs(
       curation,
       safeBlockNum - BigInt(1)
@@ -450,7 +453,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(newSavepoint3).toBe(safeBlockNum - BigInt(1))
 
     mockFetchLogs.mockClear()
-    // @ts-ignore
     const [logs2, newSavepoint4] = await queue.fetchCurationLogs(
       curation,
       safeBlockNum
@@ -460,7 +462,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(newSavepoint4).toBe(safeBlockNum)
   })
   test('handle empty logs', async () => {
-    // @ts-ignore
     await queue._syncCurationEvents([], 'Optimism')
   })
   test('handle native token curation logs', async () => {
@@ -471,7 +472,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       removed: false,
       event: nativeTokenEvent,
     }
-    // @ts-ignore
     await queue._syncCurationEvents([nativeTokenLog], 'Optimism')
     expect(
       await knex(eventTable).where({ tokenAddress: null }).count()
@@ -488,7 +488,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       removed: true,
       event: validEvent,
     }
-    // @ts-ignore
     await queue._syncCurationEvents([removedLog], 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '0' }])
@@ -530,7 +529,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
         },
       },
     ]
-    // @ts-ignore
     await queue._syncCurationEvents(invalidLogs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '3' }])
@@ -565,7 +563,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       targetId,
       targetType,
     })
-    // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     const updatedTx = await knex(txTable).first()
     const updatedBlockchainTx = await knex(blockchainTxTable).first()
@@ -580,7 +577,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(eventTable).del()
     await knex(blockchainTxTable).del()
     await knex(txTable).del()
-    // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const tx = await knex(txTable).first()
@@ -595,7 +591,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
-    // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx1 = await knex(txTable).where('id', tx.id).first()
@@ -616,7 +611,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(blockchainTxTable).update({
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
-    // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx2 = await knex(txTable).where('id', tx.id).first()
@@ -631,10 +625,49 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
   })
 
+  test('valid vault logs will update tx', async () => {
+    const logs = [
+      {
+        txHash,
+        address: contract.Optimism.curationVaultAddress,
+        blockNumber: 1,
+        removed: false,
+        event: {
+          ...vaultTokenEvent,
+        },
+      },
+    ]
+
+    // match a pending tx, update to succeeded
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+    await paymentService.createTransaction({
+      amount,
+      state: TRANSACTION_STATE.pending,
+      purpose,
+      currency,
+      provider,
+      providerTxId: v4(),
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+    await queue._syncCurationEvents(logs, 'Optimism')
+    const updatedTx = await knex(txTable).first()
+    const updatedBlockchainTx = await knex(blockchainTxTable).first()
+    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+    expect(updatedBlockchainTx.transactionId).toBe(updatedTx.id)
+    expect(updatedTx.providerTxId).toBe(updatedBlockchainTx.id)
+  })
+
   test.skip('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
     // mock notify failed below as we have no direct access to paymentService in queue now
     const mockNotify = jest.fn()
-    // @ts-ignore
     paymentService.notifyDonation = mockNotify
 
     expect(mockNotify).not.toHaveBeenCalled()
@@ -678,7 +711,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
         },
       },
     ]
-    // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
 
     const updatedBlockchainTx =
@@ -703,7 +735,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     mockNotify.mockClear()
     expect(mockNotify).not.toHaveBeenCalled()
 
-    // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
 
     expect(mockNotify).not.toHaveBeenCalled()

@@ -32,6 +32,7 @@ import updateUserState from './updateUserState'
 import userLogout from './userLogout'
 import verifyEmail from './verifyEmail'
 import { walletLogin, addWalletLogin, removeWalletLogin } from './walletLogin'
+import withdrawLockedTokens from './withdrawLockedTokens'
 
 export default {
   Mutation: {
@@ -66,6 +67,7 @@ export default {
     payTo,
     payout,
     connectStripeAccount,
+    withdrawLockedTokens,
     toggleUsersBadge,
     unbindLikerId,
     claimLogbooks,

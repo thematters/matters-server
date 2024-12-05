@@ -29,6 +29,7 @@ export enum TRANSACTION_PURPOSE {
   subscription = 'subscription',
   subscriptionSplit = 'subscription-split',
   dispute = 'dispute',
+  curationVaultWithdrawal = 'curation-vault-withdrawal',
 }
 
 export enum TRANSACTION_TARGET_TYPE {
