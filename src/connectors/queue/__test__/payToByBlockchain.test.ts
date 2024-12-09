@@ -663,6 +663,15 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
     expect(updatedBlockchainTx.transactionId).toBe(updatedTx.id)
     expect(updatedTx.providerTxId).toBe(updatedBlockchainTx.id)
+
+    // check event table
+    const events = await knex(eventTable).where({
+      txHash,
+      address: contract.Optimism.curationVaultAddress,
+    })
+    console.log(events)
+    expect(events).toHaveLength(1)
+    expect(events[0].creatorId).toBe(recipientId)
   })
 
   test.skip('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
