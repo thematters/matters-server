@@ -666,10 +666,8 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
 
     // check event table
     const events = await knex(eventTable).where({
-      txHash,
-      address: contract.Optimism.curationVaultAddress,
+      blockchain_transaction_id: updatedBlockchainTx.id,
     })
-    console.log(events)
     expect(events).toHaveLength(1)
     expect(events[0].creatorId).toBe(recipientId)
   })
