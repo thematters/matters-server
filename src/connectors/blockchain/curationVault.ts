@@ -167,14 +167,14 @@ const CURATION_VAULT_ABI = [
 ] as const
 
 const erc20TokenCurationEventSignature =
-  'event Curation(address indexed curator, string indexed uid, address indexed token, string uri, uint256 amount)' as const
+  'event Curation(address indexed curator, string uid, address indexed token, string uri, uint256 amount)' as const
 const erc20TokenCurationEventABI = [
   {
     name: 'Curation',
     type: 'event',
     inputs: [
       { type: 'address', indexed: true, name: 'curator' },
-      { type: 'string', indexed: true, name: 'uid' },
+      { type: 'string', indexed: false, name: 'uid' },
       { type: 'address', indexed: true, name: 'token' },
       { type: 'string', name: 'uri' },
       { type: 'uint256', name: 'amount' },
@@ -182,14 +182,14 @@ const erc20TokenCurationEventABI = [
   },
 ] as const
 const nativeTokenCurationEventSignature =
-  'event Curation(address indexed from, string indexed uid, string uri, uint256 amount)' as const
+  'event Curation(address indexed from, string uid, string uri, uint256 amount)' as const
 const nativeTokenCurationEventABI = [
   {
     name: 'Curation',
     type: 'event',
     inputs: [
       { type: 'address', indexed: true, name: 'from' },
-      { type: 'string', indexed: true, name: 'uid' },
+      { type: 'string', indexed: false, name: 'uid' },
       { type: 'string', name: 'uri' },
       { type: 'uint256', name: 'amount' },
     ],
