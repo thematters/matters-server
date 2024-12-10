@@ -3475,6 +3475,7 @@ enum TransactionPurpose {
   subscriptionSplit
   dispute
   payoutReversal
+  curationVaultWithdrawal
 }
 
 enum TransactionCurrency {
