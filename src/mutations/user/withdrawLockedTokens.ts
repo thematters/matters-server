@@ -1,6 +1,9 @@
-import type { GQLMutationResolvers, Transaction } from 'definitions'
+import type { BlockchainTransaction, GQLMutationResolvers } from 'definitions'
+
+import { v4 } from 'uuid'
 
 import {
+  BLOCKCHAIN_TRANSACTION_STATE,
   NOTICE_TYPE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -18,7 +21,15 @@ import { CurationVaultContract } from 'connectors/blockchain/curationVault'
 const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
   _,
   __,
-  { viewer, dataSources: { atomService, notificationService, paymentService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      notificationService,
+      paymentService,
+      connections: { knex },
+    },
+  }
 ) => {
   // check user
   if (!viewer.userName) {
@@ -56,22 +67,42 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
     throw new ForbiddenError('no withdrawable amount')
   }
 
-  let transaction: Transaction | null = null
+  // create a pending transaction
+  const transaction = await paymentService.createTransaction({
+    state: TRANSACTION_STATE.pending,
+    currency: PAYMENT_CURRENCY.USDT,
+    purpose: TRANSACTION_PURPOSE.curationVaultWithdrawal,
+    provider: PAYMENT_PROVIDER.blockchain,
+    providerTxId: v4(),
+    amount: Number(amount),
+    recipientId: viewer.id,
+  })
+
+  let blockchainTx: BlockchainTransaction | null = null
   try {
     // submit transaction
     const result = await contract.withdraw(viewer.id)
 
-    // create transaction
-    transaction = await paymentService.createTransaction({
-      state: TRANSACTION_STATE.pending,
-      currency: PAYMENT_CURRENCY.USDT,
-      purpose: TRANSACTION_PURPOSE.curationVaultWithdrawal,
-      provider: PAYMENT_PROVIDER.blockchain,
-      providerTxId: result.hash,
-      amount: Number(amount),
-      recipientId: viewer.id,
-    })
+    // create a blockchain transaction and link to the transaction
+    const trx = await knex.transaction()
+    blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
+      { chainId: contract.chainId, txHash: result.hash },
+      undefined,
+      trx
+    )
+    await trx
+      .where({ id: transaction.id })
+      .update({ providerTxId: blockchainTx.id })
+      .into('transaction')
+      .returning('*')
+      .transacting(trx)
+    await trx('blockchain_transaction')
+      .where({ id: blockchainTx.id })
+      .update({ transactionId: transaction.id })
+      .transacting(trx)
+    await trx.commit()
 
+    // wait for the transaction to be confirmed
     await client.waitForUserOperationTransaction(result)
 
     // mark as succeeded
@@ -90,10 +121,15 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
       ],
     })
   } catch (error) {
-    if (transaction) {
-      await paymentService.markTransactionStateAs({
-        id: transaction.id,
-        state: TRANSACTION_STATE.failed,
+    await paymentService.markTransactionStateAs({
+      id: transaction.id,
+      state: TRANSACTION_STATE.failed,
+    })
+
+    if (blockchainTx) {
+      await paymentService.markBlockchainTransactionStateAs({
+        id: blockchainTx.id,
+        state: BLOCKCHAIN_TRANSACTION_STATE.reverted,
       })
     }
 

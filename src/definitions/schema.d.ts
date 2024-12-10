@@ -3595,6 +3595,7 @@ export type GQLTransactionNoticeType =
 
 export type GQLTransactionPurpose =
   | 'addCredit'
+  | 'curationVaultWithdrawal'
   | 'dispute'
   | 'donation'
   | 'payout'
