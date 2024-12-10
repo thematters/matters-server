@@ -18,6 +18,7 @@ import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
   ARTICLE_STATE,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   ForbiddenByTargetStateError,
   ForbiddenByStateError,
@@ -115,26 +116,26 @@ export class CampaignService {
   ) => {
     const original = await this.models.findMany({
       table: 'campaign_article',
-      where: { campaignId, campaignStageId: null },
+      where: { campaignId, announcement: true },
       orderBy: [{ column: 'id', order: 'asc' }],
     })
     const originalIds = original.map(({ articleId }) => articleId)
+
     // delete removed
     await this.models.deleteMany({
       table: 'campaign_article',
-      where: {
-        campaignId,
-      },
+      where: { campaignId },
       whereIn: [
         'articleId',
         originalIds.filter((id) => !articleIds.includes(id)),
       ],
     })
+
     // insert new
     for (const newId of articleIds.filter((id) => !originalIds.includes(id))) {
       await this.models.create({
         table: 'campaign_article',
-        data: { campaignId, articleId: newId },
+        data: { campaignId, articleId: newId, announcement: true },
       })
     }
   }
@@ -142,7 +143,7 @@ export class CampaignService {
   public findAnnouncements = async (campaignId: string) => {
     const records = await this.models.findMany({
       table: 'campaign_article',
-      where: { campaignId, campaignStageId: null },
+      where: { campaignId, announcement: true },
     })
     const articles = await this.models.articleIdLoader.loadMany(
       records.map(({ articleId }) => articleId)
@@ -444,7 +445,10 @@ export class CampaignService {
           : OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird,
       entities: [{ type: 'target', entityTable: 'campaign', entity: campaign }],
       recipientId: updated.userId,
-      data: { link: campaign.link ?? '' },
+      data: {
+        link:
+          campaign.link ?? `${environment.siteDomain}/e/${campaign.shortHash}`,
+      },
     })
 
     invalidateFQC({
