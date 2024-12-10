@@ -189,8 +189,8 @@ export const contract = {
           '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'.toLowerCase(),
         tokenDecimals: 6,
         curationVaultAddress:
-          '0x7CC566aa9488a9990977Cb31D856C47e67b35465'.toLowerCase(),
-        curationVaultBlockNum: '128886733',
+          '0x79691206F498CdfAEDD059A48f61835408d81a2F'.toLowerCase(),
+        curationVaultBlockNum: '129071092',
       }
     : {
         curationAddress:
@@ -200,7 +200,7 @@ export const contract = {
           '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'.toLowerCase(),
         tokenDecimals: 6,
         curationVaultAddress:
-          '0x891060263b8397cB3c69F01E3383e7f8838Fd8a8'.toLowerCase(),
-        curationVaultBlockNum: '20457192',
+          '0xd41be66Bf309Ce5c3949BDe5C8091edc4870c27F'.toLowerCase(),
+        curationVaultBlockNum: '20969176',
       },
 }
