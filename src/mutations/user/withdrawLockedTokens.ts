@@ -1,6 +1,7 @@
 import type { BlockchainTransaction, GQLMutationResolvers } from 'definitions'
 
 import { v4 } from 'uuid'
+import { formatUnits } from 'viem'
 
 import {
   BLOCKCHAIN_TRANSACTION_STATE,
@@ -11,6 +12,7 @@ import {
   TRANSACTION_STATE,
   USER_STATE,
 } from 'common/enums'
+import { contract as contractEnv } from 'common/environment'
 import {
   ForbiddenByStateError,
   ForbiddenError,
@@ -62,10 +64,13 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
   const client = await contract.getClient()
 
   // check withdraw amount
-  const amount = await contract.getWithdrawableUSDTAmount(viewer.id)
-  if (amount <= 0) {
+  const vaultAmount = await contract.getWithdrawableUSDTAmount(viewer.id)
+  if (vaultAmount <= 0) {
     throw new ForbiddenError('no withdrawable amount')
   }
+  const amount = parseFloat(
+    formatUnits(BigInt(vaultAmount), contractEnv.Optimism.tokenDecimals)
+  )
 
   // create a pending transaction
   const transaction = await paymentService.createTransaction({
@@ -74,7 +79,7 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
     purpose: TRANSACTION_PURPOSE.curationVaultWithdrawal,
     provider: PAYMENT_PROVIDER.blockchain,
     providerTxId: v4(),
-    amount: Number(amount),
+    amount,
     recipientId: viewer.id,
   })
 
@@ -121,6 +126,8 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
       ],
     })
   } catch (error) {
+    console.error(error)
+
     await paymentService.markTransactionStateAs({
       id: transaction.id,
       state: TRANSACTION_STATE.failed,
