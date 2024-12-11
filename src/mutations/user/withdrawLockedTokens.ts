@@ -144,6 +144,16 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
       })
     }
 
+    // notify
+    await notificationService.trigger({
+      event: NOTICE_TYPE.withdrew_locked_tokens,
+      actorId: null,
+      recipientId: viewer.id,
+      entities: [
+        { type: 'target', entityTable: 'transaction', entity: transaction },
+      ],
+    })
+
     throw new ServerError('failed to withdraw locked tokens')
   }
 
