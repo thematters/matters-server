@@ -895,6 +895,7 @@ type CampaignArticleEdge {
   cursor: String!
   node: Article!
   featured: Boolean!
+  announcement: Boolean!
 }
 
 input CampaignParticipantsInput {
