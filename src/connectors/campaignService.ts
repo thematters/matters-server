@@ -447,7 +447,8 @@ export class CampaignService {
       recipientId: updated.userId,
       data: {
         link:
-          campaign.link || `${environment.siteDomain}/e/${campaign.shortHash}`,
+          campaign.link ??
+          `https://${environment.siteDomain}/e/${campaign.shortHash}`,
       },
     })
 
