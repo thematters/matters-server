@@ -48,6 +48,7 @@ export interface CampaignArticle {
   articleId: string
   createdAt: Date
   featured: boolean
+  announcement: boolean
 }
 
 export interface CampaignBoost {
