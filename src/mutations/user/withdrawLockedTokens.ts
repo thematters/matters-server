@@ -38,6 +38,10 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
     throw new ForbiddenError('user has no username')
   }
 
+  if (!viewer.ethAddress) {
+    throw new ForbiddenError('user has no linked wallet')
+  }
+
   if (
     [USER_STATE.archived, USER_STATE.frozen, USER_STATE.banned].includes(
       viewer.state
@@ -86,35 +90,35 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
   let blockchainTx: BlockchainTransaction | null = null
   try {
     // submit transaction
-    const result = await contract.withdraw(viewer.id)
+    const result = await contract.withdraw(viewer.id, viewer.ethAddress)
+
+    // wait for the transaction to be confirmed
+    const txHash = await client.waitForUserOperationTransaction(result)
 
     // create a blockchain transaction and link to the transaction
     const trx = await knex.transaction()
     blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
-      { chainId: contract.chainId, txHash: result.hash },
+      { chainId: contract.chainId, txHash },
       undefined,
       trx
     )
     await trx
       .where({ id: transaction.id })
-      .update({ providerTxId: blockchainTx.id })
+      .update({
+        providerTxId: blockchainTx.id,
+        state: TRANSACTION_STATE.succeeded,
+      })
       .into('transaction')
       .returning('*')
       .transacting(trx)
     await trx('blockchain_transaction')
       .where({ id: blockchainTx.id })
-      .update({ transactionId: transaction.id })
+      .update({
+        transactionId: transaction.id,
+        state: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+      })
       .transacting(trx)
     await trx.commit()
-
-    // wait for the transaction to be confirmed
-    await client.waitForUserOperationTransaction(result)
-
-    // mark as succeeded
-    await paymentService.markTransactionStateAs({
-      id: transaction.id,
-      state: TRANSACTION_STATE.succeeded,
-    })
 
     // notify
     await notificationService.trigger({

@@ -379,19 +379,27 @@ export class CurationVaultContract extends BaseContract {
     })
   }
 
-  public async withdraw(userId: string) {
+  public async withdraw(userId: string, address: `0x${string}`) {
     const client = await this.getClient()
     const uid = this.toUID(userId)
     const expiry = BigInt(Math.floor(Date.now() / 1000) + MINUTE * 3) // 3 mins
-    const signerAddress = await this.signer.getAddress()
     const hash = keccak256(
       encodePacked(
-        ['address', 'string', 'uint256', 'address'],
-        [signerAddress, uid, expiry, this.address]
+        ['address', 'string', 'address', 'uint256', 'address'],
+        [
+          address,
+          uid,
+          contract.Optimism.tokenAddress as `0x${string}`,
+          expiry,
+          this.address,
+        ]
       )
     )
     const signature = await this.signer.signMessage({ raw: hash })
     const { v, r, s } = parseSignature(signature)
+
+    console.log('signer: ', await this.signer.getAddress())
+    console.log('smart account: ', client.getAddress())
 
     return client.sendUserOperation({
       uo: {
@@ -400,7 +408,7 @@ export class CurationVaultContract extends BaseContract {
           abi: CURATION_VAULT_ABI,
           functionName: 'withdraw',
           args: [
-            signerAddress,
+            address,
             uid,
             contract.Optimism.tokenAddress as `0x${string}`,
             expiry,
