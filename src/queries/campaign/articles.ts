@@ -36,12 +36,12 @@ const resolver: GQLWritingChallengeResolvers['articles'] = async (
           table: 'campaign_article',
           where: { campaignId, articleId: edge.node.id },
         })
-        const featured = article.featured
 
         return {
           cursor: edge.cursor,
           node: edge.node,
-          featured,
+          featured: article.featured,
+          announcement: article.announcement,
         }
       })
     ),

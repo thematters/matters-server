@@ -143,6 +143,7 @@ export default /* GraphQL */ `
     cursor: String!
     node: Article! @logCache(type: "${NODE_TYPES.Article}")
     featured: Boolean!
+    announcement: Boolean!
   }
 
   input CampaignParticipantsInput {

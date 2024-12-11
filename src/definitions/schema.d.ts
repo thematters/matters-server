@@ -696,6 +696,7 @@ export type GQLCampaignArticleConnection = GQLConnection & {
 
 export type GQLCampaignArticleEdge = {
   __typename?: 'CampaignArticleEdge'
+  announcement: Scalars['Boolean']['output']
   cursor: Scalars['String']['output']
   featured: Scalars['Boolean']['output']
   node: GQLArticle
@@ -6438,6 +6439,7 @@ export type GQLCampaignArticleEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignArticleEdge'] = GQLResolversParentTypes['CampaignArticleEdge']
 > = ResolversObject<{
+  announcement?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   featured?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
