@@ -38,6 +38,7 @@ export enum NOTICE_TYPE {
 
   // transaction
   payment_received_donation = 'payment_received_donation',
+  withdrew_locked_tokens = 'withdrew_locked_tokens',
 
   // circle
   circle_invitation = 'circle_invitation',

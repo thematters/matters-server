@@ -567,7 +567,7 @@ describe('put draft', () => {
       type: NODE_TYPES.CampaignStage,
       id: stages[0].id,
     })
-    const { campaigns } = await putDraft(
+    const { id: draftId, campaigns } = await putDraft(
       {
         draft: {
           title: Math.random().toString(),
@@ -588,5 +588,12 @@ describe('put draft', () => {
     )
     expect(campaigns[0].campaign.id).toBe(campaignGlobalId)
     expect(campaigns[0].stage.id).toBe(stageGlobalId)
+
+    // remove stage
+    const { campaigns: campaigns2 } = await putDraft(
+      { draft: { id: draftId, campaigns: [{ campaign: campaignGlobalId }] } },
+      connections
+    )
+    expect(campaigns2[0].stage).toBeNull()
   })
 })

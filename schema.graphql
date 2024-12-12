@@ -252,6 +252,9 @@ type Mutation {
   """Create Stripe Connect account for Payout"""
   connectStripeAccount(input: ConnectStripeAccountInput!): ConnectStripeAccountResult!
 
+  """Withdraw locked ERC20/native token from donation vault"""
+  withdrawLockedTokens: WithdrawLockedTokensResult!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
   putCollection(input: PutCollectionInput!): Collection!
@@ -661,7 +664,7 @@ input EditArticleInput {
 
 input ArticleCampaignInput {
   campaign: ID!
-  stage: ID!
+  stage: ID
 }
 
 input AppreciateArticleInput {
@@ -892,6 +895,7 @@ type CampaignArticleEdge {
   cursor: String!
   node: Article!
   featured: Boolean!
+  announcement: Boolean!
 }
 
 input CampaignParticipantsInput {
@@ -1887,6 +1891,7 @@ type TransactionNotice implements Notice {
 
 enum TransactionNoticeType {
   PaymentReceivedDonation
+  WithdrewLockedTokens
 }
 
 type CircleNotice implements Notice {
@@ -3471,6 +3476,7 @@ enum TransactionPurpose {
   subscriptionSplit
   dispute
   payoutReversal
+  curationVaultWithdrawal
 }
 
 enum TransactionCurrency {
@@ -3529,6 +3535,10 @@ type StripeAccount {
 
 type ConnectStripeAccountResult {
   redirectUrl: String!
+}
+
+type WithdrawLockedTokensResult {
+  transaction: Transaction!
 }
 
 enum StripeAccountCountry {

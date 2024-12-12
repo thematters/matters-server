@@ -104,7 +104,6 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
-  IERC1271,
   genDisplayName,
   RatelimitCounter,
   normalizeSearchKey,
@@ -2220,11 +2219,38 @@ export class UserService extends BaseService<User> {
       const bytecode = await client.getBytecode({ address: ethAddress })
       const isSmartContract = bytecode && trim(bytecode) !== '0x'
       if (isSmartContract) {
+        const IERC1271 = [
+          {
+            inputs: [
+              {
+                internalType: 'bytes32',
+                name: 'hash',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes',
+                name: 'signature',
+                type: 'bytes',
+              },
+            ],
+            name: 'isValidSignature',
+            outputs: [
+              {
+                internalType: 'bytes4',
+                name: 'magicValue',
+                type: 'bytes4',
+              },
+            ],
+            stateMutability: 'view',
+            type: 'function',
+          },
+        ] as const
+
         // verify the message for a decentralized account (contract wallet)
         const contractWallet = getContract({
-          publicClient: client,
           abi: IERC1271,
           address: ethAddress,
+          client: { public: client },
         })
 
         const verification = await contractWallet.read.isValidSignature([

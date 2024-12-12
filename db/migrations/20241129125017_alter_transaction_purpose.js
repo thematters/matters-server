@@ -1,0 +1,34 @@
+const { alterEnumString } = require('../utils')
+
+const table = 'transaction'
+
+exports.up = async (knex) => {
+  await knex.raw(
+    alterEnumString(table, 'purpose', [
+      'donation',
+      'add-credit',
+      'refund',
+      'payout',
+      'subscription',
+      'subscription-split',
+      'dispute',
+      'payout-reversal',
+      'curation-vault-withdrawal',
+    ])
+  )
+}
+
+exports.down = async (knex) => {
+  await knex.raw(
+    alterEnumString(table, 'purpose', [
+      'donation',
+      'add-credit',
+      'refund',
+      'payout',
+      'subscription',
+      'subscription-split',
+      'dispute',
+      'payout-reversal',
+    ])
+  )
+}

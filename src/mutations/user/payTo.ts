@@ -83,7 +83,10 @@ const resolver: GQLMutationResolvers['payTo'] = async (
   const services = { Article: articleService }
   const targetService = services[targetType]
   const [recipient, target] = await Promise.all([
-    userService.baseFindById(recipientDbId),
+    atomService.findUnique({
+      table: 'user',
+      where: { id: recipientDbId },
+    }),
     targetService ? targetService.baseFindById(targetDbId) : undefined,
   ])
 

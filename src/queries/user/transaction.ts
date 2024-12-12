@@ -33,6 +33,9 @@ export const Transaction: GQLTransactionResolvers = {
       table: 'blockchain_transaction',
       where: { id: trx.providerTxId },
     })
+    if (!blockchainTx) {
+      return null
+    }
     const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
     if (!chain) {
       throw new ServerError('chain is not supported')

@@ -10,9 +10,11 @@ const resolver: GQLDraftResolvers['campaigns'] = (
   }
   return Promise.all(
     campaigns.map(
-      async ({ campaign, stage }: { campaign: string; stage: string }) => ({
+      async ({ campaign, stage }: { campaign: string; stage?: string }) => ({
         campaign: await atomService.campaignIdLoader.load(campaign),
-        stage: await atomService.campaignStageIdLoader.load(stage),
+        stage: stage
+          ? await atomService.campaignStageIdLoader.load(stage)
+          : null,
       })
     )
   )
