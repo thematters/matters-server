@@ -1,10 +1,6 @@
 import type { GQLUserResolvers } from 'definitions'
 
-import {
-  connectionFromArray,
-  filterMissingFieldNoticeEdges,
-  fromConnectionArgs,
-} from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
 const MAX_NOTICE_COUNT = 1000
 
@@ -32,13 +28,7 @@ const resolver: GQLUserResolvers['notices'] = async (
   })
   const totalCount = Math.min(_totalCount, MAX_NOTICE_COUNT)
 
-  const result = connectionFromArray(notices, input, totalCount)
-  const edges = filterMissingFieldNoticeEdges(result.edges)
-
-  return {
-    ...result,
-    edges,
-  }
+  return connectionFromArray(notices, input, totalCount)
 }
 
 export default resolver
