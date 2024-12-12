@@ -61,7 +61,7 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
     },
   })
   if (tx) {
-    throw new ForbiddenError('pending withdrawal transaction')
+    return { transaction: tx }
   }
 
   const contract = new CurationVaultContract()
