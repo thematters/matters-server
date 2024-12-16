@@ -10,6 +10,7 @@ export enum MATERIALIZED_VIEW {
   tags_lasts_view_materialized = 'mat_views.tags_lasts_view_materialized',
   tag_stats_materialized = 'tag_stats_materialized',
   tag_hottest_materialized = 'tag_hottest_materialized',
+  tag_related_authors_materialized = 'tag_related_authors_materialized',
   article_stats_materialized = 'article_stats_materialized',
   user_reader_materialized = 'user_reader_materialized',
   featured_comment_materialized = 'featured_comment_materialized',
