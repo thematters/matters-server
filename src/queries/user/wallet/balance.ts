@@ -12,6 +12,7 @@ const resolver: GQLWalletResolvers['balance'] = async (
       HKD: 0,
     }
   }
+
   const HKD = await paymentService.calculateBalance({
     userId: id,
     currency: PAYMENT_CURRENCY.HKD,

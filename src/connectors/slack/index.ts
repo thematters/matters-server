@@ -87,6 +87,41 @@ class SlackService {
     }
   }
 
+  public sendVaultWithdrawMessage = async ({
+    amount,
+    state,
+    txDbId,
+    userName,
+    txHash,
+  }: {
+    amount: number | string
+    state: SLACK_MESSAGE_STATE
+    txDbId: string
+    userName: string
+    txHash?: string
+  }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackCurationVaultChannel,
+        text: `[${environment.env}] - Vault withdraw request is ${state}.`,
+        attachments: [
+          {
+            color: this.getMessageColor(state),
+            text:
+              '\n' +
+              `\n- *Matters ID:* ${userName}` +
+              `\n- *DB Tx ID*: ${txDbId}` +
+              `\n- *On-chain Tx*: ${txHash || 'N/A'}` +
+              `\n- *Amount*: ${amount} USD`,
+          },
+        ],
+        markdown: true,
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
   /**
    * Send alert realted to stripe issues.
    */
