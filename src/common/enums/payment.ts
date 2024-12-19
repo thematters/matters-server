@@ -81,6 +81,12 @@ export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
   [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
 }
 
+export const BLOCKCHAIN_EXPLORER = {
+  [BLOCKCHAIN.Optimism]: isProd
+    ? optimism.blockExplorers.default
+    : optimismSepolia.blockExplorers.default, // TODO: update to etherscan
+}
+
 // via https://support.kraken.com/hc/en-us/articles/203325283-Cryptocurrency-deposit-processing-times
 export const BLOCKCHAIN_SAFE_CONFIRMS: { [key in GQLChain]: number } = {
   Polygon: 70,

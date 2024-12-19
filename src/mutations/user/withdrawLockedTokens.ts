@@ -4,10 +4,13 @@ import { v4 } from 'uuid'
 import { formatUnits } from 'viem'
 
 import {
+  BLOCKCHAIN,
+  BLOCKCHAIN_EXPLORER,
   BLOCKCHAIN_TRANSACTION_STATE,
   NOTICE_TYPE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
+  SLACK_MESSAGE_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_STATE,
@@ -19,6 +22,7 @@ import {
   ServerError,
 } from 'common/errors'
 import { CurationVaultContract } from 'connectors/blockchain/curationVault'
+import SlackService from 'connectors/slack'
 
 const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
   _,
@@ -66,6 +70,7 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
 
   const contract = new CurationVaultContract()
   const client = await contract.getClient()
+  const slack = new SlackService()
 
   // check withdraw amount
   const vaultAmount = await contract.getWithdrawableUSDTAmount(viewer.id)
@@ -129,6 +134,14 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
         { type: 'target', entityTable: 'transaction', entity: transaction },
       ],
     })
+
+    slack.sendVaultWithdrawMessage({
+      amount: transaction.amount,
+      state: SLACK_MESSAGE_STATE.successful,
+      txDbId: transaction.id,
+      userName: viewer.userName,
+      txHash: `${BLOCKCHAIN_EXPLORER[BLOCKCHAIN.Optimism].url}/tx/${txHash}`,
+    })
   } catch (error) {
     console.error(error)
 
@@ -152,6 +165,13 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
       entities: [
         { type: 'target', entityTable: 'transaction', entity: transaction },
       ],
+    })
+
+    slack.sendVaultWithdrawMessage({
+      amount: transaction.amount,
+      state: SLACK_MESSAGE_STATE.failed,
+      txDbId: transaction.id,
+      userName: viewer.userName,
     })
 
     throw new ServerError('failed to withdraw locked tokens')
