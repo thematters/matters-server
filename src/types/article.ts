@@ -312,6 +312,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+    topics: [ArticleTopic!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type SpamStatus {
@@ -320,6 +321,16 @@ export default /* GraphQL */ `
 
     "whether this article is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
+  }
+
+  type ArticleTopic {
+    topic: Topic!
+
+    "confident score by machine"
+    score: Float!
+
+    "whether this article is labeled by human, null for not labeled yet. "
+    isLabeled: Boolean!
   }
 
   type ArticleTranslation {

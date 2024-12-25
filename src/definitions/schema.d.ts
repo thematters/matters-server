@@ -523,6 +523,7 @@ export type GQLArticleOss = {
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
   spamStatus: GQLSpamStatus
+  topics: Array<GQLArticleTopic>
 }
 
 export type GQLArticleRecommendationActivity = {
@@ -539,6 +540,15 @@ export type GQLArticleRecommendationActivitySource =
 
 /** Enums for an article state. */
 export type GQLArticleState = 'active' | 'archived' | 'banned'
+
+export type GQLArticleTopic = {
+  __typename?: 'ArticleTopic'
+  /** whether this article is labeled by human, null for not labeled yet.  */
+  isLabeled: Scalars['Boolean']['output']
+  /** confident score by machine */
+  score: Scalars['Float']['output']
+  topic: GQLTopic
+}
 
 export type GQLArticleTranslation = {
   __typename?: 'ArticleTranslation'
@@ -1890,6 +1900,7 @@ export type GQLMutation = {
   sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
+  setArticleTopics: GQLArticle
   setBoost: GQLNode
   /** Set user currency preference. */
   setCurrency: GQLUser
@@ -2194,6 +2205,10 @@ export type GQLMutationSendCampaignAnnouncementArgs = {
 
 export type GQLMutationSendVerificationCodeArgs = {
   input: GQLSendVerificationCodeInput
+}
+
+export type GQLMutationSetArticleTopicsArgs = {
+  input: GQLSetArticleTopicsInput
 }
 
 export type GQLMutationSetBoostArgs = {
@@ -2844,6 +2859,7 @@ export type GQLQuery = {
   official: GQLOfficial
   oss: GQLOss
   search: GQLSearchResultConnection
+  topics: Array<GQLTopic>
   user?: Maybe<GQLUser>
   viewer?: Maybe<GQLUser>
 }
@@ -2963,6 +2979,8 @@ export type GQLRecommendation = {
   newestExcludeSpam: GQLArticleConnection
   /** Global tag list, sort by activities in recent 14 days. */
   tags: GQLTagConnection
+  /** Articles from a specific topic */
+  topicArticles: GQLArticleConnection
 }
 
 export type GQLRecommendationAuthorsArgs = {
@@ -2995,6 +3013,10 @@ export type GQLRecommendationNewestExcludeSpamArgs = {
 
 export type GQLRecommendationTagsArgs = {
   input: GQLRecommendInput
+}
+
+export type GQLRecommendationTopicArticlesArgs = {
+  input: GQLTopicArticlesInput
 }
 
 export type GQLRecommendationFollowingFilterInput = {
@@ -3187,6 +3209,11 @@ export type GQLSendVerificationCodeInput = {
   redirectUrl?: InputMaybe<Scalars['String']['input']>
   token?: InputMaybe<Scalars['String']['input']>
   type: GQLVerificationCodeType
+}
+
+export type GQLSetArticleTopicsInput = {
+  id: Scalars['ID']['input']
+  topics: Array<Scalars['ID']['input']>
 }
 
 export type GQLSetBoostInput = {
@@ -3513,6 +3540,22 @@ export type GQLTopDonatorInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLTopDonatorFilter>
   first?: InputMaybe<Scalars['Int']['input']>
+}
+
+export type GQLTopic = {
+  __typename?: 'Topic'
+  id: Scalars['ID']['output']
+  name: Scalars['String']['output']
+}
+
+export type GQLTopicNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLTopicArticlesInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
+  topicId: Scalars['ID']['input']
 }
 
 export type GQLTransaction = {
@@ -4542,6 +4585,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ArticleRecommendationActivitySource: GQLArticleRecommendationActivitySource
   ArticleState: GQLArticleState
+  ArticleTopic: ResolverTypeWrapper<GQLArticleTopic>
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
   ArticleVersion: ResolverTypeWrapper<ArticleVersionModel>
   ArticleVersionEdge: ResolverTypeWrapper<
@@ -4940,6 +4984,7 @@ export type GQLResolversTypes = ResolversObject<{
   SearchTypes: GQLSearchTypes
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
+  SetArticleTopicsInput: GQLSetArticleTopicsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
   SetEmailInput: GQLSetEmailInput
@@ -4999,6 +5044,8 @@ export type GQLResolversTypes = ResolversObject<{
   >
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
+  Topic: ResolverTypeWrapper<GQLTopic>
+  TopicArticlesInput: GQLTopicArticlesInput
   Transaction: ResolverTypeWrapper<TransactionModel>
   TransactionConnection: ResolverTypeWrapper<
     Omit<GQLTransactionConnection, 'edges'> & {
@@ -5181,6 +5228,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     GQLArticleRecommendationActivity,
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Article']>> }
+  ArticleTopic: GQLArticleTopic
   ArticleTranslation: GQLArticleTranslation
   ArticleVersion: ArticleVersionModel
   ArticleVersionEdge: Omit<GQLArticleVersionEdge, 'node'> & {
@@ -5477,6 +5525,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SearchResultEdge: GQLSearchResultEdge
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
+  SetArticleTopicsInput: GQLSetArticleTopicsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
   SetEmailInput: GQLSetEmailInput
@@ -5522,6 +5571,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
+  Topic: GQLTopic
+  TopicArticlesInput: GQLTopicArticlesInput
   Transaction: TransactionModel
   TransactionConnection: Omit<GQLTransactionConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TransactionEdge']>>
@@ -6211,6 +6262,11 @@ export type GQLArticleOssResolvers<
     ParentType,
     ContextType
   >
+  topics?: Resolver<
+    Array<GQLResolversTypes['ArticleTopic']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6228,6 +6284,16 @@ export type GQLArticleRecommendationActivityResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleTopicResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleTopic'] = GQLResolversParentTypes['ArticleTopic']
+> = ResolversObject<{
+  isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  topic?: Resolver<GQLResolversTypes['Topic'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7861,6 +7927,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSendVerificationCodeArgs, 'input'>
   >
+  setArticleTopics?: Resolver<
+    GQLResolversTypes['Article'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetArticleTopicsArgs, 'input'>
+  >
   setBoost?: Resolver<
     GQLResolversTypes['Node'],
     ParentType,
@@ -8623,6 +8695,7 @@ export type GQLQueryResolvers<
     ContextType,
     RequireFields<GQLQuerySearchArgs, 'input'>
   >
+  topics?: Resolver<Array<GQLResolversTypes['Topic']>, ParentType, ContextType>
   user?: Resolver<
     Maybe<GQLResolversTypes['User']>,
     ParentType,
@@ -8743,6 +8816,12 @@ export type GQLRecommendationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLRecommendationTagsArgs, 'input'>
+  >
+  topicArticles?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLRecommendationTopicArticlesArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -9050,6 +9129,20 @@ export type GQLTopDonatorEdgeResolvers<
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTopicResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Topic'] = GQLResolversParentTypes['Topic']
+> = ResolversObject<{
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  name?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLTopicNameArgs>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9825,6 +9918,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityResolvers<ContextType>
+  ArticleTopic?: GQLArticleTopicResolvers<ContextType>
   ArticleTranslation?: GQLArticleTranslationResolvers<ContextType>
   ArticleVersion?: GQLArticleVersionResolvers<ContextType>
   ArticleVersionEdge?: GQLArticleVersionEdgeResolvers<ContextType>
@@ -9944,6 +10038,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   TagOSS?: GQLTagOssResolvers<ContextType>
   TopDonatorConnection?: GQLTopDonatorConnectionResolvers<ContextType>
   TopDonatorEdge?: GQLTopDonatorEdgeResolvers<ContextType>
+  Topic?: GQLTopicResolvers<ContextType>
   Transaction?: GQLTransactionResolvers<ContextType>
   TransactionConnection?: GQLTransactionConnectionResolvers<ContextType>
   TransactionEdge?: GQLTransactionEdgeResolvers<ContextType>

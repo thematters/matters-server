@@ -11,6 +11,7 @@ import payment from './payment'
 import response from './response'
 import scalars from './scalars'
 import system from './system'
+import topic from './topic'
 import user from './user'
 
 const Root = /* GraphQL */ `
@@ -39,4 +40,5 @@ export default [
   oauthClient,
   collection,
   moment,
+  topic,
 ]

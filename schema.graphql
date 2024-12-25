@@ -34,6 +34,7 @@ type Query {
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
   moment(input: MomentInput!): Moment
+  topics: [Topic!]!
 }
 
 type Mutation {
@@ -274,6 +275,7 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
+  setArticleTopics(input: SetArticleTopicsInput!): Article!
 }
 
 """
@@ -557,6 +559,7 @@ type ArticleOSS {
   inRecommendNewest: Boolean!
   inSearch: Boolean!
   spamStatus: SpamStatus!
+  topics: [ArticleTopic!]!
 }
 
 type SpamStatus {
@@ -567,6 +570,16 @@ type SpamStatus {
   whether this article is labeled as spam by human, null for not labeled yet. 
   """
   isSpam: Boolean
+}
+
+type ArticleTopic {
+  topic: Topic!
+
+  """confident score by machine"""
+  score: Float!
+
+  """whether this article is labeled by human, null for not labeled yet. """
+  isLabeled: Boolean!
 }
 
 type ArticleTranslation {
@@ -2486,11 +2499,20 @@ type Recommendation {
   """'In case you missed it' topic."""
   icymiTopic: IcymiTopic
 
+  """Articles from a specific topic"""
+  topicArticles(input: TopicArticlesInput!): ArticleConnection!
+
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
 
   """Global user list, sort by activities in recent 6 month."""
   authors(input: RecommendInput!): UserConnection!
+}
+
+input TopicArticlesInput {
+  topicId: ID!
+  after: String
+  first: Int
 }
 
 input RecommendInput {
@@ -3781,4 +3803,14 @@ type Moment implements Node {
 enum MomentState {
   active
   archived
+}
+
+type Topic {
+  id: ID!
+  name(input: TranslationArgs): String!
+}
+
+input SetArticleTopicsInput {
+  id: ID!
+  topics: [ID!]!
 }
