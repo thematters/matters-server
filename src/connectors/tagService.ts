@@ -533,37 +533,6 @@ export class TagService extends BaseService<Tag> {
         }
       })
 
-  /**
-   *
-   * query, add and remove tag recommendation
-   */
-  public selected = async ({
-    take,
-    skip,
-  }: {
-    take?: number
-    skip?: number
-  }) => {
-    const query = this.knex('tag')
-      .select('tag.*', 'c.updated_at as chose_at')
-      .join('matters_choice_tag as c', 'c.tag_id', 'tag.id')
-      .orderBy('chose_at', 'desc')
-
-    if (skip !== undefined && Number.isFinite(skip)) {
-      query.offset(skip)
-    }
-    if (take !== undefined && Number.isFinite(take)) {
-      query.limit(take)
-    }
-
-    return query
-  }
-
-  public countSelectedTags = async () => {
-    const result = await this.knex('matters_choice_tag').count().first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   /*********************************
    *                               *
    *            Article            *

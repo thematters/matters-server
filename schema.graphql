@@ -2489,20 +2489,8 @@ type Recommendation {
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
 
-  """Hottest tag list"""
-  hottestTags(input: RecommendInput!): TagConnection!
-
-  """Selected tag list"""
-  selectedTags(input: RecommendInput!): TagConnection!
-
   """Global user list, sort by activities in recent 6 month."""
   authors(input: RecommendInput!): UserConnection!
-
-  """Global circles sort by created time."""
-  newestCircles(input: ConnectionArgs!): CircleConnection!
-
-  """Global circles sort by latest activity time."""
-  hottestCircles(input: ConnectionArgs!): CircleConnection!
 }
 
 input RecommendInput {
