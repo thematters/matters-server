@@ -34,7 +34,7 @@ type Query {
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
   moment(input: MomentInput!): Moment
-  topics: [Topic!]!
+  channels: [Channel!]!
 }
 
 type Mutation {
@@ -275,7 +275,7 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
-  setArticleTopics(input: SetArticleTopicsInput!): Article!
+  setArticleChannels(input: SetArticleChannelsInput!): Article!
 }
 
 """
@@ -285,9 +285,6 @@ want information about article's comments. Please check Comment type.
 type Article implements Node & PinnableWork {
   """Unique ID of this article"""
   id: ID!
-
-  """The number represents how popular is this article."""
-  topicScore: Int
 
   """Slugified article title."""
   slug: String!
@@ -559,7 +556,7 @@ type ArticleOSS {
   inRecommendNewest: Boolean!
   inSearch: Boolean!
   spamStatus: SpamStatus!
-  topics: [ArticleTopic!]!
+  channels: [ArticleChannel!]!
 }
 
 type SpamStatus {
@@ -572,8 +569,8 @@ type SpamStatus {
   isSpam: Boolean
 }
 
-type ArticleTopic {
-  topic: Topic!
+type ArticleChannel {
+  channel: Channel!
 
   """confident score by machine"""
   score: Float!
@@ -2499,8 +2496,8 @@ type Recommendation {
   """'In case you missed it' topic."""
   icymiTopic: IcymiTopic
 
-  """Articles from a specific topic"""
-  topicArticles(input: TopicArticlesInput!): ArticleConnection!
+  """Articles from a specific channel"""
+  channelArticles(input: ChannelArticlesInput!): ArticleConnection!
 
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
@@ -2509,8 +2506,8 @@ type Recommendation {
   authors(input: RecommendInput!): UserConnection!
 }
 
-input TopicArticlesInput {
-  topicId: ID!
+input ChannelArticlesInput {
+  channelId: ID!
   after: String
   first: Int
 }
@@ -3805,12 +3802,12 @@ enum MomentState {
   archived
 }
 
-type Topic {
+type Channel {
   id: ID!
   name(input: TranslationArgs): String!
 }
 
-input SetArticleTopicsInput {
+input SetArticleChannelsInput {
   id: ID!
-  topics: [ID!]!
+  channels: [ID!]!
 }

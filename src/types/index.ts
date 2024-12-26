@@ -1,5 +1,6 @@
 import article from './article'
 import campaign from './campaign'
+import channel from './channel'
 import circle from './circle'
 import collection from './collection'
 import comment from './comment'
@@ -11,7 +12,6 @@ import payment from './payment'
 import response from './response'
 import scalars from './scalars'
 import system from './system'
-import topic from './topic'
 import user from './user'
 
 const Root = /* GraphQL */ `
@@ -40,5 +40,5 @@ export default [
   oauthClient,
   collection,
   moment,
-  topic,
+  channel,
 ]

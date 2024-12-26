@@ -228,8 +228,8 @@ export default /* GraphQL */ `
     "'In case you missed it' topic."
     icymiTopic: IcymiTopic @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
-    "Articles from a specific topic"
-    topicArticles(input: TopicArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    "Articles from a specific channel"
+    channelArticles(input: ChannelArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
@@ -239,8 +239,8 @@ export default /* GraphQL */ `
   }
 
 
-  input TopicArticlesInput {
-    topicId: ID!
+  input ChannelArticlesInput {
+    channelId: ID!
     after: String
     first: Int @constraint(min: 0)
   }

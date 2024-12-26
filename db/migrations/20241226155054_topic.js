@@ -1,12 +1,12 @@
 const { baseDown } = require('../utils')
 
-const topic_table = 'topic'
-const article_topic_table = 'article_topic'
+const channel_table = 'channel'
+const article_channel_table = 'article_channel'
 
 exports.up = async (knex) => {
-  // Create topics table
-  await knex('entity_type').insert({ table: topic_table })
-  await knex.schema.createTable(topic_table, (t) => {
+  // Create channel table
+  await knex('entity_type').insert({ table: channel_table })
+  await knex.schema.createTable(channel_table, (t) => {
     t.bigIncrements('id').primary()
     t.string('name').notNullable()
     t.string('description')
@@ -15,12 +15,12 @@ exports.up = async (knex) => {
     t.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable()
   })
 
-  // Create article_topic junction table
-  await knex('entity_type').insert({ table: article_topic_table })
-  await knex.schema.createTable(article_topic_table, (t) => {
+  // Create article_channel junction table
+  await knex('entity_type').insert({ table: article_channel_table })
+  await knex.schema.createTable(article_channel_table, (t) => {
     t.bigIncrements('id').primary()
     t.bigInteger('article_id').unsigned().notNullable()
-    t.bigInteger('topic_id').unsigned().notNullable()
+    t.bigInteger('channel_id').unsigned().notNullable()
 
     t.boolean('is_labeled').nullable()
     t.float('score').nullable()
@@ -29,14 +29,14 @@ exports.up = async (knex) => {
     t.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable()
 
     t.foreign('article_id').references('id').inTable('article')
-    t.foreign('topic_id').references('id').inTable('topic')
+    t.foreign('channel_id').references('id').inTable('channel')
 
-    t.unique(['article_id', 'topic_id'])
-    t.index('article_id').index('topic_id').index('is_labeled').index('score')
+    t.unique(['article_id', 'channel_id'])
+    t.index('article_id').index('channel_id').index('is_labeled').index('score')
   })
 }
 
 exports.down = async (knex) => {
-  await baseDown(article_topic_table)(knex)
-  await baseDown(topic_table)(knex)
+  await baseDown(article_channel_table)(knex)
+  await baseDown(channel_table)(knex)
 }

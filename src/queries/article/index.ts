@@ -109,8 +109,6 @@ const schema: GQLResolvers = {
     tags,
     translation: articleTranslation,
     availableTranslations,
-    topicScore: (({ score }: { score: number }) =>
-      score ? Math.round(score) : null) as any,
     transactionsReceivedBy,
     donations,
     readTime,
