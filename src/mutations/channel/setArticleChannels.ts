@@ -6,7 +6,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['setArticleChannels'] = async (
   _,
   { input: { id: globalId, channels: newChannelIds } },
-  { viewer, dataSources: { atomService } }
+  { viewer, dataSources: { atomService, channelService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -23,43 +23,7 @@ const resolver: GQLMutationResolvers['setArticleChannels'] = async (
     throw new UserInputError('invalid article id')
   }
 
-  // Get existing channels
-  const existingChannels = await atomService.findMany({
-    table: 'article_channel',
-    where: { articleId },
-  })
-  const existingChannelIds = new Set(existingChannels.map((c) => c.channelId))
-
-  // Diff channels
-  const toAdd = channelIds.filter((id) => !existingChannelIds.has(id))
-  const toRemove = [...existingChannelIds].filter(
-    (id) => !channelIds.includes(id)
-  )
-
-  // Add new channels
-  if (toAdd.length > 0) {
-    for (const channelId of toAdd) {
-      await atomService.create({
-        table: 'article_channel',
-        data: {
-          articleId,
-          channelId,
-          enabled: true,
-          isLabeled: true,
-        },
-      })
-    }
-  }
-
-  // Disable removed channels
-  if (toRemove.length > 0) {
-    await atomService.updateMany({
-      table: 'article_channel',
-      where: { articleId },
-      whereIn: ['channelId', toRemove],
-      data: { enabled: false, isLabeled: true },
-    })
-  }
+  await channelService.setArticleChannels(articleId, channelIds)
 
   return article
 }
