@@ -11,8 +11,11 @@ exports.up = async (knex) => {
     t.string('name').notNullable()
     t.string('description')
     t.string('provider_id').notNullable().unique()
+    t.boolean('enabled').defaultTo(true).notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now()).notNullable()
     t.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable()
+
+    t.index('provider_id').index('enabled')
   })
 
   // Create article_channel junction table
@@ -22,8 +25,11 @@ exports.up = async (knex) => {
     t.bigInteger('article_id').unsigned().notNullable()
     t.bigInteger('channel_id').unsigned().notNullable()
 
-    t.boolean('is_labeled').nullable()
     t.float('score').nullable()
+
+    // admin fields
+    t.boolean('enabled').defaultTo(true).notNullable()
+    t.boolean('is_labeled').defaultTo(false).notNullable()
 
     t.timestamp('created_at').defaultTo(knex.fn.now()).notNullable()
     t.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable()
@@ -32,7 +38,11 @@ exports.up = async (knex) => {
     t.foreign('channel_id').references('id').inTable('channel')
 
     t.unique(['article_id', 'channel_id'])
-    t.index('article_id').index('channel_id').index('is_labeled').index('score')
+    t.index('article_id')
+      .index('channel_id')
+      .index('score')
+      .index('is_labeled')
+      .index('enabled')
   })
 }
 

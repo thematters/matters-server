@@ -169,6 +169,8 @@ export enum NODE_TYPES {
   Campaign = 'Campaign',
   CampaignStage = 'CampaignStage',
 
+  Channel = 'Channel',
+
   IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
   Price = 'Price',

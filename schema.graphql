@@ -275,6 +275,7 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
+  putChannel(input: PutChannelInput!): Channel!
   setArticleChannels(input: SetArticleChannelsInput!): Article!
 }
 
@@ -573,10 +574,13 @@ type ArticleChannel {
   channel: Channel!
 
   """confident score by machine"""
-  score: Float!
+  score: Float
 
   """whether this article is labeled by human, null for not labeled yet. """
   isLabeled: Boolean!
+
+  """whether this article channel is enabled"""
+  enabled: Boolean!
 }
 
 type ArticleTranslation {
@@ -3805,6 +3809,16 @@ enum MomentState {
 type Channel {
   id: ID!
   name(input: TranslationArgs): String!
+  description: String
+  providerId: String!
+  enabled: Boolean!
+}
+
+input PutChannelInput {
+  id: ID!
+  providerId: String!
+  name: [TranslationInput!]
+  description: String
 }
 
 input SetArticleChannelsInput {

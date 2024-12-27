@@ -440,10 +440,12 @@ export type GQLArticleCampaignInput = {
 export type GQLArticleChannel = {
   __typename?: 'ArticleChannel'
   channel: GQLChannel
+  /** whether this article channel is enabled */
+  enabled: Scalars['Boolean']['output']
   /** whether this article is labeled by human, null for not labeled yet.  */
   isLabeled: Scalars['Boolean']['output']
   /** confident score by machine */
-  score: Scalars['Float']['output']
+  score?: Maybe<Scalars['Float']['output']>
 }
 
 export type GQLArticleConnection = GQLConnection & {
@@ -816,8 +818,11 @@ export type GQLChain = 'Optimism' | 'Polygon'
 
 export type GQLChannel = {
   __typename?: 'Channel'
+  description?: Maybe<Scalars['String']['output']>
+  enabled: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
+  providerId: Scalars['String']['output']
 }
 
 export type GQLChannelNameArgs = {
@@ -1874,6 +1879,7 @@ export type GQLMutation = {
   /** Publish an article onto IPFS. */
   publishArticle: GQLDraft
   putAnnouncement: GQLAnnouncement
+  putChannel: GQLChannel
   /** Create or update a Circle. */
   putCircle: GQLCircle
   /**
@@ -2131,6 +2137,10 @@ export type GQLMutationPublishArticleArgs = {
 
 export type GQLMutationPutAnnouncementArgs = {
   input: GQLPutAnnouncementInput
+}
+
+export type GQLMutationPutChannelArgs = {
+  input: GQLPutChannelInput
 }
 
 export type GQLMutationPutCircleArgs = {
@@ -2731,6 +2741,13 @@ export type GQLPutAnnouncementInput = {
   translations?: InputMaybe<Array<GQLTranslatedAnnouncementInput>>
   type?: InputMaybe<GQLAnnouncementType>
   visible?: InputMaybe<Scalars['Boolean']['input']>
+}
+
+export type GQLPutChannelInput = {
+  description?: InputMaybe<Scalars['String']['input']>
+  id: Scalars['ID']['input']
+  name?: InputMaybe<Array<GQLTranslationInput>>
+  providerId: Scalars['String']['input']
 }
 
 export type GQLPutCircleArticlesInput = {
@@ -4908,6 +4925,7 @@ export type GQLResolversTypes = ResolversObject<{
   PublishArticleInput: GQLPublishArticleInput
   PublishState: GQLPublishState
   PutAnnouncementInput: GQLPutAnnouncementInput
+  PutChannelInput: GQLPutChannelInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleArticlesType: GQLPutCircleArticlesType
   PutCircleInput: GQLPutCircleInput
@@ -5469,6 +5487,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Price: CirclePriceModel
   PublishArticleInput: GQLPublishArticleInput
   PutAnnouncementInput: GQLPutAnnouncementInput
+  PutChannelInput: GQLPutChannelInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleInput: GQLPutCircleInput
   PutCollectionInput: GQLPutCollectionInput
@@ -6148,8 +6167,9 @@ export type GQLArticleChannelResolvers<
   ParentType extends GQLResolversParentTypes['ArticleChannel'] = GQLResolversParentTypes['ArticleChannel']
 > = ResolversObject<{
   channel?: Resolver<GQLResolversTypes['Channel'], ParentType, ContextType>
+  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6591,6 +6611,12 @@ export type GQLChannelResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Channel'] = GQLResolversParentTypes['Channel']
 > = ResolversObject<{
+  description?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   name?: Resolver<
     GQLResolversTypes['String'],
@@ -6598,6 +6624,7 @@ export type GQLChannelResolvers<
     ContextType,
     Partial<GQLChannelNameArgs>
   >
+  providerId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7796,6 +7823,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutAnnouncementArgs, 'input'>
+  >
+  putChannel?: Resolver<
+    GQLResolversTypes['Channel'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutChannelArgs, 'input'>
   >
   putCircle?: Resolver<
     GQLResolversTypes['Circle'],

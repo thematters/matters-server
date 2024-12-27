@@ -324,10 +324,13 @@ export default /* GraphQL */ `
     channel: Channel!
 
     "confident score by machine"
-    score: Float!
+    score: Float
 
     "whether this article is labeled by human, null for not labeled yet. "
     isLabeled: Boolean!
+
+    "whether this article channel is enabled"
+    enabled: Boolean!
   }
 
   type ArticleTranslation {
