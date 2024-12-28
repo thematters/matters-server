@@ -20,10 +20,11 @@ export default /* GraphQL */ `
   }
 
   input PutChannelInput {
-    id: ID!
+    id: ID
     providerId: String!
     name: [TranslationInput!]
     description: String
+    enabled: Boolean
   }
 
   input SetArticleChannelsInput {

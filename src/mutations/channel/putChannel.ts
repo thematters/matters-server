@@ -5,7 +5,7 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putChannel'] = async (
   _,
-  { input: { id: globalId, providerId, name, description } },
+  { input: { id: globalId, providerId, name, description, enabled } },
   { viewer, dataSources: { translationService, channelService } }
 ) => {
   if (!viewer.id) {
@@ -19,7 +19,7 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
       providerId,
       name: name ? name[0].text : '',
       description,
-      enabled: false, // default disabled so it wont be shown in homepage immediately
+      ...(typeof enabled === 'boolean' ? { enabled } : {}),
     })
   } else {
     const { id, type } = fromGlobalId(globalId)
@@ -32,7 +32,7 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
       providerId,
       name: name ? name[0].text : '',
       description,
-      enabled: true,
+      ...(typeof enabled === 'boolean' ? { enabled } : {}),
     })
   }
 

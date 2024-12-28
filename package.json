@@ -20,7 +20,7 @@
     "watch:server": "nodemon build/index.js",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
-    "test:connectors": "MATTERS_ENV=test jest src/connectors/__test__/channelService.test.ts --forceExit --maxWorkers=50%",
+    "test:connectors": "MATTERS_ENV=test jest src/connectors --forceExit --maxWorkers=50%",
     "test:utils": "MATTERS_ENV=test jest src/common/utils --forceExit --maxWorkers=50%",
     "test:routes": "MATTERS_ENV=test jest src/routes/ --forceExit --maxWorkers=50%",
     "test:types": "MATTERS_ENV=test jest src/types/ --forceExit",

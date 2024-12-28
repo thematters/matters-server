@@ -2745,7 +2745,8 @@ export type GQLPutAnnouncementInput = {
 
 export type GQLPutChannelInput = {
   description?: InputMaybe<Scalars['String']['input']>
-  id: Scalars['ID']['input']
+  enabled?: InputMaybe<Scalars['Boolean']['input']>
+  id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
   providerId: Scalars['String']['input']
 }

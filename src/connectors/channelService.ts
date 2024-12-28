@@ -22,7 +22,7 @@ export class ChannelService {
     name: string
     description?: string
     providerId: string
-    enabled: boolean
+    enabled?: boolean
   }) => {
     // update
     if (id) {
