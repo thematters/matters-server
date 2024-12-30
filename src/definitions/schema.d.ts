@@ -2953,22 +2953,14 @@ export type GQLRecommendation = {
   following: GQLFollowingActivityConnection
   /** Global articles sort by latest activity time. */
   hottest: GQLArticleConnection
-  /** Global circles sort by latest activity time. */
-  hottestCircles: GQLCircleConnection
   hottestExcludeSpam: GQLArticleConnection
-  /** Hottest tag list */
-  hottestTags: GQLTagConnection
   /** 'In case you missed it' recommendation. */
   icymi: GQLArticleConnection
   /** 'In case you missed it' topic. */
   icymiTopic?: Maybe<GQLIcymiTopic>
   /** Global articles sort by publish time. */
   newest: GQLArticleConnection
-  /** Global circles sort by created time. */
-  newestCircles: GQLCircleConnection
   newestExcludeSpam: GQLArticleConnection
-  /** Selected tag list */
-  selectedTags: GQLTagConnection
   /** Global tag list, sort by activities in recent 14 days. */
   tags: GQLTagConnection
 }
@@ -2985,16 +2977,8 @@ export type GQLRecommendationHottestArgs = {
   input: GQLConnectionArgs
 }
 
-export type GQLRecommendationHottestCirclesArgs = {
-  input: GQLConnectionArgs
-}
-
 export type GQLRecommendationHottestExcludeSpamArgs = {
   input: GQLConnectionArgs
-}
-
-export type GQLRecommendationHottestTagsArgs = {
-  input: GQLRecommendInput
 }
 
 export type GQLRecommendationIcymiArgs = {
@@ -3005,16 +2989,8 @@ export type GQLRecommendationNewestArgs = {
   input: GQLConnectionArgs
 }
 
-export type GQLRecommendationNewestCirclesArgs = {
-  input: GQLConnectionArgs
-}
-
 export type GQLRecommendationNewestExcludeSpamArgs = {
   input: GQLConnectionArgs
-}
-
-export type GQLRecommendationSelectedTagsArgs = {
-  input: GQLRecommendInput
 }
 
 export type GQLRecommendationTagsArgs = {
@@ -8733,23 +8709,11 @@ export type GQLRecommendationResolvers<
     ContextType,
     RequireFields<GQLRecommendationHottestArgs, 'input'>
   >
-  hottestCircles?: Resolver<
-    GQLResolversTypes['CircleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLRecommendationHottestCirclesArgs, 'input'>
-  >
   hottestExcludeSpam?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLRecommendationHottestExcludeSpamArgs, 'input'>
-  >
-  hottestTags?: Resolver<
-    GQLResolversTypes['TagConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLRecommendationHottestTagsArgs, 'input'>
   >
   icymi?: Resolver<
     GQLResolversTypes['ArticleConnection'],
@@ -8768,23 +8732,11 @@ export type GQLRecommendationResolvers<
     ContextType,
     RequireFields<GQLRecommendationNewestArgs, 'input'>
   >
-  newestCircles?: Resolver<
-    GQLResolversTypes['CircleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLRecommendationNewestCirclesArgs, 'input'>
-  >
   newestExcludeSpam?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLRecommendationNewestExcludeSpamArgs, 'input'>
-  >
-  selectedTags?: Resolver<
-    GQLResolversTypes['TagConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLRecommendationSelectedTagsArgs, 'input'>
   >
   tags?: Resolver<
     GQLResolversTypes['TagConnection'],
