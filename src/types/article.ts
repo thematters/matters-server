@@ -212,6 +212,9 @@ export default /* GraphQL */ `
     "associated campaigns"
     campaigns: [ArticleCampaign!]!
 
+    "whether this article is noindex"
+    noindex: Boolean!
+
     ##############
     #     OSS    #
     ##############

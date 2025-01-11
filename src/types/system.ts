@@ -499,6 +499,7 @@ export default /* GraphQL */ `
   enum UserRestrictionType {
     articleHottest
     articleNewest
+    excludeArticleSpamDetection
   }
 
   enum ReportReason {

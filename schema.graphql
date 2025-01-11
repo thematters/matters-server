@@ -442,6 +442,9 @@ type Article implements Node & PinnableWork {
 
   """associated campaigns"""
   campaigns: [ArticleCampaign!]!
+
+  """whether this article is noindex"""
+  noindex: Boolean!
   oss: ArticleOSS!
   remark: String
 
@@ -2401,6 +2404,7 @@ enum AnnouncementType {
 enum UserRestrictionType {
   articleHottest
   articleNewest
+  excludeArticleSpamDetection
 }
 
 enum ReportReason {

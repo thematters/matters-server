@@ -231,6 +231,8 @@ export type GQLArticle = GQLNode &
     license: GQLArticleLicenseType
     /** Media hash, composed of cid encoding, of this article. */
     mediaHash: Scalars['String']['output']
+    /** whether this article is noindex */
+    noindex: Scalars['Boolean']['output']
     oss: GQLArticleOss
     /** The number determines how many comments can be set as pinned comment. */
     pinCommentLeft: Scalars['Int']['output']
@@ -4080,7 +4082,10 @@ export type GQLUserRestriction = {
   type: GQLUserRestrictionType
 }
 
-export type GQLUserRestrictionType = 'articleHottest' | 'articleNewest'
+export type GQLUserRestrictionType =
+  | 'articleHottest'
+  | 'articleNewest'
+  | 'excludeArticleSpamDetection'
 
 export type GQLUserRole = 'admin' | 'user'
 
@@ -5968,6 +5973,7 @@ export type GQLArticleResolvers<
     ContextType
   >
   mediaHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  noindex?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   oss?: Resolver<GQLResolversTypes['ArticleOSS'], ParentType, ContextType>
   pinCommentLeft?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   pinCommentLimit?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
