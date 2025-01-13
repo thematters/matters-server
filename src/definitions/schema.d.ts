@@ -1873,6 +1873,7 @@ export type GQLMutation = {
   putRemark?: Maybe<Scalars['String']['output']>
   putRestrictedUsers: Array<GQLUser>
   putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
+  putUserFeatureFlags: Array<GQLUser>
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
@@ -2156,6 +2157,10 @@ export type GQLMutationPutRestrictedUsersArgs = {
 
 export type GQLMutationPutSkippedListItemArgs = {
   input: GQLPutSkippedListItemInput
+}
+
+export type GQLMutationPutUserFeatureFlagsArgs = {
+  input: GQLPutUserFeatureFlagsInput
 }
 
 export type GQLMutationPutWritingChallengeArgs = {
@@ -2816,6 +2821,11 @@ export type GQLPutSkippedListItemInput = {
   id?: InputMaybe<Scalars['ID']['input']>
   type?: InputMaybe<GQLSkippedListItemType>
   value?: InputMaybe<Scalars['String']['input']>
+}
+
+export type GQLPutUserFeatureFlagsInput = {
+  flags: Array<GQLUserFeatureFlagType>
+  ids: Array<Scalars['ID']['input']>
 }
 
 export type GQLPutWritingChallengeInput = {
@@ -3974,6 +3984,14 @@ export type GQLUserEdge = {
   node: GQLUser
 }
 
+export type GQLUserFeatureFlag = {
+  __typename?: 'UserFeatureFlag'
+  createdAt: Scalars['DateTime']['output']
+  type: GQLUserFeatureFlagType
+}
+
+export type GQLUserFeatureFlagType = 'bypassSpamDetection'
+
 export type GQLUserGroup = 'a' | 'b'
 
 export type GQLUserInfo = {
@@ -4044,6 +4062,7 @@ export type GQLUserNoticeType = 'UserNewFollower'
 export type GQLUserOss = {
   __typename?: 'UserOSS'
   boost: Scalars['Float']['output']
+  featureFlags: Array<GQLUserFeatureFlag>
   restrictions: Array<GQLUserRestriction>
   score: Scalars['Float']['output']
 }
@@ -4082,10 +4101,7 @@ export type GQLUserRestriction = {
   type: GQLUserRestrictionType
 }
 
-export type GQLUserRestrictionType =
-  | 'articleHottest'
-  | 'articleNewest'
-  | 'excludeArticleSpamDetection'
+export type GQLUserRestrictionType = 'articleHottest' | 'articleNewest'
 
 export type GQLUserRole = 'admin' | 'user'
 
@@ -4905,6 +4921,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
+  PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: ResolverTypeWrapper<{}>
   QuoteCurrency: GQLQuoteCurrency
@@ -5104,6 +5121,8 @@ export type GQLResolversTypes = ResolversObject<{
   UserEdge: ResolverTypeWrapper<
     Omit<GQLUserEdge, 'node'> & { node: GQLResolversTypes['User'] }
   >
+  UserFeatureFlag: ResolverTypeWrapper<GQLUserFeatureFlag>
+  UserFeatureFlagType: GQLUserFeatureFlagType
   UserGroup: GQLUserGroup
   UserInfo: ResolverTypeWrapper<UserModel>
   UserInfoFields: GQLUserInfoFields
@@ -5461,6 +5480,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
+  PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: {}
   ReadArticleInput: GQLReadArticleInput
@@ -5617,6 +5637,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserEdge: Omit<GQLUserEdge, 'node'> & {
     node: GQLResolversParentTypes['User']
   }
+  UserFeatureFlag: GQLUserFeatureFlag
   UserInfo: UserModel
   UserInput: GQLUserInput
   UserNotice: NoticeItemModel
@@ -7826,6 +7847,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutSkippedListItemArgs, 'input'>
   >
+  putUserFeatureFlags?: Resolver<
+    Array<GQLResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutUserFeatureFlagsArgs, 'input'>
+  >
   putWritingChallenge?: Resolver<
     GQLResolversTypes['WritingChallenge'],
     ParentType,
@@ -9500,6 +9527,19 @@ export type GQLUserEdgeResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLUserFeatureFlagResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['UserFeatureFlag'] = GQLResolversParentTypes['UserFeatureFlag']
+> = ResolversObject<{
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  type?: Resolver<
+    GQLResolversTypes['UserFeatureFlagType'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLUserInfoResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserInfo'] = GQLResolversParentTypes['UserInfo']
@@ -9592,6 +9632,11 @@ export type GQLUserOssResolvers<
   ParentType extends GQLResolversParentTypes['UserOSS'] = GQLResolversParentTypes['UserOSS']
 > = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  featureFlags?: Resolver<
+    Array<GQLResolversTypes['UserFeatureFlag']>,
+    ParentType,
+    ContextType
+  >
   restrictions?: Resolver<
     Array<GQLResolversTypes['UserRestriction']>,
     ParentType,
@@ -10013,6 +10058,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserConnection?: GQLUserConnectionResolvers<ContextType>
   UserCreateCircleActivity?: GQLUserCreateCircleActivityResolvers<ContextType>
   UserEdge?: GQLUserEdgeResolvers<ContextType>
+  UserFeatureFlag?: GQLUserFeatureFlagResolvers<ContextType>
   UserInfo?: GQLUserInfoResolvers<ContextType>
   UserNotice?: GQLUserNoticeResolvers<ContextType>
   UserOSS?: GQLUserOssResolvers<ContextType>

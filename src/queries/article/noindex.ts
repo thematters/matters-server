@@ -1,6 +1,6 @@
 import type { GQLArticleResolvers } from 'definitions'
 
-import { USER_RESTRICTION_TYPE, USER_STATE } from 'common/enums'
+import { USER_FEATURE_FLAG_TYPE, USER_STATE } from 'common/enums'
 
 const resolver: GQLArticleResolvers['noindex'] = async (
   { id, spamScore, isSpam, authorId },
@@ -14,10 +14,10 @@ const resolver: GQLArticleResolvers['noindex'] = async (
 
   // if author is in spam whitelist
   const spamWhitelist = await atomService.findFirst({
-    table: 'user_restriction',
+    table: 'user_feature_flag',
     where: {
       userId: authorId,
-      type: USER_RESTRICTION_TYPE.excludeArticleSpamDetection,
+      type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
     },
   })
   if (spamWhitelist) {

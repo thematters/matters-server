@@ -142,6 +142,7 @@ type Mutation {
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
+  putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Article!
 
@@ -2119,6 +2120,11 @@ type UserRestriction {
   createdAt: DateTime!
 }
 
+type UserFeatureFlag {
+  type: UserFeatureFlagType!
+  createdAt: DateTime!
+}
+
 type Report implements Node {
   id: ID!
   reporter: User!
@@ -2285,6 +2291,11 @@ input PutRestrictedUsersInput {
   restrictions: [UserRestrictionType!]!
 }
 
+input PutUserFeatureFlagsInput {
+  ids: [ID!]!
+  flags: [UserFeatureFlagType!]!
+}
+
 input SubmitReportInput {
   targetId: ID!
   reason: ReportReason!
@@ -2404,7 +2415,10 @@ enum AnnouncementType {
 enum UserRestrictionType {
   articleHottest
   articleNewest
-  excludeArticleSpamDetection
+}
+
+enum UserFeatureFlagType {
+  bypassSpamDetection
 }
 
 enum ReportReason {
@@ -2701,6 +2715,7 @@ type UserOSS {
   boost: Float!
   score: Float!
   restrictions: [UserRestriction!]!
+  featureFlags: [UserFeatureFlag!]!
 }
 
 type Appreciation {

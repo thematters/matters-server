@@ -424,6 +424,7 @@ export default /* GraphQL */ `
     boost: Float!
     score: Float!
     restrictions: [UserRestriction!]!
+    featureFlags: [UserFeatureFlag!]!
   }
 
   type Appreciation {
