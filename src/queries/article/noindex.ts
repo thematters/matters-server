@@ -7,7 +7,7 @@ const resolver: GQLArticleResolvers['noindex'] = async (
   _,
   { dataSources: { atomService, systemService } }
 ) => {
-  // if article is spam
+  // if article is spam by admin
   if (isSpam) {
     return true
   }
@@ -24,6 +24,7 @@ const resolver: GQLArticleResolvers['noindex'] = async (
     return false
   }
 
+  // if article is spam by system
   const spamThreshold = await systemService.getSpamThreshold()
   if (spamScore && spamThreshold && spamScore >= spamThreshold) {
     return true

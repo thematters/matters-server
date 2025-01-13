@@ -7,6 +7,7 @@ import {
   MATERIALIZED_VIEW,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import {
@@ -149,7 +150,22 @@ export const hottestExcludeSpam: GQLRecommendationResolvers['hottestExcludeSpam'
                   .where('type', 'articleHottest')
               )
               .whereIn('article.id', donatedArticles)
-              .modify(excludeSpam, spamThreshold)
+              .whereIn(
+                'article.author_id',
+                knexRO
+                  .select('user_id')
+                  .from('user_feature_flag')
+                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+              )
+              .orWhere((qb) => {
+                qb.whereNotIn(
+                  'article.author_id',
+                  knexRO
+                    .select('user_id')
+                    .from('user_feature_flag')
+                    .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+                ).modify(excludeSpam, spamThreshold)
+              })
           }
         })
         .as('hottest')

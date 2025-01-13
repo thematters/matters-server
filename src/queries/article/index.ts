@@ -30,6 +30,7 @@ import indentFirstLine from './indentFirstLine'
 import language from './language'
 import license from './license'
 import mediaHash from './mediaHash'
+import noindex from './noindex'
 import * as articleOSS from './oss'
 import pinned from './pinned'
 import readerCount from './readerCount'
@@ -128,6 +129,7 @@ const schema: GQLResolvers = {
     readerCount,
     versions,
     campaigns,
+    noindex,
   },
   Tag: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),

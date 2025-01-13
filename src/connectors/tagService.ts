@@ -8,6 +8,7 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   TAG_ACTION,
   MATERIALIZED_VIEW,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
@@ -783,7 +784,7 @@ export class TagService extends BaseService<Tag> {
   }) => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
-    const results = await this.knexRO
+    const q = this.knexRO
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
@@ -810,7 +811,23 @@ export class TagService extends BaseService<Tag> {
             )
         }
         if (excludeSpam) {
-          builder.modify(excludeSpamModifier, spamThreshold)
+          builder
+            .whereIn(
+              'article.author_id',
+              this.knexRO
+                .select('user_id')
+                .from('user_feature_flag')
+                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+            )
+            .orWhere((qb) => {
+              qb.whereNotIn(
+                'article.author_id',
+                this.knexRO
+                  .select('user_id')
+                  .from('user_feature_flag')
+                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+              ).modify(excludeSpamModifier, spamThreshold)
+            })
         }
 
         builder.orderBy('article.id', 'desc')
@@ -823,6 +840,9 @@ export class TagService extends BaseService<Tag> {
         }
       })
 
+    console.log('q', q.toSQL().toNative())
+
+    const results = await q
     return results.map(({ articleId }: { articleId: string }) => articleId)
   }
 

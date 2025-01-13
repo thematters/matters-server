@@ -41,6 +41,7 @@ import {
   USER_STATE,
   NODE_TYPES,
   QUEUE_URL,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -384,12 +385,26 @@ export class ArticleService extends BaseService<Article> {
       )
       .where((builder) => {
         if (!oss) {
+          builder.whereRaw('in_newest IS NOT false')
+
           if (excludeSpam) {
             builder
-              .whereRaw('in_newest IS NOT false')
-              .modify(excludeSpamModifier, spamThreshold, 'article_set')
-          } else {
-            builder.whereRaw('in_newest IS NOT false')
+              .whereIn(
+                'article_set.author_id',
+                this.knexRO
+                  .select('user_id')
+                  .from('user_feature_flag')
+                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+              )
+              .orWhere((qb) => {
+                qb.whereNotIn(
+                  'article_set.author_id',
+                  this.knexRO
+                    .select('user_id')
+                    .from('user_feature_flag')
+                    .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+                ).modify(excludeSpamModifier, spamThreshold, 'article_set')
+              })
           }
         }
       })

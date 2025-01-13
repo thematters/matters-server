@@ -4,5 +4,5 @@ export const USER_RESTRICTION_TYPE = {
 } as const
 
 export const USER_FEATURE_FLAG_TYPE = {
-  bypassSpamDetection: 'bypassSpamDetection',
+  bypassSpamDetection: 'bypass_spam_detection',
 } as const
