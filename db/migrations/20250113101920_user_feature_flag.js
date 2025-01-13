@@ -8,7 +8,7 @@ exports.up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id').unsigned().notNullable()
-    t.enu('type', ['bypass_spam_detection']).notNullable()
+    t.enu('type', ['bypassSpamDetection']).notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
     t.index(['user_id', 'type'])

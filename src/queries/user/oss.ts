@@ -17,3 +17,9 @@ export const restrictions: GQLUserOssResolvers['restrictions'] = (
   _,
   { dataSources: { userService } }
 ) => userService.findRestrictions(id)
+
+export const featureFlags: GQLUserOssResolvers['featureFlags'] = (
+  { id },
+  _,
+  { dataSources: { userService } }
+) => userService.findFeatureFlags(id)

@@ -784,7 +784,7 @@ export class TagService extends BaseService<Tag> {
   }) => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
-    const q = this.knexRO
+    const results = await this.knexRO
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
@@ -840,9 +840,6 @@ export class TagService extends BaseService<Tag> {
         }
       })
 
-    console.log('q', q.toSQL().toNative())
-
-    const results = await q
     return results.map(({ articleId }: { articleId: string }) => articleId)
   }
 
