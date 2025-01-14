@@ -73,21 +73,23 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .where('type', 'articleHottest')
             )
             .whereIn('article.id', donatedArticles)
-            .whereIn(
-              'article.author_id',
-              knexRO
-                .select('user_id')
-                .from('user_feature_flag')
-                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-            )
-            .orWhere((qb) => {
-              qb.whereNotIn(
+            .andWhere((qb) => {
+              qb.whereIn(
                 'article.author_id',
                 knexRO
                   .select('user_id')
                   .from('user_feature_flag')
                   .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-              ).modify(excludeSpam, spamThreshold)
+              ).orWhere((innerQb) => {
+                innerQb
+                  .whereNotIn(
+                    'article.author_id',
+                    knexRO.select('user_id').from('user_feature_flag').where({
+                      type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+                    })
+                  )
+                  .modify(excludeSpam, spamThreshold)
+              })
             })
         }
       })
