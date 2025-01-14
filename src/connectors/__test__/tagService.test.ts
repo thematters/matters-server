@@ -1,6 +1,10 @@
 import type { Connections } from 'definitions'
 
-import { FEATURE_NAME, FEATURE_FLAG } from 'common/enums'
+import {
+  FEATURE_NAME,
+  FEATURE_FLAG,
+  USER_FEATURE_FLAG_TYPE,
+} from 'common/enums'
 import {
   TagService,
   AtomService,
@@ -110,7 +114,7 @@ describe('findArticleIds', () => {
     expect(excluded1).toEqual(articleIds)
 
     // spam detected
-    await atomService.update({
+    const article = await atomService.update({
       table: 'article',
       where: { id: articleIds[0] },
       data: { spamScore: spamThreshold + 0.1 },
@@ -120,6 +124,16 @@ describe('findArticleIds', () => {
       excludeSpam: true,
     })
     expect(excluded2).not.toContain(articleIds[0])
+
+    // bypass spam detection
+    await userService.updateFeatureFlags(article.authorId, [
+      USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+    ])
+    const excluded3 = await tagService.findArticleIds({
+      id: '2',
+      excludeSpam: true,
+    })
+    expect(excluded3).toContain(articleIds[0])
   })
 })
 
