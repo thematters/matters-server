@@ -34,7 +34,7 @@ import type {
   CampaignArticle,
   CampaignBoost,
 } from './campaign'
-import type { Channel, ArticleChannel } from './channel'
+import type { Channel, ArticleChannel, ArticleChannelJob } from './channel'
 import type {
   Circle,
   CircleInvitation,
@@ -214,6 +214,7 @@ export type TableTypeMap = {
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
   article_channel: ArticleChannel
+  article_channel_job: ArticleChannelJob
   channel: Channel
   asset: Asset
   asset_map: AssetMap

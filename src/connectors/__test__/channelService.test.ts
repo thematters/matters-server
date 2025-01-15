@@ -2,6 +2,7 @@ import type { Connections } from 'definitions'
 
 import { ChannelService, AtomService } from 'connectors'
 import { genConnections, closeConnections } from './utils'
+import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
 
 let connections: Connections
 let channelService: ChannelService
@@ -170,5 +171,29 @@ describe('setArticleChannels', () => {
     expect(articleChannels[1].channelId).toBe(channel1.id)
     expect(articleChannels[1].enabled).toBe(false)
     expect(articleChannels[1].isLabeled).toBe(true)
+  })
+})
+
+describe('channel classifier', () => {
+  test('classify article channels', async () => {
+    const articleId = '1'
+
+    const providerChannelId = '1'
+    const response = {
+      state: ARTICLE_CHANNEL_JOB_STATE.finished,
+      jobId: '1',
+      channels: [{ channel: providerChannelId, score: 0.99 }],
+    }
+    const mockClassifier = { classify: jest.fn(() => response) }
+    // @ts-ignore
+    const result = await channelService._classifyArticleChannels(
+      { id: articleId, title: 'test', content: 'test' },
+      mockClassifier as any
+    )
+
+    expect(result).toBeDefined()
+    expect(result?.state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
+    expect(result?.channels).toHaveLength(1)
+    expect(result?.channels[0].channel).toBe(providerChannelId)
   })
 })

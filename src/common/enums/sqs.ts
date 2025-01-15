@@ -17,4 +17,7 @@ export const QUEUE_URL = {
 
   // IPNS
   ipnsUserPublication: environment?.awsIpnsUserPublicationQueueUrl,
+
+  // channel classifier
+  channelClassifier: environment?.awsChannelClassifierQueueUrl,
 } as const

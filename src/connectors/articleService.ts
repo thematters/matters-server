@@ -76,6 +76,7 @@ import {
   PaymentService,
   GCP,
   SpamDetector,
+  ChannelService,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -578,12 +579,24 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._detectSpam({
-        id: article.id,
-        title,
-        content,
-        summary: summaryCustomized ? _summary : undefined,
-      })
+      this._detectSpam(
+        {
+          id: article.id,
+          title,
+          content,
+          summary: summaryCustomized ? _summary : undefined,
+        },
+        undefined,
+        // infer article channels if not spam
+        async (score) => {
+          const systemService = new SystemService(this.connections)
+          const channelService = new ChannelService(this.connections)
+          const spamThreshold = await systemService.getSpamThreshold()
+          if (!spamThreshold || score < spamThreshold) {
+            return channelService.classifyArticleChannels({ id: article.id })
+          }
+        }
+      )
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -2408,14 +2421,19 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
+  public detectSpam = async (
+    id: string,
+    spamDetector?: SpamDetector,
+    callback?: (score: number) => Promise<void>
+  ) => {
     const detector = spamDetector ?? new SpamDetector()
     const { title, summary, summaryCustomized } =
       await this.loadLatestArticleVersion(id)
     const content = await this.loadLatestArticleContent(id)
     await this._detectSpam(
       { id, title, content, summary: summaryCustomized ? summary : undefined },
-      detector
+      detector,
+      callback
     )
   }
 
@@ -2426,7 +2444,8 @@ export class ArticleService extends BaseService<Article> {
       content,
       summary,
     }: { id: string; title: string; content: string; summary?: string },
-    spamDetector?: SpamDetector
+    spamDetector?: SpamDetector,
+    callback?: (score: number) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const text = summary
@@ -2440,6 +2459,7 @@ export class ArticleService extends BaseService<Article> {
         where: { id },
         data: { spamScore: score },
       })
+      callback?.(score)
     }
   }
 }

@@ -9,6 +9,7 @@ export * from './opensea'
 export * from './alchemy'
 export * from './passphrases'
 export * from './spamDetector'
+export * from './channelClassifier'
 
 export * from './baseService'
 export * from './articleService'
