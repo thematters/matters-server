@@ -99,7 +99,10 @@ describe('setArticleChannels', () => {
     })
 
     const channelIds = [channel1.id, channel2.id]
-    await channelService.setArticleChannels(articleId, channelIds)
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds,
+    })
 
     const articleChannels = await atomService.findMany({
       table: 'article_channel',
@@ -117,9 +120,15 @@ describe('setArticleChannels', () => {
 
   test('removes existing channels when setting empty array', async () => {
     const channel = await channelService.updateOrCreateChannel(channelData)
-    await channelService.setArticleChannels(articleId, [channel.id])
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [channel.id],
+    })
 
-    await channelService.setArticleChannels(articleId, [])
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [],
+    })
 
     const articleChannels = await atomService.findMany({
       table: 'article_channel',
@@ -139,8 +148,14 @@ describe('setArticleChannels', () => {
       providerId: '2',
     })
 
-    await channelService.setArticleChannels(articleId, [channel1.id])
-    await channelService.setArticleChannels(articleId, [channel2.id])
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [channel1.id],
+    })
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [channel2.id],
+    })
 
     const articleChannels = await atomService.findMany({
       table: 'article_channel',

@@ -1,6 +1,7 @@
 import { GQLRecommendationResolvers } from 'definitions'
 
 import { authors } from './authors'
+import { channelArticles } from './channelArticles'
 import following from './following'
 import { hottest } from './hottest'
 import { icymi } from './icymi'
@@ -16,6 +17,7 @@ const resolvers: GQLRecommendationResolvers = {
   icymiTopic,
   newest,
   tags,
+  channelArticles,
 }
 
 export default resolvers

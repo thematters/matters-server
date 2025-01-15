@@ -39,10 +39,13 @@ export class ChannelService {
     })
   }
 
-  public setArticleChannels = async (
-    articleId: string,
+  public setArticleChannels = async ({
+    articleId,
+    channelIds,
+  }: {
+    articleId: string
     channelIds: string[]
-  ) => {
+  }) => {
     // Get existing channels
     const existingChannels = await this.models.findMany({
       table: 'article_channel',

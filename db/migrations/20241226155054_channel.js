@@ -2,6 +2,8 @@ const { baseDown } = require('../utils')
 
 const channel_table = 'channel'
 const article_channel_table = 'article_channel'
+const article_channel_job_table = 'article_channel_job'
+const feature_flag_table = 'feature_flag'
 
 exports.up = async (knex) => {
   // Create channel table
@@ -43,6 +45,27 @@ exports.up = async (knex) => {
       .index('score')
       .index('is_labeled')
       .index('enabled')
+  })
+
+  // Create article_channel_job junction table
+  await knex('entity_type').insert({ table: article_channel_job_table })
+  await knex.schema.createTable(article_channel_job_table, (t) => {
+    t.bigIncrements('id').primary()
+    t.bigInteger('article_id').unsigned().notNullable().unique()
+    t.string('job_id').notNullable().unique()
+    t.enum('state', ['processing', 'finished', 'error']).notNullable()
+
+    t.timestamp('created_at').defaultTo(knex.fn.now()).notNullable()
+    t.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable()
+
+    t.foreign('article_id').references('id').inTable('article')
+  })
+
+  // Add feature flag
+  await knex(feature_flag_table).insert({
+    name: 'article_channel',
+    flag: 'off',
+    value: 0.5,
   })
 }
 

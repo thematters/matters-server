@@ -418,6 +418,86 @@ export class ArticleService extends BaseService<Article> {
       .limit(take)
   }
 
+  public findChannelArticles = async ({
+    channelId,
+    skip,
+    take,
+    maxTake,
+  }: {
+    channelId: string
+    skip: number
+    take: number
+    maxTake: number
+  }): Promise<[Article[], number]> => {
+    const systemService = new SystemService(this.connections)
+    const articleChannelThreshold =
+      await systemService.getArticleChannelThreshold()
+    const spamThreshold = await systemService.getSpamThreshold()
+
+    const query = this.knexRO
+      .select('article.*', this.knexRO.raw('count(1) OVER() AS total_count'))
+      .from('article_channel')
+      .leftJoin('article', 'article_channel.article_id', 'article.id')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article.id',
+        'setting.article_id'
+      )
+      .where({
+        'article_channel.channel_id': channelId,
+        'article_channel.enabled': true,
+        'article.state': ARTICLE_STATE.active,
+      })
+      .whereNotIn(
+        'article.author_id',
+        this.knexRO('user_restriction')
+          .select('user_id')
+          .where('type', 'articleNewest')
+      )
+      .where((builder) => {
+        if (articleChannelThreshold) {
+          builder.where((qb) => {
+            qb.where(
+              'article_channel.score',
+              '>=',
+              articleChannelThreshold
+            ).orWhere('article_channel.is_labeled', true)
+          })
+        }
+      })
+      .whereRaw('in_newest IS NOT false')
+      .where((builder) => {
+        builder
+          .whereIn(
+            'article.author_id',
+            this.knexRO
+              .select('user_id')
+              .from('user_feature_flag')
+              .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+          )
+          .orWhere((qb) => {
+            qb.whereNotIn(
+              'article.author_id',
+              this.knexRO
+                .select('user_id')
+                .from('user_feature_flag')
+                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+            ).modify(excludeSpamModifier, spamThreshold, 'article')
+          })
+      })
+      .orderBy('article.created_at', 'desc')
+      .limit(maxTake)
+      .as('filtered_articles')
+
+    const articles = await this.knexRO
+      .select()
+      .from(query)
+      .offset(skip)
+      .limit(take)
+
+    return [articles, parseInt(articles[0]?.totalCount ?? '0', 10)]
+  }
+
   /**
    * Create article from draft
    */

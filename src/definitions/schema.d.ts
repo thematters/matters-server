@@ -1514,6 +1514,7 @@ export type GQLFeatureFlag = 'admin' | 'off' | 'on' | 'seeding'
 
 export type GQLFeatureName =
   | 'add_credit'
+  | 'article_channel'
   | 'circle_interact'
   | 'circle_management'
   | 'fingerprint'

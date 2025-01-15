@@ -23,7 +23,10 @@ const resolver: GQLMutationResolvers['setArticleChannels'] = async (
     throw new UserInputError('invalid article id')
   }
 
-  await channelService.setArticleChannels(articleId, channelIds)
+  await channelService.setArticleChannels({
+    articleId,
+    channelIds,
+  })
 
   return article
 }
