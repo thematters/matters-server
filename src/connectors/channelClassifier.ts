@@ -34,7 +34,7 @@ export class ChannelClassifier {
   }
 
   public classify = async (text: string): Promise<Response | null> => {
-    if (isTest) {
+    if (isTest || !this.apiUrl) {
       return null
     }
 
