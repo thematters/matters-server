@@ -8,6 +8,7 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   TAG_ACTION,
   MATERIALIZED_VIEW,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
@@ -501,7 +502,7 @@ export class TagService extends BaseService<Tag> {
   }
 
   public countTopTags = async () => {
-    const result = await this.knex(MATERIALIZED_VIEW.tag_stats_materialized)
+    const result = await this.knexRO(MATERIALIZED_VIEW.tag_stats_materialized)
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -516,7 +517,7 @@ export class TagService extends BaseService<Tag> {
     skip?: number
     minAuthors?: number
   }): Promise<Array<{ id: string }>> =>
-    this.knex
+    this.knexRO
       .select('tag_id as id')
       .from(MATERIALIZED_VIEW.tag_stats_materialized)
       .modify((builder: Knex.QueryBuilder) => {
@@ -707,7 +708,7 @@ export class TagService extends BaseService<Tag> {
     skip?: number
     take?: number
   }) => {
-    const result = await this.knex
+    const result = await this.knexRO
       .select('author_id as id')
       .from(MATERIALIZED_VIEW.tag_related_authors_materialized)
       .where({ tagId })
@@ -725,7 +726,7 @@ export class TagService extends BaseService<Tag> {
   }
 
   public countRelatedAuthors = async ({ id: tagId }: { id: string }) => {
-    const result = await this.knex
+    const result = await this.knexRO
       .count()
       .from(MATERIALIZED_VIEW.tag_related_authors_materialized)
       .where({ tagId })
@@ -779,7 +780,23 @@ export class TagService extends BaseService<Tag> {
             )
         }
         if (excludeSpam) {
-          builder.modify(excludeSpamModifier, spamThreshold)
+          builder
+            .whereIn(
+              'article.author_id',
+              this.knexRO
+                .select('user_id')
+                .from('user_feature_flag')
+                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+            )
+            .orWhere((qb) => {
+              qb.whereNotIn(
+                'article.author_id',
+                this.knexRO
+                  .select('user_id')
+                  .from('user_feature_flag')
+                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+              ).modify(excludeSpamModifier, spamThreshold)
+            })
         }
 
         builder.orderBy('article.id', 'desc')

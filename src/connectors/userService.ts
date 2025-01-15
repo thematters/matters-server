@@ -16,6 +16,7 @@ import type {
   PunishRecord,
   LANGUAGES,
   UserBoost,
+  UserFeatureFlag,
 } from 'definitions'
 
 import axios from 'axios'
@@ -76,6 +77,7 @@ import {
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
   DAY,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import {
@@ -1955,6 +1957,50 @@ export class UserService extends BaseService<User> {
       data: { ensName, ensNameUpdatedAt: now },
     })
     return ensName
+  }
+
+  /*********************************
+   *                               *
+   *        Feature Flags           *
+   *                               *
+   *********************************/
+  public findFeatureFlags = async (id: string): Promise<UserFeatureFlag[]> => {
+    const table = 'user_feature_flag'
+    return this.models.findMany({
+      table,
+      select: ['type', 'createdAt'],
+      where: { userId: id },
+    })
+  }
+
+  public updateFeatureFlags = async (
+    id: string,
+    types: Array<keyof typeof USER_FEATURE_FLAG_TYPE>
+  ) => {
+    const olds = (await this.findFeatureFlags(id)).map(({ type }) => type)
+    const news = [...new Set(types)]
+    const toAdd = news.filter((i) => !olds.includes(i))
+    const toDel = olds.filter((i) => !news.includes(i))
+    await Promise.all([
+      ...toAdd.map((i) => this.addFeatureFlag(id, i)),
+      ...toDel.map((i) => this.removeFeatureFlag(id, i)),
+    ])
+  }
+
+  public addFeatureFlag = async (
+    id: string,
+    type: keyof typeof USER_FEATURE_FLAG_TYPE
+  ) => {
+    const table = 'user_feature_flag'
+    await this.models.create({ table, data: { userId: id, type } })
+  }
+
+  public removeFeatureFlag = async (
+    id: string,
+    type: keyof typeof USER_FEATURE_FLAG_TYPE
+  ) => {
+    const table = 'user_feature_flag'
+    await this.models.deleteMany({ table, where: { userId: id, type } })
   }
 
   /*********************************

@@ -8,6 +8,7 @@ import putIcymiTopic from './putIcymiTopic'
 import putRemark from './putRemark'
 import putRestrictedUsers from './putRestrictedUsers'
 import putSkippedListItem from './putSkippedListItem'
+import putUserFeatureFlags from './putUserFeatureFlags'
 import setBoost from './setBoost'
 import setFeature from './setFeature'
 import setSpamStatus from './setSpamStatus'
@@ -30,6 +31,7 @@ export default {
     addBlockedSearchKeyword,
     deleteBlockedSearchKeywords,
     putRestrictedUsers,
+    putUserFeatureFlags,
     submitReport,
     putIcymiTopic,
     setSpamStatus,

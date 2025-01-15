@@ -75,6 +75,7 @@ import type {
   UserIpnsKeys,
   UserRestriction,
   UsernameEditHistory,
+  UserFeatureFlag,
 } from './user'
 import type { CryptoWallet, CryptoWalletSignature } from './wallet'
 import type { BasedContext } from '@apollo/server'
@@ -260,6 +261,7 @@ export type TableTypeMap = {
   user_ipns_keys: UserIpnsKeys
   user_oauth_likecoin: UserOauthLikecoinDB
   user_restriction: UserRestriction
+  user_feature_flag: UserFeatureFlag
   user_tags_order: UserTagsOrder
   username_edit_history: UsernameEditHistory
   verification_code: VerificationCode

@@ -30,12 +30,12 @@ import indentFirstLine from './indentFirstLine'
 import language from './language'
 import license from './license'
 import mediaHash from './mediaHash'
+import noindex from './noindex'
 import * as articleOSS from './oss'
 import pinned from './pinned'
 import readerCount from './readerCount'
 import readTime from './readTime'
 import relatedArticles from './relatedArticles'
-import relatedArticlesExcludeSpam from './relatedArticlesExcludeSpam'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
 import replyToDonator from './replyToDonator'
@@ -50,7 +50,6 @@ import state from './state'
 import summary from './summary'
 import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
-import tagArticlesExcludeSpam from './tag/articlesExcludeSpam'
 import tagIsFollower from './tag/isFollower'
 import tagNumArticles from './tag/numArticles'
 import tagNumAuthors from './tag/numAuthors'
@@ -94,7 +93,6 @@ const schema: GQLResolvers = {
     language,
     oss: (root) => root,
     relatedArticles,
-    relatedArticlesExcludeSpam,
     relatedDonationArticles,
     remark,
     slug,
@@ -126,11 +124,11 @@ const schema: GQLResolvers = {
     readerCount,
     versions,
     campaigns,
+    noindex,
   },
   Tag: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticles,
-    articlesExcludeSpam: tagArticlesExcludeSpam,
     isFollower: tagIsFollower,
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,

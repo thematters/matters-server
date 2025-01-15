@@ -143,6 +143,7 @@ type Mutation {
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
+  putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Article!
 
@@ -351,7 +352,6 @@ type Article implements Node & PinnableWork {
 
   """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
-  relatedArticlesExcludeSpam(input: ConnectionArgs!): ArticleConnection!
 
   """Donation-related articles to this article."""
   relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
@@ -442,6 +442,9 @@ type Article implements Node & PinnableWork {
 
   """associated campaigns"""
   campaigns: [ArticleCampaign!]!
+
+  """whether this article is noindex"""
+  noindex: Boolean!
   oss: ArticleOSS!
   remark: String
 
@@ -513,7 +516,6 @@ type Tag implements Node {
 
   """List of how many articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
-  articlesExcludeSpam(input: TagArticlesInput!): ArticleConnection!
 
   """Time of this tag was created."""
   createdAt: DateTime!
@@ -2130,6 +2132,11 @@ type UserRestriction {
   createdAt: DateTime!
 }
 
+type UserFeatureFlag {
+  type: UserFeatureFlagType!
+  createdAt: DateTime!
+}
+
 type Report implements Node {
   id: ID!
   reporter: User!
@@ -2296,6 +2303,11 @@ input PutRestrictedUsersInput {
   restrictions: [UserRestrictionType!]!
 }
 
+input PutUserFeatureFlagsInput {
+  ids: [ID!]!
+  flags: [UserFeatureFlagType!]!
+}
+
 input SubmitReportInput {
   targetId: ID!
   reason: ReportReason!
@@ -2417,6 +2429,10 @@ enum UserRestrictionType {
   articleNewest
 }
 
+enum UserFeatureFlagType {
+  bypassSpamDetection
+}
+
 enum ReportReason {
   tort
   illegal_advertising
@@ -2488,11 +2504,9 @@ type Recommendation {
 
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
-  newestExcludeSpam(input: ConnectionArgs!): ArticleConnection!
 
   """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
-  hottestExcludeSpam(input: ConnectionArgs!): ArticleConnection!
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
@@ -2708,6 +2722,7 @@ type UserOSS {
   boost: Float!
   score: Float!
   restrictions: [UserRestriction!]!
+  featureFlags: [UserFeatureFlag!]!
 }
 
 type Appreciation {
