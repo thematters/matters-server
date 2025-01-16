@@ -1064,6 +1064,10 @@ export type GQLClaimLogbooksResult = {
   txHash: Scalars['String']['output']
 }
 
+export type GQLClassifyArticlesChannelsInput = {
+  ids: Array<Scalars['ID']['input']>
+}
+
 export type GQLClearReadHistoryInput = {
   id?: InputMaybe<Scalars['ID']['input']>
 }
@@ -1826,6 +1830,7 @@ export type GQLMutation = {
   appreciateArticle: GQLArticle
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
+  classifyArticlesChannels: Scalars['Boolean']['output']
   /** Clear read history for user. */
   clearReadHistory: GQLUser
   /** Clear search history for user. */
@@ -2028,6 +2033,10 @@ export type GQLMutationAppreciateArticleArgs = {
 
 export type GQLMutationClaimLogbooksArgs = {
   input: GQLClaimLogbooksInput
+}
+
+export type GQLMutationClassifyArticlesChannelsArgs = {
+  input: GQLClassifyArticlesChannelsInput
 }
 
 export type GQLMutationClearReadHistoryArgs = {
@@ -4704,6 +4713,7 @@ export type GQLResolversTypes = ResolversObject<{
   CircleSubscriberAnalytics: ResolverTypeWrapper<CircleModel>
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: ResolverTypeWrapper<GQLClaimLogbooksResult>
+  ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
   Collection: ResolverTypeWrapper<CollectionModel>
   CollectionArticlesInput: GQLCollectionArticlesInput
@@ -5322,6 +5332,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CircleSubscriberAnalytics: CircleModel
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: GQLClaimLogbooksResult
+  ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
   Collection: CollectionModel
   CollectionArticlesInput: GQLCollectionArticlesInput
@@ -7655,6 +7666,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationClaimLogbooksArgs, 'input'>
+  >
+  classifyArticlesChannels?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationClassifyArticlesChannelsArgs, 'input'>
   >
   clearReadHistory?: Resolver<
     GQLResolversTypes['User'],

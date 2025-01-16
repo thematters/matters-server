@@ -162,7 +162,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
    * Get the spam threshold from `feature_flag` table
    * Use to determine whether a article is spam by its spam score
    */
-  public getSpamThreshold = async (): Promise<number | null> => {
+  public getSpamThreshold: () => Promise<number | null> = async () => {
     const cacheService = new CacheService(
       CACHE_PREFIX.SPAM_THRESHOLD,
       this.connections.redis

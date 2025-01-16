@@ -13,10 +13,10 @@ type APIResponse = Array<{
   jobId: string
 }>
 
-type Response = {
+type Response = Array<{
   state: ValueOf<typeof ARTICLE_CHANNEL_JOB_STATE>
   jobId: string
-}
+}>
 
 export class ChannelClassifier {
   private apiUrl: string
@@ -25,7 +25,15 @@ export class ChannelClassifier {
     this.apiUrl = environment.channelClassificationApiUrl
   }
 
-  public classify = async (text: string): Promise<Response | null> => {
+  private _getState = (state: 'Processing' | 'Finished' | 'Error') => {
+    return state === 'Finished'
+      ? ARTICLE_CHANNEL_JOB_STATE.finished
+      : state === 'Processing'
+      ? ARTICLE_CHANNEL_JOB_STATE.processing
+      : ARTICLE_CHANNEL_JOB_STATE.error
+  }
+
+  public classify = async (texts: string[]): Promise<Response | null> => {
     if (isTest || !this.apiUrl) {
       return null
     }
@@ -34,24 +42,18 @@ export class ChannelClassifier {
       method: 'post',
       url: this.apiUrl,
       data: {
-        texts: [text],
+        texts,
       },
     }
 
     try {
       const response = await axios(config)
       const data = response.data as APIResponse
-      const state =
-        data[0].state === 'Finished'
-          ? ARTICLE_CHANNEL_JOB_STATE.finished
-          : data[0].state === 'Processing'
-          ? ARTICLE_CHANNEL_JOB_STATE.processing
-          : ARTICLE_CHANNEL_JOB_STATE.error
 
-      return {
-        state,
-        jobId: data[0].jobId,
-      }
+      return data.map(({ state, jobId }) => ({
+        state: this._getState(state),
+        jobId,
+      }))
     } catch (error) {
       logger.error(error)
       return null

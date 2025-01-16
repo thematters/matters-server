@@ -593,7 +593,9 @@ export class ArticleService extends BaseService<Article> {
           const channelService = new ChannelService(this.connections)
           const spamThreshold = await systemService.getSpamThreshold()
           if (!spamThreshold || score < spamThreshold) {
-            return channelService.classifyArticleChannels({ id: article.id })
+            return channelService.classifyArticlesChannels({
+              ids: [article.id],
+            })
           }
         }
       )
@@ -645,6 +647,12 @@ export class ArticleService extends BaseService<Article> {
     return content
   }
 
+  public loadLatestArticlesContentByContentIds = async (
+    contentIds: string[]
+  ) => {
+    return this.models.articleContentIdLoader.loadMany(contentIds)
+  }
+
   public loadLatestArticleContentMd = async (articleId: string) => {
     const { contentMdId } = await this.latestArticleVersionLoader.load(
       articleId
@@ -665,6 +673,9 @@ export class ArticleService extends BaseService<Article> {
 
   public loadLatestArticleVersion = (articleId: string) =>
     this.latestArticleVersionLoader.load(articleId)
+
+  public loadLatestArticlesVersion = (articleIds: string[]) =>
+    this.latestArticleVersionLoader.loadMany(articleIds)
 
   public findVersionByMediaHash = async (mediaHash: string) =>
     this.models.findFirst({ table: 'article_version', where: { mediaHash } })

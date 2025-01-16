@@ -1,8 +1,7 @@
-import type { Connections } from 'definitions'
+import type { ArticleVersion, Connections } from 'definitions'
 
-import { ARTICLE_CHANNEL_JOB_STATE, QUEUE_URL } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { ArticleService, AtomService, aws, ChannelClassifier } from 'connectors'
+import { ArticleService, AtomService, ChannelClassifier } from 'connectors'
 const logger = getLogger('service-channel')
 
 export class ChannelService {
@@ -88,61 +87,69 @@ export class ChannelService {
     }
   }
 
-  public classifyArticleChannels = async ({
-    id,
+  public classifyArticlesChannels = async ({
+    ids,
     classifier,
   }: {
-    id: string
+    ids: string[]
     classifier?: ChannelClassifier
   }) => {
     const articleService = new ArticleService(this.connections)
     const channelClassifier = classifier ?? new ChannelClassifier()
-    const { title, summary, summaryCustomized } =
-      await articleService.loadLatestArticleVersion(id)
-    const content = await articleService.loadLatestArticleContent(id)
 
-    await this._classifyArticleChannels(
-      {
-        id,
-        title,
-        content,
-        summary: summaryCustomized ? summary : undefined,
-      },
+    const articleVersions = (await articleService.loadLatestArticlesVersion(
+      ids
+    )) as ArticleVersion[]
+    const contentIds = articleVersions.map(({ contentId }) => contentId)
+    const contents = await articleService.loadLatestArticlesContentByContentIds(
+      contentIds
+    )
+
+    await this._classifyArticlesChannels(
+      contents.map((content, index) => ({
+        id: content.id,
+        title: articleVersions[index].title || '',
+        content: content.content || '',
+        summary: articleVersions[index].summaryCustomized
+          ? articleVersions[index].summary
+          : undefined,
+      })),
       channelClassifier
     )
   }
 
-  private _classifyArticleChannels = async (
-    {
-      id,
-      title,
-      content,
-      summary,
-    }: { id: string; title: string; content: string; summary?: string },
+  private _classifyArticlesChannels = async (
+    articles: Array<{
+      id: string
+      title: string
+      content: string
+      summary?: string
+    }>,
     classifier: ChannelClassifier
   ) => {
     const channelClassifier = classifier ?? new ChannelClassifier()
-    const text = summary
-      ? title + '\n' + summary + '\n' + content
-      : title + '\n' + content
-    const result = await channelClassifier.classify(text)
+    const texts = articles.map(({ title, summary, content }) =>
+      summary ? title + '\n' + summary + '\n' + content : title + '\n' + content
+    )
+    const result = await channelClassifier.classify(texts)
 
-    if (result) {
-      const { state, jobId } = result
-      logger.info(`Channel classification for article ${id}: ${state} ${jobId}`)
-      await this.models.create({
-        table: 'article_channel_job',
-        data: { articleId: id, jobId, state },
-      })
-
-      if (state === ARTICLE_CHANNEL_JOB_STATE.processing) {
-        await aws.sqsSendMessage({
-          messageBody: { articleId: id, jobId },
-          queueUrl: QUEUE_URL.channelClassifier,
-        })
-      }
-
-      return result
+    if (!result) {
+      return
     }
+
+    const results = await Promise.all(
+      result.map(async ({ state, jobId }, index) => {
+        const article = articles[index]
+        logger.info(
+          `Channel classification for article ${article.id}: ${state} ${jobId}`
+        )
+        await this.models.create({
+          table: 'article_channel_job',
+          data: { articleId: article.id, jobId, state },
+        })
+        return { state, jobId }
+      })
+    )
+    return results
   }
 }

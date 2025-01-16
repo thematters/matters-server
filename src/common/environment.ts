@@ -46,8 +46,6 @@ export const environment = {
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
-  awsChannelClassifierQueueUrl:
-    process.env.MATTERS_AWS_CHANNEL_CLASSIFIER_QUEUE_URL || '',
   awsLikecoinSendPVUrl:
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
   awsLikecoinUpdateCivicLikerCache:
