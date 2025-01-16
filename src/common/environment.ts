@@ -46,6 +46,8 @@ export const environment = {
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
+  awsChannelClassifierQueueUrl:
+    process.env.MATTERS_AWS_CHANNEL_CLASSIFIER_QUEUE_URL || '',
   awsLikecoinSendPVUrl:
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
   awsLikecoinUpdateCivicLikerCache:
@@ -153,6 +155,8 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
+  channelClassificationApiUrl:
+    process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
 }
 
 export const contract = {

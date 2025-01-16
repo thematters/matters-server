@@ -56,9 +56,6 @@ export default /* GraphQL */ `
     "Unique ID of this article"
     id: ID!
 
-    "The number represents how popular is this article."
-    topicScore: Int
-
     "Slugified article title."
     slug: String!
 
@@ -311,6 +308,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+    channels: [ArticleChannel!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type SpamStatus {
@@ -319,6 +317,19 @@ export default /* GraphQL */ `
 
     "whether this article is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
+  }
+
+  type ArticleChannel {
+    channel: Channel!
+
+    "confident score by machine"
+    score: Float
+
+    "whether this article is labeled by human, null for not labeled yet. "
+    isLabeled: Boolean!
+
+    "whether this article channel is enabled"
+    enabled: Boolean!
   }
 
   type ArticleTranslation {

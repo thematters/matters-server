@@ -34,6 +34,7 @@ import type {
   CampaignArticle,
   CampaignBoost,
 } from './campaign'
+import type { Channel, ArticleChannel, ArticleChannelJob } from './channel'
 import type {
   Circle,
   CircleInvitation,
@@ -98,6 +99,7 @@ import type {
   UserService,
   UserWorkService,
   TranslationService,
+  ChannelService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -138,6 +140,7 @@ export * from './schema'
 export * from './moment'
 export * from './campaign'
 export * from './translation'
+export * from './channel'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -171,6 +174,7 @@ export interface DataSources {
   recommendationService: RecommendationService
   campaignService: CampaignService
   translationService: TranslationService
+  channelService: ChannelService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -209,6 +213,9 @@ export type TableTypeMap = {
   article_translation: ArticleTranslation
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
+  article_channel: ArticleChannel
+  article_channel_job: ArticleChannelJob
+  channel: Channel
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord

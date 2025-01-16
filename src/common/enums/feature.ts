@@ -8,6 +8,7 @@ export const FEATURE_NAME = {
   circle_management: 'circle_management',
   circle_interact: 'circle_interact',
   spam_detection: 'spam_detection',
+  article_channel: 'article_channel',
 } as const
 
 export const FEATURE_FLAG = {

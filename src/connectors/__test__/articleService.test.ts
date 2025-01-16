@@ -15,18 +15,21 @@ import {
   UserWorkService,
   AtomService,
   SystemService,
+  ChannelService,
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let articleService: ArticleService
+let channelService: ChannelService
 let atomService: AtomService
 let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+  channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
 }, 30000)
@@ -547,6 +550,85 @@ describe('latestArticles', () => {
       excludeSpam: true,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
+  })
+})
+
+describe('findChannelArticles', () => {
+  test('should return articles from channel', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // create channel
+    const channel = await channelService.updateOrCreateChannel({
+      name: 'test',
+      description: 'test',
+      providerId: '1',
+      enabled: true,
+    })
+
+    // create article channel
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '1',
+        channelId: channel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '2',
+        channelId: channel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '3',
+        channelId: channel.id,
+        score: articleChannelThreshold - 0.1,
+        enabled: true,
+      },
+    })
+
+    const [articles] = await articleService.findChannelArticles({
+      channelId: channel.id,
+      skip: 0,
+      take: 10,
+      maxTake: 10,
+    })
+    expect(articles).toBeDefined()
+    expect(articles.length).toBe(2)
+    expect(articles.map(({ id }) => id)).toContain('1')
+    expect(articles.map(({ id }) => id)).toContain('2')
+
+    // admin corrects article channel
+    await channelService.setArticleChannels({
+      articleId: '1',
+      channelIds: [],
+    })
+    await channelService.setArticleChannels({
+      articleId: '4',
+      channelIds: [channel.id],
+    })
+
+    const [articles2] = await articleService.findChannelArticles({
+      channelId: channel.id,
+      skip: 0,
+      take: 10,
+      maxTake: 10,
+    })
+    expect(articles2.length).toBe(2)
+    expect(articles2.map(({ id }) => id)).toContain('4')
+    expect(articles2.map(({ id }) => id)).not.toContain('1')
   })
 })
 

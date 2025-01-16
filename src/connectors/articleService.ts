@@ -76,6 +76,7 @@ import {
   PaymentService,
   GCP,
   SpamDetector,
+  ChannelService,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -418,6 +419,86 @@ export class ArticleService extends BaseService<Article> {
       .limit(take)
   }
 
+  public findChannelArticles = async ({
+    channelId,
+    skip,
+    take,
+    maxTake,
+  }: {
+    channelId: string
+    skip: number
+    take: number
+    maxTake: number
+  }): Promise<[Article[], number]> => {
+    const systemService = new SystemService(this.connections)
+    const articleChannelThreshold =
+      await systemService.getArticleChannelThreshold()
+    const spamThreshold = await systemService.getSpamThreshold()
+
+    const query = this.knexRO
+      .select('article.*', this.knexRO.raw('count(1) OVER() AS total_count'))
+      .from('article_channel')
+      .leftJoin('article', 'article_channel.article_id', 'article.id')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article.id',
+        'setting.article_id'
+      )
+      .where({
+        'article_channel.channel_id': channelId,
+        'article_channel.enabled': true,
+        'article.state': ARTICLE_STATE.active,
+      })
+      .whereNotIn(
+        'article.author_id',
+        this.knexRO('user_restriction')
+          .select('user_id')
+          .where('type', 'articleNewest')
+      )
+      .where((builder) => {
+        if (articleChannelThreshold) {
+          builder.where((qb) => {
+            qb.where(
+              'article_channel.score',
+              '>=',
+              articleChannelThreshold
+            ).orWhere('article_channel.is_labeled', true)
+          })
+        }
+      })
+      .whereRaw('in_newest IS NOT false')
+      .where((builder) => {
+        builder
+          .whereIn(
+            'article.author_id',
+            this.knexRO
+              .select('user_id')
+              .from('user_feature_flag')
+              .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+          )
+          .orWhere((qb) => {
+            qb.whereNotIn(
+              'article.author_id',
+              this.knexRO
+                .select('user_id')
+                .from('user_feature_flag')
+                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+            ).modify(excludeSpamModifier, spamThreshold, 'article')
+          })
+      })
+      .orderBy('article.created_at', 'desc')
+      .limit(maxTake)
+      .as('filtered_articles')
+
+    const articles = await this.knexRO
+      .select()
+      .from(query)
+      .offset(skip)
+      .limit(take)
+
+    return [articles, parseInt(articles[0]?.totalCount ?? '0', 10)]
+  }
+
   /**
    * Create article from draft
    */
@@ -498,12 +579,24 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._detectSpam({
-        id: article.id,
-        title,
-        content,
-        summary: summaryCustomized ? _summary : undefined,
-      })
+      this._detectSpam(
+        {
+          id: article.id,
+          title,
+          content,
+          summary: summaryCustomized ? _summary : undefined,
+        },
+        undefined,
+        // infer article channels if not spam
+        async (score) => {
+          const systemService = new SystemService(this.connections)
+          const channelService = new ChannelService(this.connections)
+          const spamThreshold = await systemService.getSpamThreshold()
+          if (!spamThreshold || score < spamThreshold) {
+            return channelService.classifyArticleChannels({ id: article.id })
+          }
+        }
+      )
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -2328,14 +2421,19 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
+  public detectSpam = async (
+    id: string,
+    spamDetector?: SpamDetector,
+    callback?: (score: number) => Promise<void>
+  ) => {
     const detector = spamDetector ?? new SpamDetector()
     const { title, summary, summaryCustomized } =
       await this.loadLatestArticleVersion(id)
     const content = await this.loadLatestArticleContent(id)
     await this._detectSpam(
       { id, title, content, summary: summaryCustomized ? summary : undefined },
-      detector
+      detector,
+      callback
     )
   }
 
@@ -2346,7 +2444,8 @@ export class ArticleService extends BaseService<Article> {
       content,
       summary,
     }: { id: string; title: string; content: string; summary?: string },
-    spamDetector?: SpamDetector
+    spamDetector?: SpamDetector,
+    callback?: (score: number) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const text = summary
@@ -2360,6 +2459,7 @@ export class ArticleService extends BaseService<Article> {
         where: { id },
         data: { spamScore: score },
       })
+      callback?.(score)
     }
   }
 }
