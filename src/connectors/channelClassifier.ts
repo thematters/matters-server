@@ -7,23 +7,15 @@ import { ValueOf } from 'definitions'
 
 const logger = getLogger('channel-classifier')
 
-type APIResponse = {
+type APIResponse = Array<{
   state: 'Processing' | 'Finished' | 'Error'
   modelSignature: string
   jobId: string
-  data: Array<{
-    channel: string
-    score: number
-  }>
-}
+}>
 
 type Response = {
   state: ValueOf<typeof ARTICLE_CHANNEL_JOB_STATE>
   jobId: string
-  channels: Array<{
-    channel: string
-    score: number
-  }>
 }
 
 export class ChannelClassifier {
@@ -42,7 +34,7 @@ export class ChannelClassifier {
       method: 'post',
       url: this.apiUrl,
       data: {
-        text,
+        texts: [text],
       },
     }
 
@@ -50,16 +42,15 @@ export class ChannelClassifier {
       const response = await axios(config)
       const data = response.data as APIResponse
       const state =
-        data.state === 'Finished'
+        data[0].state === 'Finished'
           ? ARTICLE_CHANNEL_JOB_STATE.finished
-          : data.state === 'Processing'
+          : data[0].state === 'Processing'
           ? ARTICLE_CHANNEL_JOB_STATE.processing
           : ARTICLE_CHANNEL_JOB_STATE.error
 
       return {
         state,
-        jobId: data.jobId,
-        channels: data.data,
+        jobId: data[0].jobId,
       }
     } catch (error) {
       logger.error(error)

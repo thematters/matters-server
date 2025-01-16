@@ -193,7 +193,5 @@ describe('channel classifier', () => {
 
     expect(result).toBeDefined()
     expect(result?.state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
-    expect(result?.channels).toHaveLength(1)
-    expect(result?.channels[0].channel).toBe(providerChannelId)
   })
 })
