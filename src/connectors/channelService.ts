@@ -1,5 +1,6 @@
 import type { ArticleVersion, Connections } from 'definitions'
 
+import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { ArticleService, AtomService, ChannelClassifier } from 'connectors'
 const logger = getLogger('service-channel')
@@ -145,7 +146,12 @@ export class ChannelService {
         )
         await this.models.create({
           table: 'article_channel_job',
-          data: { articleId: article.id, jobId, state },
+          data: {
+            articleId: article.id,
+            jobId,
+            // force into processing state and update result from Lambda
+            state: ARTICLE_CHANNEL_JOB_STATE.processing,
+          },
         })
         return { state, jobId }
       })
