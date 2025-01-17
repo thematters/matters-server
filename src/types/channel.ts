@@ -17,6 +17,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     putChannel(input: PutChannelInput!): Channel! @auth(mode: "${AUTH_MODE.admin}")
     setArticleChannels(input: SetArticleChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
+    classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input PutChannelInput {
@@ -30,5 +31,9 @@ export default /* GraphQL */ `
   input SetArticleChannelsInput {
     id: ID!
     channels: [ID!]!
+  }
+
+  input ClassifyArticlesChannelsInput {
+    ids: [ID!]!
   }
 `

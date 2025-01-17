@@ -278,6 +278,7 @@ type Mutation {
   unlikeMoment(input: UnlikeMomentInput!): Moment!
   putChannel(input: PutChannelInput!): Channel!
   setArticleChannels(input: SetArticleChannelsInput!): Article!
+  classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean!
 }
 
 """
@@ -3841,4 +3842,8 @@ input PutChannelInput {
 input SetArticleChannelsInput {
   id: ID!
   channels: [ID!]!
+}
+
+input ClassifyArticlesChannelsInput {
+  ids: [ID!]!
 }

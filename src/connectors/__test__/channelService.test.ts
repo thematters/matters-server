@@ -179,19 +179,21 @@ describe('channel classifier', () => {
     const articleId = '1'
 
     const providerChannelId = '1'
-    const response = {
-      state: ARTICLE_CHANNEL_JOB_STATE.finished,
-      jobId: '1',
-      channels: [{ channel: providerChannelId, score: 0.99 }],
-    }
+    const response = [
+      {
+        state: ARTICLE_CHANNEL_JOB_STATE.finished,
+        jobId: '1',
+        channels: [{ channel: providerChannelId, score: 0.99 }],
+      },
+    ]
     const mockClassifier = { classify: jest.fn(() => response) }
     // @ts-ignore
-    const result = await channelService._classifyArticleChannels(
-      { id: articleId, title: 'test', content: 'test' },
+    const result = await channelService._classifyArticlesChannels(
+      [{ id: articleId, title: 'test', content: 'test' }],
       mockClassifier as any
     )
 
     expect(result).toBeDefined()
-    expect(result?.state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
+    expect(result?.[0].state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
   })
 })
