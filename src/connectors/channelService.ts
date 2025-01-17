@@ -107,7 +107,7 @@ export class ChannelService {
 
     await this._classifyArticlesChannels(
       contents.map((content, index) => ({
-        id: content.id,
+        id: ids[index],
         title: articleVersions[index].title || '',
         content: content.content || '',
         summary: articleVersions[index].summaryCustomized
@@ -129,7 +129,7 @@ export class ChannelService {
   ) => {
     const channelClassifier = classifier ?? new ChannelClassifier()
     const texts = articles.map(({ title, summary, content }) =>
-      summary ? title + '\n' + summary + '\n' + content : title + '\n' + content
+      summary ? `${title}\n${summary}\n${content}` : `${title}\n${content}`
     )
     const result = await channelClassifier.classify(texts)
 
