@@ -21,6 +21,7 @@ const resolver: GQLMutationResolvers['classifyArticlesChannels'] = async (
     table: 'article',
     whereIn: ['id', articleIds],
   })
+
   const nonSpamArticleIds = articles
     .filter((article) => {
       if (article.isSpam) {
