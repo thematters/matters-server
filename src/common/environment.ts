@@ -153,6 +153,8 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
+  channelClassificationApiUrl:
+    process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
 }
 
 export const contract = {

@@ -48,6 +48,7 @@ export default /* GraphQL */ `
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
+    putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
     setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
   }
@@ -218,6 +219,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
+  type UserFeatureFlag {
+    type: UserFeatureFlagType!
+    createdAt: DateTime!
+  }
+
   type Report implements Node {
     id: ID!
     reporter: User!
@@ -380,6 +386,11 @@ export default /* GraphQL */ `
     restrictions: [UserRestrictionType!]!
   }
 
+  input PutUserFeatureFlagsInput {
+    ids: [ID!]!
+    flags: [UserFeatureFlagType!]!
+  }
+
   input SubmitReportInput {
     targetId: ID!
     reason: ReportReason!
@@ -477,6 +488,7 @@ export default /* GraphQL */ `
     circle_management
     circle_interact
     spam_detection
+    article_channel
   }
 
   enum FeatureFlag {
@@ -499,6 +511,10 @@ export default /* GraphQL */ `
   enum UserRestrictionType {
     articleHottest
     articleNewest
+  }
+
+  enum UserFeatureFlagType {
+    bypassSpamDetection
   }
 
   enum ReportReason {

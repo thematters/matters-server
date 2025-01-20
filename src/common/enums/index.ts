@@ -113,6 +113,12 @@ export const SUBSCRIPTION_STATE = {
   trialing: 'trialing',
 } as const
 
+export const ARTICLE_CHANNEL_JOB_STATE = {
+  processing: 'processing',
+  finished: 'finished',
+  error: 'error',
+} as const
+
 export const APPRECIATION_REWARD = {
   invitationCalculate: 20,
   invitationAccepted: 5,
@@ -168,6 +174,8 @@ export enum NODE_TYPES {
   Moment = 'Moment',
   Campaign = 'Campaign',
   CampaignStage = 'CampaignStage',
+
+  Channel = 'Channel',
 
   IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',

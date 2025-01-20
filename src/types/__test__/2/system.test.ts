@@ -1,6 +1,7 @@
 import type {
   Connections,
   GQLBadgeType,
+  GQLUserFeatureFlagType,
   GQLUserRestrictionType,
 } from 'definitions'
 
@@ -75,6 +76,10 @@ const GET_USER_OSS_BY_USERNAME = /* GraphQL */ `
         score
         boost
         restrictions {
+          type
+          createdAt
+        }
+        featureFlags {
           type
           createdAt
         }
@@ -273,6 +278,20 @@ const PUT_USER_RESTRICTIONS = /* GraphQL */ `
         score
         boost
         restrictions {
+          type
+          createdAt
+        }
+      }
+    }
+  }
+`
+
+const PUT_USER_FEATURE_FLAGS = /* GraphQL */ `
+  mutation ($input: PutUserFeatureFlagsInput!) {
+    putUserFeatureFlags(input: $input) {
+      id
+      oss {
+        featureFlags {
           type
           createdAt
         }
@@ -877,6 +896,82 @@ describe('manage user restrictions', () => {
         ({ type }: { type: GQLUserRestrictionType }) => type
       )
     ).toEqual(['articleHottest'])
+  })
+})
+
+describe('user feature flags', () => {
+  const userId1 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+  const userId2 = toGlobalId({ type: NODE_TYPES.User, id: '3' })
+  const userName1 = 'test2'
+
+  test('no feature flags by default', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    const { data } = await server.executeOperation({
+      query: GET_USER_OSS_BY_USERNAME,
+      variables: { input: { userName: userName1 } },
+    })
+    expect(data!.user.oss.featureFlags).toEqual([])
+  })
+
+  test('only admin can update feature flags', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: { ids: [userId1], flags: ['bypassSpamDetection'] },
+      },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: { ids: [userId1], flags: ['bypassSpamDetection'] },
+      },
+    })
+    expect(
+      data!.putUserFeatureFlags![0]!.oss!.featureFlags!.map(
+        ({ type }: { type: GQLUserFeatureFlagType }) => type
+      )
+    ).toEqual(['bypassSpamDetection'])
+  })
+
+  test('bulk update', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: { ids: [userId1, userId2], flags: ['bypassSpamDetection'] },
+      },
+    })
+    expect(
+      data!.putUserFeatureFlags![0]!.oss!.featureFlags.map(
+        ({ type }: { type: GQLUserFeatureFlagType }) => type
+      )
+    ).toEqual(['bypassSpamDetection'])
+    expect(
+      data!.putUserFeatureFlags![1]!.oss!.featureFlags.map(
+        ({ type }: { type: GQLUserFeatureFlagType }) => type
+      )
+    ).toEqual(['bypassSpamDetection'])
   })
 })
 

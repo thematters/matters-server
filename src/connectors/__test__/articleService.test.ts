@@ -15,18 +15,21 @@ import {
   UserWorkService,
   AtomService,
   SystemService,
+  ChannelService,
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let articleService: ArticleService
+let channelService: ChannelService
 let atomService: AtomService
 let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+  channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
 }, 30000)
@@ -464,90 +467,169 @@ describe('latestArticles', () => {
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
-  // test('spam are excluded', async () => {
-  //   const articles = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   const spamThreshold = 0.5
-  //   await systemService.setFeatureFlag({
-  //     name: FEATURE_NAME.spam_detection,
-  //     flag: FEATURE_FLAG.on,
-  //     value: spamThreshold,
-  //   })
-  //   // spam flag is on but no detected articles
-  //   const articles1 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles1).toEqual(articles)
+  test('spam are excluded', async () => {
+    const articles = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: true,
+    })
+    const spamThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
+    })
+    // spam flag is on but no detected articles
+    const articles1 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: true,
+    })
+    expect(articles1).toEqual(articles)
 
-  //   // spam detected
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[0].id },
-  //     data: { spamScore: spamThreshold + 0.1 },
-  //   })
-  //   const articles2 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
+    // spam detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const articles2 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: true,
+    })
+    expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
 
-  //   // mark as not spam
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[0].id },
-  //     data: { isSpam: false },
-  //   })
-  //   const articles3 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
+    // mark as not spam
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: false },
+    })
+    const articles3 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: true,
+    })
+    expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
 
-  //   // ham detected
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[1].id },
-  //     data: { spamScore: spamThreshold - 0.1 },
-  //   })
-  //   const articles4 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
+    // ham detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { spamScore: spamThreshold - 0.1 },
+    })
+    const articles4 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: true,
+    })
+    expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
 
-  //   // mark as spam
-  //   await atomService.update({
-  //     table: 'article',
-  //     where: { id: articles[1].id },
-  //     data: { isSpam: true },
-  //   })
-  //   const articles5 = await articleService.latestArticles({
-  //     maxTake: 500,
-  //     skip: 0,
-  //     take: 10,
-  //     oss: false,
-  //     excludeSpam: true,
-  //   })
-  //   expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
-  // })
+    // mark as spam
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: true },
+    })
+    const articles5 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: true,
+    })
+    expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
+  })
+})
+
+describe('findChannelArticles', () => {
+  test('should return articles from channel', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // create channel
+    const channel = await channelService.updateOrCreateChannel({
+      name: 'test',
+      description: 'test',
+      providerId: '1',
+      enabled: true,
+    })
+
+    // create article channel
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '1',
+        channelId: channel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '2',
+        channelId: channel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '3',
+        channelId: channel.id,
+        score: articleChannelThreshold - 0.1,
+        enabled: true,
+      },
+    })
+
+    const [articles] = await articleService.findChannelArticles({
+      channelId: channel.id,
+      skip: 0,
+      take: 10,
+      maxTake: 10,
+    })
+    expect(articles).toBeDefined()
+    expect(articles.length).toBe(2)
+    expect(articles.map(({ id }) => id)).toContain('1')
+    expect(articles.map(({ id }) => id)).toContain('2')
+
+    // admin corrects article channel
+    await channelService.setArticleChannels({
+      articleId: '1',
+      channelIds: [],
+    })
+    await channelService.setArticleChannels({
+      articleId: '4',
+      channelIds: [channel.id],
+    })
+
+    const [articles2] = await articleService.findChannelArticles({
+      channelId: channel.id,
+      skip: 0,
+      take: 10,
+      maxTake: 10,
+    })
+    expect(articles2.length).toBe(2)
+    expect(articles2.map(({ id }) => id)).toContain('4')
+    expect(articles2.map(({ id }) => id)).not.toContain('1')
+  })
 })
 
 describe('findResponses', () => {

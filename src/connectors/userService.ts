@@ -16,6 +16,7 @@ import type {
   PunishRecord,
   LANGUAGES,
   UserBoost,
+  UserFeatureFlag,
 } from 'definitions'
 
 import axios from 'axios'
@@ -76,6 +77,7 @@ import {
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
   DAY,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import {
@@ -1350,86 +1352,6 @@ export class UserService extends BaseService<User> {
     return author.authorScore || 0
   }
 
-  public recommendTags = ({ skip, take }: { skip: number; take: number }) =>
-    this.knex('tag')
-      .select('*')
-      .join(
-        this.knex('article_tag')
-          .select('tag_id')
-          .max('created_at', { as: 'last_article_added' })
-          .count('id', { as: 'article_count' })
-          .groupBy('tag_id')
-          .as('t1'),
-        function () {
-          this.on('t1.tag_id', '=', 'tag.id')
-        }
-      )
-      .join(
-        this.knex('action_tag')
-          .select('target_id')
-          .max('created_at', { as: 'last_follower_added' })
-          .count('id', { as: 'follower_count' })
-          .where('action', 'follow')
-          .groupBy('target_id')
-          .as('t2'),
-        function () {
-          this.on('t2.target_id', '=', 'tag.id')
-        }
-      )
-      .where(
-        'last_article_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .orWhere(
-        'last_follower_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .andWhere('article_count', '>=', 8)
-      .orderBy('follower_count', 'desc')
-      .offset(skip)
-      .limit(take)
-
-  public countRecommendTags = async () => {
-    const result = await this.knex()
-      .count('*')
-      .from(
-        this.knex('article_tag')
-          .select('tag_id')
-          .max('created_at', { as: 'last_article_added' })
-          .count('id', { as: 'article_count' })
-          .groupBy('tag_id')
-          .as('t1')
-      )
-      .fullOuterJoin(
-        this.knex('action_tag')
-          .select('target_id')
-          .max('created_at', { as: 'last_follower_added' })
-          .count('id', { as: 'follower_count' })
-          .where('action', 'follow')
-          .groupBy('target_id')
-          .as('t2'),
-        function () {
-          this.on('t2.target_id', '=', 't1.tag_id')
-        }
-      )
-      .where(
-        'last_article_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .orWhere(
-        'last_follower_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .andWhere('article_count', '>=', 8)
-      .first()
-
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   /*********************************
    *                               *
    *         Notify Setting        *
@@ -2035,6 +1957,50 @@ export class UserService extends BaseService<User> {
       data: { ensName, ensNameUpdatedAt: now },
     })
     return ensName
+  }
+
+  /*********************************
+   *                               *
+   *        Feature Flags           *
+   *                               *
+   *********************************/
+  public findFeatureFlags = async (id: string): Promise<UserFeatureFlag[]> => {
+    const table = 'user_feature_flag'
+    return this.models.findMany({
+      table,
+      select: ['type', 'createdAt'],
+      where: { userId: id },
+    })
+  }
+
+  public updateFeatureFlags = async (
+    id: string,
+    types: Array<keyof typeof USER_FEATURE_FLAG_TYPE>
+  ) => {
+    const olds = (await this.findFeatureFlags(id)).map(({ type }) => type)
+    const news = [...new Set(types)]
+    const toAdd = news.filter((i) => !olds.includes(i))
+    const toDel = olds.filter((i) => !news.includes(i))
+    await Promise.all([
+      ...toAdd.map((i) => this.addFeatureFlag(id, i)),
+      ...toDel.map((i) => this.removeFeatureFlag(id, i)),
+    ])
+  }
+
+  public addFeatureFlag = async (
+    id: string,
+    type: keyof typeof USER_FEATURE_FLAG_TYPE
+  ) => {
+    const table = 'user_feature_flag'
+    await this.models.create({ table, data: { userId: id, type } })
+  }
+
+  public removeFeatureFlag = async (
+    id: string,
+    type: keyof typeof USER_FEATURE_FLAG_TYPE
+  ) => {
+    const table = 'user_feature_flag'
+    await this.models.deleteMany({ table, where: { userId: id, type } })
   }
 
   /*********************************

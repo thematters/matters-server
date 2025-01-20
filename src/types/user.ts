@@ -215,12 +215,8 @@ export default /* GraphQL */ `
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
-    newestExcludeSpam(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
     "Global articles sort by latest activity time."
     hottest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
-    hottestExcludeSpam(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -228,23 +224,21 @@ export default /* GraphQL */ `
     "'In case you missed it' topic."
     icymiTopic: IcymiTopic @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
+    "Articles from a specific channel"
+    channelArticles(input: ChannelArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
-    "Hottest tag list"
-    hottestTags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
-
-    "Selected tag list"
-    selectedTags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
-
     "Global user list, sort by activities in recent 6 month."
     authors(input: RecommendInput!): UserConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
+  }
 
-    "Global circles sort by created time."
-    newestCircles(input: ConnectionArgs!): CircleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
-    "Global circles sort by latest activity time."
-    hottestCircles(input: ConnectionArgs!): CircleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+  input ChannelArticlesInput {
+    channelId: ID!
+    after: String
+    first: Int @constraint(min: 0)
   }
 
   input RecommendInput {
@@ -424,6 +418,7 @@ export default /* GraphQL */ `
     boost: Float!
     score: Float!
     restrictions: [UserRestriction!]!
+    featureFlags: [UserFeatureFlag!]!
   }
 
   type Appreciation {

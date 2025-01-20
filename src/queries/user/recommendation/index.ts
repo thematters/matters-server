@@ -1,31 +1,23 @@
 import { GQLRecommendationResolvers } from 'definitions'
 
 import { authors } from './authors'
+import { channelArticles } from './channelArticles'
 import following from './following'
-import { hottest, hottestExcludeSpam } from './hottest'
-import hottestCircles from './hottestCircles'
-import { hottestTags } from './hottestTags'
+import { hottest } from './hottest'
 import { icymi } from './icymi'
 import { icymiTopic } from './icymiTopic'
-import { newest, newestExcludeSpam } from './newest'
-import newestCircles from './newestCircles'
-import { selectedTags } from './selectedTags'
+import { newest } from './newest'
 import { tags } from './tags'
 
 const resolvers: GQLRecommendationResolvers = {
   authors,
   following,
   hottest,
-  hottestExcludeSpam,
   icymi,
   icymiTopic,
   newest,
-  newestExcludeSpam,
   tags,
-  hottestTags,
-  selectedTags,
-  hottestCircles,
-  newestCircles,
+  channelArticles,
 }
 
 export default resolvers

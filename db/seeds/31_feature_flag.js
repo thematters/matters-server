@@ -36,5 +36,10 @@ exports.seed = async (knex) => {
       flag: 'off',
       value: 0.5,
     },
+    {
+      name: 'article_channel',
+      flag: 'off',
+      value: 0.5,
+    },
   ])
 }
