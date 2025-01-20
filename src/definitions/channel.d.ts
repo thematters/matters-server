@@ -27,4 +27,5 @@ export interface ArticleChannelJob {
   state: ARTICLE_CHANNEL_JOB_STATE
   createdAt: Date
   updatedAt: Date
+  retriedAt?: Date
 }
