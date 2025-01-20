@@ -324,22 +324,30 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    * campaigns
    */
   if (campaigns !== undefined) {
-    const _campaigns = await campaignService.validateCampaigns(
-      campaigns ?? [],
-      viewer.id
-    )
-    const mutated = await campaignService.updateArticleCampaigns(
-      article,
-      _campaigns.map(({ campaign, stage }) => ({
-        campaignId: campaign,
-        campaignStageId: stage,
-      }))
-    )
-    for (const campaignId of mutated) {
-      invalidateFQC({
-        node: { type: NODE_TYPES.Campaign, id: campaignId },
-        redis,
-      })
+    // skip if article is a campaign announcement
+    const campaignAnnouncement = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { articleId: article.id, announcement: true },
+    })
+
+    if (!campaignAnnouncement) {
+      const _campaigns = await campaignService.validateCampaigns(
+        campaigns ?? [],
+        viewer.id
+      )
+      const mutated = await campaignService.updateArticleCampaigns(
+        article,
+        _campaigns.map(({ campaign, stage }) => ({
+          campaignId: campaign,
+          campaignStageId: stage,
+        }))
+      )
+      for (const campaignId of mutated) {
+        invalidateFQC({
+          node: { type: NODE_TYPES.Campaign, id: campaignId },
+          redis,
+        })
+      }
     }
   }
 
