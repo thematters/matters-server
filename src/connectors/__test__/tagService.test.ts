@@ -52,29 +52,6 @@ describe('findArticleIds', () => {
     })
     expect(articleIds).toBeDefined()
 
-    // create a restricted article
-    await atomService.create({
-      table: 'article_recommend_setting',
-      data: { articleId: articleIds[0], inNewest: true },
-    })
-    const excluded1 = await tagService.findArticleIds({
-      id: '2',
-      excludeRestricted: true,
-    })
-    expect(excluded1).not.toContain(articleIds[0])
-
-    // create a non-restricted article with record in article_recommend_setting
-    await atomService.deleteMany({ table: 'article_recommend_setting' })
-    await atomService.create({
-      table: 'article_recommend_setting',
-      data: { articleId: articleIds[0], inNewest: false, inHottest: false },
-    })
-    const excluded2 = await tagService.findArticleIds({
-      id: '2',
-      excludeRestricted: true,
-    })
-    expect(excluded2).toContain(articleIds[0])
-
     // create a restricted user
     await atomService.deleteMany({ table: 'article_recommend_setting' })
     const article = await atomService.findUnique({

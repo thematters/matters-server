@@ -57,15 +57,9 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
           .as('view')
       )
       .leftJoin('article', 'view.id', 'article.id')
-      .leftJoin(
-        'article_recommend_setting AS setting',
-        'view.id',
-        'setting.article_id'
-      )
       .where((builder: Knex.QueryBuilder) => {
         if (!oss) {
           builder
-            .whereRaw('in_hottest IS NOT false')
             .whereNotIn(
               'article.author_id',
               knexRO('user_restriction')

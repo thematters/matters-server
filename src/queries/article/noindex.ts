@@ -24,15 +24,6 @@ const resolver: GQLArticleResolvers['noindex'] = async (
     return false
   }
 
-  // if article is disabled in article_recommend_setting
-  const articleRecommendSetting = await atomService.findFirst({
-    table: 'article_recommend_setting',
-    where: { articleId: id },
-  })
-  if (articleRecommendSetting) {
-    return true
-  }
-
   // if author is in user_restriction
   const userRestriction = await atomService.findFirst({
     table: 'user_restriction',
