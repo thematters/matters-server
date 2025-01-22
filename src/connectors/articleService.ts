@@ -435,6 +435,10 @@ export class ArticleService extends BaseService<Article> {
       await systemService.getArticleChannelThreshold()
     const spamThreshold = await systemService.getSpamThreshold()
 
+    if (articleChannelThreshold === null) {
+      return [[], 0]
+    }
+
     const query = this.knexRO
       .select('article.*', this.knexRO.raw('count(1) OVER() AS total_count'))
       .from('article_channel')
@@ -456,15 +460,13 @@ export class ArticleService extends BaseService<Article> {
           .where('type', 'articleNewest')
       )
       .where((builder) => {
-        if (articleChannelThreshold) {
-          builder.where((qb) => {
-            qb.where(
-              'article_channel.score',
-              '>=',
-              articleChannelThreshold
-            ).orWhere('article_channel.is_labeled', true)
-          })
-        }
+        builder.where((qb) => {
+          qb.where(
+            'article_channel.score',
+            '>=',
+            articleChannelThreshold
+          ).orWhere('article_channel.is_labeled', true)
+        })
       })
       .whereRaw('in_newest IS NOT false')
       .where((builder) => {
