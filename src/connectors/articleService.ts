@@ -158,7 +158,6 @@ export class ArticleService extends BaseService<Article> {
       columns = ['*'],
       orderBy = 'newest',
       state = 'active',
-      excludeRestricted,
       skip,
       take,
     }: {
@@ -170,7 +169,6 @@ export class ArticleService extends BaseService<Article> {
         | 'mostAppreciations'
         | 'mostComments'
         | 'mostDonations'
-      excludeRestricted?: boolean
       skip?: number
       take?: number
     } = {}
@@ -188,15 +186,6 @@ export class ArticleService extends BaseService<Article> {
       .modify((builder: Knex.QueryBuilder) => {
         if (state) {
           builder.andWhere({ 't1.state': state })
-        }
-        if (excludeRestricted) {
-          builder.whereNotIn(
-            't1.id',
-            this.knexRO('article_recommend_setting')
-              .select('articleId')
-              .where({ inHottest: true })
-              .orWhere({ inNewest: true })
-          )
         }
 
         switch (orderBy) {
@@ -379,34 +368,25 @@ export class ArticleService extends BaseService<Article> {
           .limit(maxTake * 2) // add some extra to cover excluded ones in settings
           .as('article_set')
       )
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'article_set.id',
-        'setting.article_id'
-      )
       .where((builder) => {
-        if (!oss) {
-          builder.whereRaw('in_newest IS NOT false')
-
-          if (excludeSpam) {
-            builder
-              .whereIn(
+        if (!oss && excludeSpam) {
+          builder
+            .whereIn(
+              'article_set.author_id',
+              this.knexRO
+                .select('user_id')
+                .from('user_feature_flag')
+                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+            )
+            .orWhere((qb) => {
+              qb.whereNotIn(
                 'article_set.author_id',
                 this.knexRO
                   .select('user_id')
                   .from('user_feature_flag')
                   .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-              )
-              .orWhere((qb) => {
-                qb.whereNotIn(
-                  'article_set.author_id',
-                  this.knexRO
-                    .select('user_id')
-                    .from('user_feature_flag')
-                    .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-                ).modify(excludeSpamModifier, spamThreshold, 'article_set')
-              })
-          }
+              ).modify(excludeSpamModifier, spamThreshold, 'article_set')
+            })
         }
       })
       .as('newest')
@@ -435,15 +415,14 @@ export class ArticleService extends BaseService<Article> {
       await systemService.getArticleChannelThreshold()
     const spamThreshold = await systemService.getSpamThreshold()
 
+    if (articleChannelThreshold === null) {
+      return [[], 0]
+    }
+
     const query = this.knexRO
       .select('article.*', this.knexRO.raw('count(1) OVER() AS total_count'))
       .from('article_channel')
       .leftJoin('article', 'article_channel.article_id', 'article.id')
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'article.id',
-        'setting.article_id'
-      )
       .where({
         'article_channel.channel_id': channelId,
         'article_channel.enabled': true,
@@ -456,17 +435,14 @@ export class ArticleService extends BaseService<Article> {
           .where('type', 'articleNewest')
       )
       .where((builder) => {
-        if (articleChannelThreshold) {
-          builder.where((qb) => {
-            qb.where(
-              'article_channel.score',
-              '>=',
-              articleChannelThreshold
-            ).orWhere('article_channel.is_labeled', true)
-          })
-        }
+        builder.where((qb) => {
+          qb.where(
+            'article_channel.score',
+            '>=',
+            articleChannelThreshold
+          ).orWhere('article_channel.is_labeled', true)
+        })
       })
-      .whereRaw('in_newest IS NOT false')
       .where((builder) => {
         builder
           .whereIn(

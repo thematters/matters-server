@@ -765,19 +765,10 @@ export class TagService extends BaseService<Tag> {
       })
       .modify((builder: Knex.QueryBuilder) => {
         if (excludeRestricted) {
-          builder
-            .whereNotIn(
-              'article.id',
-              this.knexRO
-                .select('articleId')
-                .from('article_recommend_setting')
-                .where({ inHottest: true })
-                .orWhere({ inNewest: true })
-            )
-            .whereNotIn(
-              'article.authorId',
-              this.knexRO.select('userId').from('user_restriction')
-            )
+          builder.whereNotIn(
+            'article.authorId',
+            this.knexRO.select('userId').from('user_restriction')
+          )
         }
         if (excludeSpam) {
           builder

@@ -54,27 +54,32 @@ export class ChannelService {
       table: 'article_channel',
       where: { articleId },
     })
-    const existingChannelIds = new Set(existingChannels.map((c) => c.channelId))
 
-    // Diff channels
-    const toAdd = channelIds.filter((id) => !existingChannelIds.has(id))
-    const toRemove = [...existingChannelIds].filter(
-      (id) => !channelIds.includes(id)
+    // Track both id and enabled status
+    const existingChannelMap = new Map(
+      existingChannels.map((c) => [c.channelId, c.enabled])
     )
 
-    // Add new channels
+    // Diff channels
+    const toAdd = channelIds.filter(
+      (id) =>
+        !existingChannelMap.has(id) || existingChannelMap.get(id) === false
+    )
+    const toRemove = [...existingChannelMap.entries()]
+      .filter(([id, enabled]) => enabled && !channelIds.includes(id))
+      .map(([id]) => id)
+
+    // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
-      for (const channelId of toAdd) {
-        await this.models.create({
-          table: 'article_channel',
-          data: {
-            articleId,
-            channelId,
-            enabled: true,
-            isLabeled: true,
-          },
-        })
-      }
+      await this.models.upsertOnConflict({
+        table: 'article_channel',
+        data: toAdd.map((channelId) => ({
+          articleId,
+          channelId,
+          enabled: true,
+          isLabeled: true,
+        })),
+      })
     }
 
     // Disable removed channels
@@ -83,7 +88,7 @@ export class ChannelService {
         table: 'article_channel',
         where: { articleId },
         whereIn: ['channelId', toRemove],
-        data: { enabled: false, isLabeled: true },
+        data: { enabled: false, isLabeled: true, updatedAt: new Date() },
       })
     }
   }
