@@ -140,7 +140,7 @@ jobs:
           && sudo apt-get install openvpn \
           && echo $VPN_AUTH | base64 -d > $VPN_AUTH_PATH \
           && echo $VPN_CONFIG | base64 -d > $VPN_CONFIG_PATH \
-          && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon --log-append /tmp/openvpn.log \
+          && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
           && tail -f /tmp/openvpn.log \
           && sleep 15s
         env:
@@ -238,7 +238,7 @@ jobs:
           && sudo apt-get install openvpn \
           && echo $VPN_CONFIG | base64 -d >> $VPN_CONFIG_PATH \
           && echo $VPN_AUTH | base64 -d >> $VPN_AUTH_PATH \
-          && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon --log-append /tmp/openvpn.log \
+          && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
           && tail -f /tmp/openvpn.log \
           && sleep 15s
         env:
