@@ -132,6 +132,14 @@ type UpsertFn = <
   update: Partial<D>
 }) => Promise<D>
 
+type UpsertOnConflictFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  data: Partial<D> | Array<Partial<D>>
+}) => Promise<D[]>
+
 type DeleteManyFn = <
   Table extends TableTypeMapKey,
   D extends TableTypeMap[Table]
@@ -446,8 +454,6 @@ export class AtomService {
    * A Prisma like method for updating or creating a record.
    */
   public upsert: UpsertFn = async ({ table, where, create, update }) => {
-    // TODO: Use onConflict instead
-    // @see {@link https://github.com/knex/knex/pull/3763}
     const record = await this.knex(table)
       .select()
       .where(where as Record<string, any>)
@@ -469,6 +475,22 @@ export class AtomService {
       .returning('*')
 
     return updatedRecord
+  }
+
+  public upsertOnConflict: UpsertOnConflictFn = async ({ table, data }) => {
+    const updatedAt = isUpdateableTable(table)
+      ? { updatedAt: this.knex.fn.now() }
+      : {}
+
+    return this.knex(table)
+      .insert(
+        Array.isArray(data)
+          ? data.map((d) => ({ ...d, ...updatedAt }))
+          : { ...data, ...updatedAt }
+      )
+      .onConflict(['articleId', 'channelId'])
+      .merge()
+      .returning('*')
   }
 
   /**
@@ -582,4 +604,5 @@ const UPATEABLE_TABLES = [
   'translation',
   'campaign_boost',
   'campaign_user',
+  'article_channel',
 ]
