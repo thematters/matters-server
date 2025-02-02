@@ -370,22 +370,19 @@ export class ArticleService extends BaseService<Article> {
       )
       .where((builder) => {
         if (!oss && excludeSpam) {
+          const whitelistedAuthors = this.knexRO
+            .select('user_id')
+            .from('user_feature_flag')
+            .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+
           builder
-            .whereIn(
-              'article_set.author_id',
-              this.knexRO
-                .select('user_id')
-                .from('user_feature_flag')
-                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-            )
+            .whereIn('article_set.author_id', whitelistedAuthors)
             .orWhere((qb) => {
-              qb.whereNotIn(
-                'article_set.author_id',
-                this.knexRO
-                  .select('user_id')
-                  .from('user_feature_flag')
-                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-              ).modify(excludeSpamModifier, spamThreshold, 'article_set')
+              qb.whereNotIn('article_set.author_id', whitelistedAuthors).modify(
+                excludeSpamModifier,
+                spamThreshold,
+                'article_set'
+              )
             })
         }
       })
