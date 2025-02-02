@@ -125,7 +125,6 @@ describe('setArticleChannels', () => {
       articleId,
       channelIds: [channel.id],
     })
-
     await channelService.setArticleChannels({
       articleId,
       channelIds: [],
@@ -148,7 +147,6 @@ describe('setArticleChannels', () => {
       name: 'test-channel-2',
       providerId: '2',
     })
-
     await channelService.setArticleChannels({
       articleId,
       channelIds: [channel1.id],
@@ -171,6 +169,40 @@ describe('setArticleChannels', () => {
     expect(articleChannels[1].channelId).toBe(channel1.id)
     expect(articleChannels[1].enabled).toBe(false)
     expect(articleChannels[1].isLabeled).toBe(true)
+  })
+
+  test('re-enables disabled channels when added again', async () => {
+    const channel = await channelService.updateOrCreateChannel(channelData)
+
+    // First add and then remove the channel
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [channel.id],
+    })
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [],
+    })
+
+    // Verify channel is disabled
+    let articleChannels = await atomService.findMany({
+      table: 'article_channel',
+      where: { articleId },
+    })
+    expect(articleChannels[0].enabled).toBe(false)
+
+    // Re-add the channel
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [channel.id],
+    })
+
+    // Verify channel is re-enabled
+    articleChannels = await atomService.findMany({
+      table: 'article_channel',
+      where: { articleId },
+    })
+    expect(articleChannels[0].enabled).toBe(true)
   })
 })
 

@@ -755,48 +755,34 @@ export class TagService extends BaseService<Tag> {
     const spamThreshold = await systemService.getSpamThreshold()
     const results = await this.knexRO
       .select('article_id')
-      .from('article_tag')
-      .join('article', 'article_id', 'article.id')
-      .where({
-        state: ARTICLE_STATE.active,
-      })
+      .from('article')
+      .leftJoin('article_tag', 'article_tag.article_id', 'article.id')
+      .where({ state: ARTICLE_STATE.active })
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder.where('tag_id', tagId)
+        builder.where('article_tag.tag_id', tagId)
       })
       .modify((builder: Knex.QueryBuilder) => {
         if (excludeRestricted) {
-          builder
-            .whereNotIn(
-              'article.id',
-              this.knexRO
-                .select('articleId')
-                .from('article_recommend_setting')
-                .where({ inHottest: true })
-                .orWhere({ inNewest: true })
-            )
-            .whereNotIn(
-              'article.authorId',
-              this.knexRO.select('userId').from('user_restriction')
-            )
+          builder.whereNotIn(
+            'article.authorId',
+            this.knexRO.select('userId').from('user_restriction')
+          )
         }
         if (excludeSpam) {
-          builder
-            .whereIn(
-              'article.author_id',
-              this.knexRO
-                .select('user_id')
-                .from('user_feature_flag')
-                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-            )
-            .orWhere((qb) => {
-              qb.whereNotIn(
-                'article.author_id',
-                this.knexRO
-                  .select('user_id')
-                  .from('user_feature_flag')
-                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-              ).modify(excludeSpamModifier, spamThreshold)
-            })
+          const whitelistedAuthors = this.knexRO
+            .select('user_id')
+            .from('user_feature_flag')
+            .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+
+          builder.andWhere((andWhereBuilder) => {
+            andWhereBuilder
+              .whereIn('article.author_id', whitelistedAuthors)
+              .orWhere((orWhereBuilder) => {
+                orWhereBuilder
+                  .whereNotIn('article.author_id', whitelistedAuthors)
+                  .modify(excludeSpamModifier, spamThreshold)
+              })
+          })
         }
 
         builder.orderBy('article.id', 'desc')

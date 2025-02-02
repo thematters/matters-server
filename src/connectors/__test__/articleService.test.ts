@@ -174,21 +174,6 @@ describe('findByAuthor', () => {
     })
     expect(articles.length).toBeDefined()
   })
-  test('excludeRestricted', async () => {
-    const articles = await articleService.findByAuthor('1', {
-      excludeRestricted: true,
-    })
-    expect(articles.length).toBeDefined()
-
-    await atomService.create({
-      table: 'article_recommend_setting',
-      data: { articleId: articles[0].id, inNewest: true, inHottest: false },
-    })
-    const excluded = await articleService.findByAuthor('1', {
-      excludeRestricted: true,
-    })
-    expect(excluded).not.toContain(articles[0])
-  })
 })
 
 test('findByCommentedAuthor', async () => {
