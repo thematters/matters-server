@@ -816,6 +816,7 @@ export type GQLChannel = {
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
   providerId: Scalars['String']['output']
+  shortHash: Scalars['String']['output']
 }
 
 export type GQLChannelNameArgs = {
@@ -6634,6 +6635,7 @@ export type GQLChannelResolvers<
     Partial<GQLChannelNameArgs>
   >
   providerId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
