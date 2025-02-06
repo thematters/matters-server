@@ -24,8 +24,8 @@ const resolver: GQLMutationResolvers['classifyArticlesChannels'] = async (
 
   const nonSpamArticleIds = articles
     .filter((article) => {
-      if (article.isSpam) {
-        return false
+      if (typeof article.isSpam === 'boolean') {
+        return !article.isSpam
       }
 
       if (!article.spamScore) {
