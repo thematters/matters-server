@@ -7,6 +7,7 @@ export default /* GraphQL */ `
 
   type Channel {
     id: ID!
+    shortHash: String!
     name(input: TranslationArgs): String!
 
     description: String @auth(mode: "${AUTH_MODE.admin}")

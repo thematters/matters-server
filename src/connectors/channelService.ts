@@ -2,6 +2,7 @@ import type { ArticleVersion, Connections } from 'definitions'
 
 import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
 import { getLogger } from 'common/logger'
+import { shortHash } from 'common/utils/nanoid'
 import { ArticleService, AtomService, ChannelClassifier } from 'connectors'
 const logger = getLogger('service-channel')
 
@@ -38,7 +39,7 @@ export class ChannelService {
 
     return this.models.create({
       table: 'channel',
-      data: { name, description, providerId, enabled },
+      data: { shortHash: shortHash(), name, description, providerId, enabled },
     })
   }
 

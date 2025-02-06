@@ -3825,6 +3825,7 @@ enum MomentState {
 
 type Channel {
   id: ID!
+  shortHash: String!
   name(input: TranslationArgs): String!
   description: String
   providerId: String!

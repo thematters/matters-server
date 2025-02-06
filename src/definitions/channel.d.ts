@@ -1,6 +1,7 @@
 import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
 export interface Channel {
   id: string
+  shortHash: string
   name: string
   description?: string
   providerId: string
