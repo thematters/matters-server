@@ -6,8 +6,8 @@ const shortHash = customAlphabet(ALPHABET, 12) // ~35 years or 308M IDs needed, 
 const table = 'channel'
 
 exports.up = async (knex) => {
-  await knex.schema.table(table, function (t) {
-    t.string('short_hash').unique().notNullable()
+  await knex.schema.alterTable(table, function (t) {
+    t.string('short_hash').unique()
   })
 
   // migration
@@ -17,6 +17,9 @@ exports.up = async (knex) => {
       .where({ id: record.id })
       .update({ short_hash: shortHash() })
   }
+
+  // Change from alterTable to raw SQL to modify the constraint
+  await knex.raw(`ALTER TABLE ${table} ALTER COLUMN short_hash SET NOT NULL`)
 }
 
 exports.down = async (knex) => {
