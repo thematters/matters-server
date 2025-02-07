@@ -80,6 +80,7 @@ export class ChannelService {
           enabled: true,
           isLabeled: true,
         })),
+        onConflict: ['articleId', 'channelId'],
       })
     }
 
@@ -150,7 +151,7 @@ export class ChannelService {
         logger.info(
           `Channel classification for article ${article.id}: ${state} ${jobId}`
         )
-        await this.models.create({
+        await this.models.upsertOnConflict({
           table: 'article_channel_job',
           data: {
             articleId: article.id,
@@ -158,6 +159,7 @@ export class ChannelService {
             // force into processing state and update result from Lambda
             state: ARTICLE_CHANNEL_JOB_STATE.processing,
           },
+          onConflict: ['articleId', 'jobId'],
         })
         return { state, jobId }
       })
