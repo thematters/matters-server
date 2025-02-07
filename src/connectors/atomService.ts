@@ -138,6 +138,7 @@ type UpsertOnConflictFn = <
 >(params: {
   table: Table
   data: Partial<D> | Array<Partial<D>>
+  onConflict: string[]
 }) => Promise<D[]>
 
 type DeleteManyFn = <
@@ -477,7 +478,11 @@ export class AtomService {
     return updatedRecord
   }
 
-  public upsertOnConflict: UpsertOnConflictFn = async ({ table, data }) => {
+  public upsertOnConflict: UpsertOnConflictFn = async ({
+    table,
+    data,
+    onConflict,
+  }) => {
     const updatedAt = isUpdateableTable(table)
       ? { updatedAt: this.knex.fn.now() }
       : {}
@@ -488,7 +493,7 @@ export class AtomService {
           ? data.map((d) => ({ ...d, ...updatedAt }))
           : { ...data, ...updatedAt }
       )
-      .onConflict(['articleId', 'channelId'])
+      .onConflict(onConflict)
       .merge()
       .returning('*')
   }
