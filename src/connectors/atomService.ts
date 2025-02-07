@@ -610,4 +610,5 @@ const UPATEABLE_TABLES = [
   'campaign_boost',
   'campaign_user',
   'article_channel',
+  'article_channel_job',
 ]
