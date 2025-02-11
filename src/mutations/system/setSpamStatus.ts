@@ -6,7 +6,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['setSpamStatus'] = async (
   _,
   { input: { id: globalId, isSpam } },
-  { dataSources: { atomService } }
+  { dataSources: { atomService, channelService } }
 ) => {
   const id = fromGlobalId(globalId).id
 
@@ -14,11 +14,18 @@ const resolver: GQLMutationResolvers['setSpamStatus'] = async (
     throw new UserInputError('id is invalid')
   }
 
-  return atomService.update({
+  const article = await atomService.update({
     table: 'article',
     where: { id },
     data: { isSpam },
   })
+
+  // trigger article channel classification if the article is not spam
+  if (!isSpam) {
+    channelService.classifyArticlesChannels({ ids: [id] })
+  }
+
+  return article
 }
 
 export default resolver
