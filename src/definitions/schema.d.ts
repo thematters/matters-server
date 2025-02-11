@@ -38,6 +38,7 @@ import {
   Campaign as CampaignModel,
   CampaignStage as CampaignStageModel,
 } from './campaign'
+import { Channel as ChannelModel } from './channel'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -811,11 +812,17 @@ export type GQLChain = 'Optimism' | 'Polygon'
 
 export type GQLChannel = {
   __typename?: 'Channel'
+  articles: GQLArticleConnection
   description?: Maybe<Scalars['String']['output']>
   enabled: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
   providerId: Scalars['String']['output']
+  shortHash: Scalars['String']['output']
+}
+
+export type GQLChannelArticlesArgs = {
+  input: GQLConnectionArgs
 }
 
 export type GQLChannelNameArgs = {
@@ -4571,7 +4578,11 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleCampaignInput: GQLArticleCampaignInput
-  ArticleChannel: ResolverTypeWrapper<GQLArticleChannel>
+  ArticleChannel: ResolverTypeWrapper<
+    Omit<GQLArticleChannel, 'channel'> & {
+      channel: GQLResolversTypes['Channel']
+    }
+  >
   ArticleConnection: ResolverTypeWrapper<
     Omit<GQLArticleConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
@@ -4680,7 +4691,7 @@ export type GQLResolversTypes = ResolversObject<{
   CampaignState: GQLCampaignState
   CampaignsInput: GQLCampaignsInput
   Chain: GQLChain
-  Channel: ResolverTypeWrapper<GQLChannel>
+  Channel: ResolverTypeWrapper<ChannelModel>
   ChannelArticlesInput: GQLChannelArticlesInput
   Circle: ResolverTypeWrapper<CircleModel>
   CircleAnalytics: ResolverTypeWrapper<CircleModel>
@@ -5232,7 +5243,9 @@ export type GQLResolversParentTypes = ResolversObject<{
     stage?: Maybe<GQLResolversParentTypes['CampaignStage']>
   }
   ArticleCampaignInput: GQLArticleCampaignInput
-  ArticleChannel: GQLArticleChannel
+  ArticleChannel: Omit<GQLArticleChannel, 'channel'> & {
+    channel: GQLResolversParentTypes['Channel']
+  }
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
@@ -5307,7 +5320,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
   CampaignsInput: GQLCampaignsInput
-  Channel: GQLChannel
+  Channel: ChannelModel
   ChannelArticlesInput: GQLChannelArticlesInput
   Circle: CircleModel
   CircleAnalytics: CircleModel
@@ -6620,6 +6633,12 @@ export type GQLChannelResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Channel'] = GQLResolversParentTypes['Channel']
 > = ResolversObject<{
+  articles?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLChannelArticlesArgs, 'input'>
+  >
   description?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -6634,6 +6653,7 @@ export type GQLChannelResolvers<
     Partial<GQLChannelNameArgs>
   >
   providerId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

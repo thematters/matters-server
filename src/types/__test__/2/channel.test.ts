@@ -23,6 +23,7 @@ describe('manage channels', () => {
     mutation ($input: PutChannelInput!) {
       putChannel(input: $input) {
         id
+        shortHash
         providerId
         nameEn: name(input: { language: en })
         nameZhHant: name(input: { language: zh_hant })
@@ -112,6 +113,7 @@ describe('manage channels', () => {
     })
 
     expect(errors).toBeUndefined()
+    expect(data.putChannel.shortHash).toBeDefined()
     expect(data.putChannel.providerId).toBe('test-provider')
     expect(data.putChannel.nameEn).toBe('test channel en')
     expect(data.putChannel.nameZhHans).toBe('test channel zh_hans')

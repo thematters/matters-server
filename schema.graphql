@@ -3825,10 +3825,12 @@ enum MomentState {
 
 type Channel {
   id: ID!
+  shortHash: String!
   name(input: TranslationArgs): String!
   description: String
   providerId: String!
   enabled: Boolean!
+  articles(input: ConnectionArgs!): ArticleConnection!
 }
 
 input PutChannelInput {

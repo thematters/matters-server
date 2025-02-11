@@ -2,6 +2,7 @@ import type { ArticleVersion, Connections } from 'definitions'
 
 import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
 import { getLogger } from 'common/logger'
+import { shortHash } from 'common/utils/nanoid'
 import { ArticleService, AtomService, ChannelClassifier } from 'connectors'
 const logger = getLogger('service-channel')
 
@@ -38,7 +39,7 @@ export class ChannelService {
 
     return this.models.create({
       table: 'channel',
-      data: { name, description, providerId, enabled },
+      data: { shortHash: shortHash(), name, description, providerId, enabled },
     })
   }
 
@@ -79,6 +80,7 @@ export class ChannelService {
           enabled: true,
           isLabeled: true,
         })),
+        onConflict: ['articleId', 'channelId'],
       })
     }
 
@@ -149,7 +151,7 @@ export class ChannelService {
         logger.info(
           `Channel classification for article ${article.id}: ${state} ${jobId}`
         )
-        await this.models.create({
+        await this.models.upsertOnConflict({
           table: 'article_channel_job',
           data: {
             articleId: article.id,
@@ -157,6 +159,7 @@ export class ChannelService {
             // force into processing state and update result from Lambda
             state: ARTICLE_CHANNEL_JOB_STATE.processing,
           },
+          onConflict: ['articleId', 'jobId'],
         })
         return { state, jobId }
       })

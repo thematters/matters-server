@@ -459,7 +459,7 @@ export class ArticleService extends BaseService<Article> {
             ).modify(excludeSpamModifier, spamThreshold, 'article')
           })
       })
-      .orderBy('article.created_at', 'desc')
+      .orderBy('article.id', 'desc')
       .limit(maxTake)
       .as('filtered_articles')
 

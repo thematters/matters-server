@@ -7,11 +7,14 @@ export default /* GraphQL */ `
 
   type Channel {
     id: ID!
+    shortHash: String!
     name(input: TranslationArgs): String!
 
     description: String @auth(mode: "${AUTH_MODE.admin}")
     providerId: String! @auth(mode: "${AUTH_MODE.admin}")
     enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+
+    articles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
   extend type Mutation {
