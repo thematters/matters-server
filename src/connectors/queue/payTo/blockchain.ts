@@ -29,7 +29,7 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import { contract, isProd, isTest } from 'common/environment'
+import { contract, environment, isProd, isTest } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -253,6 +253,7 @@ export class PayToByBlockchainQueue {
     // Note: sender and recipient's ETH address may change after tx is created
     const isValidTx = await this.containMatchedEvent(txReceipt.events, {
       cids: articleCids,
+      shortHash: article.shortHash,
       amount: tx.amount,
       // support USDT only for now
       tokenAddress: contract[chain].tokenAddress,
@@ -428,15 +429,25 @@ export class PayToByBlockchainQueue {
     if (!creatorUser) {
       return
     }
-    const cid = extractCid(event.uri)
-    const articleVersion = await atomService.findFirst({
-      table: 'article_version',
-      where: { dataHash: cid },
-    })
-    const article = await atomService.findFirst({
-      table: 'article',
-      where: { id: articleVersion?.articleId, authorId: creatorUser.id },
-    })
+    const { cid, shortHash } = extractCidOrShortHash(event.uri)
+    const articleVersion = cid
+      ? await atomService.findFirst({
+          table: 'article_version',
+          where: { dataHash: cid },
+        })
+      : undefined
+    const article = articleVersion
+      ? await atomService.findFirst({
+          table: 'article',
+          where: { id: articleVersion?.articleId, authorId: creatorUser.id },
+        })
+      : shortHash
+      ? await atomService.findFirst({
+          table: 'article',
+          where: { shortHash },
+        })
+      : undefined
+
     if (!article) {
       return
     }
@@ -721,11 +732,13 @@ export class PayToByBlockchainQueue {
     events: CurationEvent[] | CurationVaultEvent[],
     {
       cids,
+      shortHash,
       tokenAddress,
       amount,
       decimals,
     }: {
       cids: string[]
+      shortHash: string
       tokenAddress: string
       amount: string
       decimals: number
@@ -736,11 +749,18 @@ export class PayToByBlockchainQueue {
     }
 
     for (const event of events) {
+      const { cid: eventCid, shortHash: eventShortHash } =
+        extractCidOrShortHash(event.uri)
+      const isCidMatch = eventCid ? cids.includes(eventCid) : false
+      const isShortHashMatch = eventShortHash
+        ? shortHash === eventShortHash
+        : false
+
       if (
         ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
         event.amount === parseUnits(amount, decimals).toString() &&
         isValidUri(event.uri) &&
-        cids.includes(extractCid(event.uri))
+        (isCidMatch || isShortHashMatch)
       ) {
         return true
       }
@@ -774,6 +794,23 @@ export class PayToByBlockchainQueue {
 const ignoreCaseMatch = (a: string, b: string) =>
   a.toLowerCase() === b.toLowerCase()
 
-const isValidUri = (uri: string): boolean => /^ipfs:\/\//.test(uri)
+const isValidUri = (uri: string): boolean =>
+  /^ipfs:\/\//.test(uri) ||
+  new RegExp(`^https://${environment.siteDomain}/a/[\\w-]+$`).test(uri)
 
-const extractCid = (uri: string): string => uri.replace('ipfs://', '')
+const extractCidOrShortHash = (
+  uri: string
+): { cid?: string; shortHash?: string } => {
+  // ipfs://{cid}
+  if (uri.startsWith('ipfs://')) {
+    return { cid: uri.replace('ipfs://', '') }
+  }
+
+  // https://matters.town/a/{shortHash}
+  if (uri.startsWith('https://')) {
+    const shortHash = uri.split('/').pop()?.split('?')[0]
+    return { shortHash }
+  }
+
+  return {}
+}
