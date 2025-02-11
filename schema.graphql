@@ -3830,6 +3830,7 @@ type Channel {
   description: String
   providerId: String!
   enabled: Boolean!
+  articles(input: ConnectionArgs!): ArticleConnection!
 }
 
 input PutChannelInput {

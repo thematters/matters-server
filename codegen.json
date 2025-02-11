@@ -73,7 +73,8 @@
           "Campaign": "./campaign#Campaign",
           "CampaignOSS": "./campaign#Campaign",
           "WritingChallenge": "./campaign#Campaign",
-          "CampaignStage": "./campaign#CampaignStage"
+          "CampaignStage": "./campaign#CampaignStage",
+          "Channel": "./channel#Channel"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

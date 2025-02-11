@@ -13,6 +13,8 @@ export default /* GraphQL */ `
     description: String @auth(mode: "${AUTH_MODE.admin}")
     providerId: String! @auth(mode: "${AUTH_MODE.admin}")
     enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+
+    articles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
   extend type Mutation {

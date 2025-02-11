@@ -44,6 +44,13 @@ describe('manage channels', () => {
               id
               providerId
               enabled
+              articles(input: { first: 1 }) {
+                edges {
+                  node {
+                    id
+                  }
+                }
+              }
             }
             enabled
             isLabeled
@@ -208,6 +215,9 @@ describe('manage channels', () => {
     expect(data.setArticleChannels.oss.channels[0].enabled).toBe(true)
     expect(data.setArticleChannels.oss.channels[0].isLabeled).toBe(true)
     expect(data.setArticleChannels.oss.channels[0].score).toBeNull()
+    expect(
+      data.setArticleChannels.oss.channels[0].channel.articles.edges.length
+    ).toBe(1)
   })
 
   test('query channels', async () => {
