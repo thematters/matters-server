@@ -40,14 +40,12 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
-  QUEUE_URL,
   USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ArticleNotFoundError,
   ServerError,
-  NetworkError,
   ForbiddenError,
   ActionLimitExceededError,
   ActionFailedError,
@@ -64,12 +62,11 @@ import {
   normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
+  predictCID,
 } from 'common/utils'
 import {
   BaseService,
-  ipfsServers,
   SystemService,
-  UserService,
   UserWorkService,
   TagService,
   NotificationService,
@@ -85,12 +82,10 @@ const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
-  private ipfsServers: typeof ipfsServers
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
   public constructor(connections: Connections) {
     super('article', connections)
-    this.ipfsServers = ipfsServers
 
     const batchFn = async (
       keys: readonly string[]
@@ -969,79 +964,29 @@ export class ArticleService extends BaseService<Article> {
     const directoryName = 'article'
     const { bundle, key } = await makeArticlePage(context)
 
-    let ipfs = this.ipfsServers.client
-    let retries = 0
+    // predict CIDs for bundle files
+    const results = []
+    for (const file of bundle.filter((f): f is NonNullable<typeof f> => !!f)) {
+      const fileObj = new File([file.content], file.path)
 
-    do {
-      try {
-        const results = []
-        for await (const result of ipfs.addAll(
-          bundle
-            .filter((file): file is NonNullable<typeof file> => !!file)
-            .map((file) => ({
-              ...file,
-              path: `${directoryName}/${file.path}`,
-            }))
-        )) {
-          results.push(result)
-        }
-
-        // filter out the hash for the bundle
-        let entry = results.filter(
-          ({ path }: { path: string }) => path === directoryName
-        )
-
-        // FIXME: fix missing bundle path and remove fallback logic
-        // fallback to index file when no bundle path is matched
-        if (entry.length === 0) {
-          entry = results.filter(({ path }: { path: string }) =>
-            path.endsWith('index.html')
-          )
-        }
-
-        const contentHash = entry[0].cid.toString()
-        const mediaHash = entry[0].cid.toV1().toString() // cid.toV1().toString() // cid.toBaseEncodedString()
-        return { contentHash, mediaHash, key }
-      } catch (err) {
-        // if the active IPFS client throws exception, try a few more times on Secondary
-        logger.error(
-          `publishToIPFS failed, retries ${++retries} time, ERROR:`,
-          err
-        )
-        ipfs = this.ipfsServers.backupClient
-      }
-    } while (ipfs && retries <= this.ipfsServers.size) // break the retry if there's no backup
-
-    // re-fill dataHash & mediaHash later in IPNS-listener
-    logger.error(`failed publishToIPFS after ${retries} retries.`)
-    throw new NetworkError('failed publishToIPFS')
-  }
-
-  public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
-    const userService = new UserService(this.connections)
-
-    try {
-      // skip if no ENS name
-      const ensName = await userService.findEnsName(userName)
-      if (!ensName) {
-        return
-      }
-
-      const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
-      if (!ipnsKeyRec) {
-        // cannot do anything if no IPNS key
-        logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
-        return
-      }
-
-      this.aws.sqsSendMessage({
-        messageBody: { userName, useMattersIPNS: true },
-        queueUrl: QUEUE_URL.ipnsUserPublication,
+      const cid = await predictCID(fileObj)
+      results.push({
+        path: `${directoryName}/${file.path}`,
+        cid,
       })
-    } catch (error) {
-      logger.error('publishFeedToIPNS ERROR: %o', error)
-      return
     }
+
+    // filter out the hash for the bundle
+    let entry = results.filter(({ path }) => path === directoryName)
+
+    // fallback to index file when no bundle path is matched
+    if (entry.length === 0) {
+      entry = results.filter(({ path }) => path.endsWith('index.html'))
+    }
+
+    const contentHash = entry[0].cid
+    const mediaHash = entry[0].cid // Already in V1 format from predictCID
+    return { contentHash, mediaHash, key }
   }
 
   /**

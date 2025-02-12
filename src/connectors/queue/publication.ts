@@ -287,12 +287,6 @@ export class PublicationQueue {
           data: { iscnId },
         })
       }
-      await job.progress(90)
-
-      if (author.userName) {
-        await articleService.publishFeedToIPNS({ userName: author.userName })
-      }
-
       await job.progress(95)
     } catch (err) {
       // ignore errors caused by these steps

@@ -114,7 +114,6 @@ import {
   AtomService,
   BaseService,
   CacheService,
-  ipfsServers,
   OAuthService,
   NotificationService,
 } from 'connectors'
@@ -125,13 +124,11 @@ import { LikeCoin } from './likecoin'
 const logger = getLogger('service-user')
 
 export class UserService extends BaseService<User> {
-  private ipfs: typeof ipfsServers
   public likecoin: LikeCoin
 
   public constructor(connections: Connections) {
     super('user', connections)
 
-    this.ipfs = ipfsServers
     this.likecoin = new LikeCoin(connections)
   }
 
@@ -1883,48 +1880,6 @@ export class UserService extends BaseService<User> {
       .from('punish_record')
       .where({ userId, state })
       .update({ archived: true })
-
-  public findOrCreateIPNSKey = async (userName: string) => {
-    const user = await this.findByUserName(userName)
-    if (!user) {
-      return
-    }
-    const ipnsKeyRec = await this.models.findFirst({
-      table: 'user_ipns_keys',
-      where: { userId: user.id },
-    })
-
-    if (ipnsKeyRec) {
-      return ipnsKeyRec
-    }
-
-    if (!user.ethAddress) {
-      // stop create IPNS for users without wallet
-      return
-    }
-
-    // create it if not existed
-    const kname = `for-${user.userName}-${user.uuid}`
-    const {
-      // publicKey,
-      privateKey,
-    } = await this.ipfs.genKey()
-    const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }) as string
-
-    const { imported } = (await this.ipfs.importKey({ name: kname, pem }))!
-    // if (!ipnsKey && res) { ipnsKey = res?.Id }
-    const ipnsKey = imported.Id
-
-    return this.models.create({
-      table: 'user_ipns_keys',
-      data: {
-        userId: user.id,
-        ipnsKey,
-        privKeyPem: pem,
-        privKeyName: kname,
-      },
-    })
-  }
 
   public findEnsName = async (userName: string) => {
     const user = await this.findByUserName(userName)

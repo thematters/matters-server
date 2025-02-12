@@ -238,12 +238,6 @@ export class RevisionQueue {
             data: { iscnId },
           })
         }
-
-        if (userName) {
-          await articleService.publishFeedToIPNS({
-            userName,
-          })
-        }
       } catch (err) {
         logger.warn('job failed at optional step: %j', {
           err,

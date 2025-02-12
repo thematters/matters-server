@@ -140,12 +140,6 @@ export const LOG_RECORD_TYPES = {
   ReadResponseInfoPopUp: 'read_response_info_pop_up',
 }
 
-export const UTM_PARAMETER = {
-  SOURCE: {
-    IPFS: 'utm_source=ipfs',
-  },
-}
-
 export const OAUTH_CALLBACK_ERROR_CODE = {
   userNotFound: 1,
   // likecoin

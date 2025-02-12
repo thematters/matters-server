@@ -16,7 +16,6 @@ services:
       - db
       - redis
       - s3
-      - ipfs
       - stripe
     ports:
       - '4000:4000'
@@ -41,13 +40,6 @@ services:
     image: lphoward/fake-s3
     ports:
       - '4569:4569'
-  ipfs:
-    container_name: ipfs
-    image: ipfs/go-ipfs:v0.14.0
-    ports:
-      - '8080:8080'
-      - '4001:4001'
-      - '5001:5001'
   stripe:
     container_name: stripe
     image: stripemock/stripe-mock:latest

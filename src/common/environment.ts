@@ -85,7 +85,6 @@ export const environment = {
     process.env.MATTERS_SEARCH_PG_TAG_COEFFICIENTS || '[1,1,1,1]'
   ),
 
-  ipfsServers: process.env.MATTERS_IPFS_SERVERS || '',
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
   cacheClusterHost: process.env.MATTERS_CACHE_CLUSTER_HOST || '',
