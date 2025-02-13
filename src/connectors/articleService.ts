@@ -6,15 +6,10 @@ import type {
   ArticleVersion,
   ArticleBoost,
   Connections,
-  User,
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import {
-  ArticlePageContext,
-  makeArticlePage,
-  makeSummary,
-} from '@matters/ipns-site-generator'
+import { makeSummary } from '@matters/ipns-site-generator'
 import { html2md } from '@matters/matters-editor/transformers'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -45,7 +40,6 @@ import {
 import { environment } from 'common/environment'
 import {
   ArticleNotFoundError,
-  ServerError,
   ForbiddenError,
   ActionLimitExceededError,
   ActionFailedError,
@@ -62,7 +56,6 @@ import {
   normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
-  predictCID,
 } from 'common/utils'
 import {
   BaseService,
@@ -861,133 +854,6 @@ export class ArticleService extends BaseService<Article> {
     this.baseFind({
       where: { authorId, pinned: true, state: ARTICLE_STATE.active },
     })
-
-  /*********************************
-   *                               *
-   *           IPFS                *
-   *                               *
-   *********************************/
-  /**
-   * Publish draft data to IPFS
-   */
-  public publishToIPFS = async (
-    article: Article,
-    articleVersion: ArticleVersion,
-    content: string
-  ) => {
-    const systemService = new SystemService(this.connections)
-
-    // prepare metadata
-    const { id, title, summary, cover, tags, circleId, access, createdAt } =
-      articleVersion
-    const author = (await this.models.userIdLoader.load(
-      article.authorId
-    )) as User
-    const {
-      // avatar,
-      displayName,
-      userName,
-      paymentPointer,
-      ensName,
-    } = author
-    if (!userName || !displayName) {
-      throw new ServerError('userName or displayName is missing')
-    }
-    const [
-      // userImg,
-      articleCoverImg,
-      ipnsKeyRec,
-    ] = await Promise.all([
-      // avatar && (await systemService.findAssetUrl(avatar)),
-      cover && (await systemService.findAssetUrl(cover)),
-      this.models.findFirst({
-        table: 'user_ipns_keys',
-        where: { userId: article.authorId },
-      }),
-    ])
-    const ipnsKey = ipnsKeyRec?.ipnsKey
-
-    const publishedAt = createdAt.toISOString()
-    const context: ArticlePageContext = {
-      encrypted: false,
-      meta: {
-        title: `${title} - ${displayName} (${userName})`,
-        description: summary,
-        authorName: displayName,
-        image: articleCoverImg ?? undefined,
-      },
-      byline: {
-        date: publishedAt,
-        author: {
-          name: `${displayName} (${userName})`,
-          userName,
-          displayName,
-          uri: `https://${environment.siteDomain}/@${userName}`,
-          ipnsKey: ensName && ipnsKey ? ipnsKey : undefined,
-        },
-        website: {
-          name: 'Matters',
-          uri: 'https://' + environment.siteDomain,
-        },
-      },
-      rss: ipnsKey
-        ? {
-            xml: '../rss.xml',
-            json: '../feed.json',
-          }
-        : undefined,
-      article: {
-        id,
-        author: {
-          userName,
-          displayName,
-        },
-        title,
-        summary,
-        date: publishedAt,
-        content,
-        tags: tags?.map((t: string) => t.trim()).filter(Boolean) || [],
-      },
-    }
-
-    // paywalled content
-    if (circleId && access === ARTICLE_ACCESS_TYPE.paywall) {
-      context.encrypted = true
-    }
-
-    // payment pointer
-    if (paymentPointer) {
-      context.paymentPointer = paymentPointer
-    }
-
-    // make bundle and add content to ipfs
-    const directoryName = 'article'
-    const { bundle, key } = await makeArticlePage(context)
-
-    // predict CIDs for bundle files
-    const results = []
-    for (const file of bundle.filter((f): f is NonNullable<typeof f> => !!f)) {
-      const fileObj = new File([file.content], file.path)
-
-      const cid = await predictCID(fileObj)
-      results.push({
-        path: `${directoryName}/${file.path}`,
-        cid,
-      })
-    }
-
-    // filter out the hash for the bundle
-    let entry = results.filter(({ path }) => path === directoryName)
-
-    // fallback to index file when no bundle path is matched
-    if (entry.length === 0) {
-      entry = results.filter(({ path }) => path.endsWith('index.html'))
-    }
-
-    const contentHash = entry[0].cid
-    const mediaHash = entry[0].cid // Already in V1 format from predictCID
-    return { contentHash, mediaHash, key }
-  }
 
   /**
    * Archive article
