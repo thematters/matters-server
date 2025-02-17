@@ -19,7 +19,6 @@ import {
   QUEUE_PRIORITY,
   METRICS_NAMES,
   MINUTE,
-  QUEUE_URL,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { normalizeTagInput, extractMentionIds } from 'common/utils'
@@ -201,16 +200,7 @@ export class PublicationQueue {
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
     })
 
-    // Step 8: trigger IPFS publication
-    aws.sqsSendMessage({
-      messageBody: {
-        articleId: article.id,
-        articleVersionId: articleVersion.id,
-      },
-      queueUrl: QUEUE_URL.ipfsPublication,
-    })
-
-    // Step 9: invalidate cache
+    // Step 8: invalidate cache
     invalidateFQC({
       node: { type: NODE_TYPES.User, id: article.authorId },
       redis: this.connections.redis,

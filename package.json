@@ -36,7 +36,7 @@
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
     "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@alchemy/aa-accounts": "^3.19.0",
@@ -154,7 +154,7 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-unicorn": "^47.0.0",
-    "husky": "^8.0.3",
+    "husky": "^9.1.7",
     "jest": "^29.5.0",
     "knex-migrate": "^1.7.4",
     "nodemon": "^2.0.22",

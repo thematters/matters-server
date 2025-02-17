@@ -12,11 +12,10 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  QUEUE_URL,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { extractMentionIds } from 'common/utils'
-import { AtomService, aws, NotificationService } from 'connectors'
+import { AtomService, NotificationService } from 'connectors'
 
 import { getOrCreateQueue } from './utils'
 
@@ -144,16 +143,7 @@ export class RevisionQueue {
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
 
-      // Step 4: trigger IPFS publication
-      aws.sqsSendMessage({
-        messageBody: {
-          articleId: article.id,
-          articleVersionId: newArticleVersion.id,
-        },
-        queueUrl: QUEUE_URL.ipfsPublication,
-      })
-
-      // Step 5: invalidate cache
+      // Step 4: invalidate cache
       await Promise.all([
         invalidateFQC({
           node: { type: NODE_TYPES.User, id: article.authorId },

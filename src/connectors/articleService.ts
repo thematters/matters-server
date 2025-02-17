@@ -36,6 +36,7 @@ import {
   USER_STATE,
   NODE_TYPES,
   USER_FEATURE_FLAG_TYPE,
+  QUEUE_URL,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -67,6 +68,7 @@ import {
   GCP,
   SpamDetector,
   ChannelService,
+  aws,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -540,26 +542,13 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._detectSpam(
-        {
-          id: article.id,
-          title,
-          content,
-          summary: summaryCustomized ? _summary : undefined,
-        },
-        undefined,
-        // infer article channels if not spam
-        async (score) => {
-          const systemService = new SystemService(this.connections)
-          const channelService = new ChannelService(this.connections)
-          const spamThreshold = await systemService.getSpamThreshold()
-          if (!spamThreshold || score < spamThreshold) {
-            return channelService.classifyArticlesChannels({
-              ids: [article.id],
-            })
-          }
-        }
-      )
+      this._postArticleCreation({
+        articleId: article.id,
+        articleVersionId: articleVersion.id,
+        title,
+        content,
+        summary: summaryCustomized ? _summary : undefined,
+      })
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -745,8 +734,9 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (newData.content) {
-      this._detectSpam({
-        id: articleId,
+      this._postArticleCreation({
+        articleId,
+        articleVersionId: articleVersion.id,
         title: articleVersion.title,
         content: newData.content,
         summary: articleVersion.summaryCustomized
@@ -2219,7 +2209,7 @@ export class ArticleService extends BaseService<Article> {
   public detectSpam = async (
     id: string,
     spamDetector?: SpamDetector,
-    callback?: (score: number) => Promise<void>
+    callback?: (score: number | null) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const { title, summary, summaryCustomized } =
@@ -2240,7 +2230,7 @@ export class ArticleService extends BaseService<Article> {
       summary,
     }: { id: string; title: string; content: string; summary?: string },
     spamDetector?: SpamDetector,
-    callback?: (score: number) => Promise<void>
+    callback?: (score: number | null) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const text = summary
@@ -2248,13 +2238,53 @@ export class ArticleService extends BaseService<Article> {
       : title + '\n' + content
     const score = await detector.detect(text)
     logger.info(`Spam detection for article ${id}: ${score}`)
+
     if (score) {
       await this.models.update({
         table: 'article',
         where: { id },
         data: { spamScore: score },
       })
-      callback?.(score)
     }
+
+    callback?.(score)
+  }
+
+  private _postArticleCreation = async ({
+    articleId,
+    articleVersionId,
+    title,
+    content,
+    summary,
+  }: {
+    articleId: string
+    articleVersionId: string
+    title: string
+    content: string
+    summary?: string
+  }) => {
+    this._detectSpam(
+      { id: articleId, title, content, summary },
+      undefined,
+      async (score) => {
+        const systemService = new SystemService(this.connections)
+        const channelService = new ChannelService(this.connections)
+        const spamThreshold = await systemService.getSpamThreshold()
+        const isSpam = spamThreshold && score && score >= spamThreshold
+
+        if (isSpam) {
+          return
+        }
+
+        // infer article channels if not spam
+        channelService.classifyArticlesChannels({ ids: [articleId] })
+
+        // trigger IPFS publication
+        aws.sqsSendMessage({
+          messageBody: { articleId, articleVersionId },
+          queueUrl: QUEUE_URL.ipfsPublication,
+        })
+      }
+    )
   }
 }
