@@ -16,6 +16,7 @@ import type {
   PunishRecord,
   LANGUAGES,
   UserBoost,
+  UserFeatureFlag,
 } from 'definitions'
 
 import axios from 'axios'
@@ -35,7 +36,7 @@ import {
   recoverMessageAddress,
   trim,
 } from 'viem'
-import { polygon } from 'viem/chains'
+import { mainnet, polygon, sepolia } from 'viem/chains'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -75,6 +76,8 @@ import {
   AUDIT_LOG_STATUS,
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
+  DAY,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import {
@@ -103,7 +106,6 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
-  IERC1271,
   genDisplayName,
   RatelimitCounter,
   normalizeSearchKey,
@@ -684,15 +686,15 @@ export class UserService extends BaseService<User> {
       await trx('push_device').where({ userId: id }).del()
 
       // remove tag owner and editors
-      await trx.raw(`
-        UPDATE
-          tag
-        SET
-          owner = NULL,
-          editors = array_remove(editors, owner::text)
-        WHERE
-          owner = ${id}
-      `)
+      // await trx.raw(`
+      //   UPDATE
+      //     tag
+      //   SET
+      //     owner = NULL,
+      //     editors = array_remove(editors, owner::text)
+      //   WHERE
+      //     owner = ${id}
+      // `)
 
       return user
     })
@@ -1045,14 +1047,28 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public follow = async (userId: string, targetId: string) => {
+    if (userId === targetId) {
+      throw new ActionFailedError('cannot follow or unfollow yourself')
+    }
+
+    // check if viewer is blocked by user to follow
+    const isBlocked = await this.blocked({
+      userId: targetId,
+      targetId: userId,
+    })
+
+    if (isBlocked) {
+      throw new ForbiddenError('viewer is blocked by user to follow')
+    }
     const data = {
       userId,
       targetId,
       action: USER_ACTION.follow,
     }
-    return this.baseUpdateOrCreate({
+    return this.models.upsert({
       where: data,
-      data: data,
+      create: data,
+      update: data,
       table: 'action_user',
     })
   }
@@ -1073,14 +1089,6 @@ export class UserService extends BaseService<User> {
         userId,
         action: USER_ACTION.follow,
       })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  public countFollowers = async (targetId: string) => {
-    const result = await this.knex('action_user')
-      .where({ targetId, action: USER_ACTION.follow })
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -1111,30 +1119,18 @@ export class UserService extends BaseService<User> {
     return query
   }
 
-  public findFollowers = async ({
-    targetId,
-    take,
-    skip,
-  }: {
-    targetId: string
-    take?: number
-    skip?: string
-  }) => {
-    const query = this.knex
-      .select()
+  public findFollowers = (targetId: string) =>
+    this.knexRO
+      .select('user.*', this.knexRO.raw('action_user.id AS order'))
       .from('action_user')
+      .join('user', 'user.id', 'action_user.user_id')
       .where({ targetId, action: USER_ACTION.follow })
-      .orderBy('id', 'desc')
-
-    if (skip) {
-      query.andWhere('id', '<', skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
+      .whereNotIn(
+        'user.id',
+        this.knexRO('action_user')
+          .select('target_id')
+          .where({ userId: targetId, action: USER_ACTION.block })
+      )
 
   // retrieve circle members and followers
   public findCircleRecipients = async (circleId: string) => {
@@ -1356,86 +1352,6 @@ export class UserService extends BaseService<User> {
     return author.authorScore || 0
   }
 
-  public recommendTags = ({ skip, take }: { skip: number; take: number }) =>
-    this.knex('tag')
-      .select('*')
-      .join(
-        this.knex('article_tag')
-          .select('tag_id')
-          .max('created_at', { as: 'last_article_added' })
-          .count('id', { as: 'article_count' })
-          .groupBy('tag_id')
-          .as('t1'),
-        function () {
-          this.on('t1.tag_id', '=', 'tag.id')
-        }
-      )
-      .join(
-        this.knex('action_tag')
-          .select('target_id')
-          .max('created_at', { as: 'last_follower_added' })
-          .count('id', { as: 'follower_count' })
-          .where('action', 'follow')
-          .groupBy('target_id')
-          .as('t2'),
-        function () {
-          this.on('t2.target_id', '=', 'tag.id')
-        }
-      )
-      .where(
-        'last_article_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .orWhere(
-        'last_follower_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .andWhere('article_count', '>=', 8)
-      .orderBy('follower_count', 'desc')
-      .offset(skip)
-      .limit(take)
-
-  public countRecommendTags = async () => {
-    const result = await this.knex()
-      .count('*')
-      .from(
-        this.knex('article_tag')
-          .select('tag_id')
-          .max('created_at', { as: 'last_article_added' })
-          .count('id', { as: 'article_count' })
-          .groupBy('tag_id')
-          .as('t1')
-      )
-      .fullOuterJoin(
-        this.knex('action_tag')
-          .select('target_id')
-          .max('created_at', { as: 'last_follower_added' })
-          .count('id', { as: 'follower_count' })
-          .where('action', 'follow')
-          .groupBy('target_id')
-          .as('t2'),
-        function () {
-          this.on('t2.target_id', '=', 't1.tag_id')
-        }
-      )
-      .where(
-        'last_article_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .orWhere(
-        'last_follower_added',
-        '>=',
-        this.knex.raw(`now() - interval '2 month'`)
-      )
-      .andWhere('article_count', '>=', 8)
-      .first()
-
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   /*********************************
    *                               *
    *         Notify Setting        *
@@ -1457,7 +1373,7 @@ export class UserService extends BaseService<User> {
    *         Subscription          *
    *                               *
    *********************************/
-  public countSubscription = async (userId: string) => {
+  public countBookmarkedArticles = async (userId: string) => {
     const result = await this.knex('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
       .count()
@@ -1465,7 +1381,7 @@ export class UserService extends BaseService<User> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  public findSubscriptions = async ({
+  public findBookmarkedArticles = async ({
     userId,
     take,
     skip,
@@ -1899,76 +1815,6 @@ export class UserService extends BaseService<User> {
     return user
   }
 
-  public updateLiker = ({
-    likerId,
-    ...data
-  }: {
-    [key: string]: any
-    likerId: string
-  }) =>
-    this.knex
-      .select()
-      .from('user_oauth_likecoin')
-      .where({ likerId })
-      .update(data)
-
-  // register a new LikerId by a given userName
-  public registerLikerId = async ({
-    userId,
-    userName,
-    ip,
-  }: {
-    userId: string
-    userName: string
-    ip?: string
-  }) => {
-    // check
-    const likerId = await this.likecoin.check({ user: userName })
-
-    // register
-    const oAuthService = new OAuthService(this.connections)
-    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
-    const { accessToken, refreshToken, scope } = await this.likecoin.register({
-      user: likerId,
-      token: tokens.accessToken,
-      ip,
-    })
-
-    // save to db
-    return this.saveLiker({
-      userId,
-      likerId,
-      accountType: 'general',
-      accessToken,
-      refreshToken,
-      scope,
-    })
-  }
-
-  // Promote a platform temp LikerID
-  public claimLikerId = async ({
-    userId,
-    liker,
-    ip,
-  }: {
-    userId: string
-    liker: UserOAuthLikeCoin
-    ip?: string
-  }) => {
-    const oAuthService = new OAuthService(this.connections)
-    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
-
-    await this.likecoin.edit({
-      action: 'claim',
-      payload: { user: liker.likerId, platformToken: tokens.accessToken },
-      ip,
-    })
-
-    return this.knex('user_oauth_likecoin')
-      .where({ likerId: liker.likerId })
-      .update({ accountType: 'general' })
-  }
-
   // Transfer a platform temp LikerID's LIKE and binding to target LikerID
   public transferLikerId = async ({
     fromLiker,
@@ -2078,6 +1924,83 @@ export class UserService extends BaseService<User> {
         privKeyName: kname,
       },
     })
+  }
+
+  public findEnsName = async (userName: string) => {
+    const user = await this.findByUserName(userName)
+    if (!user || !user.ethAddress) {
+      return
+    }
+
+    const now = new Date()
+    const oneDayAgo = new Date(now.getTime() - 1 * DAY)
+
+    if (
+      user.userName &&
+      user.ensNameUpdatedAt &&
+      user.ensNameUpdatedAt > oneDayAgo
+    ) {
+      return user.ensName
+    }
+
+    // Query ENS if data is stale or missing
+    const client = createPublicClient({
+      chain: isProd ? mainnet : sepolia,
+      transport: http(BLOCKCHAIN_RPC[isProd ? mainnet.id : sepolia.id]),
+    })
+    const ensName = await client.getEnsName({
+      address: user.ethAddress as `0x${string}`,
+    })
+    await this.models.update({
+      table: 'user',
+      where: { id: user.id },
+      data: { ensName, ensNameUpdatedAt: now },
+    })
+    return ensName
+  }
+
+  /*********************************
+   *                               *
+   *        Feature Flags           *
+   *                               *
+   *********************************/
+  public findFeatureFlags = async (id: string): Promise<UserFeatureFlag[]> => {
+    const table = 'user_feature_flag'
+    return this.models.findMany({
+      table,
+      select: ['type', 'createdAt'],
+      where: { userId: id },
+    })
+  }
+
+  public updateFeatureFlags = async (
+    id: string,
+    types: Array<keyof typeof USER_FEATURE_FLAG_TYPE>
+  ) => {
+    const olds = (await this.findFeatureFlags(id)).map(({ type }) => type)
+    const news = [...new Set(types)]
+    const toAdd = news.filter((i) => !olds.includes(i))
+    const toDel = olds.filter((i) => !news.includes(i))
+    await Promise.all([
+      ...toAdd.map((i) => this.addFeatureFlag(id, i)),
+      ...toDel.map((i) => this.removeFeatureFlag(id, i)),
+    ])
+  }
+
+  public addFeatureFlag = async (
+    id: string,
+    type: keyof typeof USER_FEATURE_FLAG_TYPE
+  ) => {
+    const table = 'user_feature_flag'
+    await this.models.create({ table, data: { userId: id, type } })
+  }
+
+  public removeFeatureFlag = async (
+    id: string,
+    type: keyof typeof USER_FEATURE_FLAG_TYPE
+  ) => {
+    const table = 'user_feature_flag'
+    await this.models.deleteMany({ table, where: { userId: id, type } })
   }
 
   /*********************************
@@ -2262,11 +2185,38 @@ export class UserService extends BaseService<User> {
       const bytecode = await client.getBytecode({ address: ethAddress })
       const isSmartContract = bytecode && trim(bytecode) !== '0x'
       if (isSmartContract) {
+        const IERC1271 = [
+          {
+            inputs: [
+              {
+                internalType: 'bytes32',
+                name: 'hash',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes',
+                name: 'signature',
+                type: 'bytes',
+              },
+            ],
+            name: 'isValidSignature',
+            outputs: [
+              {
+                internalType: 'bytes4',
+                name: 'magicValue',
+                type: 'bytes4',
+              },
+            ],
+            stateMutability: 'view',
+            type: 'function',
+          },
+        ] as const
+
         // verify the message for a decentralized account (contract wallet)
         const contractWallet = getContract({
-          publicClient: client,
           abi: IERC1271,
           address: ethAddress,
+          client: { public: client },
         })
 
         const verification = await contractWallet.read.isValidSignature([

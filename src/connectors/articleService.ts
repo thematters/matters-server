@@ -40,6 +40,8 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
+  QUEUE_URL,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -61,7 +63,7 @@ import {
   shortHash,
   normalizeSearchKey,
   genMD5,
-  excludeSpam,
+  excludeSpam as excludeSpamModifier,
 } from 'common/utils'
 import {
   BaseService,
@@ -74,6 +76,7 @@ import {
   PaymentService,
   GCP,
   SpamDetector,
+  ChannelService,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -155,7 +158,6 @@ export class ArticleService extends BaseService<Article> {
       columns = ['*'],
       orderBy = 'newest',
       state = 'active',
-      excludeRestricted,
       skip,
       take,
     }: {
@@ -167,7 +169,6 @@ export class ArticleService extends BaseService<Article> {
         | 'mostAppreciations'
         | 'mostComments'
         | 'mostDonations'
-      excludeRestricted?: boolean
       skip?: number
       take?: number
     } = {}
@@ -185,15 +186,6 @@ export class ArticleService extends BaseService<Article> {
       .modify((builder: Knex.QueryBuilder) => {
         if (state) {
           builder.andWhere({ 't1.state': state })
-        }
-        if (excludeRestricted) {
-          builder.whereNotIn(
-            't1.id',
-            this.knexRO('article_recommend_setting')
-              .select('articleId')
-              .where({ inHottest: true })
-              .orWhere({ inNewest: true })
-          )
         }
 
         switch (orderBy) {
@@ -349,11 +341,13 @@ export class ArticleService extends BaseService<Article> {
     take,
     maxTake,
     oss,
+    excludeSpam,
   }: {
     skip: number
     take: number
     maxTake: number
     oss: boolean
+    excludeSpam: boolean
   }): Promise<Article[]> => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
@@ -374,16 +368,22 @@ export class ArticleService extends BaseService<Article> {
           .limit(maxTake * 2) // add some extra to cover excluded ones in settings
           .as('article_set')
       )
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'article_set.id',
-        'setting.article_id'
-      )
       .where((builder) => {
-        if (!oss) {
+        if (!oss && excludeSpam) {
+          const whitelistedAuthors = this.knexRO
+            .select('user_id')
+            .from('user_feature_flag')
+            .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+
           builder
-            .whereRaw('in_newest IS NOT false')
-            .modify(excludeSpam, spamThreshold, 'article_set')
+            .whereIn('article_set.author_id', whitelistedAuthors)
+            .orWhere((qb) => {
+              qb.whereNotIn('article_set.author_id', whitelistedAuthors).modify(
+                excludeSpamModifier,
+                spamThreshold,
+                'article_set'
+              )
+            })
         }
       })
       .as('newest')
@@ -394,6 +394,82 @@ export class ArticleService extends BaseService<Article> {
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take)
+  }
+
+  public findChannelArticles = async ({
+    channelId,
+    skip,
+    take,
+    maxTake,
+  }: {
+    channelId: string
+    skip: number
+    take: number
+    maxTake: number
+  }): Promise<[Article[], number]> => {
+    const systemService = new SystemService(this.connections)
+    const articleChannelThreshold =
+      await systemService.getArticleChannelThreshold()
+    const spamThreshold = await systemService.getSpamThreshold()
+
+    if (articleChannelThreshold === null) {
+      return [[], 0]
+    }
+
+    const query = this.knexRO
+      .select('article.*', this.knexRO.raw('count(1) OVER() AS total_count'))
+      .from('article_channel')
+      .leftJoin('article', 'article_channel.article_id', 'article.id')
+      .where({
+        'article_channel.channel_id': channelId,
+        'article_channel.enabled': true,
+        'article.state': ARTICLE_STATE.active,
+      })
+      .whereNotIn(
+        'article.author_id',
+        this.knexRO('user_restriction')
+          .select('user_id')
+          .where('type', 'articleNewest')
+      )
+      .where((builder) => {
+        builder.where((qb) => {
+          qb.where(
+            'article_channel.score',
+            '>=',
+            articleChannelThreshold
+          ).orWhere('article_channel.is_labeled', true)
+        })
+      })
+      .where((builder) => {
+        builder
+          .whereIn(
+            'article.author_id',
+            this.knexRO
+              .select('user_id')
+              .from('user_feature_flag')
+              .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+          )
+          .orWhere((qb) => {
+            qb.whereNotIn(
+              'article.author_id',
+              this.knexRO
+                .select('user_id')
+                .from('user_feature_flag')
+                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+            ).modify(excludeSpamModifier, spamThreshold, 'article')
+          })
+      })
+      .orderBy('article.id', 'desc')
+      .limit(maxTake)
+      .as('filtered_articles')
+
+    const articles = await this.knexRO
+      .select()
+      .from(query)
+      .offset(skip)
+      .limit(take)
+
+    return [articles, parseInt(articles[0]?.totalCount ?? '0', 10)]
   }
 
   /**
@@ -476,12 +552,26 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._detectSpam({
-        id: article.id,
-        title,
-        content,
-        summary: summaryCustomized ? _summary : undefined,
-      })
+      this._detectSpam(
+        {
+          id: article.id,
+          title,
+          content,
+          summary: summaryCustomized ? _summary : undefined,
+        },
+        undefined,
+        // infer article channels if not spam
+        async (score) => {
+          const systemService = new SystemService(this.connections)
+          const channelService = new ChannelService(this.connections)
+          const spamThreshold = await systemService.getSpamThreshold()
+          if (!spamThreshold || score < spamThreshold) {
+            return channelService.classifyArticlesChannels({
+              ids: [article.id],
+            })
+          }
+        }
+      )
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -530,6 +620,12 @@ export class ArticleService extends BaseService<Article> {
     return content
   }
 
+  public loadLatestArticlesContentByContentIds = async (
+    contentIds: string[]
+  ) => {
+    return this.models.articleContentIdLoader.loadMany(contentIds)
+  }
+
   public loadLatestArticleContentMd = async (articleId: string) => {
     const { contentMdId } = await this.latestArticleVersionLoader.load(
       articleId
@@ -550,6 +646,9 @@ export class ArticleService extends BaseService<Article> {
 
   public loadLatestArticleVersion = (articleId: string) =>
     this.latestArticleVersionLoader.load(articleId)
+
+  public loadLatestArticlesVersion = (articleIds: string[]) =>
+    this.latestArticleVersionLoader.loadMany(articleIds)
 
   public findVersionByMediaHash = async (mediaHash: string) =>
     this.models.findFirst({ table: 'article_version', where: { mediaHash } })
@@ -794,6 +893,7 @@ export class ArticleService extends BaseService<Article> {
       displayName,
       userName,
       paymentPointer,
+      ensName,
     } = author
     if (!userName || !displayName) {
       throw new ServerError('userName or displayName is missing')
@@ -828,6 +928,7 @@ export class ArticleService extends BaseService<Article> {
           userName,
           displayName,
           uri: `https://${environment.siteDomain}/@${userName}`,
+          ipnsKey: ensName && ipnsKey ? ipnsKey : undefined,
         },
         website: {
           name: 'Matters',
@@ -875,11 +976,12 @@ export class ArticleService extends BaseService<Article> {
       try {
         const results = []
         for await (const result of ipfs.addAll(
-          bundle.map((file) =>
-            file
-              ? { ...file, path: `${directoryName}/${file.path}` }
-              : undefined
-          )
+          bundle
+            .filter((file): file is NonNullable<typeof file> => !!file)
+            .map((file) => ({
+              ...file,
+              path: `${directoryName}/${file.path}`,
+            }))
         )) {
           results.push(result)
         }
@@ -915,20 +1017,29 @@ export class ArticleService extends BaseService<Article> {
     throw new NetworkError('failed publishToIPFS')
   }
 
-  // DEPRECATED, To Be Deleted
-  //  moved to IPNS-Listener
   public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
     const userService = new UserService(this.connections)
 
     try {
+      // skip if no ENS name
+      const ensName = await userService.findEnsName(userName)
+      if (!ensName) {
+        return
+      }
+
       const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
       if (!ipnsKeyRec) {
-        // cannot do anything if no ipns key
+        // cannot do anything if no IPNS key
         logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
         return
       }
+
+      this.aws.sqsSendMessage({
+        messageBody: { userName, useMattersIPNS: true },
+        queueUrl: QUEUE_URL.ipnsUserPublication,
+      })
     } catch (error) {
-      logger.error('create IPNS key ERROR: %o', error)
+      logger.error('publishFeedToIPNS ERROR: %o', error)
       return
     }
   }
@@ -1174,8 +1285,8 @@ export class ArticleService extends BaseService<Article> {
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = await t2sConverter.convertPromise(key)
     const keyTraditional = await s2tConverter.convertPromise(key)
-    const systemService = new SystemService(this.connections)
-    const spamThreshold = await systemService.getSpamThreshold()
+    // const systemService = new SystemService(this.connections)
+    // const spamThreshold = await systemService.getSpamThreshold()
     const q = this.knexRO('article')
       .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
       .whereIn(
@@ -1199,7 +1310,7 @@ export class ArticleService extends BaseService<Article> {
           .from('article_version_newest')
       )
       .where({ state: ARTICLE_STATE.active })
-      .modify(excludeSpam, spamThreshold)
+      // .modify(excludeSpam, spamThreshold)
       .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (filter && filter.authorId) {
@@ -1247,7 +1358,7 @@ export class ArticleService extends BaseService<Article> {
           [articleId, APPRECIATION_PURPOSE.appreciateSubsidy],
         ]
       )
-      .sum('amount', { as: 'sum' })
+      .sum('amount as sum')
       .first()
     return parseInt(result?.sum || '0', 10)
   }
@@ -1429,37 +1540,6 @@ export class ArticleService extends BaseService<Article> {
 
     return result.map(({ tagId }: { tagId: string }) => tagId)
   }
-
-  /*********************************
-   *                               *
-   *          Subscription         *
-   *                               *
-   *********************************/
-  /**
-   * Find an article's subscribers by a given targetId (article).
-   */
-  public findSubscriptions = async ({
-    id: targetId,
-    take,
-    skip,
-  }: {
-    id: string
-    take?: number
-    skip?: number
-  }) =>
-    this.knex
-      .select()
-      .from('action_article')
-      .where({ targetId, action: USER_ACTION.subscribe })
-      .orderBy('id', 'desc')
-      .modify((builder: Knex.QueryBuilder) => {
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-      })
 
   /*********************************
    *                               *
@@ -2325,14 +2405,19 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
+  public detectSpam = async (
+    id: string,
+    spamDetector?: SpamDetector,
+    callback?: (score: number) => Promise<void>
+  ) => {
     const detector = spamDetector ?? new SpamDetector()
     const { title, summary, summaryCustomized } =
       await this.loadLatestArticleVersion(id)
     const content = await this.loadLatestArticleContent(id)
     await this._detectSpam(
       { id, title, content, summary: summaryCustomized ? summary : undefined },
-      detector
+      detector,
+      callback
     )
   }
 
@@ -2343,7 +2428,8 @@ export class ArticleService extends BaseService<Article> {
       content,
       summary,
     }: { id: string; title: string; content: string; summary?: string },
-    spamDetector?: SpamDetector
+    spamDetector?: SpamDetector,
+    callback?: (score: number) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const text = summary
@@ -2357,6 +2443,7 @@ export class ArticleService extends BaseService<Article> {
         where: { id },
         data: { spamScore: score },
       })
+      callback?.(score)
     }
   }
 }

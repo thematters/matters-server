@@ -2,6 +2,7 @@ import {
   SOCIAL_LOGIN_TYPE,
   USER_STATE,
   USER_RESTRICTION_TYPE,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 
 import { LANGUAGES } from './language'
@@ -27,6 +28,8 @@ interface UserBase {
   state: UserState
   agreeOn: string
   ethAddress: string | null
+  ensName: string | null
+  ensNameUpdatedAt: Date | null
   currency: 'HKD' | 'TWD' | 'USD' | null
   profileCover?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,6 +147,13 @@ export interface UserRestriction {
   id: string
   userId: string
   type: keyof typeof USER_RESTRICTION_TYPE
+  createdAt: Date
+}
+
+export interface UserFeatureFlag {
+  id: string
+  userId: string
+  type: keyof typeof USER_FEATURE_FLAG_TYPE
   createdAt: Date
 }
 

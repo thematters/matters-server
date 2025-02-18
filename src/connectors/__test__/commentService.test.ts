@@ -409,3 +409,20 @@ describe('find commented followees', () => {
     expect(followees4.length).toBe(1)
   })
 })
+
+describe('upvote', () => {
+  test("blockee can not upvote comments under blockers' works", async () => {
+    const comment = await atomService.commentIdLoader.load('1')
+    expect(comment.type).toBe('article')
+    const targetAuthorId = (
+      await atomService.articleIdLoader.load(comment.targetId)
+    ).authorId
+    const voter = await userService.create({ userName: 'voter' })
+
+    await userService.block(targetAuthorId, voter.id)
+
+    expect(
+      commentService.upvote({ user: voter, comment })
+    ).rejects.toThrowError()
+  })
+})

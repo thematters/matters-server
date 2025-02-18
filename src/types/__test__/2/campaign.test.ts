@@ -514,6 +514,18 @@ describe('application', () => {
       }
     }
   `
+  const TOGGLE_FEATURED_ARTICLES = /* GraphQL */ `
+    mutation ($input: ToggleWritingChallengeFeaturedArticlesInput!) {
+      toggleWritingChallengeFeaturedArticles(input: $input) {
+        id
+        ... on WritingChallenge {
+          articles(input: { first: null, filter: { featured: true } }) {
+            totalCount
+          }
+        }
+      }
+    }
+  `
   test('apply campaign successfully', async () => {
     const campaign = await campaignService.createWritingChallenge({
       ...campaignData,
@@ -540,7 +552,7 @@ describe('application', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.applyCampaign.application.state).toBe(
-      CAMPAIGN_USER_STATE.pending
+      CAMPAIGN_USER_STATE.succeeded
     )
     expect(data.applyCampaign.application.createdAt).toBeDefined()
 
@@ -576,6 +588,79 @@ describe('application', () => {
         .application.createdAt
     ).toBeDefined()
   })
+  test('toggle featured articles', async () => {
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
+    await campaignService.apply(campaign, user)
+
+    const articles = await atomService.findMany({
+      table: 'article',
+      where: { authorId: user.id },
+    })
+    await campaignService.submitArticleToCampaign(
+      articles[0],
+      campaign.id,
+      stages[0].id
+    )
+
+    // add featured articles
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+    const campaignGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaign.id,
+    })
+    const articleGlobalId = toGlobalId({
+      type: NODE_TYPES.Article,
+      id: articles[0].id,
+    })
+    const { data: updatedData, errors: updatedErrors } =
+      await adminServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            articles: [articleGlobalId],
+            enabled: true,
+          },
+        },
+      })
+    expect(updatedErrors).toBeUndefined()
+    expect(
+      updatedData.toggleWritingChallengeFeaturedArticles.articles.totalCount
+    ).toBe(1)
+
+    // remove featured articles
+    const { data: updatedData2, errors: updatedErrors2 } =
+      await adminServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            articles: [articleGlobalId],
+            enabled: false,
+          },
+        },
+      })
+    expect(updatedErrors2).toBeUndefined()
+    expect(
+      updatedData2.toggleWritingChallengeFeaturedArticles.articles.totalCount
+    ).toBe(0)
+  })
 })
 
 describe('query users campaigns', () => {
@@ -609,12 +694,11 @@ describe('query users campaigns', () => {
       ...campaignData,
       state: CAMPAIGN_STATE.active,
     })
-    const application = await campaignService.apply(campaign, user)
+    await campaignService.apply(campaign, user)
     await campaignService.updateStages(campaign.id, [
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    await campaignService.approve(application.id)
   })
 
   test('query user campaigns successfully', async () => {
@@ -679,8 +763,7 @@ describe('query campaign articles', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
     await campaignService.submitArticleToCampaign(
       articles[0],
       campaign.id,

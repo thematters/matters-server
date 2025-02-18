@@ -29,7 +29,7 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import { contract, isProd, isTest } from 'common/environment'
+import { contract, environment, isProd, isTest } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -39,6 +39,10 @@ import {
   ArticleService,
 } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
+import {
+  CurationVaultContract,
+  CurationVaultEvent,
+} from 'connectors/blockchain/curationVault'
 import SlackService from 'connectors/slack'
 
 import { getOrCreateQueue } from '../utils'
@@ -163,7 +167,10 @@ export class PayToByBlockchainQueue {
     const atomService = new AtomService(this.connections)
 
     // skip if tx is not found
-    const tx = await paymentService.baseFindById(txId)
+    const tx = await atomService.findUnique({
+      table: 'transaction',
+      where: { id: txId },
+    })
     if (!tx) {
       job.discard()
       throw new PaymentQueueJobDataError('pay-to pending tx not found')
@@ -185,12 +192,19 @@ export class PayToByBlockchainQueue {
     }
 
     const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
-    const contractAddress = contract[chain].curationAddress
-    const curation = new CurationContract(
-      BLOCKCHAIN_CHAINID[chain],
-      contractAddress
-    )
-    const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
+    const curation = new CurationContract(BLOCKCHAIN_CHAINID[chain])
+    const curationVault = new CurationVaultContract()
+
+    // vault contract only for recipient w/o ETH address
+    const recipient = await atomService.findUnique({
+      table: 'user',
+      where: { id: tx.recipientId },
+    })
+    const isVaultCuration = !recipient.ethAddress
+    const txReceipt = await (isVaultCuration
+      ? curationVault
+      : curation
+    ).fetchTxReceipt(blockchainTx.txHash)
 
     // update metadata blockchain tx
     if (txReceipt) {
@@ -198,8 +212,8 @@ export class PayToByBlockchainQueue {
         table: 'blockchain_transaction',
         where: { id: blockchainTx.id },
         data: {
-          from: txReceipt.from,
-          to: txReceipt.to,
+          from: txReceipt.from, // curator address
+          to: txReceipt.to, // contract address
           blockNumber: txReceipt.blockNumber.toString(),
         },
       })
@@ -219,9 +233,11 @@ export class PayToByBlockchainQueue {
       return data
     }
 
-    const [recipient, sender, article] = await Promise.all([
-      userService.baseFindById(tx.recipientId),
-      userService.baseFindById(tx.senderId as string),
+    const [sender, article] = await Promise.all([
+      atomService.findUnique({
+        table: 'user',
+        where: { id: tx.senderId as string },
+      }),
       atomService.findFirst({
         table: 'article',
         where: { id: tx.targetId },
@@ -237,6 +253,7 @@ export class PayToByBlockchainQueue {
     // Note: sender and recipient's ETH address may change after tx is created
     const isValidTx = await this.containMatchedEvent(txReceipt.events, {
       cids: articleCids,
+      shortHash: article.shortHash,
       amount: tx.amount,
       // support USDT only for now
       tokenAddress: contract[chain].tokenAddress,
@@ -287,21 +304,15 @@ export class PayToByBlockchainQueue {
    * 1. Fetch and save curation events from blockchain;
    * 2. Correct or create tx if needed;
    */
-  private handleSyncCurationEvents: ProcessCallbackFunction<unknown> = async (
-    _
-  ) => {
-    let syncedBlockNum: { [key: string]: number } = {}
+  private handleSyncCurationEvents: ProcessCallbackFunction<unknown> =
+    async () => {
+      const chain = BLOCKCHAIN.Optimism
+      const curation = new CurationContract(BLOCKCHAIN_CHAINID[chain])
+      const curationVault = new CurationVaultContract()
 
-    ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
-      // FIXME: pause support for the Polygon testnet
-      // @see {src/common/enums/payment.ts:L59}
-      if (chain === BLOCKCHAIN.Polygon && !isProd) {
-        return
-      }
-
+      // sync from curation contract
       try {
-        const blockNum = await this._handleSyncCurationEvents(chain)
-        syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
+        await this._handleSyncCurationEvents(chain, curation)
       } catch (error) {
         this.slackService.sendQueueMessage({
           data: { error },
@@ -311,25 +322,36 @@ export class PayToByBlockchainQueue {
         })
         throw error
       }
-    })
 
-    return syncedBlockNum
-  }
+      // sync from curation vault contract
+      try {
+        await this._handleSyncCurationEvents(chain, curationVault)
+      } catch (error) {
+        this.slackService.sendQueueMessage({
+          data: { error },
+          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+          message: `'Failed to sync ${chain} curation vault events`,
+          state: SLACK_MESSAGE_STATE.failed,
+        })
+        throw error
+      }
+    }
 
-  private _handleSyncCurationEvents = async (chain: GQLChain) => {
+  public _handleSyncCurationEvents = async (
+    chain: GQLChain,
+    curation: CurationContract | CurationVaultContract
+  ) => {
     const atomService = new AtomService(this.connections)
     const chainId = BLOCKCHAIN_CHAINID[chain]
 
     // fetch events
-    const contractAddress = contract[chain].curationAddress
-    const curation = new CurationContract(chainId, contractAddress)
     const record = await atomService.findFirst({
       table: 'blockchain_sync_record',
-      where: { chainId, contractAddress },
+      where: { chainId, contractAddress: curation.address },
     })
     const oldSavepoint = record
       ? BigInt(parseInt(record.blockNumber, 10))
-      : BigInt(parseInt(contract[chain].curationBlockNum, 10) || 0)
+      : BigInt(parseInt(curation.blockNum, 10) || 0)
     const [logs, newSavepoint] = await this.fetchCurationLogs(
       curation,
       oldSavepoint
@@ -341,15 +363,15 @@ export class PayToByBlockchainQueue {
     // save progress
     await atomService.upsert({
       table: 'blockchain_sync_record',
-      where: { chainId, contractAddress },
+      where: { chainId, contractAddress: curation.address },
       update: {
         chainId,
-        contractAddress,
+        contractAddress: curation.address,
         blockNumber: newSavepoint.toString(),
       },
       create: {
         chainId,
-        contractAddress,
+        contractAddress: curation.address,
         blockNumber: newSavepoint.toString(),
       },
     })
@@ -358,7 +380,7 @@ export class PayToByBlockchainQueue {
   }
 
   private _handleNewEvent = async (
-    event: CurationEvent,
+    event: CurationEvent | CurationVaultEvent,
     chain: GQLChain,
     blockchainTx: {
       id: string
@@ -395,19 +417,37 @@ export class PayToByBlockchainQueue {
     }
 
     // skip if recipient or article is not found
-    const creatorUser = await userService.findByEthAddress(event.creatorAddress)
+    const creatorUser =
+      'creatorAddress' in event // from curation contract
+        ? await userService.findByEthAddress(event.creatorAddress)
+        : 'creatorId' in event && event.creatorId // from curation vault contract
+        ? await atomService.findUnique({
+            table: 'user',
+            where: { id: event.creatorId },
+          })
+        : undefined
     if (!creatorUser) {
       return
     }
-    const cid = extractCid(event.uri)
-    const articleVersion = await atomService.findFirst({
-      table: 'article_version',
-      where: { dataHash: cid },
-    })
-    const article = await atomService.findFirst({
-      table: 'article',
-      where: { id: articleVersion?.articleId, authorId: creatorUser.id },
-    })
+    const { cid, shortHash } = extractCidOrShortHash(event.uri)
+    const articleVersion = cid
+      ? await atomService.findFirst({
+          table: 'article_version',
+          where: { dataHash: cid },
+        })
+      : undefined
+    const article = articleVersion
+      ? await atomService.findFirst({
+          table: 'article',
+          where: { id: articleVersion?.articleId, authorId: creatorUser.id },
+        })
+      : shortHash
+      ? await atomService.findFirst({
+          table: 'article',
+          where: { shortHash },
+        })
+      : undefined
+
     if (!article) {
       return
     }
@@ -558,10 +598,10 @@ export class PayToByBlockchainQueue {
     await this.invalidCache(tx.targetType, tx.targetId, userService)
   }
 
-  private fetchCurationLogs = async (
-    curation: CurationContract,
+  public fetchCurationLogs = async (
+    curation: CurationContract | CurationVaultContract,
     savepoint: bigint
-  ): Promise<[Array<Log<CurationEvent>>, bigint]> => {
+  ): Promise<[Array<Log<CurationEvent | CurationVaultEvent>>, bigint]> => {
     const safeBlockNum =
       BigInt(await curation.fetchBlockNumber()) -
       BigInt(BLOCKCHAIN_SAFE_CONFIRMS[BLOCKCHAIN_CHAINNAME[curation.chainId]])
@@ -574,8 +614,8 @@ export class PayToByBlockchainQueue {
     return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
 
-  private _syncCurationEvents = async (
-    logs: Array<Log<CurationEvent>>,
+  public _syncCurationEvents = async (
+    logs: Array<Log<CurationEvent | CurationVaultEvent>>,
     chain: GQLChain
   ) => {
     const paymentService = new PaymentService(this.connections)
@@ -584,25 +624,29 @@ export class PayToByBlockchainQueue {
     const atomService = new AtomService(this.connections)
 
     const chainId = BLOCKCHAIN_CHAINID[chain]
-    const contractAddress = contract[chain].curationAddress
-    const curation = new CurationContract(chainId, contractAddress)
+    const curation = new CurationContract(chainId)
+    const curationVault = new CurationVaultContract()
 
     // save events to `blockchain_curation_event`
-    const events: any[] = []
+    const events: Array<CurationEvent | CurationVaultEvent> = []
     for (const log of logs) {
       // skip if event is removed
       if (log.removed) {
         continue
       }
 
-      const data: any = { ...log.event }
+      const isCurationVaultEvent = 'creatorId' in log.event
+      const data: (CurationEvent | CurationVaultEvent) & {
+        blockchainTransactionId?: string
+        contractAddress?: string
+      } = { ...log.event }
       const blockchainTx =
         await paymentService.findOrCreateBlockchainTransaction(
           { chainId, txHash: log.txHash },
           {
             state: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
             from: log.event.curatorAddress,
-            to: curation.address,
+            to: isCurationVaultEvent ? curationVault.address : curation.address,
             blockNumber: log.blockNumber,
           }
         )
@@ -685,14 +729,16 @@ export class PayToByBlockchainQueue {
   }
 
   private containMatchedEvent = async (
-    events: CurationEvent[],
+    events: CurationEvent[] | CurationVaultEvent[],
     {
       cids,
+      shortHash,
       tokenAddress,
       amount,
       decimals,
     }: {
       cids: string[]
+      shortHash: string
       tokenAddress: string
       amount: string
       decimals: number
@@ -703,11 +749,18 @@ export class PayToByBlockchainQueue {
     }
 
     for (const event of events) {
+      const { cid: eventCid, shortHash: eventShortHash } =
+        extractCidOrShortHash(event.uri)
+      const isCidMatch = eventCid ? cids.includes(eventCid) : false
+      const isShortHashMatch = eventShortHash
+        ? shortHash === eventShortHash
+        : false
+
       if (
         ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
         event.amount === parseUnits(amount, decimals).toString() &&
         isValidUri(event.uri) &&
-        cids.includes(extractCid(event.uri))
+        (isCidMatch || isShortHashMatch)
       ) {
         return true
       }
@@ -741,6 +794,23 @@ export class PayToByBlockchainQueue {
 const ignoreCaseMatch = (a: string, b: string) =>
   a.toLowerCase() === b.toLowerCase()
 
-const isValidUri = (uri: string): boolean => /^ipfs:\/\//.test(uri)
+const isValidUri = (uri: string): boolean =>
+  /^ipfs:\/\//.test(uri) ||
+  new RegExp(`^https://${environment.siteDomain}/a/[\\w-]+$`).test(uri)
 
-const extractCid = (uri: string): string => uri.replace('ipfs://', '')
+const extractCidOrShortHash = (
+  uri: string
+): { cid?: string; shortHash?: string } => {
+  // ipfs://{cid}
+  if (uri.startsWith('ipfs://')) {
+    return { cid: uri.replace('ipfs://', '') }
+  }
+
+  // https://matters.town/a/{shortHash}
+  if (uri.startsWith('https://')) {
+    const shortHash = uri.split('/').pop()?.split('?')[0]
+    return { shortHash }
+  }
+
+  return {}
+}

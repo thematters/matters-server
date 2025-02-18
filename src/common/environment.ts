@@ -50,6 +50,8 @@ export const environment = {
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
   awsLikecoinUpdateCivicLikerCache:
     process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
+  awsIpnsUserPublicationQueueUrl:
+    process.env.MATTERS_AWS_IPNS_USER_PUBLICATION_QUEUE_URL || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
@@ -83,8 +85,6 @@ export const environment = {
     process.env.MATTERS_SEARCH_PG_TAG_COEFFICIENTS || '[1,1,1,1]'
   ),
 
-  ipfsHost: process.env.MATTERS_IPFS_HOST || '',
-  ipfsPort: process.env.MATTERS_IPFS_PORT || '5001',
   ipfsServers: process.env.MATTERS_IPFS_SERVERS || '',
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
@@ -122,6 +122,8 @@ export const environment = {
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
   slackStripeAlertChannel: process.env.MATTERS_SLACK_STRIPE_ALERT_CHANNEL || '',
   slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
+  slackCurationVaultChannel:
+    process.env.MATTERS_SLACK_CURATION_VAULT_CHANNEL || '',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
@@ -130,6 +132,8 @@ export const environment = {
   openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || undefined,
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
+  curationVaultSignerPrivateKey:
+    process.env.MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
@@ -149,6 +153,8 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
+  channelClassificationApiUrl:
+    process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
 }
 
 export const contract = {
@@ -186,6 +192,9 @@ export const contract = {
         tokenAddress:
           '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'.toLowerCase(),
         tokenDecimals: 6,
+        curationVaultAddress:
+          '0x79691206F498CdfAEDD059A48f61835408d81a2F'.toLowerCase(),
+        curationVaultBlockNum: '129071092',
       }
     : {
         curationAddress:
@@ -194,5 +203,8 @@ export const contract = {
         tokenAddress:
           '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'.toLowerCase(),
         tokenDecimals: 6,
+        curationVaultAddress:
+          '0xd41be66Bf309Ce5c3949BDe5C8091edc4870c27F'.toLowerCase(),
+        curationVaultBlockNum: '20969176',
       },
 }

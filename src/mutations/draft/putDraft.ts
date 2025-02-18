@@ -166,7 +166,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       campaigns:
         campaigns &&
         JSON.stringify(
-          await validateCampaigns(campaigns, viewer.id, { campaignService })
+          await campaignService.validateCampaigns(campaigns, viewer.id)
         ),
     },
     isUndefined // to drop only undefined
@@ -314,9 +314,7 @@ const normalizeAndValidateSummary = (summary: string) => {
 }
 
 const normalizeAndValidateContent = (content: string) => {
-  const _content = normalizeArticleHTML(
-    sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
-  )
+  const _content = normalizeArticleHTML(sanitizeHTML(content))
   if (stripHtml(_content).length > MAX_ARTICLE_CONTENT_LENGTH) {
     throw new UserInputError('content reach length limit')
   }
@@ -380,36 +378,6 @@ const validateConnections = async ({
       }
     })
   )
-}
-
-const validateCampaigns = async (
-  campaigns: Array<{ campaign: string; stage: string }>,
-  userId: string,
-  { campaignService }: Pick<DataSources, 'campaignService'>
-) => {
-  const _campaigns = campaigns.map(
-    ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
-      const { id: campaignId, type: campaignIdType } =
-        fromGlobalId(campaignGlobalId)
-      if (campaignIdType !== NODE_TYPES.Campaign) {
-        throw new UserInputError('invalid campaign id')
-      }
-      const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
-      if (stageIdType !== NODE_TYPES.CampaignStage) {
-        throw new UserInputError('invalid stage id')
-      }
-
-      return { campaign: campaignId, stage: stageId }
-    }
-  )
-  for (const { campaign, stage } of _campaigns) {
-    await campaignService.validate({
-      userId,
-      campaignId: campaign,
-      campaignStageId: stage,
-    })
-  }
-  return _campaigns
 }
 
 export default resolver

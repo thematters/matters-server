@@ -106,28 +106,6 @@ const GET_ARTICLE_TAGS = /* GraphQL */ `
   }
 `
 
-const GET_ARTICLE_DRAFTS = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: $input) {
-      ... on Article {
-        id
-        drafts {
-          id
-          publishState
-        }
-        newestPublishedDraft {
-          id
-          publishState
-        }
-        newestUnpublishedDraft {
-          id
-          publishState
-        }
-      }
-    }
-  }
-`
-
 const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   mutation ($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
@@ -244,30 +222,6 @@ describe('query tag on article', () => {
     expect(
       new Set(tags.map(({ content }: { content: string }) => content))
     ).toEqual(new Set(['article', 'test']))
-  })
-})
-
-describe('query drafts on article', () => {
-  test('query drafts on article', async () => {
-    const id = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
-    const server = await testClient({ connections })
-    const { data } = await server.executeOperation({
-      query: GET_ARTICLE_DRAFTS,
-      variables: { input: { id } },
-    })
-
-    // drafts
-    const drafts = data && data.node && data.node.drafts
-    expect(drafts[0].publishState).toEqual(PUBLISH_STATE.published)
-
-    // unpublishedDraft
-    const unpublishedDraft =
-      data && data.node && data.node.newestUnpublishedDraft
-    expect(unpublishedDraft).toBeNull()
-
-    // publishedDraft
-    const publishedDraft = data && data.node && data.node.newestPublishedDraft
-    expect(publishedDraft.publishState).toEqual(PUBLISH_STATE.published)
   })
 })
 
@@ -734,8 +688,7 @@ describe('query article campaigns', () => {
       table: 'user',
       where: { id: article.authorId },
     })
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
     await campaignService.submitArticleToCampaign(
       article,
       campaign.id,

@@ -1,5 +1,6 @@
 import article from './article'
 import campaign from './campaign'
+import channel from './channel'
 import circle from './circle'
 import collection from './collection'
 import comment from './comment'
@@ -39,4 +40,5 @@ export default [
   oauthClient,
   collection,
   moment,
+  channel,
 ]

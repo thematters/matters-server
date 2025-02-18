@@ -1,4 +1,3 @@
-import type { Queue, ProcessPromiseFunction } from 'bull'
 import type {
   Connections,
   ValueOf,
@@ -14,15 +13,12 @@ import {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
-  QUEUE_NAME,
-  QUEUE_JOB,
-  QUEUE_CONCURRENCY,
-  QUEUE_DELAY,
   NODE_TYPES,
   USER_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   ARTICLE_STATE,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   ForbiddenByTargetStateError,
   ForbiddenByStateError,
@@ -36,10 +32,10 @@ import {
   shortHash,
   toDatetimeRangeString,
   fromDatetimeRangeString,
-  excludeSpam,
+  fromGlobalId,
+  // excludeSpam,
 } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
-import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
   name: string
@@ -50,20 +46,10 @@ interface Stage {
 export class CampaignService {
   private connections: Connections
   private models: AtomService
-  private q: Queue
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.models = new AtomService(connections)
-    const [queue, created] = getOrCreateQueue(QUEUE_NAME.campaign)
-    if (created) {
-      queue.process(
-        QUEUE_JOB.approveCampaignApplication,
-        QUEUE_CONCURRENCY.approveCampaignApplication,
-        this.handleApproval
-      )
-    }
-    this.q = queue
   }
 
   public createWritingChallenge = async ({
@@ -130,26 +116,26 @@ export class CampaignService {
   ) => {
     const original = await this.models.findMany({
       table: 'campaign_article',
-      where: { campaignId, campaignStageId: null },
+      where: { campaignId, announcement: true },
       orderBy: [{ column: 'id', order: 'asc' }],
     })
     const originalIds = original.map(({ articleId }) => articleId)
+
     // delete removed
     await this.models.deleteMany({
       table: 'campaign_article',
-      where: {
-        campaignId,
-      },
+      where: { campaignId },
       whereIn: [
         'articleId',
         originalIds.filter((id) => !articleIds.includes(id)),
       ],
     })
+
     // insert new
     for (const newId of articleIds.filter((id) => !originalIds.includes(id))) {
       await this.models.create({
         table: 'campaign_article',
-        data: { campaignId, articleId: newId },
+        data: { campaignId, articleId: newId, announcement: true },
       })
     }
   }
@@ -157,7 +143,7 @@ export class CampaignService {
   public findAnnouncements = async (campaignId: string) => {
     const records = await this.models.findMany({
       table: 'campaign_article',
-      where: { campaignId, campaignStageId: null },
+      where: { campaignId, announcement: true },
     })
     const articles = await this.models.articleIdLoader.loadMany(
       records.map(({ articleId }) => articleId)
@@ -203,9 +189,8 @@ export class CampaignService {
         state: CAMPAIGN_USER_STATE.pending,
       },
     })
-    this.delayedApprove(application.id)
 
-    return application
+    return await this.approve(application.id)
   }
 
   public getApplication = async (campaignId: string, userId: string) =>
@@ -287,25 +272,35 @@ export class CampaignService {
     campaignId: string,
     {
       filterStageId,
+      featured,
       spamThreshold,
-    }: { filterStageId?: string; spamThreshold?: null | number } = {}
+    }: {
+      filterStageId?: string
+      featured?: boolean
+      spamThreshold?: null | number
+    } = {}
   ) => {
     const knexRO = this.connections.knexRO
     const query = knexRO('campaign_article')
       .select('article.*', knexRO.raw('campaign_article.id AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
       .where({ campaignId, state: ARTICLE_STATE.active })
-      .modify(excludeSpam, spamThreshold)
+    // .modify(excludeSpam, spamThreshold)
 
     if (filterStageId) {
       query.where({ campaignStageId: filterStageId })
     }
+
+    if (featured) {
+      query.where({ featured })
+    }
+
     return query
   }
 
   public updateArticleCampaigns = async (
     article: Pick<Article, 'id' | 'authorId'>,
-    newCampaigns: Array<{ campaignId: string; campaignStageId: string }>
+    newCampaigns: Array<{ campaignId: string; campaignStageId?: string }>
   ) => {
     const mutatedCampaignIds = []
     const knexRO = this.connections.knexRO
@@ -333,7 +328,7 @@ export class CampaignService {
           await this.models.update({
             table: 'campaign_article',
             where: { articleId: article.id, campaignId },
-            data: { campaignStageId },
+            data: { campaignStageId: campaignStageId ?? null },
           })
           mutatedCampaignIds.push(campaignId)
         }
@@ -360,7 +355,7 @@ export class CampaignService {
   public submitArticleToCampaign = async (
     article: Pick<Article, 'id' | 'authorId'>,
     campaignId: string,
-    campaignStageId: string
+    campaignStageId?: string
   ) => {
     await this.validate({
       userId: article.authorId,
@@ -379,7 +374,7 @@ export class CampaignService {
     userId,
   }: {
     campaignId: string
-    campaignStageId: string
+    campaignStageId?: string
     userId: string
   }) => {
     const campaign = await this.models.campaignIdLoader.load(campaignId)
@@ -397,6 +392,10 @@ export class CampaignService {
 
     if (!application || application.state !== CAMPAIGN_USER_STATE.succeeded) {
       throw new ActionFailedError(`user not applied to campaign ${campaignId}`)
+    }
+
+    if (!campaignStageId) {
+      return
     }
 
     const stage = await this.models.campaignStageIdLoader.load(campaignStageId)
@@ -444,8 +443,13 @@ export class CampaignService {
         application.createdAt.getTime() < end.getTime()
           ? OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
           : OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird,
+      entities: [{ type: 'target', entityTable: 'campaign', entity: campaign }],
       recipientId: updated.userId,
-      data: { link: campaign.link ?? '' },
+      data: {
+        link:
+          campaign.link ||
+          `https://${environment.siteDomain}/e/${campaign.shortHash}`,
+      },
     })
 
     invalidateFQC({
@@ -530,20 +534,38 @@ export class CampaignService {
       where: { campaignId: id },
     })
 
-  private handleApproval: ProcessPromiseFunction<{
-    applicationId: string
-  }> = async (job) => {
-    const { applicationId } = job.data
-    await this.approve(applicationId)
-  }
+  public validateCampaigns = async (
+    campaigns: Array<{ campaign: string; stage?: string }>,
+    userId: string
+  ) => {
+    const _campaigns = campaigns.map(
+      ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
+        const { id: campaignId, type: campaignIdType } =
+          fromGlobalId(campaignGlobalId)
+        if (campaignIdType !== NODE_TYPES.Campaign) {
+          throw new UserInputError('invalid campaign id')
+        }
 
-  private delayedApprove = async (applicationId: string) => {
-    return this.q.add(
-      QUEUE_JOB.approveCampaignApplication,
-      { applicationId },
-      {
-        delay: QUEUE_DELAY.approveCampaignApplication,
+        if (!stageGlobalId) {
+          return { campaign: campaignId }
+        }
+
+        const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
+        if (stageIdType !== NODE_TYPES.CampaignStage) {
+          throw new UserInputError('invalid stage id')
+        }
+
+        return { campaign: campaignId, stage: stageId }
       }
     )
+
+    for (const { campaign, stage } of _campaigns) {
+      await this.validate({
+        userId,
+        campaignId: campaign,
+        campaignStageId: stage,
+      })
+    }
+    return _campaigns
   }
 }

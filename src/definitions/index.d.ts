@@ -1,6 +1,7 @@
 import type {
   ActionArticle,
   ActionCircle,
+  ActionComment,
   ActionMoment,
   ActionTag,
   ActionUser,
@@ -33,6 +34,7 @@ import type {
   CampaignArticle,
   CampaignBoost,
 } from './campaign'
+import type { Channel, ArticleChannel, ArticleChannelJob } from './channel'
 import type {
   Circle,
   CircleInvitation,
@@ -73,6 +75,7 @@ import type {
   UserIpnsKeys,
   UserRestriction,
   UsernameEditHistory,
+  UserFeatureFlag,
 } from './user'
 import type { CryptoWallet, CryptoWalletSignature } from './wallet'
 import type { BasedContext } from '@apollo/server'
@@ -96,6 +99,7 @@ import type {
   UserService,
   UserWorkService,
   TranslationService,
+  ChannelService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -136,6 +140,7 @@ export * from './schema'
 export * from './moment'
 export * from './campaign'
 export * from './translation'
+export * from './channel'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -169,6 +174,7 @@ export interface DataSources {
   recommendationService: RecommendationService
   campaignService: CampaignService
   translationService: TranslationService
+  channelService: ChannelService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -187,6 +193,7 @@ export interface DataSources {
 export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
+  action_comment: ActionComment
   action_moment: ActionMoment
   action_collection: ActionCollection
   action_tag: ActionTag
@@ -206,6 +213,9 @@ export type TableTypeMap = {
   article_translation: ArticleTranslation
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
+  article_channel: ArticleChannel
+  article_channel_job: ArticleChannelJob
+  channel: Channel
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord
@@ -252,6 +262,7 @@ export type TableTypeMap = {
   user_ipns_keys: UserIpnsKeys
   user_oauth_likecoin: UserOauthLikecoinDB
   user_restriction: UserRestriction
+  user_feature_flag: UserFeatureFlag
   user_tags_order: UserTagsOrder
   username_edit_history: UsernameEditHistory
   verification_code: VerificationCode
@@ -278,7 +289,8 @@ type OtherTable =
   | 'user_notify_setting'
 
 export type View =
-  | 'tag_count_view'
+  // | 'tag_count_view'
+  | 'tag_stats_view'
   | 'user_reader_view'
   | 'article_count_view'
   | 'article_hottest_view'
@@ -288,7 +300,8 @@ export type View =
 
 export type MaterializedView =
   | 'article_count_materialized'
-  | 'tag_count_materialized'
+  // | 'tag_count_materialized'
+  | 'tag_stats_materialized'
   | 'user_reader_materialized'
   | 'article_value_materialized'
   | 'featured_comment_materialized'

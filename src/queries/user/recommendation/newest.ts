@@ -25,6 +25,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     skip,
     maxTake: MAX_ITEM_COUNT,
     oss,
+    excludeSpam: true,
   })
 
   return connectionFromPromisedArray(

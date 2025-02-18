@@ -557,8 +557,7 @@ describe('put draft', () => {
     ])
     const atomService = new AtomService(connections)
     const user = await atomService.userIdLoader.load('1')
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
 
     const campaignGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,
@@ -568,7 +567,7 @@ describe('put draft', () => {
       type: NODE_TYPES.CampaignStage,
       id: stages[0].id,
     })
-    const { campaigns } = await putDraft(
+    const { id: draftId, campaigns } = await putDraft(
       {
         draft: {
           title: Math.random().toString(),
@@ -589,5 +588,12 @@ describe('put draft', () => {
     )
     expect(campaigns[0].campaign.id).toBe(campaignGlobalId)
     expect(campaigns[0].stage.id).toBe(stageGlobalId)
+
+    // remove stage
+    const { campaigns: campaigns2 } = await putDraft(
+      { draft: { id: draftId, campaigns: [{ campaign: campaignGlobalId }] } },
+      connections
+    )
+    expect(campaigns2[0].stage).toBeNull()
   })
 })

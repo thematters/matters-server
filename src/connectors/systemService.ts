@@ -162,7 +162,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
    * Get the spam threshold from `feature_flag` table
    * Use to determine whether a article is spam by its spam score
    */
-  public getSpamThreshold = async (): Promise<number | null> => {
+  public getSpamThreshold: () => Promise<number | null> = async () => {
     const cacheService = new CacheService(
       CACHE_PREFIX.SPAM_THRESHOLD,
       this.connections.redis
@@ -178,6 +178,33 @@ export class SystemService extends BaseService<BaseDBSchema> {
     const threshold = await this.models.findFirst({
       table: 'feature_flag',
       where: { name: FEATURE_NAME.spam_detection, flag: FEATURE_FLAG.on },
+    })
+    if (!threshold || !threshold.value) {
+      return null
+    }
+    return threshold.value
+  }
+
+  /**
+   * Get the article channel threshold from `feature_flag` table
+   * Use to determine whether a article is in a channel by its score
+   */
+  public getArticleChannelThreshold = async (): Promise<number | null> => {
+    const cacheService = new CacheService(
+      CACHE_PREFIX.ARTICLE_CHANNEL_THRESHOLD,
+      this.connections.redis
+    )
+    const value = (await cacheService.getObject({
+      keys: { id: 'article_channel_threshold' },
+      getter: this._getArticleChannelThreshold,
+      expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
+    })) as number | null
+    return value
+  }
+  private _getArticleChannelThreshold = async (): Promise<number | null> => {
+    const threshold = await this.models.findFirst({
+      table: 'feature_flag',
+      where: { name: FEATURE_NAME.article_channel, flag: FEATURE_FLAG.on },
     })
     if (!threshold || !threshold.value) {
       return null

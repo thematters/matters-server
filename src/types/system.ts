@@ -22,17 +22,17 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Upload a single file."
-    singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @rateLimit(limit:${UPLOAD_RATE_LIMIT}, period:720)
-    directImageUpload(input: DirectImageUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @rateLimit(limit:${UPLOAD_RATE_LIMIT}, period:720)
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @rateLimit(limit: ${UPLOAD_RATE_LIMIT}, period: 720)
+    directImageUpload(input: DirectImageUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @rateLimit(limit: ${UPLOAD_RATE_LIMIT}, period: 720)
 
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
 
     "Add blocked search keyword to blocked_search_word db"
-    addBlockedSearchKeyword(input:KeywordInput!): BlockedSearchKeyword! @auth(mode: "${AUTH_MODE.admin}")
+    addBlockedSearchKeyword(input: KeywordInput!): BlockedSearchKeyword! @auth(mode: "${AUTH_MODE.admin}")
 
     "Delete blocked search keywords from search_history db"
-    deleteBlockedSearchKeywords(input:KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+    deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
 
     "Submit inappropriate content report"
     submitReport(input: SubmitReportInput!): Report! @auth(mode: "${AUTH_MODE.oauth}")
@@ -48,7 +48,8 @@ export default /* GraphQL */ `
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
-    putIcymiTopic(input:PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
+    putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
+    putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
     setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -139,7 +140,7 @@ export default /* GraphQL */ `
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
     reports(input: ConnectionArgs!): ReportConnection!
-    icymiTopics(input:ConnectionArgs!): IcymiTopicConnection!
+    icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   }
 
 
@@ -215,6 +216,11 @@ export default /* GraphQL */ `
 
   type UserRestriction {
     type: UserRestrictionType!
+    createdAt: DateTime!
+  }
+
+  type UserFeatureFlag {
+    type: UserFeatureFlagType!
     createdAt: DateTime!
   }
 
@@ -380,6 +386,11 @@ export default /* GraphQL */ `
     restrictions: [UserRestrictionType!]!
   }
 
+  input PutUserFeatureFlagsInput {
+    ids: [ID!]!
+    flags: [UserFeatureFlagType!]!
+  }
+
   input SubmitReportInput {
     targetId: ID!
     reason: ReportReason!
@@ -477,6 +488,7 @@ export default /* GraphQL */ `
     circle_management
     circle_interact
     spam_detection
+    article_channel
   }
 
   enum FeatureFlag {
@@ -499,6 +511,10 @@ export default /* GraphQL */ `
   enum UserRestrictionType {
     articleHottest
     articleNewest
+  }
+
+  enum UserFeatureFlagType {
+    bypassSpamDetection
   }
 
   enum ReportReason {
@@ -538,13 +554,13 @@ export default /* GraphQL */ `
   }
 
   input PutIcymiTopicInput {
-   id: ID
-   title: String
-   articles: [ID!]
-   pinAmount: Int
-   note: String
-   state: IcymiTopicState
- }
+    id: ID
+    title: String
+    articles: [ID!]
+    pinAmount: Int
+    note: String
+    state: IcymiTopicState
+  }
 
   input SetSpamStatusInput {
     id: ID!

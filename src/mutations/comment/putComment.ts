@@ -14,7 +14,7 @@ import {
   normalizeCommentHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import { some, get } from 'lodash'
+import { get } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -201,16 +201,6 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     if (!parentComment) {
       throw new CommentNotFoundError('target parentComment does not exists')
     }
-
-    // check if the author of parent comment blocked viewer
-    const isParentBlocked = await userService.blocked({
-      userId: parentComment.authorId,
-      targetId: viewer.id,
-    })
-    if (isParentBlocked) {
-      throw new ForbiddenError('viewer is blocked by parent author')
-    }
-
     data.parentCommentId = parentComment.id
   }
 
@@ -282,28 +272,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     throw new ForbiddenError('viewer is blocked by target author')
   }
 
-  /**
-   * check mentions
-   */
   data.mentionedUserIds =
     mentions?.map((userId: string) => fromGlobalId(userId).id) ||
     extractMentionIds(content)
-  if (data.mentionedUserIds.length > 0) {
-    // check if mentioned user blocked viewer
-    const anyBlocked = some(
-      await Promise.all(
-        data.mentionedUserIds.map((mentionUserId: string) =>
-          userService.blocked({
-            userId: mentionUserId,
-            targetId: viewer.id,
-          })
-        )
-      )
-    )
-    if (anyBlocked) {
-      throw new ForbiddenError('mentioned user blocked viewer')
-    }
-  }
 
   const parentCommentAuthor = get(parentComment, 'authorId') as string
   const parentCommentId = get(parentComment, 'id')

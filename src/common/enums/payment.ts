@@ -1,4 +1,11 @@
-import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
+import {
+  mainnet,
+  optimism,
+  optimismSepolia,
+  polygon,
+  polygonMumbai,
+  sepolia,
+} from 'viem/chains'
 
 import { environment, isProd } from 'common/environment'
 import { GQLChain } from 'definitions'
@@ -22,6 +29,7 @@ export enum TRANSACTION_PURPOSE {
   subscription = 'subscription',
   subscriptionSplit = 'subscription-split',
   dispute = 'dispute',
+  curationVaultWithdrawal = 'curation-vault-withdrawal',
 }
 
 export enum TRANSACTION_TARGET_TYPE {
@@ -66,9 +74,17 @@ export const BLOCKCHAIN_CHAINID = {
 } as const
 
 export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
+  [mainnet.id]: `https://eth-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [sepolia.id]: `https://eth-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+}
+
+export const BLOCKCHAIN_EXPLORER = {
+  [BLOCKCHAIN.Optimism]: isProd
+    ? optimism.blockExplorers.default
+    : optimismSepolia.blockExplorers.default, // TODO: update to etherscan
 }
 
 // via https://support.kraken.com/hc/en-us/articles/203325283-Cryptocurrency-deposit-processing-times

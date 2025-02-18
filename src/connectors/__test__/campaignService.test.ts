@@ -190,22 +190,13 @@ describe('find and count campaigns', () => {
     expect(totalCount).toBe(0)
 
     // applied but pending
-    const application = await campaignService.apply(activeCampaign, user)
+    await campaignService.apply(activeCampaign, user)
     const [campaigns2, totalCount2] = await campaignService.findAndCountAll(
       { take: 10, skip: 0 },
       { filterUserId: user.id }
     )
-    expect(campaigns2.length).toBe(0)
-    expect(totalCount2).toBe(0)
-
-    // applied and succeeded
-    await campaignService.approve(application.id)
-    const [campaigns3, totalCount3] = await campaignService.findAndCountAll(
-      { take: 10, skip: 0 },
-      { filterUserId: user.id }
-    )
-    expect(campaigns3.length).toBe(1)
-    expect(totalCount3).toBe(1)
+    expect(campaigns2.length).toBe(1)
+    expect(totalCount2).toBe(1)
   })
 })
 describe('find and count articles', () => {
@@ -229,8 +220,7 @@ describe('find and count articles', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
     await campaignService.submitArticleToCampaign(
       articles[0],
       campaign.id,
@@ -268,21 +258,21 @@ describe('find and count articles', () => {
       data: { state: ARTICLE_STATE.active },
     })
   })
-  test('spam are excluded', async () => {
-    const spamThreshold = 0.5
-    const _articles1 = await campaignService.findArticles(campaign.id)
+  // test('spam are excluded', async () => {
+  //   const spamThreshold = 0.5
+  //   const _articles1 = await campaignService.findArticles(campaign.id)
 
-    await atomService.update({
-      table: 'article',
-      where: { id: articles[0].id },
-      data: { spamScore: spamThreshold + 0.1 },
-    })
+  //   await atomService.update({
+  //     table: 'article',
+  //     where: { id: articles[0].id },
+  //     data: { spamScore: spamThreshold + 0.1 },
+  //   })
 
-    const _articles2 = await campaignService.findArticles(campaign.id, {
-      spamThreshold,
-    })
-    expect(_articles2.length).toBe(_articles1.length - 1)
-  })
+  //   const _articles2 = await campaignService.findArticles(campaign.id, {
+  //     spamThreshold,
+  //   })
+  //   expect(_articles2.length).toBe(_articles1.length - 1)
+  // })
 })
 
 describe('application', () => {
@@ -297,13 +287,13 @@ describe('application', () => {
     })
     const application = await campaignService.apply(campaign, user)
     expect(application).toBeDefined()
-    expect(application.state).toBe(CAMPAIGN_USER_STATE.pending)
+    expect(application.state).toBe(CAMPAIGN_USER_STATE.succeeded)
 
     const [, totalCount1] = await campaignService.findAndCountParticipants(
       application.campaignId,
       { take: 10, skip: 0 }
     )
-    expect(totalCount1).toBe(0)
+    expect(totalCount1).toBe(1)
 
     const [, totalCount2] = await campaignService.findAndCountParticipants(
       application.campaignId,
@@ -355,8 +345,7 @@ describe('article submission', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
+    await campaignService.apply(campaign, user)
 
     campaignNotApplied = await campaignService.createWritingChallenge({
       ...campaignData,
@@ -454,7 +443,6 @@ describe('find grand_slam users', () => {
     })
 
     const application = await campaignService.apply(campaign, user)
-    await campaignService.approve(application.id)
 
     const articles = await atomService.findMany({
       table: 'article',

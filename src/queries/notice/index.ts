@@ -6,6 +6,7 @@ import type {
   GQLMomentNoticeResolvers,
   GQLCommentCommentNoticeResolvers,
   GQLCommentNoticeResolvers,
+  GQLCampaignArticleNoticeResolvers,
   GQLOfficialAnnouncementNoticeResolvers,
   GQLTransactionNoticeResolvers,
   GQLUserNoticeResolvers,
@@ -27,6 +28,7 @@ const NOTICE_TYPE = {
   MomentNotice: 'MomentNotice',
   CommentNotice: 'CommentNotice',
   CommentCommentNotice: 'CommentCommentNotice',
+  CampaignArticleNotice: 'CampaignArticleNotice',
   TransactionNotice: 'TransactionNotice',
   CircleNotice: 'CircleNotice',
   CircleArticleNotice: 'CircleArticleNotice',
@@ -44,6 +46,7 @@ const notice: {
   MomentNotice: GQLMomentNoticeResolvers
   CommentNotice: GQLCommentNoticeResolvers
   CommentCommentNotice: GQLCommentCommentNoticeResolvers
+  CampaignArticleNotice: GQLCampaignArticleNoticeResolvers
   TransactionNotice: GQLTransactionNoticeResolvers
   CircleNotice: GQLCircleNoticeResolvers
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeResolvers
@@ -87,8 +90,12 @@ const notice: {
         // comment-comment
         comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
 
+        // campaign-article
+        campaign_article_featured: NOTICE_TYPE.CampaignArticleNotice,
+
         // transaction
         payment_received_donation: NOTICE_TYPE.TransactionNotice,
+        withdrew_locked_tokens: NOTICE_TYPE.TransactionNotice,
 
         // circle
         circle_invitation: NOTICE_TYPE.CircleNotice,
@@ -174,7 +181,6 @@ const notice: {
       throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
     },
   },
-
   CollectionNotice: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     target: ({ entities, type }) => {
@@ -188,7 +194,6 @@ const notice: {
       throw new ServerError(`Unknown MomentNotice type: ${type}`)
     },
   },
-
   MomentNotice: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
@@ -212,7 +217,6 @@ const notice: {
       throw new ServerError(`Unknown MomentNotice type: ${type}`)
     },
   },
-
   CommentNotice: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
@@ -276,12 +280,36 @@ const notice: {
       throw new ServerError(`Unknown CommentCommentNotice type: ${type}`)
     },
   },
+  CampaignArticleNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
+    type: ({ type }) => {
+      switch (type) {
+        case INNER_NOTICE_TYPE.campaign_article_featured:
+          return 'CampaignArticleFeatured'
+      }
+      throw new ServerError(`Unknown CampaignArticleNotice type: ${type}`)
+    },
+    target: ({ entities }, _, { dataSources: { atomService } }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return atomService.campaignIdLoader.load(entities.target.id)
+    },
+    article: ({ entities }, _, { dataSources: { atomService } }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return atomService.articleIdLoader.load(entities.article.id)
+    },
+  },
   TransactionNotice: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.payment_received_donation:
           return 'PaymentReceivedDonation'
+        case INNER_NOTICE_TYPE.withdrew_locked_tokens:
+          return 'WithdrewLockedTokens'
       }
       throw new ServerError(`Unknown TransactionNotice type: ${type}`)
     },

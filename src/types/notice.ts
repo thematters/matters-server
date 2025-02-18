@@ -209,6 +209,37 @@ export default /* GraphQL */ `
 
   #################################
   #                               #
+  #           Campaign            #
+  #                               #
+  #################################
+
+  type CampaignArticleNotice implements Notice {
+    """Unique ID of this notice."""
+    id: ID!
+
+    """The value determines if the notice is unread or not."""
+    unread: Boolean!
+
+    """Time of this notice was created."""
+    createdAt: DateTime!
+
+    """List of notice actors."""
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
+
+    type: CampaignArticleNoticeType!
+
+    target: Campaign! @logCache(type: "${NODE_TYPES.Campaign}")
+
+    article: Article! @logCache(type: "${NODE_TYPES.Article}")
+  }
+
+  enum CampaignArticleNoticeType {
+    CampaignArticleFeatured
+  }
+
+
+  #################################
+  #                               #
   #         Transaction           #
   #                               #
   #################################
@@ -232,6 +263,7 @@ export default /* GraphQL */ `
 
   enum TransactionNoticeType {
     PaymentReceivedDonation
+    WithdrewLockedTokens
   }
 
 

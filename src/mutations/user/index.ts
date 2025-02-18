@@ -1,12 +1,10 @@
 import addCredit from './addCredit'
-import changeEmail from './changeEmail'
 import claimLogbooks from './claimLogbooks'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
 import emailLogin from './emailLogin'
-import generateLikerId from './generateLikerId'
 import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
 import payout from './payout'
@@ -15,7 +13,6 @@ import putFeaturedTags from './putFeaturedTags'
 import refreshIPNSFeed from './refreshIPNSFeed'
 import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
-import resetWallet from './resetWallet'
 import sendVerificationCode from './sendVerificationCode'
 import setCurrency from './setCurrency'
 import setEmail from './setEmail'
@@ -23,7 +20,7 @@ import setPassword from './setPassword'
 import setUserName from './setUserName'
 import { socialLogin, addSocialLogin, removeSocialLogin } from './socialLogin'
 import toggleBlockUser from './toggleBlockUser'
-import toggleFollowTag from './toggleFollowTag'
+import toggleBookmarkTag from './toggleBookmarkTag'
 import toggleFollowUser from './toggleFollowUser'
 import toggleUsersBadge from './toggleUsersBadge'
 import unbindLikerId from './unbindLikerId'
@@ -32,34 +29,29 @@ import updateUserExtra from './updateUserExtra'
 import updateUserInfo from './updateUserInfo'
 import updateUserRole from './updateUserRole'
 import updateUserState from './updateUserState'
-import userLogin from './userLogin'
 import userLogout from './userLogout'
-import userRegister from './userRegister'
 import verifyEmail from './verifyEmail'
 import { walletLogin, addWalletLogin, removeWalletLogin } from './walletLogin'
+import withdrawLockedTokens from './withdrawLockedTokens'
 
 export default {
   Mutation: {
     sendVerificationCode,
     confirmVerificationCode,
     resetPassword,
-    changeEmail,
-    userRegister,
-    userLogin,
     emailLogin,
     userLogout,
     walletLogin,
     addWalletLogin,
     removeWalletLogin,
-    resetWallet,
-    generateLikerId,
     generateSigningMessage,
     resetLikerId,
     updateUserInfo,
     updateNotificationSetting,
     setCurrency,
     toggleBlockUser,
-    toggleFollowTag,
+    toggleBookmarkTag,
+    toggleFollowTag: toggleBookmarkTag,
     toggleFollowUser,
     clearReadHistory,
     clearSearchHistory,
@@ -75,6 +67,7 @@ export default {
     payTo,
     payout,
     connectStripeAccount,
+    withdrawLockedTokens,
     toggleUsersBadge,
     unbindLikerId,
     claimLogbooks,

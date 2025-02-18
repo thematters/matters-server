@@ -17,6 +17,9 @@ export default /* GraphQL */ `
 
     "Create Stripe Connect account for Payout"
     connectStripeAccount(input: ConnectStripeAccountInput!): ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+
+    "Withdraw locked ERC20/native token from donation vault"
+    withdrawLockedTokens: WithdrawLockedTokensResult! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   input ExchangeRatesInput {
@@ -146,6 +149,7 @@ export default /* GraphQL */ `
     subscriptionSplit
     dispute
     payoutReversal
+    curationVaultWithdrawal
   }
 
   enum TransactionCurrency {
@@ -206,6 +210,10 @@ export default /* GraphQL */ `
 
   type ConnectStripeAccountResult {
     redirectUrl: String!
+  }
+
+  type WithdrawLockedTokensResult {
+    transaction: Transaction!
   }
 
   enum StripeAccountCountry {

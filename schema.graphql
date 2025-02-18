@@ -34,6 +34,7 @@ type Query {
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
   moment(input: MomentInput!): Moment
+  channels: [Channel!]!
 }
 
 type Mutation {
@@ -43,8 +44,9 @@ type Mutation {
   """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
 
-  """Subscribe or Unsubscribe article"""
-  toggleSubscribeArticle(input: ToggleItemInput!): Article!
+  """Bookmark or unbookmark article"""
+  toggleSubscribeArticle(input: ToggleItemInput!): Article! @deprecated(reason: "Use toggleBookmarkArticle instead")
+  toggleBookmarkArticle(input: ToggleItemInput!): Article!
 
   """Appreciate an article."""
   appreciateArticle(input: AppreciateArticleInput!): Article!
@@ -52,33 +54,20 @@ type Mutation {
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
-  """Follow or unfollow tag."""
-  toggleFollowTag(input: ToggleItemInput!): Tag!
-
-  """Create or update tag."""
-  putTag(input: PutTagInput!): Tag!
-
-  """Update member, permission and othters of a tag."""
-  updateTagSetting(input: UpdateTagSettingInput!): Tag!
-
-  """Add one tag to articles."""
-  addArticlesTags(input: AddArticlesTagsInput!): Tag!
-
-  """Update articles' tag."""
-  updateArticlesTags(input: UpdateArticlesTagsInput!): Tag!
-
-  """Delete one tag from articles"""
-  deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag!
+  """Bookmark or unbookmark tag."""
+  toggleFollowTag(input: ToggleItemInput!): Tag! @deprecated(reason: "Use toggleBookmarkTag instead")
+  toggleBookmarkTag(input: ToggleItemInput!): Tag!
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article!
-  toggleTagRecommend(input: ToggleRecommendInput!): Tag!
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
   putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
   applyCampaign(input: ApplyCampaignInput!): Campaign!
   updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
+  toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign!
+  sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -154,6 +143,7 @@ type Mutation {
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
+  putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Article!
 
@@ -166,9 +156,6 @@ type Mutation {
   """Reset user or payment password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
-  """Change user email."""
-  changeEmail(input: ChangeEmailInput!): User! @deprecated(reason: "use 'setEmail' instead")
-
   """Set user email."""
   setEmail(input: SetEmailInput!): User!
 
@@ -178,11 +165,7 @@ type Mutation {
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
 
-  """Register user, can only be used on matters.{town,news} website."""
-  userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
-
   """Login user."""
-  userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
   emailLogin(input: EmailLoginInput!): AuthResult!
 
   """Get signing message."""
@@ -206,14 +189,8 @@ type Mutation {
   """Remove a social login from current user."""
   removeSocialLogin(input: RemoveSocialLoginInput!): User!
 
-  """Reset crypto wallet."""
-  resetWallet(input: ResetWalletInput!): User! @deprecated(reason: "use 'removeWalletLogin' instead")
-
   """Logout user."""
   userLogout: Boolean!
-
-  """Generate or claim a Liker ID through LikeCoin"""
-  generateLikerId: User! @deprecated(reason: "No longer in use")
 
   """Reset Liker ID"""
   resetLikerId(input: ResetLikerIdInput!): User!
@@ -277,6 +254,9 @@ type Mutation {
   """Create Stripe Connect account for Payout"""
   connectStripeAccount(input: ConnectStripeAccountInput!): ConnectStripeAccountResult!
 
+  """Withdraw locked ERC20/native token from donation vault"""
+  withdrawLockedTokens: WithdrawLockedTokensResult!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
   putCollection(input: PutCollectionInput!): Collection!
@@ -296,6 +276,9 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
+  putChannel(input: PutChannelInput!): Channel!
+  setArticleChannels(input: SetArticleChannelsInput!): Article!
+  classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean!
 }
 
 """
@@ -305,9 +288,6 @@ want information about article's comments. Please check Comment type.
 type Article implements Node & PinnableWork {
   """Unique ID of this article"""
   id: ID!
-
-  """The number represents how popular is this article."""
-  topicScore: Int
 
   """Slugified article title."""
   slug: String!
@@ -389,9 +369,6 @@ type Article implements Node & PinnableWork {
   """Total number of readers of this article."""
   readerCount: Int!
 
-  """Subscribers of this article."""
-  subscribers(input: ConnectionArgs!): UserConnection!
-
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
 
@@ -404,13 +381,13 @@ type Article implements Node & PinnableWork {
   """This value determines if current viewer can SuperLike or not."""
   canSuperLike: Boolean!
 
-  """This value determines if current Viewer has subscribed of not."""
-  subscribed: Boolean!
+  """This value determines if current Viewer has bookmarked of not."""
+  subscribed: Boolean! @deprecated(reason: "Use bookmarked instead")
+  bookmarked: Boolean!
 
   """
   This value determines if this article is an author selected article or not.
   """
-  sticky: Boolean! @deprecated(reason: "Use pinned instead")
   pinned: Boolean!
 
   """Translation of article title and content."""
@@ -427,15 +404,6 @@ type Article implements Node & PinnableWork {
 
   """Cumulative reading time in seconds"""
   readTime: Float!
-
-  """Drafts linked to this article."""
-  drafts: [Draft!] @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
-
-  """Newest unpublished draft linked to this article."""
-  newestUnpublishedDraft: Draft
-
-  """Newest published draft linked to this article."""
-  newestPublishedDraft: Draft!
 
   """Revision Count"""
   revisionCount: Int!
@@ -475,6 +443,9 @@ type Article implements Node & PinnableWork {
 
   """associated campaigns"""
   campaigns: [ArticleCampaign!]!
+
+  """whether this article is noindex"""
+  noindex: Boolean!
   oss: ArticleOSS!
   remark: String
 
@@ -547,41 +518,17 @@ type Tag implements Node {
   """List of how many articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
 
-  """This value determines if this article is selected by this tag or not."""
-  selected(input: TagSelectedInput!): Boolean!
-
   """Time of this tag was created."""
   createdAt: DateTime!
-
-  """Tag's cover link."""
-  cover: String
-
-  """Description of this tag."""
-  description: String
-
-  """Editors of this tag."""
-  editors(input: TagEditorsInput): [User!]
-
-  """Creator of this tag."""
-  creator: User
-
-  """Owner of this tag."""
-  owner: User
 
   """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
-  """Followers of this tag."""
-  followers(input: ConnectionArgs!): UserConnection!
-
-  """Participants of this tag."""
-  participants(input: ConnectionArgs!): UserConnection!
-
   """Tags recommended based on relations to current tag."""
   recommended(input: ConnectionArgs!): TagConnection!
 
-  """This value determines if it is official."""
-  isOfficial: Boolean
+  """Authors recommended based on relations to current tag."""
+  recommendedAuthors(input: ConnectionArgs!): UserConnection!
 
   """Counts of this tag."""
   numArticles: Int!
@@ -613,6 +560,7 @@ type ArticleOSS {
   inRecommendNewest: Boolean!
   inSearch: Boolean!
   spamStatus: SpamStatus!
+  channels: [ArticleChannel!]!
 }
 
 type SpamStatus {
@@ -625,6 +573,19 @@ type SpamStatus {
   isSpam: Boolean
 }
 
+type ArticleChannel {
+  channel: Channel!
+
+  """confident score by machine"""
+  score: Float
+
+  """whether this article is labeled by human, null for not labeled yet. """
+  isLabeled: Boolean!
+
+  """whether this article channel is enabled"""
+  enabled: Boolean!
+}
+
 type ArticleTranslation {
   title: String
   content: String
@@ -635,7 +596,6 @@ type ArticleTranslation {
 type TagOSS {
   boost: Float!
   score: Float!
-  selected: Boolean!
 }
 
 type ArticleConnection implements Connection {
@@ -691,9 +651,6 @@ input PublishArticleInput {
 input EditArticleInput {
   id: ID!
   state: ArticleState
-
-  """deprecated, use pinned instead"""
-  sticky: Boolean
   pinned: Boolean
   title: String
   summary: String
@@ -724,7 +681,7 @@ input EditArticleInput {
 
 input ArticleCampaignInput {
   campaign: ID!
-  stage: ID!
+  stage: ID
 }
 
 input AppreciateArticleInput {
@@ -768,36 +725,6 @@ input MergeTagsInput {
   content: String!
 }
 
-input PutTagInput {
-  id: ID
-  content: String
-  cover: ID
-  description: String
-}
-
-input UpdateTagSettingInput {
-  id: ID!
-  type: UpdateTagSettingType!
-  editors: [ID!]
-}
-
-input AddArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  selected: Boolean
-}
-
-input UpdateArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  isSelected: Boolean!
-}
-
-input DeleteArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-}
-
 enum TagArticlesSortBy {
   byHottestDesc
   byCreatedAtDesc
@@ -807,18 +734,7 @@ input TagArticlesInput {
   after: String
   first: Int
   oss: Boolean
-  selected: Boolean
   sortBy: TagArticlesSortBy = byCreatedAtDesc
-}
-
-input TagSelectedInput {
-  id: ID
-  mediaHash: String
-}
-
-input TagEditorsInput {
-  excludeAdmin: Boolean
-  excludeOwner: Boolean
 }
 
 input TransactionsReceivedByArgs {
@@ -870,14 +786,6 @@ enum RecommendTypes {
   search
 }
 
-enum UpdateTagSettingType {
-  adopt
-  leave
-  add_editor
-  remove_editor
-  leave_editor
-}
-
 input CampaignInput {
   shortHash: String!
 }
@@ -910,6 +818,19 @@ input UpdateCampaignApplicationStateInput {
   campaign: ID!
   user: ID!
   state: CampaignApplicationState!
+}
+
+input ToggleWritingChallengeFeaturedArticlesInput {
+  campaign: ID!
+  articles: [ID!]!
+  enabled: Boolean!
+}
+
+input SendCampaignAnnouncementInput {
+  campaign: ID!
+  announcement: [TranslationInput!]!
+  link: String!
+  password: String!
 }
 
 input CampaignStageInput {
@@ -955,7 +876,7 @@ type WritingChallenge implements Node & Campaign {
   stages: [CampaignStage!]!
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
-  articles(input: CampaignArticlesInput!): ArticleConnection!
+  articles(input: CampaignArticlesInput!): CampaignArticleConnection!
   application: CampaignApplication
   oss: CampaignOSS!
 }
@@ -979,6 +900,19 @@ type CampaignParticipantEdge {
   cursor: String!
   application: CampaignApplication
   node: User!
+}
+
+type CampaignArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignArticleEdge!]!
+}
+
+type CampaignArticleEdge {
+  cursor: String!
+  node: Article!
+  featured: Boolean!
+  announcement: Boolean!
 }
 
 input CampaignParticipantsInput {
@@ -1014,7 +948,8 @@ input CampaignArticlesInput {
 }
 
 input CampaignArticlesFilter {
-  stage: ID!
+  stage: ID
+  featured: Boolean
 }
 
 type CampaignConnection implements Connection {
@@ -1161,8 +1096,11 @@ type User implements Node {
   """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """Artilces current user subscribed to."""
-  subscriptions(input: ConnectionArgs!): ArticleConnection!
+  """Artilces current user bookmarked."""
+  bookmarkedArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Tags current user bookmarked."""
+  bookmarkedTags(input: ConnectionArgs!): TagConnection!
 
   """Record of user activity, only accessable by current user."""
   activity: UserActivity!
@@ -1931,6 +1869,27 @@ enum CommentCommentNoticeType {
   CommentNewReply
 }
 
+type CampaignArticleNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CampaignArticleNoticeType!
+  target: Campaign!
+  article: Article!
+}
+
+enum CampaignArticleNoticeType {
+  CampaignArticleFeatured
+}
+
 type TransactionNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1949,6 +1908,7 @@ type TransactionNotice implements Notice {
 
 enum TransactionNoticeType {
   PaymentReceivedDonation
+  WithdrewLockedTokens
 }
 
 type CircleNotice implements Notice {
@@ -2173,6 +2133,11 @@ type UserRestriction {
   createdAt: DateTime!
 }
 
+type UserFeatureFlag {
+  type: UserFeatureFlagType!
+  createdAt: DateTime!
+}
+
 type Report implements Node {
   id: ID!
   reporter: User!
@@ -2339,6 +2304,11 @@ input PutRestrictedUsersInput {
   restrictions: [UserRestrictionType!]!
 }
 
+input PutUserFeatureFlagsInput {
+  ids: [ID!]!
+  flags: [UserFeatureFlagType!]!
+}
+
 input SubmitReportInput {
   targetId: ID!
   reason: ReportReason!
@@ -2436,6 +2406,7 @@ enum FeatureName {
   circle_management
   circle_interact
   spam_detection
+  article_channel
 }
 
 enum FeatureFlag {
@@ -2458,6 +2429,10 @@ enum AnnouncementType {
 enum UserRestrictionType {
   articleHottest
   articleNewest
+}
+
+enum UserFeatureFlagType {
+  bypassSpamDetection
 }
 
 enum ReportReason {
@@ -2529,9 +2504,6 @@ type Recommendation {
   """Activities based on user's following, sort by creation time."""
   following(input: RecommendationFollowingInput!): FollowingActivityConnection!
 
-  """Articles recommended based on recently read article tags."""
-  readTagsArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into following")
-
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
 
@@ -2544,23 +2516,20 @@ type Recommendation {
   """'In case you missed it' topic."""
   icymiTopic: IcymiTopic
 
+  """Articles from a specific channel"""
+  channelArticles(input: ChannelArticlesInput!): ArticleConnection!
+
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
 
-  """Hottest tag list"""
-  hottestTags(input: RecommendInput!): TagConnection!
-
-  """Selected tag list"""
-  selectedTags(input: RecommendInput!): TagConnection!
-
   """Global user list, sort by activities in recent 6 month."""
   authors(input: RecommendInput!): UserConnection!
+}
 
-  """Global circles sort by created time."""
-  newestCircles(input: ConnectionArgs!): CircleConnection!
-
-  """Global circles sort by latest activity time."""
-  hottestCircles(input: ConnectionArgs!): CircleConnection!
+input ChannelArticlesInput {
+  channelId: ID!
+  after: String
+  first: Int
 }
 
 input RecommendInput {
@@ -2749,15 +2718,13 @@ type Liker {
 
   """Total LIKE left in wallet."""
   total: Float!
-
-  """Rate of LikeCoin/USD"""
-  rateUSD: Float @deprecated(reason: "No longer in use")
 }
 
 type UserOSS {
   boost: Float!
   score: Float!
   restrictions: [UserRestriction!]!
+  featureFlags: [UserFeatureFlag!]!
 }
 
 type Appreciation {
@@ -2980,7 +2947,6 @@ enum CircleRecommendationActivitySource {
 
 type Following {
   circles(input: ConnectionArgs!): CircleConnection!
-  tags(input: ConnectionArgs!): TagConnection!
   users(input: ConnectionArgs!): UserConnection!
 }
 
@@ -3044,13 +3010,6 @@ input ResetPasswordInput {
   type: ResetPasswordType
 }
 
-input ChangeEmailInput {
-  oldEmail: String!
-  oldEmailCodeId: ID!
-  newEmail: String!
-  newEmailCodeId: ID!
-}
-
 input VerifyEmailInput {
   email: String!
   code: String!
@@ -3058,21 +3017,6 @@ input VerifyEmailInput {
 
 input SetCurrencyInput {
   currency: QuoteCurrency
-}
-
-input UserRegisterInput {
-  email: String!
-  userName: String
-  displayName: String!
-  password: String!
-  description: String
-  codeId: ID!
-  referralCode: String
-}
-
-input UserLoginInput {
-  email: String!
-  password: String!
 }
 
 input GenerateSigningMessageInput {
@@ -3092,22 +3036,12 @@ input WalletLoginInput {
   """nonce from generateSigningMessage"""
   nonce: String!
 
-  """required for wallet register"""
-  email: String @deprecated(reason: "No longer in use")
-
-  """email verification code, required for wallet register"""
-  codeId: ID @deprecated(reason: "No longer in use")
-
   """used in register"""
   language: UserLanguage
   referralCode: String
 }
 
 input ResetLikerIdInput {
-  id: ID!
-}
-
-input ResetWalletInput {
   id: ID!
 }
 
@@ -3118,7 +3052,6 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
-  userName: String @deprecated(reason: "use 'setUserName' instead")
   avatar: ID
   description: String
   language: UserLanguage
@@ -3212,9 +3145,6 @@ enum VerificationCodeType {
   register
   email_verify
   email_otp
-  email_reset @deprecated(reason: "No longer in use")
-  email_reset_confirm @deprecated(reason: "No longer in use")
-  password_reset @deprecated(reason: "No longer in use")
   payment_password_reset
 }
 
@@ -3574,6 +3504,7 @@ enum TransactionPurpose {
   subscriptionSplit
   dispute
   payoutReversal
+  curationVaultWithdrawal
 }
 
 enum TransactionCurrency {
@@ -3632,6 +3563,10 @@ type StripeAccount {
 
 type ConnectStripeAccountResult {
   redirectUrl: String!
+}
+
+type WithdrawLockedTokensResult {
+  transaction: Transaction!
 }
 
 enum StripeAccountCountry {
@@ -3886,4 +3821,31 @@ type Moment implements Node {
 enum MomentState {
   active
   archived
+}
+
+type Channel {
+  id: ID!
+  shortHash: String!
+  name(input: TranslationArgs): String!
+  description: String
+  providerId: String!
+  enabled: Boolean!
+  articles(input: ConnectionArgs!): ArticleConnection!
+}
+
+input PutChannelInput {
+  id: ID
+  providerId: String!
+  name: [TranslationInput!]
+  description: String
+  enabled: Boolean
+}
+
+input SetArticleChannelsInput {
+  id: ID!
+  channels: [ID!]!
+}
+
+input ClassifyArticlesChannelsInput {
+  ids: [ID!]!
 }

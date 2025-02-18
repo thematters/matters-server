@@ -104,6 +104,7 @@ type UpdateManyFn = <
 >(params: {
   table: Table
   where: Partial<Record<keyof D, any>>
+  whereIn?: [string, string[]]
   data: Partial<D>
   columns?: Array<keyof D> | '*'
 }) => Promise<D[]>
@@ -130,6 +131,15 @@ type UpsertFn = <
   create: Partial<D>
   update: Partial<D>
 }) => Promise<D>
+
+type UpsertOnConflictFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  data: Partial<D> | Array<Partial<D>>
+  onConflict: string[]
+}) => Promise<D[]>
 
 type DeleteManyFn = <
   Table extends TableTypeMapKey,
@@ -416,10 +426,11 @@ export class AtomService {
   public updateMany: UpdateManyFn = async ({
     table,
     where,
+    whereIn,
     data,
     columns = '*',
   }) => {
-    const records = await this.knex
+    const action = this.knex
       .where(where)
       .update(
         isUpdateableTable(table)
@@ -428,6 +439,13 @@ export class AtomService {
       )
       .into(table)
       .returning(columns as string)
+
+    if (whereIn) {
+      action.whereIn(...whereIn)
+    }
+
+    const records = await action
+
     return records
   }
 
@@ -437,8 +455,6 @@ export class AtomService {
    * A Prisma like method for updating or creating a record.
    */
   public upsert: UpsertFn = async ({ table, where, create, update }) => {
-    // TODO: Use onConflict instead
-    // @see {@link https://github.com/knex/knex/pull/3763}
     const record = await this.knex(table)
       .select()
       .where(where as Record<string, any>)
@@ -460,6 +476,26 @@ export class AtomService {
       .returning('*')
 
     return updatedRecord
+  }
+
+  public upsertOnConflict: UpsertOnConflictFn = async ({
+    table,
+    data,
+    onConflict,
+  }) => {
+    const updatedAt = isUpdateableTable(table)
+      ? { updatedAt: this.knex.fn.now() }
+      : {}
+
+    return this.knex(table)
+      .insert(
+        Array.isArray(data)
+          ? data.map((d) => ({ ...d, ...updatedAt }))
+          : { ...data, ...updatedAt }
+      )
+      .onConflict(onConflict)
+      .merge()
+      .returning('*')
   }
 
   /**
@@ -573,4 +609,6 @@ const UPATEABLE_TABLES = [
   'translation',
   'campaign_boost',
   'campaign_user',
+  'article_channel',
+  'article_channel_job',
 ]

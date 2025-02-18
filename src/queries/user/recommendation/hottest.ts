@@ -7,12 +7,13 @@ import {
   MATERIALIZED_VIEW,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  USER_FEATURE_FLAG_TYPE,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import {
   connectionFromPromisedArray,
-  fromConnectionArgs,
   excludeSpam,
+  fromConnectionArgs,
 } from 'common/utils'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
@@ -72,7 +73,24 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .where('type', 'articleHottest')
             )
             .whereIn('article.id', donatedArticles)
-            .modify(excludeSpam, spamThreshold)
+            .andWhere((qb) => {
+              qb.whereIn(
+                'article.author_id',
+                knexRO
+                  .select('user_id')
+                  .from('user_feature_flag')
+                  .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+              ).orWhere((innerQb) => {
+                innerQb
+                  .whereNotIn(
+                    'article.author_id',
+                    knexRO.select('user_id').from('user_feature_flag').where({
+                      type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+                    })
+                  )
+                  .modify(excludeSpam, spamThreshold)
+              })
+            })
         }
       })
       .as('hottest')

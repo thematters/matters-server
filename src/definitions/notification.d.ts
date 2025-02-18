@@ -21,6 +21,7 @@ type NoticeEntityType =
   | 'tag'
   | 'article'
   | 'circle'
+  | 'campaign'
 
 type NotificationType =
   | BaseNoticeType
@@ -144,6 +145,17 @@ interface NoticeMomentMentionedYouParams extends NotificationRequiredParams {
   tag: string
 }
 
+// Campaign-Article
+interface NoticeCampaignArticleFeaturedParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.campaign_article_featured
+  recipientId: string
+  entities: [
+    NotificationEntity<'target', 'campaign'>,
+    NotificationEntity<'article', 'article'>
+  ]
+}
+
 /**
  * Comment
  */
@@ -229,6 +241,13 @@ interface NoticeCommentNewReplyParams extends NotificationRequiredParams {
 interface NoticePaymentReceivedDonationParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.payment_received_donation
+  recipientId: string
+  actorId: string | null
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
+
+interface NoticeWithdrewLockedTokensParams extends NotificationRequiredParams {
+  event: NOTICE_TYPE.withdrew_locked_tokens
   recipientId: string
   actorId: string | null
   entities: [NotificationEntity<'target', 'transaction'>]
@@ -362,6 +381,7 @@ interface NoticeWriteChallengeAppliedParams extends NotificationRequiredParams {
   event:
     | OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
     | OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird
+  entities: [NotificationEntity<'target', 'campaign'>]
   recipientId: string
   data: { link: string }
 }
@@ -398,8 +418,11 @@ export type NotificationParams =
   | NoticeCircleNewBroadcastParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
+  // Campaign-Article
+  | NoticeCampaignArticleFeaturedParams
   // Payment
   | NoticePaymentReceivedDonationParams
+  | NoticeWithdrewLockedTokensParams
   // Circle
   | NoticeCircleInvitationParams
   | NoticeCircleNewSubscriberParams

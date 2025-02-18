@@ -30,6 +30,8 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import bookmarkedArticles from './bookmarkedArticles'
+import bookmarkedTags from './bookmarkedTags'
 import campaigns from './campaigns'
 import changeEmailTimesLeft from './changeEmailTimesLeft'
 import Collection from './collection'
@@ -54,7 +56,7 @@ import likerId from './liker/likerId'
 import momentCount from './momentCount'
 import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
-import { boost, restrictions, score } from './oss'
+import { boost, featureFlags, restrictions, score } from './oss'
 import ownCircles from './ownCircles'
 import pinnedWorks from './pinnedWorks'
 import profileCover from './profileCover'
@@ -64,7 +66,6 @@ import rootUser from './rootUser'
 import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
-import subscriptions from './subscriptions'
 import tagsUsageRecommendation from './tags/tagsUsageRecommendation'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -114,7 +115,6 @@ const user: {
     likerId,
     liker: (root) => root,
     info: (root) => root,
-    // ipnsAddress,
     wallet: (root) => root,
     settings: (root) => root,
     status: (root) => (root.id ? root : null),
@@ -123,8 +123,8 @@ const user: {
     analytics: (root) => root,
     recommendation: (root) => root,
     oss: (root) => root,
-    // hasFollowed,
-    subscriptions,
+    bookmarkedArticles,
+    bookmarkedTags,
     collections,
     latestWorks,
     pinnedWorks,
@@ -191,6 +191,7 @@ const user: {
     boost,
     score,
     restrictions,
+    featureFlags,
   },
 
   // Payment

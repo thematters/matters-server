@@ -1,6 +1,10 @@
 import type { Connections } from 'definitions'
 
-import { FEATURE_NAME, FEATURE_FLAG } from 'common/enums'
+import {
+  FEATURE_NAME,
+  FEATURE_FLAG,
+  USER_FEATURE_FLAG_TYPE,
+} from 'common/enums'
 import {
   TagService,
   AtomService,
@@ -48,29 +52,6 @@ describe('findArticleIds', () => {
     })
     expect(articleIds).toBeDefined()
 
-    // create a restricted article
-    await atomService.create({
-      table: 'article_recommend_setting',
-      data: { articleId: articleIds[0], inNewest: true },
-    })
-    const excluded1 = await tagService.findArticleIds({
-      id: '2',
-      excludeRestricted: true,
-    })
-    expect(excluded1).not.toContain(articleIds[0])
-
-    // create a non-restricted article with record in article_recommend_setting
-    await atomService.deleteMany({ table: 'article_recommend_setting' })
-    await atomService.create({
-      table: 'article_recommend_setting',
-      data: { articleId: articleIds[0], inNewest: false, inHottest: false },
-    })
-    const excluded2 = await tagService.findArticleIds({
-      id: '2',
-      excludeRestricted: true,
-    })
-    expect(excluded2).toContain(articleIds[0])
-
     // create a restricted user
     await atomService.deleteMany({ table: 'article_recommend_setting' })
     const article = await atomService.findUnique({
@@ -110,7 +91,7 @@ describe('findArticleIds', () => {
     expect(excluded1).toEqual(articleIds)
 
     // spam detected
-    await atomService.update({
+    const article = await atomService.update({
       table: 'article',
       where: { id: articleIds[0] },
       data: { spamScore: spamThreshold + 0.1 },
@@ -120,26 +101,23 @@ describe('findArticleIds', () => {
       excludeSpam: true,
     })
     expect(excluded2).not.toContain(articleIds[0])
+
+    // bypass spam detection
+    await userService.updateFeatureFlags(article.authorId, [
+      USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+    ])
+    const excluded3 = await tagService.findArticleIds({
+      id: '2',
+      excludeSpam: true,
+    })
+    expect(excluded3).toContain(articleIds[0])
   })
-})
-
-test('findArticleCovers', async () => {
-  const covers = await tagService.findArticleCovers({ id: '2' })
-  expect(covers).toBeDefined()
-
-  const cached = await tagService.findArticleCovers({ id: '2' })
-  expect(cached).toEqual(covers)
 })
 
 test('create', async () => {
   const content = 'foo'
   const tag = await tagService.create(
-    {
-      content,
-      creator: '0',
-      editors: [],
-      owner: '0',
-    },
+    { content, creator: '0' },
     {
       columns: ['id', 'content'],
     }

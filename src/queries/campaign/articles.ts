@@ -17,15 +17,35 @@ const resolver: GQLWritingChallengeResolvers['articles'] = async (
 
   const query = campaignService.findArticles(campaignId, {
     filterStageId: stageId,
+    featured: filter?.featured,
     spamThreshold,
   })
 
-  return connectionFromQuery({
+  const connection = await connectionFromQuery({
     query,
     orderBy: { column: 'order', order: 'desc' },
     cursorColumn: 'id',
     args: { first, after },
   })
+
+  return {
+    ...connection,
+    edges: await Promise.all(
+      connection.edges.map(async (edge) => {
+        const article = await atomService.findFirst({
+          table: 'campaign_article',
+          where: { campaignId, articleId: edge.node.id },
+        })
+
+        return {
+          cursor: edge.cursor,
+          node: edge.node,
+          featured: article.featured,
+          announcement: article.announcement,
+        }
+      })
+    ),
+  }
 }
 
 const validateStage = async (

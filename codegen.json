@@ -59,6 +59,7 @@
           "TagNotice": "./notification#NoticeItem",
           "CommentNotice": "./notification#NoticeItem",
           "CommentCommentNotice": "./notification#NoticeItem",
+          "CampaignArticleNotice": "./notification#NoticeItem",
           "TransactionNotice": "./notification#NoticeItem",
           "CircleNotice": "./notification#NoticeItem",
           "OfficialNotice": "./notification#NoticeItem",
@@ -72,7 +73,8 @@
           "Campaign": "./campaign#Campaign",
           "CampaignOSS": "./campaign#Campaign",
           "WritingChallenge": "./campaign#Campaign",
-          "CampaignStage": "./campaign#CampaignStage"
+          "CampaignStage": "./campaign#CampaignStage",
+          "Channel": "./channel#Channel"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

@@ -17,9 +17,6 @@ export default /* GraphQL */ `
     "Reset user or payment password."
     resetPassword(input: ResetPasswordInput!): Boolean
 
-    "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'setEmail' instead")
-
     "Set user email."
     setEmail(input: SetEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -29,12 +26,7 @@ export default /* GraphQL */ `
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Register user, can only be used on matters.{town,news} website."
-    userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead") @rateLimit(limit:10, period:86400)
-
     "Login user."
-    userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
-
     emailLogin(input: EmailLoginInput!): AuthResult!
 
     "Get signing message."
@@ -58,14 +50,8 @@ export default /* GraphQL */ `
     "Remove a social login from current user."
     removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Reset crypto wallet."
-    resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'removeWalletLogin' instead")
-
     "Logout user."
     userLogout: Boolean!
-
-    "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "No longer in use")
 
     "Reset Liker ID"
     resetLikerId(input: ResetLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -156,7 +142,7 @@ export default /* GraphQL */ `
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Articles and moments authored by current user."
-    writings(input:WritingInput!): WritingConnection!
+    writings(input: WritingInput!): WritingConnection!
 
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
@@ -168,7 +154,7 @@ export default /* GraphQL */ `
     pinnedWorks: [PinnableWork!]!
 
     "Tags by usage order of current user."
-    tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
+    tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
@@ -176,8 +162,11 @@ export default /* GraphQL */ `
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
-    "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
+    "Artilces current user bookmarked."
+    bookmarkedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
+
+    "Tags current user bookmarked."
+    bookmarkedTags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Record of user activity, only accessable by current user."
     activity: UserActivity! @auth(mode: "${AUTH_MODE.oauth}")
@@ -207,7 +196,7 @@ export default /* GraphQL */ `
     analytics: UserAnalytics! @auth(mode: "${AUTH_MODE.oauth}")
 
     "active applied campaigns"
-    campaigns(input:ConnectionArgs!): CampaignConnection!
+    campaigns(input: ConnectionArgs!): CampaignConnection!
 
     "Status of current user."
     status: UserStatus
@@ -223,9 +212,6 @@ export default /* GraphQL */ `
     "Activities based on user's following, sort by creation time."
     following(input: RecommendationFollowingInput!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    "Articles recommended based on recently read article tags."
-    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Merged into following")
-
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
@@ -238,23 +224,21 @@ export default /* GraphQL */ `
     "'In case you missed it' topic."
     icymiTopic: IcymiTopic @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
+    "Articles from a specific channel"
+    channelArticles(input: ChannelArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
-    "Hottest tag list"
-    hottestTags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
-
-    "Selected tag list"
-    selectedTags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
-
     "Global user list, sort by activities in recent 6 month."
     authors(input: RecommendInput!): UserConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
+  }
 
-    "Global circles sort by created time."
-    newestCircles(input: ConnectionArgs!): CircleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
-    "Global circles sort by latest activity time."
-    hottestCircles(input: ConnectionArgs!): CircleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+  input ChannelArticlesInput {
+    channelId: ID!
+    after: String
+    first: Int @constraint(min: 0)
   }
 
   input RecommendInput {
@@ -428,15 +412,13 @@ export default /* GraphQL */ `
 
     "Total LIKE left in wallet."
     total: Float! @auth(mode: "${AUTH_MODE.oauth}")
-
-    "Rate of LikeCoin/USD"
-    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG}) @deprecated(reason: "No longer in use")
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: Float!
     score: Float!
     restrictions: [UserRestriction!]!
+    featureFlags: [UserFeatureFlag!]!
   }
 
   type Appreciation {
@@ -671,7 +653,6 @@ export default /* GraphQL */ `
 
   type Following {
     circles(input: ConnectionArgs!): CircleConnection! @complexity(multipliers: ["input.first"], value: 1)
-    tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
     users(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
@@ -734,13 +715,6 @@ export default /* GraphQL */ `
     type: ResetPasswordType
   }
 
-  input ChangeEmailInput {
-    oldEmail: String! @constraint(format: "email")
-    oldEmailCodeId: ID!
-    newEmail: String! @constraint(format: "email")
-    newEmailCodeId: ID!
-  }
-
   input VerifyEmailInput {
     email: String!
     code: String!
@@ -748,21 +722,6 @@ export default /* GraphQL */ `
 
   input SetCurrencyInput {
       currency: QuoteCurrency
-  }
-
-  input UserRegisterInput {
-    email: String! @constraint(format: "email")
-    userName: String
-    displayName: String!
-    password: String!
-    description: String
-    codeId: ID!
-    referralCode: String
-  }
-
-  input UserLoginInput {
-    email: String! @constraint(format: "email")
-    password: String!
   }
 
   input GenerateSigningMessageInput {
@@ -782,12 +741,6 @@ export default /* GraphQL */ `
     "nonce from generateSigningMessage"
     nonce: String!
 
-    "required for wallet register"
-    email: String @constraint(format: "email") @deprecated(reason: "No longer in use")
-
-    "email verification code, required for wallet register"
-    codeId: ID @deprecated(reason: "No longer in use")
-
     "used in register"
     language: UserLanguage
 
@@ -798,10 +751,6 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input ResetWalletInput {
-    id: ID!
-  }
-
   input UpdateNotificationSettingInput {
     type: NotificationSettingType!
     enabled: Boolean!
@@ -809,7 +758,6 @@ export default /* GraphQL */ `
 
   input UpdateUserInfoInput {
     displayName: String
-    userName: String @deprecated(reason: "use 'setUserName' instead")
     avatar: ID
     description: String
     language: UserLanguage
@@ -907,9 +855,6 @@ export default /* GraphQL */ `
     register
     email_verify
     email_otp
-    email_reset @deprecated(reason: "No longer in use")
-    email_reset_confirm @deprecated(reason: "No longer in use")
-    password_reset @deprecated(reason: "No longer in use")
     payment_password_reset
   }
 
@@ -1120,7 +1065,7 @@ export default /* GraphQL */ `
   }
 
   input RecommendationFollowingFilterInput {
-    type:RecommendationFollowingFilterType
+    type: RecommendationFollowingFilterType
   }
 
   enum RecommendationFollowingFilterType {
