@@ -5,10 +5,6 @@ ARG NODE_VERSION=18
 FROM node:${NODE_VERSION}-alpine AS base
 # install os level packages
 RUN apk add --no-cache \
-  # build tools needed by opencc
-  g++ \
-  make \
-  python3 \
   # PostgreSQL client library
   libpq
 WORKDIR /var/app

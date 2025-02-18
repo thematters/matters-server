@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { distance } from 'fastest-levenshtein'
-import { OpenCC } from 'opencc'
+import { simplecc } from 'simplecc-wasm'
 
 import { MAX_TAG_CONTENT_LENGTH } from 'common/enums'
 
@@ -42,11 +42,8 @@ export const stripSpaces = (content: string | null) =>
 export const normalizeTagInput = (content: string) =>
   stripAllPunct(content).substring(0, MAX_TAG_CONTENT_LENGTH)
 
-export const t2sConverter: OpenCC = new OpenCC('t2s.json')
-export const s2tConverter: OpenCC = new OpenCC('s2t.json')
-
 export const normalizeSearchKey = async (content: string): Promise<string> =>
-  t2sConverter.convertPromise(stripSpaces(content.toLowerCase()) as string)
+  simplecc(stripSpaces(content.toLowerCase()) as string, 't2s')
 
 export const genMD5 = (content: string) =>
   crypto.createHash('md5').update(content).digest('hex')
