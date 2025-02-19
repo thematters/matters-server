@@ -1911,8 +1911,6 @@ export type GQLMutation = {
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
-  /** Update state of a user, used in OSS. */
-  refreshIPNSFeed: GQLUser
   /** Remove a social login from current user. */
   removeSocialLogin: GQLUser
   /** Remove a wallet login from current user. */
@@ -2212,10 +2210,6 @@ export type GQLMutationPutWritingChallengeArgs = {
 
 export type GQLMutationReadArticleArgs = {
   input: GQLReadArticleInput
-}
-
-export type GQLMutationRefreshIpnsFeedArgs = {
-  input: GQLRefreshIpnsFeedInput
 }
 
 export type GQLMutationRemoveSocialLoginArgs = {
@@ -7954,12 +7948,6 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationReadArticleArgs, 'input'>
-  >
-  refreshIPNSFeed?: Resolver<
-    GQLResolversTypes['User'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationRefreshIpnsFeedArgs, 'input'>
   >
   removeSocialLogin?: Resolver<
     GQLResolversTypes['User'],
