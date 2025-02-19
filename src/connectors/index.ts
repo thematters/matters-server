@@ -1,7 +1,6 @@
 export * from './aws'
 export * from './cache'
 export * from './cloudflare'
-export * from './ipfs'
 export * from './mail'
 export * from './likecoin'
 export * from './gcp'

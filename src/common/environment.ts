@@ -50,8 +50,8 @@ export const environment = {
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
   awsLikecoinUpdateCivicLikerCache:
     process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
-  awsIpnsUserPublicationQueueUrl:
-    process.env.MATTERS_AWS_IPNS_USER_PUBLICATION_QUEUE_URL || '',
+  awsIpfsPublicationQueueUrl:
+    process.env.MATTERS_AWS_IPFS_PUBLICATION_QUEUE_URL || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
@@ -85,7 +85,6 @@ export const environment = {
     process.env.MATTERS_SEARCH_PG_TAG_COEFFICIENTS || '[1,1,1,1]'
   ),
 
-  ipfsServers: process.env.MATTERS_IPFS_SERVERS || '',
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
   cacheClusterHost: process.env.MATTERS_CACHE_CLUSTER_HOST || '',
