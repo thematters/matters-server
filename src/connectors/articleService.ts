@@ -542,7 +542,7 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      await this._postArticleCreation({
+      this._postArticleCreation({
         articleId: article.id,
         articleVersionId: articleVersion.id,
         title,
@@ -734,7 +734,7 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (newData.content) {
-      await this._postArticleCreation({
+      this._postArticleCreation({
         articleId,
         articleVersionId: articleVersion.id,
         title: articleVersion.title,
@@ -2247,7 +2247,7 @@ export class ArticleService extends BaseService<Article> {
       })
     }
 
-    await callback?.(score)
+    callback?.(score)
   }
 
   private _postArticleCreation = async ({
@@ -2263,7 +2263,7 @@ export class ArticleService extends BaseService<Article> {
     content: string
     summary?: string
   }) => {
-    return this._detectSpam(
+    this._detectSpam(
       { id: articleId, title, content, summary },
       undefined,
       async (score) => {
@@ -2277,10 +2277,10 @@ export class ArticleService extends BaseService<Article> {
         }
 
         // infer article channels if not spam
-        await channelService.classifyArticlesChannels({ ids: [articleId] })
+        channelService.classifyArticlesChannels({ ids: [articleId] })
 
         // trigger IPFS publication
-        await aws.sqsSendMessage({
+        aws.sqsSendMessage({
           messageBody: { articleId, articleVersionId },
           queueUrl: QUEUE_URL.ipfsPublication,
         })
