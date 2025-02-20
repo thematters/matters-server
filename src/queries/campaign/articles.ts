@@ -7,18 +7,15 @@ import { connectionFromQuery, fromGlobalId } from 'common/utils'
 const resolver: GQLWritingChallengeResolvers['articles'] = async (
   { id: campaignId },
   { input: { first, after, filter } },
-  { dataSources: { campaignService, atomService, systemService } }
+  { dataSources: { campaignService, atomService } }
 ) => {
   const stageId = filter?.stage
     ? await validateStage(filter.stage, { atomService })
     : undefined
 
-  const spamThreshold = await systemService.getSpamThreshold()
-
   const query = campaignService.findArticles(campaignId, {
     filterStageId: stageId,
     featured: filter?.featured,
-    spamThreshold,
   })
 
   const connection = await connectionFromQuery({

@@ -273,19 +273,17 @@ export class CampaignService {
     {
       filterStageId,
       featured,
-      spamThreshold,
     }: {
       filterStageId?: string
       featured?: boolean
-      spamThreshold?: null | number
     } = {}
   ) => {
     const knexRO = this.connections.knexRO
     const query = knexRO('campaign_article')
-      .select('article.*', knexRO.raw('campaign_article.id AS order'))
+      .select('article.*', knexRO.raw('MIN(campaign_article.id) AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
       .where({ campaignId, state: ARTICLE_STATE.active })
-    // .modify(excludeSpam, spamThreshold)
+      .groupBy('article.id')
 
     if (filterStageId) {
       query.where({ campaignStageId: filterStageId })
