@@ -27,7 +27,7 @@ FROM base AS prod
 RUN --mount=type=bind,source=package.json,target=package.json \
   --mount=type=bind,source=package-lock.json,target=package-lock.json \
   --mount=type=cache,target=/root/.npm \
-  HUSKY=0 npm ci --omit=dev
+  npm ci --omit=dev --ignore-scripts
 USER node
 COPY . .
 ENV NODE_OPTIONS="--no-experimental-fetch"
