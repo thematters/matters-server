@@ -35,6 +35,7 @@ export default /* GraphQL */ `
     writingPeriod: DatetimeRangeInput
     stages: [CampaignStageInput!]
     state: CampaignState
+    featuredDescription: [TranslationInput!]
   }
 
   input ApplyCampaignInput {
@@ -108,6 +109,8 @@ export default /* GraphQL */ `
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!
 
     application: CampaignApplication @privateCache
+
+    featuredDescription(input: TranslationArgs): String!
 
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }
