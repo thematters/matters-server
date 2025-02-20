@@ -6,23 +6,13 @@ FROM node:18-alpine AS base
 RUN apk add --no-cache \
   # PostgreSQL client library
   libpq
+
+# install dependencies
 WORKDIR /var/app
 EXPOSE 4000
 
-FROM base AS dev
-# install dependencies
 COPY package*.json ./
-RUN npm ci --include=dev
-USER node
-COPY . .
-
-ENV NODE_OPTIONS="--no-experimental-fetch"
-CMD npm run start:dev
-
-FROM base AS prod
-# install dependencies
-COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install
 USER node
 COPY . .
 ENV NODE_OPTIONS="--no-experimental-fetch"
