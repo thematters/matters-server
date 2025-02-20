@@ -14,6 +14,7 @@ import { html2md } from '@matters/matters-editor/transformers'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import { difference, isEqual, uniq } from 'lodash'
+import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
 
 import {
@@ -51,8 +52,6 @@ import {
 import { getLogger } from 'common/logger'
 import {
   countWords,
-  s2tConverter,
-  t2sConverter,
   shortHash,
   normalizeSearchKey,
   genMD5,
@@ -1084,8 +1083,8 @@ export class ArticleService extends BaseService<Article> {
     skip?: number
     filter?: GQLSearchFilter
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
-    const keySimplified = await t2sConverter.convertPromise(key)
-    const keyTraditional = await s2tConverter.convertPromise(key)
+    const keySimplified = simplecc(key, 't2s')
+    const keyTraditional = simplecc(key, 's2t')
     // const systemService = new SystemService(this.connections)
     // const spamThreshold = await systemService.getSpamThreshold()
     const q = this.knexRO('article')

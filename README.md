@@ -21,13 +21,13 @@
 ### Docker
 
 - `cp .env.example .env`
-- `docker-compose -f docker/docker-compose.yml build`
-- `docker-compose -f docker/docker-compose.yml run app npm run db:rollback`
-- `docker-compose -f docker/docker-compose.yml run app npm run db:migrate`
-- `docker-compose -f docker/docker-compose.yml run app npm run db:seed`
-- `docker-compose -f docker/docker-compose.yml up`
-- Run test cases: `docker-compose -f docker/docker-compose.yml run app npm run test`
-- Init search indices: `docker-compose -f docker/docker-compose.yml run app npm run search:init`
+- `docker compose build`
+- `docker compose run app npm run db:rollback`
+- `docker compose run app npm run db:migrate`
+- `docker compose run app npm run db:seed`
+- `docker compose up`
+- Run test cases: `docker compose run app npm run test`
+- Init search indices: `docker compose run app npm run search:init`
 
 ## DB migrations and seeds
 
