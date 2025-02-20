@@ -11,10 +11,8 @@ EXPOSE 4000
 
 FROM base AS dev
 # install dependencies
-RUN --mount=type=bind,source=package.json,target=package.json \
-  --mount=type=bind,source=package-lock.json,target=package-lock.json \
-  --mount=type=cache,target=/root/.npm \
-  npm ci --include=dev
+COPY package*.json ./
+RUN npm ci --include=dev
 USER node
 COPY . .
 
@@ -23,10 +21,8 @@ CMD npm run start:dev
 
 FROM base AS prod
 # install dependencies
-RUN --mount=type=bind,source=package.json,target=package.json \
-  --mount=type=bind,source=package-lock.json,target=package-lock.json \
-  --mount=type=cache,target=/root/.npm \
-  npm ci --omit=dev --ignore-scripts
+COPY package*.json ./
+RUN npm ci --omit=dev --ignore-scripts
 USER node
 COPY . .
 ENV NODE_OPTIONS="--no-experimental-fetch"
