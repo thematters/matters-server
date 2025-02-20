@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1
 
-ARG NODE_VERSION=18
+FROM node:18-alpine AS base
 
-FROM node:${NODE_VERSION}-alpine AS base
 # install os level packages
 RUN apk add --no-cache \
   # PostgreSQL client library
