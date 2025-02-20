@@ -805,6 +805,7 @@ input PutWritingChallengeInput {
   writingPeriod: DatetimeRangeInput
   stages: [CampaignStageInput!]
   state: CampaignState
+  featuredDescription: [TranslationInput!]
 }
 
 input ApplyCampaignInput {
@@ -875,6 +876,7 @@ type WritingChallenge implements Node & Campaign {
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
   application: CampaignApplication
+  featuredDescription(input: TranslationArgs): String!
   oss: CampaignOSS!
 }
 

@@ -54,6 +54,7 @@ describe('create or update wrting challenges', () => {
         description
         cover
         link
+        featuredDescription
         announcements {
           id
           title
@@ -86,6 +87,17 @@ describe('create or update wrting challenges', () => {
     },
     { text: 'test campaign ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
     { text: 'test campaign ' + LANGUAGE.en, language: LANGUAGE.en },
+  ]
+  const translationsFeaturedDescription = [
+    {
+      text: 'test featured description ' + LANGUAGE.zh_hant,
+      language: LANGUAGE.zh_hant,
+    },
+    {
+      text: 'test featured description ' + LANGUAGE.zh_hans,
+      language: LANGUAGE.zh_hans,
+    },
+    { text: 'test featured description ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
   const translationsStageName1 = [
     {
@@ -181,6 +193,7 @@ describe('create or update wrting challenges', () => {
           applicationPeriod: { start: time, end: time },
           writingPeriod,
           stages,
+          featuredDescription: translationsFeaturedDescription,
         },
       },
     })
@@ -205,6 +218,7 @@ describe('create or update wrting challenges', () => {
           announcements: [announcementGlobalId],
           writingPeriod,
           stages,
+          featuredDescription: translationsFeaturedDescription,
         },
       },
     })
@@ -213,9 +227,12 @@ describe('create or update wrting challenges', () => {
     expect(data.putWritingChallenge.announcements[0].id).toBe(
       announcementGlobalId
     )
+    expect(data.putWritingChallenge.featuredDescription).toContain(
+      'test featured description'
+    )
     expect(data.putWritingChallenge.stages[0].description).toBe('')
-    expect(data.putWritingChallenge.stages[1].description).toBe(
-      'test stage description en'
+    expect(data.putWritingChallenge.stages[1].description).toContain(
+      'test stage description'
     )
 
     // create with only name

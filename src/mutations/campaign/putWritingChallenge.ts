@@ -29,6 +29,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       writingPeriod,
       state,
       stages,
+      featuredDescription,
     },
   },
   {
@@ -96,6 +97,9 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       writingPeriod: writingPeriod && [writingPeriod.start, writingPeriod.end],
       state,
       creatorId: viewer.id,
+      featuredDescription: featuredDescription
+        ? featuredDescription[0].text
+        : '',
     })
     // invalidate campaign list cache
     if (+campaign.id > 1) {
@@ -144,6 +148,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         writingPeriod &&
         toDatetimeRangeString(writingPeriod.start, writingPeriod.end),
       state,
+      featuredDescription: featuredDescription && featuredDescription[0].text,
     }
 
     campaign = await atomService.update({
@@ -166,6 +171,18 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       await translationService.updateOrCreateTranslation({
         table: 'campaign',
         field: 'name',
+        id: campaign.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  if (featuredDescription) {
+    for (const trans of featuredDescription) {
+      await translationService.updateOrCreateTranslation({
+        table: 'campaign',
+        field: 'featured_description',
         id: campaign.id,
         language: trans.language,
         text: trans.text,
