@@ -4,6 +4,7 @@ services:
     image: matters-server:latest
     build:
       context: .
+    command: ['npm', 'run', 'start:dev']
     env_file: .env
     volumes:
       - .:/var/app
