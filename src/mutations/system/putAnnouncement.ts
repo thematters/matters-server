@@ -1,5 +1,6 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import lodash from 'lodash'
 
 import { ASSET_TYPE, NODE_TYPES } from 'common/enums'
@@ -13,7 +14,7 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['putAnnouncement'] = async (
   _,
   { input },
-  { dataSources: { atomService, systemService }, viewer }
+  { dataSources: { atomService, systemService, connections }, viewer }
 ) => {
   const {
     id,
@@ -95,6 +96,21 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
         expiredAt,
       },
     })
+
+    // query and purge previous announcements
+    // since the resolve return new announcement which is not cached
+    const prevAnnouncements = await atomService.findMany({
+      table: 'announcement',
+      where: { visible: true },
+    })
+    await Promise.all(
+      prevAnnouncements.map((announcement) =>
+        invalidateFQC({
+          node: { type: NODE_TYPES.Announcement, id: announcement.id },
+          redis: connections.redis,
+        })
+      )
+    )
   }
 
   const announcementId = ret.id
@@ -133,8 +149,6 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
     )
   }
 
-  // return newly created announcement
-  // const newAnnouncement = {
   return {
     ...ret,
     id: toAnnouncementId(ret.id),
@@ -146,8 +160,6 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
         cover: toCoverURL(tr.cover),
       })),
   }
-
-  // return newAnnouncement
 }
 
 export default resolver

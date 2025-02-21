@@ -10,6 +10,7 @@ import {
 import { merge } from 'lodash'
 
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { fromGlobalId } from 'common/utils'
 
 import mutations from './mutations'
 import queries from './queries'
@@ -39,7 +40,19 @@ const typeResolver = (type: string, result: any) => {
 }
 
 // handle null object to avoid error: Cannot read properties of null (reading 'id')
-const idResolver = (type: string, result: any) => result?.id
+const idResolver = (type: string, result: any) => {
+  if (!result?.id) {
+    return ''
+  }
+
+  try {
+    const { id } = fromGlobalId(result?.id)
+    return id
+  } catch (error) {
+    console.error(error)
+    return result.id
+  }
+}
 
 // add directives
 
