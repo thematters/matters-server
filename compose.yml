@@ -4,7 +4,6 @@ services:
     image: matters-server:latest
     build:
       context: .
-      target: dev
     env_file: .env
     volumes:
       - .:/var/app

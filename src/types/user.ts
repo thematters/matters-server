@@ -233,7 +233,8 @@ export default /* GraphQL */ `
 
 
   input ChannelArticlesInput {
-    channelId: ID!
+    channelId: ID
+    shortHash: String
     after: String
     first: Int @constraint(min: 0)
   }

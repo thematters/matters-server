@@ -831,8 +831,9 @@ export type GQLChannelNameArgs = {
 
 export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
-  channelId: Scalars['ID']['input']
+  channelId?: InputMaybe<Scalars['ID']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
+  shortHash?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLCircle = GQLNode & {
