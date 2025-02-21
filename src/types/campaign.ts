@@ -2,8 +2,8 @@ import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    campaign(input: CampaignInput!): Campaign @logCache(type: "${NODE_TYPES.Campaign}")
-    campaigns(input: CampaignsInput!): CampaignConnection!
+    campaign(input: CampaignInput!): Campaign @privateCache @logCache(type: "${NODE_TYPES.Campaign}")
+    campaigns(input: CampaignsInput!): CampaignConnection! @privateCache
   }
 
   extend type Mutation {
