@@ -50,7 +50,7 @@ const idResolver = (type: string, result: any) => {
     return id
   } catch (error) {
     console.error(error)
-    return ''
+    return result.id
   }
 }
 
