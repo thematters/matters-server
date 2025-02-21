@@ -45,7 +45,7 @@ export default /* GraphQL */ `
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
-    putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
+    putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Announcement}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
@@ -101,7 +101,7 @@ export default /* GraphQL */ `
     features: [Feature!]!
 
     "Announcements"
-    announcements(input: AnnouncementsInput!): [Announcement!]
+    announcements(input: AnnouncementsInput!): [Announcement!] @logCache(type: "${NODE_TYPES.Announcement}")
   }
 
   type Feature {
