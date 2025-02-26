@@ -9,7 +9,7 @@ export class DraftService extends BaseService<Draft> {
   }
 
   public countByAuthor = async (authorId: string) => {
-    const result = await this.knex(this.table)
+    const result = await this.knexRO(this.table)
       .where({ authorId, archived: false })
       .count()
       .first()

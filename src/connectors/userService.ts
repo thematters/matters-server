@@ -912,7 +912,7 @@ export class UserService extends BaseService<User> {
   }
 
   public findRecentSearches = async (userId: string) => {
-    const result = await this.knex('search_history')
+    const result = await this.knexRO('search_history')
       .select('search_key')
       .where({ userId, archived: false })
       .whereNot({ searchKey: '' })
@@ -1322,7 +1322,7 @@ export class UserService extends BaseService<User> {
   }
 
   public findBoost = async (userId: string) => {
-    const userBoost = await this.knex('user_boost')
+    const userBoost = await this.knexRO('user_boost')
       .select()
       .where({ userId })
       .first()
@@ -1342,7 +1342,7 @@ export class UserService extends BaseService<User> {
     })
 
   public findScore = async (userId: string) => {
-    const author = await this.knex('user_reader_view')
+    const author = await this.knexRO('user_reader_view')
       .select()
       .where({ id: userId })
       .first()
@@ -1371,7 +1371,7 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public countBookmarkedArticles = async (userId: string) => {
-    const result = await this.knex('action_article')
+    const result = await this.knexRO('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
       .count()
       .first()
@@ -1409,7 +1409,7 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public countReadHistory = async (userId: string) => {
-    const result = await this.knex('article_read_count')
+    const result = await this.knexRO('article_read_count')
       .where({ userId, archived: false })
       .countDistinct('article_id')
       .first()
