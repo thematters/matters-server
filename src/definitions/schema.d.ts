@@ -831,8 +831,9 @@ export type GQLChannelNameArgs = {
 
 export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
-  channelId: Scalars['ID']['input']
+  channelId?: InputMaybe<Scalars['ID']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
+  shortHash?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLCircle = GQLNode & {
@@ -1911,8 +1912,6 @@ export type GQLMutation = {
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
-  /** Update state of a user, used in OSS. */
-  refreshIPNSFeed: GQLUser
   /** Remove a social login from current user. */
   removeSocialLogin: GQLUser
   /** Remove a wallet login from current user. */
@@ -2212,10 +2211,6 @@ export type GQLMutationPutWritingChallengeArgs = {
 
 export type GQLMutationReadArticleArgs = {
   input: GQLReadArticleInput
-}
-
-export type GQLMutationRefreshIpnsFeedArgs = {
-  input: GQLRefreshIpnsFeedInput
 }
 
 export type GQLMutationRemoveSocialLoginArgs = {
@@ -2887,6 +2882,7 @@ export type GQLPutWritingChallengeInput = {
   announcements?: InputMaybe<Array<Scalars['ID']['input']>>
   applicationPeriod?: InputMaybe<GQLDatetimeRangeInput>
   cover?: InputMaybe<Scalars['ID']['input']>
+  featuredDescription?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
@@ -4240,6 +4236,7 @@ export type GQLWritingChallenge = GQLCampaign &
     articles: GQLCampaignArticleConnection
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
+    featuredDescription: Scalars['String']['output']
     id: Scalars['ID']['output']
     link: Scalars['String']['output']
     name: Scalars['String']['output']
@@ -4256,6 +4253,10 @@ export type GQLWritingChallengeArticlesArgs = {
 }
 
 export type GQLWritingChallengeDescriptionArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLWritingChallengeFeaturedDescriptionArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -7955,12 +7956,6 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationReadArticleArgs, 'input'>
   >
-  refreshIPNSFeed?: Resolver<
-    GQLResolversTypes['User'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationRefreshIpnsFeedArgs, 'input'>
-  >
   removeSocialLogin?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -9916,6 +9911,12 @@ export type GQLWritingChallengeResolvers<
     ParentType,
     ContextType,
     Partial<GQLWritingChallengeDescriptionArgs>
+  >
+  featuredDescription?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLWritingChallengeFeaturedDescriptionArgs>
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   link?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>

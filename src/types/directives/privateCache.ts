@@ -28,10 +28,15 @@ export const privateCacheDirective = (directiveName = 'privateCache') => ({
             let scope = 'PUBLIC' as 'PUBLIC' | 'PRIVATE'
             if (logged) {
               scope = 'PRIVATE'
-              maxAge = Math.min(
-                CACHE_TTL.PRIVATE_QUERY,
-                cacheControl.cacheHint.maxAge || 0
-              )
+
+              if (cacheControl.cacheHint.maxAge) {
+                maxAge = Math.min(
+                  CACHE_TTL.PRIVATE_QUERY,
+                  cacheControl.cacheHint.maxAge
+                )
+              } else {
+                maxAge = CACHE_TTL.PRIVATE_QUERY
+              }
             } else if (grouped) {
               scope = 'PRIVATE'
             }

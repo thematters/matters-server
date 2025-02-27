@@ -30,17 +30,13 @@ jobs:
         image: redis
         ports:
           - 6379:6379
-      ipfs:
-        image: ipfs/go-ipfs:v0.14.0
-        ports:
-          - 5001:5001
       stripe:
         image: stripemock/stripe-mock:latest
         ports:
           - 12111:12111
           - 12112:12112
       postgres:
-        image: postgres:12-alpine
+        image: postgres:15
         ports:
           - 5432:5432
         env:
@@ -168,7 +164,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR (develop)
         if: github.base_ref == 'develop'
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f docker/Dockerfile .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -206,7 +202,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR (stage)
         if: github.base_ref == 'stage'
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f docker/Dockerfile .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -273,7 +269,7 @@ jobs:
           ECR_REPOSITORY: matters-server
           IMAGE_TAG: prod
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f docker/Dockerfile .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Deploy to EB (production)

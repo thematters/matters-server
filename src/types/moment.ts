@@ -5,7 +5,7 @@ const POST_MOMENT_RATE_LIMIT = isProd ? 2 : 20
 
 export default /* GraphQL */ `
   extend type Query {
-    moment(input: MomentInput!): Moment
+    moment(input: MomentInput!): Moment @privateCache @logCache(type: "${NODE_TYPES.Moment}")
   }
   extend type Mutation {
     putMoment(input: PutMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit: ${POST_MOMENT_RATE_LIMIT}, period: 300) @logCache(type: "${NODE_TYPES.Moment}")

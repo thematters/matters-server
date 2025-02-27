@@ -63,30 +63,31 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       referralCode,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
-    if (codeVerifier === undefined || authorizationCode === undefined) {
-      throw new UserInputError(
-        'codeVerifier and authorizationCode are both required'
-      )
-    }
-    let userInfo: {
-      id: string
-      username: string
-    }
-    if (isE2ETest) {
-      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
-    } else {
-      userInfo = await userService.fetchFacebookUserInfo(
-        authorizationCode,
-        codeVerifier
-      )
-    }
-    user = await userService.getOrCreateUserBySocialAccount({
-      providerAccountId: userInfo.id,
-      type: SOCIAL_LOGIN_TYPE.Facebook,
-      userName: userInfo.username,
-      language: language || viewer.language,
-      referralCode,
-    })
+    throw new UserInputError('Facebook login is not supported')
+    // if (codeVerifier === undefined || authorizationCode === undefined) {
+    //   throw new UserInputError(
+    //     'codeVerifier and authorizationCode are both required'
+    //   )
+    // }
+    // let userInfo: {
+    //   id: string
+    //   username: string
+    // }
+    // if (isE2ETest) {
+    //   userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+    // } else {
+    //   userInfo = await userService.fetchFacebookUserInfo(
+    //     authorizationCode,
+    //     codeVerifier
+    //   )
+    // }
+    // user = await userService.getOrCreateUserBySocialAccount({
+    //   providerAccountId: userInfo.id,
+    //   type: SOCIAL_LOGIN_TYPE.Facebook,
+    //   userName: userInfo.username,
+    //   language: language || viewer.language,
+    //   referralCode,
+    // })
   } else {
     if (nonce === undefined || authorizationCode === undefined) {
       throw new UserInputError('nonce and authorizationCode is required')

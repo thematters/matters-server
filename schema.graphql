@@ -236,9 +236,6 @@ type Mutation {
 
   """Update referralCode of a user, used in OSS."""
   updateUserExtra(input: UpdateUserExtraInput!): User!
-
-  """Update state of a user, used in OSS."""
-  refreshIPNSFeed(input: RefreshIPNSFeedInput!): User!
   toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]!
   unbindLikerId(input: UnbindLikerIdInput!): User!
 
@@ -808,6 +805,7 @@ input PutWritingChallengeInput {
   writingPeriod: DatetimeRangeInput
   stages: [CampaignStageInput!]
   state: CampaignState
+  featuredDescription: [TranslationInput!]
 }
 
 input ApplyCampaignInput {
@@ -878,6 +876,7 @@ type WritingChallenge implements Node & Campaign {
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
   application: CampaignApplication
+  featuredDescription(input: TranslationArgs): String!
   oss: CampaignOSS!
 }
 
@@ -2527,7 +2526,8 @@ type Recommendation {
 }
 
 input ChannelArticlesInput {
-  channelId: ID!
+  channelId: ID
+  shortHash: String
   after: String
   first: Int
 }

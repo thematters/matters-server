@@ -15,6 +15,6 @@ export const QUEUE_URL = {
   mail: environment?.awsMailQueueUrl,
   expressMail: environment?.awsExpressMailQueueUrl,
 
-  // IPNS
-  ipnsUserPublication: environment?.awsIpnsUserPublicationQueueUrl,
+  // ipfs
+  ipfsPublication: environment?.awsIpfsPublicationQueueUrl,
 } as const

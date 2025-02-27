@@ -6,19 +6,15 @@ import type {
   ArticleVersion,
   ArticleBoost,
   Connections,
-  User,
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import {
-  ArticlePageContext,
-  makeArticlePage,
-  makeSummary,
-} from '@matters/ipns-site-generator'
+import { makeSummary } from '@matters/ipns-site-generator'
 import { html2md } from '@matters/matters-editor/transformers'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import { difference, isEqual, uniq } from 'lodash'
+import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
 
 import {
@@ -40,14 +36,12 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
-  QUEUE_URL,
   USER_FEATURE_FLAG_TYPE,
+  QUEUE_URL,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ArticleNotFoundError,
-  ServerError,
-  NetworkError,
   ForbiddenError,
   ActionLimitExceededError,
   ActionFailedError,
@@ -58,8 +52,6 @@ import {
 import { getLogger } from 'common/logger'
 import {
   countWords,
-  s2tConverter,
-  t2sConverter,
   shortHash,
   normalizeSearchKey,
   genMD5,
@@ -67,9 +59,7 @@ import {
 } from 'common/utils'
 import {
   BaseService,
-  ipfsServers,
   SystemService,
-  UserService,
   UserWorkService,
   TagService,
   NotificationService,
@@ -77,6 +67,7 @@ import {
   GCP,
   SpamDetector,
   ChannelService,
+  aws,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -85,12 +76,10 @@ const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
-  private ipfsServers: typeof ipfsServers
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
   public constructor(connections: Connections) {
     super('article', connections)
-    this.ipfsServers = ipfsServers
 
     const batchFn = async (
       keys: readonly string[]
@@ -552,26 +541,13 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._detectSpam(
-        {
-          id: article.id,
-          title,
-          content,
-          summary: summaryCustomized ? _summary : undefined,
-        },
-        undefined,
-        // infer article channels if not spam
-        async (score) => {
-          const systemService = new SystemService(this.connections)
-          const channelService = new ChannelService(this.connections)
-          const spamThreshold = await systemService.getSpamThreshold()
-          if (!spamThreshold || score < spamThreshold) {
-            return channelService.classifyArticlesChannels({
-              ids: [article.id],
-            })
-          }
-        }
-      )
+      this._postArticleCreation({
+        articleId: article.id,
+        articleVersionId: articleVersion.id,
+        title,
+        content,
+        summary: summaryCustomized ? _summary : undefined,
+      })
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -757,8 +733,9 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (newData.content) {
-      this._detectSpam({
-        id: articleId,
+      this._postArticleCreation({
+        articleId,
+        articleVersionId: articleVersion.id,
         title: articleVersion.title,
         content: newData.content,
         summary: articleVersion.summaryCustomized
@@ -866,183 +843,6 @@ export class ArticleService extends BaseService<Article> {
     this.baseFind({
       where: { authorId, pinned: true, state: ARTICLE_STATE.active },
     })
-
-  /*********************************
-   *                               *
-   *           IPFS                *
-   *                               *
-   *********************************/
-  /**
-   * Publish draft data to IPFS
-   */
-  public publishToIPFS = async (
-    article: Article,
-    articleVersion: ArticleVersion,
-    content: string
-  ) => {
-    const systemService = new SystemService(this.connections)
-
-    // prepare metadata
-    const { id, title, summary, cover, tags, circleId, access, createdAt } =
-      articleVersion
-    const author = (await this.models.userIdLoader.load(
-      article.authorId
-    )) as User
-    const {
-      // avatar,
-      displayName,
-      userName,
-      paymentPointer,
-      ensName,
-    } = author
-    if (!userName || !displayName) {
-      throw new ServerError('userName or displayName is missing')
-    }
-    const [
-      // userImg,
-      articleCoverImg,
-      ipnsKeyRec,
-    ] = await Promise.all([
-      // avatar && (await systemService.findAssetUrl(avatar)),
-      cover && (await systemService.findAssetUrl(cover)),
-      this.models.findFirst({
-        table: 'user_ipns_keys',
-        where: { userId: article.authorId },
-      }),
-    ])
-    const ipnsKey = ipnsKeyRec?.ipnsKey
-
-    const publishedAt = createdAt.toISOString()
-    const context: ArticlePageContext = {
-      encrypted: false,
-      meta: {
-        title: `${title} - ${displayName} (${userName})`,
-        description: summary,
-        authorName: displayName,
-        image: articleCoverImg ?? undefined,
-      },
-      byline: {
-        date: publishedAt,
-        author: {
-          name: `${displayName} (${userName})`,
-          userName,
-          displayName,
-          uri: `https://${environment.siteDomain}/@${userName}`,
-          ipnsKey: ensName && ipnsKey ? ipnsKey : undefined,
-        },
-        website: {
-          name: 'Matters',
-          uri: 'https://' + environment.siteDomain,
-        },
-      },
-      rss: ipnsKey
-        ? {
-            xml: '../rss.xml',
-            json: '../feed.json',
-          }
-        : undefined,
-      article: {
-        id,
-        author: {
-          userName,
-          displayName,
-        },
-        title,
-        summary,
-        date: publishedAt,
-        content,
-        tags: tags?.map((t: string) => t.trim()).filter(Boolean) || [],
-      },
-    }
-
-    // paywalled content
-    if (circleId && access === ARTICLE_ACCESS_TYPE.paywall) {
-      context.encrypted = true
-    }
-
-    // payment pointer
-    if (paymentPointer) {
-      context.paymentPointer = paymentPointer
-    }
-
-    // make bundle and add content to ipfs
-    const directoryName = 'article'
-    const { bundle, key } = await makeArticlePage(context)
-
-    let ipfs = this.ipfsServers.client
-    let retries = 0
-
-    do {
-      try {
-        const results = []
-        for await (const result of ipfs.addAll(
-          bundle
-            .filter((file): file is NonNullable<typeof file> => !!file)
-            .map((file) => ({
-              ...file,
-              path: `${directoryName}/${file.path}`,
-            }))
-        )) {
-          results.push(result)
-        }
-
-        // filter out the hash for the bundle
-        let entry = results.filter(
-          ({ path }: { path: string }) => path === directoryName
-        )
-
-        // FIXME: fix missing bundle path and remove fallback logic
-        // fallback to index file when no bundle path is matched
-        if (entry.length === 0) {
-          entry = results.filter(({ path }: { path: string }) =>
-            path.endsWith('index.html')
-          )
-        }
-
-        const contentHash = entry[0].cid.toString()
-        const mediaHash = entry[0].cid.toV1().toString() // cid.toV1().toString() // cid.toBaseEncodedString()
-        return { contentHash, mediaHash, key }
-      } catch (err) {
-        // if the active IPFS client throws exception, try a few more times on Secondary
-        logger.error(
-          `publishToIPFS failed, retries ${++retries} time, ERROR:`,
-          err
-        )
-        ipfs = this.ipfsServers.backupClient
-      }
-    } while (ipfs && retries <= this.ipfsServers.size) // break the retry if there's no backup
-
-    // re-fill dataHash & mediaHash later in IPNS-listener
-    logger.error(`failed publishToIPFS after ${retries} retries.`)
-    throw new NetworkError('failed publishToIPFS')
-  }
-
-  public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
-    const userService = new UserService(this.connections)
-
-    try {
-      // skip if no ENS name
-      const ensName = await userService.findEnsName(userName)
-      if (!ensName) {
-        return
-      }
-
-      const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
-      if (!ipnsKeyRec) {
-        // cannot do anything if no IPNS key
-        logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
-        return
-      }
-
-      this.aws.sqsSendMessage({
-        messageBody: { userName, useMattersIPNS: true },
-        queueUrl: QUEUE_URL.ipnsUserPublication,
-      })
-    } catch (error) {
-      logger.error('publishFeedToIPNS ERROR: %o', error)
-      return
-    }
-  }
 
   /**
    * Archive article
@@ -1283,8 +1083,8 @@ export class ArticleService extends BaseService<Article> {
     skip?: number
     filter?: GQLSearchFilter
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
-    const keySimplified = await t2sConverter.convertPromise(key)
-    const keyTraditional = await s2tConverter.convertPromise(key)
+    const keySimplified = simplecc(key, 't2s')
+    const keyTraditional = simplecc(key, 's2t')
     // const systemService = new SystemService(this.connections)
     // const spamThreshold = await systemService.getSpamThreshold()
     const q = this.knexRO('article')
@@ -1697,7 +1497,7 @@ export class ArticleService extends BaseService<Article> {
     take?: number
     skip?: number
   }) =>
-    this.knex('article_connection')
+    this.knexRO('article_connection')
       .select('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId, state: ARTICLE_STATE.active })
@@ -2408,7 +2208,7 @@ export class ArticleService extends BaseService<Article> {
   public detectSpam = async (
     id: string,
     spamDetector?: SpamDetector,
-    callback?: (score: number) => Promise<void>
+    callback?: (score: number | null) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const { title, summary, summaryCustomized } =
@@ -2429,7 +2229,7 @@ export class ArticleService extends BaseService<Article> {
       summary,
     }: { id: string; title: string; content: string; summary?: string },
     spamDetector?: SpamDetector,
-    callback?: (score: number) => Promise<void>
+    callback?: (score: number | null) => Promise<void>
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const text = summary
@@ -2437,13 +2237,53 @@ export class ArticleService extends BaseService<Article> {
       : title + '\n' + content
     const score = await detector.detect(text)
     logger.info(`Spam detection for article ${id}: ${score}`)
+
     if (score) {
       await this.models.update({
         table: 'article',
         where: { id },
         data: { spamScore: score },
       })
-      callback?.(score)
     }
+
+    callback?.(score)
+  }
+
+  private _postArticleCreation = async ({
+    articleId,
+    articleVersionId,
+    title,
+    content,
+    summary,
+  }: {
+    articleId: string
+    articleVersionId: string
+    title: string
+    content: string
+    summary?: string
+  }) => {
+    this._detectSpam(
+      { id: articleId, title, content, summary },
+      undefined,
+      async (score) => {
+        const systemService = new SystemService(this.connections)
+        const channelService = new ChannelService(this.connections)
+        const spamThreshold = await systemService.getSpamThreshold()
+        const isSpam = spamThreshold && score && score >= spamThreshold
+
+        if (isSpam) {
+          return
+        }
+
+        // infer article channels if not spam
+        channelService.classifyArticlesChannels({ ids: [articleId] })
+
+        // trigger IPFS publication
+        aws.sqsSendMessage({
+          messageBody: { articleId, articleVersionId },
+          queueUrl: QUEUE_URL.ipfsPublication,
+        })
+      }
+    )
   }
 }

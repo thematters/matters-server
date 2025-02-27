@@ -2,7 +2,6 @@
 .git
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
-.git
 .gitignore
 .github
 .vscode

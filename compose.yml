@@ -1,27 +1,23 @@
-version: '3'
-
 services:
   app:
     container_name: api
     image: matters-server:latest
     build:
-      context: ../
-      dockerfile: docker/Dockerfile
+      context: .
     command: ['npm', 'run', 'start:dev']
-    env_file: ../.env
+    env_file: .env
     volumes:
-      - ..:/var/app
+      - .:/var/app
       - /var/app/node_modules
     depends_on:
       - db
       - redis
       - s3
-      - ipfs
       - stripe
     ports:
       - '4000:4000'
   db:
-    image: postgres:12
+    image: postgres:15
     container_name: db
     environment:
       - POSTGRES_DB=matters-dev
@@ -41,13 +37,6 @@ services:
     image: lphoward/fake-s3
     ports:
       - '4569:4569'
-  ipfs:
-    container_name: ipfs
-    image: ipfs/go-ipfs:v0.14.0
-    ports:
-      - '8080:8080'
-      - '4001:4001'
-      - '5001:5001'
   stripe:
     container_name: stripe
     image: stripemock/stripe-mock:latest

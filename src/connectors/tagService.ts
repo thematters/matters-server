@@ -474,7 +474,7 @@ export class TagService extends BaseService<Tag> {
    *********************************/
 
   public findBoost = async (tagId: string) => {
-    const tagBoost = await this.knex('tag_boost')
+    const tagBoost = await this.knexRO('tag_boost')
       .select()
       .where({ tagId })
       .first()
@@ -494,7 +494,7 @@ export class TagService extends BaseService<Tag> {
     })
 
   public findScore = async (tagId: string) => {
-    const tag = await this.knex('tag_count_view')
+    const tag = await this.knexRO('tag_count_view')
       .select()
       .where({ id: tagId })
       .first()
@@ -581,10 +581,10 @@ export class TagService extends BaseService<Tag> {
    * Count article authors by a given tag id.
    */
   public countAuthors = async ({ id: tagId }: { id: string }) => {
-    const result = await this.knex('article_tag')
+    const result = await this.knexRO('article_tag')
       .join('article', 'article_id', 'article.id')
-      .countDistinct('author_id')
       .where({ tagId, state: ARTICLE_STATE.active })
+      .countDistinct('author_id')
       .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -596,9 +596,9 @@ export class TagService extends BaseService<Tag> {
   public countArticles = async ({ id: tagId }: { id: string }) => {
     const result = await this.knexRO('article_tag')
       .join('article', 'article_id', 'article.id')
+      .where({ tagId, state: ARTICLE_STATE.active })
       .countDistinct('article_id')
       .first()
-      .where({ tagId, state: ARTICLE_STATE.active })
 
     return parseInt(result ? (result.count as string) : '0', 10)
   }
@@ -651,7 +651,7 @@ export class TagService extends BaseService<Tag> {
     skip?: number
     take?: number
   }) => {
-    const hasHottest = await this.knex(
+    const hasHottest = await this.knexRO(
       MATERIALIZED_VIEW.tag_hottest_materialized
     )
       .where({ tagId })
@@ -678,7 +678,7 @@ export class TagService extends BaseService<Tag> {
   }
 
   public countHottestArticles = async ({ id: tagId }: { id: string }) => {
-    const hasHottest = await this.knex(
+    const hasHottest = await this.knexRO(
       MATERIALIZED_VIEW.tag_hottest_materialized
     )
       .where({ tagId })

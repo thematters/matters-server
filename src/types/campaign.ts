@@ -2,8 +2,8 @@ import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    campaign(input: CampaignInput!): Campaign @logCache(type: "${NODE_TYPES.Campaign}")
-    campaigns(input: CampaignsInput!): CampaignConnection!
+    campaign(input: CampaignInput!): Campaign @privateCache @logCache(type: "${NODE_TYPES.Campaign}")
+    campaigns(input: CampaignsInput!): CampaignConnection! @privateCache
   }
 
   extend type Mutation {
@@ -35,6 +35,7 @@ export default /* GraphQL */ `
     writingPeriod: DatetimeRangeInput
     stages: [CampaignStageInput!]
     state: CampaignState
+    featuredDescription: [TranslationInput!]
   }
 
   input ApplyCampaignInput {
@@ -108,6 +109,8 @@ export default /* GraphQL */ `
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!
 
     application: CampaignApplication @privateCache
+
+    featuredDescription(input: TranslationArgs): String!
 
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }

@@ -10,6 +10,7 @@ import boost from './boost'
 import campaign from './campaign'
 import campaigns from './campaigns'
 import description from './description'
+import featuredDescription from './featuredDescription'
 import name from './name'
 import participants from './participants'
 import stageDescription from './stage/description'
@@ -29,6 +30,7 @@ const schema: GQLResolvers = {
     shortHash: ({ shortHash }) => shortHash,
     name,
     description,
+    featuredDescription,
     announcements,
     cover: ({ cover }, _, { dataSources: { systemService } }) =>
       cover ? systemService.findAssetUrl(cover) : null,

@@ -1,0 +1,14 @@
+const table = 'campaign'
+const column = 'featured_description'
+
+exports.up = async (knex) => {
+  await knex.schema.table(table, (t) => {
+    t.text(column).notNullable().defaultTo('')
+  })
+}
+
+exports.down = async (knex) => {
+  await knex.schema.table(table, (t) => {
+    t.dropColumn(column)
+  })
+}

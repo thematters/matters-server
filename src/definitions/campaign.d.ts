@@ -12,6 +12,7 @@ export interface Campaign {
   type: ValueOf<typeof CAMPAIGN_TYPE>
   name: string
   description: string | null
+  featuredDescription: string
   link: string | null
   cover: string | null
   applicationPeriod: string | null
@@ -27,6 +28,7 @@ export interface CampaignStage {
   campaignId: string
   name: string
   description: string
+  featuredDescription: string
   period: string | null
   createdAt: Date
   updatedAt: Date

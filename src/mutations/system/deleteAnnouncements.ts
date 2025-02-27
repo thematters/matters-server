@@ -1,12 +1,15 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import { NODE_TYPES } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['deleteAnnouncements'] = async (
   _,
   { input: { ids } },
-  { dataSources: { atomService } }
+  { dataSources: { atomService, connections } }
 ) => {
   const table = 'announcement'
 
@@ -25,6 +28,16 @@ const resolver: GQLMutationResolvers['deleteAnnouncements'] = async (
     table,
     whereIn: ['id', itemIds],
   })
+
+  // purge deleted announcements
+  await Promise.all(
+    itemIds.map((id) =>
+      invalidateFQC({
+        node: { type: NODE_TYPES.Announcement, id },
+        redis: connections.redis,
+      })
+    )
+  )
 
   return true
 }

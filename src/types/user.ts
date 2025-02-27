@@ -102,9 +102,6 @@ export default /* GraphQL */ `
     "Update referralCode of a user, used in OSS."
     updateUserExtra(input: UpdateUserExtraInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Update state of a user, used in OSS."
-    refreshIPNSFeed(input: RefreshIPNSFeedInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
-
     toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     unbindLikerId(input: UnbindLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -236,7 +233,8 @@ export default /* GraphQL */ `
 
 
   input ChannelArticlesInput {
-    channelId: ID!
+    channelId: ID
+    shortHash: String
     after: String
     first: Int @constraint(min: 0)
   }

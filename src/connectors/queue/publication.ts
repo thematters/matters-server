@@ -2,7 +2,6 @@ import type { CustomQueueOpts } from './utils'
 import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   Connections,
-  UserOAuthLikeCoin,
   Article,
   ArticleVersion,
   ArticleConnection,
@@ -21,7 +20,6 @@ import {
   METRICS_NAMES,
   MINUTE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { normalizeTagInput, extractMentionIds } from 'common/utils'
 import {
@@ -94,7 +92,6 @@ export class PublicationQueue {
     done
   ) => {
     const articleService = new ArticleService(this.connections)
-    const userService = new UserService(this.connections)
     const systemService = new SystemService(this.connections)
     const notificationService = new NotificationService(this.connections)
     const atomService = new AtomService(this.connections)
@@ -132,9 +129,7 @@ export class PublicationQueue {
 
     await job.progress(30)
 
-    let tags: string[] = []
     // Note: the following steps won't affect the publication.
-    // Section1: update local DB related
     try {
       // Step 4: handle collection, circles, tags & mentions
       await this.handleConnections(article, articleVersion)
@@ -147,7 +142,7 @@ export class PublicationQueue {
       })
       await job.progress(45)
 
-      tags = await this.handleTags({ article, articleVersion })
+      await this.handleTags({ article, articleVersion })
       await job.progress(50)
 
       await this.handleMentions({ article, content: draft.content })
@@ -205,103 +200,11 @@ export class PublicationQueue {
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
     })
 
-    // Step 8: invalidate user cache
+    // Step 8: invalidate cache
     invalidateFQC({
       node: { type: NODE_TYPES.User, id: article.authorId },
       redis: this.connections.redis,
     })
-
-    // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
-    const author = await atomService.userIdLoader.load(article.authorId)
-    let dataHash
-    let mediaHash
-    try {
-      // publish content to IPFS
-      const {
-        contentHash,
-        mediaHash: _mediaHash,
-        key,
-      } = await articleService.publishToIPFS(
-        article,
-        articleVersion,
-        draft.content
-      )
-      dataHash = contentHash
-      mediaHash = _mediaHash
-
-      await job.progress(80)
-      await atomService.update({
-        table: 'article_version',
-        data: {
-          dataHash,
-          mediaHash,
-        },
-        where: { id: articleVersion.id },
-      })
-
-      if (key && articleVersion.circleId) {
-        const data = {
-          articleId: article.id,
-          circleId: articleVersion.circleId,
-          // secret: key,
-        }
-
-        await atomService.update({
-          table: 'article_circle',
-          where: data,
-          data: {
-            ...data,
-            secret: key,
-            access: articleVersion.access,
-          },
-        })
-      }
-
-      // Step: iscn publishing
-      // handling both cases of set to true or false, but not omit (undefined)
-      if (iscnPublish || draft.iscnPublish != null) {
-        const liker = (await userService.findLiker({
-          userId: article.authorId,
-        })) as UserOAuthLikeCoin
-        const cosmosWallet = await userService.likecoin.getCosmosWallet({
-          liker,
-        })
-
-        const { displayName, userName } = author
-        const iscnId = await userService.likecoin.iscnPublish({
-          mediaHash: `hash://sha256/${mediaHash}`,
-          ipfsHash: `ipfs://${dataHash}`,
-          cosmosWallet,
-          userName: `${displayName} (@${userName})`,
-          title: articleVersion.title,
-          description: articleVersion.summary,
-          datePublished: article.createdAt?.toISOString().substring(0, 10),
-          url: `https://${environment.siteDomain}/a/${article.shortHash}`,
-          tags,
-          liker,
-        })
-
-        await atomService.update({
-          table: 'article_version',
-          where: { id: article.id },
-          data: { iscnId },
-        })
-      }
-      await job.progress(90)
-
-      if (author.userName) {
-        await articleService.publishFeedToIPNS({ userName: author.userName })
-      }
-
-      await job.progress(95)
-    } catch (err) {
-      // ignore errors caused by these steps
-      logger.warn(
-        'job IPFS optional step failed (will retry async later in listener):',
-        { err, jobId: job.id, draftId: draft.id }
-      )
-    }
-    // invalidate article cache
     invalidateFQC({
       node: { type: NODE_TYPES.Article, id: article.id },
       redis: this.connections.redis,
@@ -325,10 +228,7 @@ export class PublicationQueue {
     done(null, {
       articleId: article.id,
       draftId: draft.id,
-      dataHash: dataHash,
-      mediaHash: mediaHash,
       iscnPublish: iscnPublish || draft.iscnPublish,
-      iscnId: articleVersion.iscnId,
     })
   }
 
