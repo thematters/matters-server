@@ -1497,7 +1497,7 @@ export class ArticleService extends BaseService<Article> {
     take?: number
     skip?: number
   }) =>
-    this.knex('article_connection')
+    this.knexRO('article_connection')
       .select('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId, state: ARTICLE_STATE.active })
