@@ -27,6 +27,7 @@ import donations from './donations'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
 import indentFirstLine from './indentFirstLine'
+import iscnId from './iscnId'
 import language from './language'
 import license from './license'
 import mediaHash from './mediaHash'
@@ -96,6 +97,7 @@ const schema: GQLResolvers = {
     relatedDonationArticles,
     remark,
     slug,
+    iscnId,
     sensitiveByAuthor,
     dataHash,
     mediaHash,
