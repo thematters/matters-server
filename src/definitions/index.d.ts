@@ -153,7 +153,8 @@ export interface Connections {
   knex: Knex
   knexRO: Knex
   knexSearch: Knex
-  redis: Redis | Cluster
+  redis: Redis
+  objectCacheRedis: Redis
 }
 
 export interface DataSources {

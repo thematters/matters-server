@@ -285,7 +285,7 @@ describe('updateLastSeen', () => {
   test('caching', async () => {
     const cacheService = new CacheService(
       CACHE_PREFIX.USER_LAST_SEEN,
-      connections.redis
+      connections.objectCacheRedis
     )
     const cacheGet = async (_id: string) =>
       // @ts-ignore
