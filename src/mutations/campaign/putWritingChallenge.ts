@@ -163,6 +163,15 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       campaign.id,
       announcementIds ?? []
     )
+
+    await Promise.all(
+      announcementIds.map((articleId) =>
+        invalidateFQC({
+          node: { type: NODE_TYPES.Article, id: articleId },
+          redis,
+        })
+      )
+    )
   }
 
   // create or update translations
