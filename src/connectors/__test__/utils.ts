@@ -51,6 +51,7 @@ export const genConnections = async (): Promise<Connections> => {
       ...knexSnakeCaseMappers(),
     }),
     redis: new Redis(),
+    objectCacheRedis: new Redis(),
   }
 }
 

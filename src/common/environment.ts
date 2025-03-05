@@ -87,10 +87,10 @@ export const environment = {
 
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
-  cacheClusterHost: process.env.MATTERS_CACHE_CLUSTER_HOST || '',
-  cacheClusterPort: (process.env.MATTERS_CACHE_CLUSTER_PORT || 6379) as number,
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
+  objectCacheHost: process.env.MATTERS_OBJECT_CACHE_HOST as string,
+  objectCachePort: (process.env.MATTERS_OBJECT_CACHE_PORT || 6379) as number,
   mattyId: process.env.MATTERS_MATTY_ID || '',
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,

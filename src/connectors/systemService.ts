@@ -165,7 +165,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
   public getSpamThreshold: () => Promise<number | null> = async () => {
     const cacheService = new CacheService(
       CACHE_PREFIX.SPAM_THRESHOLD,
-      this.connections.redis
+      this.connections.objectCacheRedis
     )
     const value = (await cacheService.getObject({
       keys: { id: 'spam_threshold' },
@@ -192,7 +192,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
   public getArticleChannelThreshold = async (): Promise<number | null> => {
     const cacheService = new CacheService(
       CACHE_PREFIX.ARTICLE_CHANNEL_THRESHOLD,
-      this.connections.redis
+      this.connections.objectCacheRedis
     )
     const value = (await cacheService.getObject({
       keys: { id: 'article_channel_threshold' },

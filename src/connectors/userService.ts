@@ -460,7 +460,7 @@ export class UserService extends BaseService<User> {
     } else {
       const notificationService = new NotificationService(this.connections)
       if (user.email) {
-        const counter = new RatelimitCounter(this.redis)
+        const counter = new RatelimitCounter(this.objectCacheRedis)
         const count = await counter.increment(
           `${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${user.id}`
         )
@@ -482,7 +482,7 @@ export class UserService extends BaseService<User> {
   }
 
   public changeEmailTimes = async (userId: string) => {
-    const counter = new RatelimitCounter(this.redis)
+    const counter = new RatelimitCounter(this.objectCacheRedis)
     return counter.get(`${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${userId}`)
   }
 
@@ -2836,7 +2836,7 @@ export class UserService extends BaseService<User> {
   public updateLastSeen = async (id: string, threshold = HOUR) => {
     const cacheService = new CacheService(
       CACHE_PREFIX.USER_LAST_SEEN,
-      this.connections.redis
+      this.connections.objectCacheRedis
     )
     const _lastSeen = (await cacheService.getObject({
       keys: { id },
@@ -2869,7 +2869,7 @@ export class UserService extends BaseService<User> {
 
     const cacheService = new CacheService(
       CACHE_PREFIX.EMAIL_DOMAIL_WHITELIST,
-      this.connections.redis
+      this.connections.objectCacheRedis
     )
     const whiteListEmailDomain = (await cacheService.getObject({
       keys: { type: 'email_domain' },

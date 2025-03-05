@@ -1,5 +1,4 @@
 import type { Context } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
@@ -152,7 +151,7 @@ export const graphql = async (app: Express) => {
       channelService: new ChannelService(connections),
       openseaService: new OpenSeaService(),
       likecoin: new LikeCoin(connections),
-      exchangeRate: new ExchangeRate(connections.redis),
+      exchangeRate: new ExchangeRate(connections.objectCacheRedis),
       translationService: new TranslationService(connections),
       notificationService: new NotificationService(connections),
       connections,
@@ -204,7 +203,7 @@ export const graphql = async (app: Express) => {
         defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
       }),
       responseCachePlugin({
-        redis: connections.redis as Redis,
+        redis: connections.redis,
         sessionId: async ({ contextValue }) => {
           const viewerId = contextValue.viewer.id ?? ''
           const viewerGroup = contextValue.viewer.group ?? ''

@@ -47,6 +47,7 @@ const EXCHANGE_RATES_DATA_API_URL =
 export class ExchangeRate {
   cache: CacheService
   expire: number
+
   constructor(redis: Redis | Cluster) {
     this.cache = new CacheService('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
