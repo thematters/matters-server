@@ -2504,7 +2504,7 @@ type Recommendation {
   following(input: RecommendationFollowingInput!): FollowingActivityConnection!
 
   """Global articles sort by publish time."""
-  newest(input: ConnectionArgs!): ArticleConnection!
+  newest(input: RecommendationNewestInput!): ArticleConnection!
 
   """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
@@ -3357,6 +3357,14 @@ input RecommendationFollowingInput {
   first: Int
   after: String
   filter: RecommendationFollowingFilterInput
+}
+
+input RecommendationNewestInput {
+  after: String
+  first: Int
+  oss: Boolean
+  filter: FilterInput
+  excludeChannelArticles: Boolean
 }
 
 input RecommendationFollowingFilterInput {

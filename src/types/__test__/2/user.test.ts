@@ -290,10 +290,10 @@ const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
 `
 
 const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
-query($input: ConnectionArgs!) {
+query($first: first_Int_min_0) {
   viewer {
     recommendation {
-      ${list}(input: $input) {
+      ${list}(input: { first: $first }) {
         totalCount
         edges {
           node {
@@ -1014,7 +1014,7 @@ describe('user recommendations', () => {
 
       const { data, errors } = await serverNew.executeOperation({
         query: GET_VIEWER_RECOMMENDATION(list),
-        variables: { input: { first: 1 } },
+        variables: { first: 1 },
       })
       expect(errors).toBeUndefined()
       const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
