@@ -331,12 +331,14 @@ export class ArticleService extends BaseService<Article> {
     maxTake,
     oss,
     excludeSpam,
+    excludeChannelArticles,
   }: {
     skip: number
     take: number
     maxTake: number
     oss: boolean
     excludeSpam: boolean
+    excludeChannelArticles?: boolean
   }): Promise<Article[]> => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
@@ -352,7 +354,11 @@ export class ArticleService extends BaseService<Article> {
             'article_channel.article_id'
           )
           .where({ 'article.state': ARTICLE_STATE.active })
-          .whereNull('article_channel.article_id')
+          .modify((builder) => {
+            if (excludeChannelArticles) {
+              builder.whereNull('article_channel.article_id')
+            }
+          })
           .whereNotIn(
             'article.author_id',
             this.knexRO('user_restriction')

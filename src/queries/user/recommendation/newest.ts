@@ -9,7 +9,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   { input },
   { viewer, dataSources: { articleService } }
 ) => {
-  const { oss = false } = input
+  const { oss = false, excludeChannelArticles = false } = input
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
@@ -26,6 +26,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     maxTake: MAX_ITEM_COUNT,
     oss,
     excludeSpam: true,
+    excludeChannelArticles,
   })
 
   return connectionFromPromisedArray(

@@ -3050,7 +3050,7 @@ export type GQLRecommendationIcymiArgs = {
 }
 
 export type GQLRecommendationNewestArgs = {
-  input: GQLConnectionArgs
+  input: GQLRecommendationNewestInput
 }
 
 export type GQLRecommendationTagsArgs = {
@@ -3067,6 +3067,14 @@ export type GQLRecommendationFollowingInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLRecommendationFollowingFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
+}
+
+export type GQLRecommendationNewestInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  excludeChannelArticles?: InputMaybe<Scalars['Boolean']['input']>
+  filter?: InputMaybe<GQLFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
+  oss?: InputMaybe<Scalars['Boolean']['input']>
 }
 
 export type GQLRefreshIpnsFeedInput = {
@@ -4984,6 +4992,7 @@ export type GQLResolversTypes = ResolversObject<{
   RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput
   RecommendationFollowingFilterType: GQLRecommendationFollowingFilterType
   RecommendationFollowingInput: GQLRecommendationFollowingInput
+  RecommendationNewestInput: GQLRecommendationNewestInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
@@ -5544,6 +5553,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Recommendation: UserModel
   RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput
   RecommendationFollowingInput: GQLRecommendationFollowingInput
+  RecommendationNewestInput: GQLRecommendationNewestInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
