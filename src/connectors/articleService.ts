@@ -344,16 +344,22 @@ export class ArticleService extends BaseService<Article> {
       .select('article_set.*')
       .from(
         this.knexRO
-          .select('*')
+          .select('article.*')
           .from('article')
-          .where({ state: ARTICLE_STATE.active })
+          .leftJoin(
+            'article_channel',
+            'article.id',
+            'article_channel.article_id'
+          )
+          .where({ 'article.state': ARTICLE_STATE.active })
+          .whereNull('article_channel.article_id')
           .whereNotIn(
-            'author_id',
+            'article.author_id',
             this.knexRO('user_restriction')
               .select('user_id')
               .where('type', 'articleNewest')
           )
-          .orderBy('id', 'desc')
+          .orderBy('article.id', 'desc')
           .limit(maxTake * 2) // add some extra to cover excluded ones in settings
           .as('article_set')
       )
