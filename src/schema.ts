@@ -49,7 +49,6 @@ const idResolver = (type: string, result: any) => {
     const { id } = fromGlobalId(result?.id)
     return id
   } catch (error) {
-    console.error(error)
     return result.id
   }
 }
