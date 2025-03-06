@@ -1,4 +1,4 @@
-import type { GQLUserSettingsResolvers } from 'definitions/index.js'
+import type { GQLUserSettingsResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserSettingsResolvers['notification'] = async (
   { id, email },

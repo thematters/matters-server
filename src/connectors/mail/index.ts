@@ -1,8 +1,6 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+import { QUEUE_URL } from '#common/enums/index.js'
+import { aws } from '#connectors/index.js'
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail.js'
-
-import { QUEUE_URL } from 'common/enums/index.js'
-import { aws } from 'connectors/index.js'
 
 class MailService {
   private aws: typeof aws

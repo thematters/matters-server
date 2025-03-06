@@ -1,4 +1,4 @@
-import type { GQLLikerResolvers } from 'definitions/index.js'
+import type { GQLLikerResolvers } from '#definitions/index.js'
 
 const resolver: GQLLikerResolvers['civicLiker'] = async (
   { id },

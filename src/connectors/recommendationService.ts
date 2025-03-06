@@ -1,4 +1,4 @@
-import type { Connections, Article } from 'definitions/index.js'
+import type { Connections, Article } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
@@ -6,12 +6,12 @@ import {
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   UserInputError,
   EntityNotFoundError,
   ActionFailedError,
-} from 'common/errors.js'
+} from '#common/errors.js'
 
 import { AtomService } from './atomService.js'
 

@@ -1,6 +1,6 @@
-import type { GQLQueryResolvers } from 'definitions/index.js'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { CIRCLE_STATE } from 'common/enums/index.js'
+import { CIRCLE_STATE } from '#common/enums/index.js'
 
 const resolver: GQLQueryResolvers['circle'] = async (
   _,

@@ -1,6 +1,6 @@
-import type { GQLTagResolvers } from 'definitions/index.js'
+import type { GQLTagResolvers } from '#definitions/index.js'
 
-import { TAG_ACTION } from 'common/enums/index.js'
+import { TAG_ACTION } from '#common/enums/index.js'
 
 const resolver: GQLTagResolvers['isFollower'] = async (
   { id },

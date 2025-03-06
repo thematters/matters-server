@@ -1,20 +1,19 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   COMMENT_STATE,
   COMMENT_TYPE,
   NODE_TYPES,
   USER_STATE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
   CommentNotFoundError,
-} from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['deleteComment'] = async (
   _,

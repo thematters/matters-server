@@ -1,6 +1,6 @@
-import type { GQLCircleResolvers } from 'definitions/index.js'
+import type { GQLCircleResolvers } from '#definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
+import { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 
 const resolver: GQLCircleResolvers['pinnedBroadcast'] = async (
   { id },

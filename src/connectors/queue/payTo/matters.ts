@@ -1,8 +1,5 @@
+import type { Connections, EmailableUser } from '#definitions/index.js'
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections, EmailableUser } from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import _capitalize from 'lodash/capitalize.js'
 
 import {
   NODE_TYPES,
@@ -11,10 +8,12 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
   TRANSACTION_STATE,
-} from 'common/enums/index.js'
-import { PaymentQueueJobDataError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
-import { PaymentService, UserService, AtomService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { PaymentQueueJobDataError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { PaymentService, UserService, AtomService } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import _capitalize from 'lodash/capitalize.js'
 
 import { getOrCreateQueue } from '../utils.js'
 

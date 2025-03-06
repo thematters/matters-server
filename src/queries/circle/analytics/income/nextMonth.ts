@@ -1,11 +1,11 @@
-import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions/index.js'
+import type { GQLCircleIncomeAnalyticsResolvers } from '#definitions/index.js'
 
 import {
   INVITATION_STATE,
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 const resolver: GQLCircleIncomeAnalyticsResolvers['nextMonth'] = async (
   { id },

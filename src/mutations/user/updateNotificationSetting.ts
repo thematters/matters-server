@@ -1,5 +1,5 @@
-import { AuthenticationError, ForbiddenError } from 'common/errors.js'
-import { GQLMutationResolvers } from 'definitions/index.js'
+import { AuthenticationError, ForbiddenError } from '#common/errors.js'
+import { GQLMutationResolvers } from '#definitions/index.js'
 
 const resolver: GQLMutationResolvers['updateNotificationSetting'] = async (
   _,

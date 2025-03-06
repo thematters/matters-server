@@ -1,14 +1,13 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import * as cheerio from 'cheerio'
-import getStream from 'get-stream'
-
-import { UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums/index.js'
+import { UPLOAD_MIGRATION_SIZE_LIMIT } from '#common/enums/index.js'
 import {
   ForbiddenError,
   MigrationReachLimitError,
   UserInputError,
-} from 'common/errors.js'
+} from '#common/errors.js'
+import * as cheerio from 'cheerio'
+import getStream from 'get-stream'
 
 const resolver: GQLMutationResolvers['migration'] = async (
   _,

@@ -1,8 +1,7 @@
+import { CACHE_PREFIX } from '#common/enums/index.js'
+import { CacheService } from '#connectors/index.js'
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
-
-import { CACHE_PREFIX } from 'common/enums/index.js'
-import { CacheService } from 'connectors/index.js'
 
 export const objectCacheDirective = (directiveName = 'objectCache') => ({
   typeDef: `directive @${directiveName}(maxAge: Int = 1000) on FIELD_DEFINITION`,

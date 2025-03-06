@@ -1,7 +1,7 @@
 import type {
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 export interface VerificationCode {
   id: string

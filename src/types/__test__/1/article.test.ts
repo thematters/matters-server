@@ -1,4 +1,4 @@
-import type { Connections, Article } from 'definitions/index.js'
+import type { Connections, Article } from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
 import _omit from 'lodash/omit.js'
@@ -12,15 +12,15 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   CAMPAIGN_STATE,
-} from 'common/enums/index.js'
-import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
   PaymentService,
   UserService,
   CampaignService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 
 import {
   publishArticle,

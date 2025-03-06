@@ -1,4 +1,4 @@
-import { isValidTransactionHash, isValidUserName } from 'common/utils/index.js'
+import { isValidTransactionHash, isValidUserName } from '#common/utils/index.js'
 
 test('isValidTransactionHash', async () => {
   const badTxHash1 = 'badTxHash'

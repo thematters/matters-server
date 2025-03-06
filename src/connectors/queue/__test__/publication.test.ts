@@ -1,13 +1,13 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
   ARTICLE_STATE,
   PUBLISH_STATE,
   CAMPAIGN_STATE,
-} from 'common/enums/index.js'
-import { AtomService, CampaignService } from 'connectors/index.js'
-import { PublicationQueue } from 'connectors/queue/index.js'
+} from '#common/enums/index.js'
+import { AtomService, CampaignService } from '#connectors/index.js'
+import { PublicationQueue } from '#connectors/queue/index.js'
 
 import { genConnections, closeConnections } from '../../__test__/utils.js'
 

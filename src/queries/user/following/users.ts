@@ -1,10 +1,10 @@
-import type { GQLFollowingResolvers } from 'definitions/index.js'
+import type { GQLFollowingResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLFollowingResolvers['users'] = async (
   { id },

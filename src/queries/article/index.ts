@@ -1,7 +1,7 @@
-import type { GQLResolvers } from 'definitions/index.js'
+import type { GQLResolvers } from '#definitions/index.js'
 
-import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import * as articleAccess from './access/index.js'
 import appreciateLeft from './appreciateLeft.js'

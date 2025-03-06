@@ -1,7 +1,7 @@
-import type { GQLQueryResolvers } from 'definitions/index.js'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { ForbiddenError } from 'common/errors.js'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
+import { ForbiddenError } from '#common/errors.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
 const resolver: GQLQueryResolvers['campaigns'] = async (
   _,

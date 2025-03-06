@@ -3,7 +3,7 @@ const topicMaterialized = 'article_count_materialized'
 
 exports.up = async (knex) => {
   // topic
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
   drop view ${topicView} cascade;
 
   CREATE VIEW ${topicView} AS

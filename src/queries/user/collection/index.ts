@@ -1,7 +1,7 @@
-import type { GQLCollectionResolvers } from 'definitions/index.js'
+import type { GQLCollectionResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import articles from './articles.js'
 import author from './author.js'

@@ -1,5 +1,47 @@
-import type { Context } from 'definitions/index.js'
+import type { Context } from '#definitions/index.js'
 
+import {
+  CACHE_TTL,
+  CORS_OPTIONS,
+  GRAPHQL_COST_LIMIT,
+  UPLOAD_FILE_COUNT_LIMIT,
+  UPLOAD_FILE_SIZE_LIMIT,
+} from '#common/enums/index.js'
+import { isProd, isLocal, isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { getViewerFromReq } from '#common/utils/index.js'
+import {
+  ArticleService,
+  AtomService,
+  CommentService,
+  DraftService,
+  NotificationService,
+  OAuthService,
+  OpenSeaService,
+  PaymentService,
+  SystemService,
+  RecommendationService,
+  TagService,
+  UserService,
+  UserWorkService,
+  CollectionService,
+  MomentService,
+  CampaignService,
+  ChannelService,
+  TranslationService,
+  LikeCoin,
+  ExchangeRate,
+} from '#connectors/index.js'
+import {
+  PublicationQueue,
+  RevisionQueue,
+  AssetQueue,
+  MigrationQueue,
+  PayToByBlockchainQueue,
+  PayToByMattersQueue,
+  PayoutQueue,
+  UserQueue,
+} from '#connectors/queue/index.js'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
@@ -23,50 +65,7 @@ import { graphqlUploadExpress } from 'graphql-upload'
 import Keyv from 'keyv'
 import { omit } from 'lodash'
 import { createRequire } from 'node:module'
-import 'module-alias/register.js'
 
-import {
-  CACHE_TTL,
-  CORS_OPTIONS,
-  GRAPHQL_COST_LIMIT,
-  UPLOAD_FILE_COUNT_LIMIT,
-  UPLOAD_FILE_SIZE_LIMIT,
-} from 'common/enums/index.js'
-import { isProd, isLocal, isTest } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { getViewerFromReq } from 'common/utils/index.js'
-import {
-  ArticleService,
-  AtomService,
-  CommentService,
-  DraftService,
-  NotificationService,
-  OAuthService,
-  OpenSeaService,
-  PaymentService,
-  SystemService,
-  RecommendationService,
-  TagService,
-  UserService,
-  UserWorkService,
-  CollectionService,
-  MomentService,
-  CampaignService,
-  ChannelService,
-  TranslationService,
-  LikeCoin,
-  ExchangeRate,
-} from 'connectors/index.js'
-import {
-  PublicationQueue,
-  RevisionQueue,
-  AssetQueue,
-  MigrationQueue,
-  PayToByBlockchainQueue,
-  PayToByMattersQueue,
-  PayoutQueue,
-  UserQueue,
-} from 'connectors/queue/index.js'
 import { loggerMiddleware } from 'middlewares/logger.js'
 
 import schema from '../schema.js'

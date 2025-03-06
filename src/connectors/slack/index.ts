@@ -1,8 +1,7 @@
+import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
 import { WebClient } from '@slack/web-api'
-
-import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('service-slack')
 

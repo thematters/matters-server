@@ -1,11 +1,11 @@
-import type { GQLArticleResolvers, Item } from 'definitions/index.js'
+import type { GQLArticleResolvers, Item } from '#definitions/index.js'
 
-import { NODE_TYPES, TRANSACTION_PURPOSE } from 'common/enums/index.js'
+import { NODE_TYPES, TRANSACTION_PURPOSE } from '#common/enums/index.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   toGlobalId,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLArticleResolvers['donations'] = async (
   { id },

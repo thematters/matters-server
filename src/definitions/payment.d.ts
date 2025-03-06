@@ -3,7 +3,7 @@ import type {
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 export interface PayoutAccount {
   id: string

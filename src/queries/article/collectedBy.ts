@@ -1,11 +1,11 @@
-import type { GQLArticleResolvers } from 'definitions/index.js'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { ARTICLE_STATE } from 'common/enums/index.js'
+import { ARTICLE_STATE } from '#common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   loadManyFilterError,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLArticleResolvers['collectedBy'] = async (
   { id },

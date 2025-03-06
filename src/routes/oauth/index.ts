@@ -1,17 +1,16 @@
-import bodyParser from 'body-parser'
-import { Request, RequestHandler, Response, Router } from 'express'
-import passport from 'passport'
-import querystring from 'querystring'
-
 import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
   OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
-} from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { getViewerFromReq } from 'common/utils/getViewer.js'
-import { OAuthService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { getViewerFromReq } from '#common/utils/getViewer.js'
+import { OAuthService } from '#connectors/index.js'
+import bodyParser from 'body-parser'
+import { Request, RequestHandler, Response, Router } from 'express'
+import passport from 'passport'
+import querystring from 'querystring'
 
 import { connections } from '../connections.js'
 

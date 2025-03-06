@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers } from 'definitions/index.js'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
 const resolver: GQLArticleResolvers['tags'] = async (
   { id: articleId },

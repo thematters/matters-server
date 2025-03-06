@@ -1,5 +1,5 @@
 exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
   drop view article_activity_view cascade;
 
 

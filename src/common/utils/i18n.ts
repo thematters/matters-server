@@ -1,4 +1,4 @@
-import { LANGUAGES } from 'definitions/index.js'
+import { LANGUAGES } from '#definitions/index.js'
 
 type TranslationFn<V> = (vars: V) => string
 interface Translations<V> {

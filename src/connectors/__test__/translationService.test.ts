@@ -1,7 +1,7 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
-import { LANGUAGE } from 'common/enums/index.js'
-import { TranslationService } from 'connectors/index.js'
+import { LANGUAGE } from '#common/enums/index.js'
+import { TranslationService } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

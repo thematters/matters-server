@@ -1,4 +1,4 @@
-import { environment } from 'common/environment.js'
+import { environment } from '#common/environment.js'
 
 export const QUEUE_URL = {
   archiveUser: environment?.awsArchiveUserQueueUrl,

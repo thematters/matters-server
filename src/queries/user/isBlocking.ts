@@ -1,4 +1,4 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserResolvers['isBlocked'] = async (
   { id },

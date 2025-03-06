@@ -1,4 +1,4 @@
-import type { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums/index.js'
+import type { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 
 export interface Channel {
   id: string

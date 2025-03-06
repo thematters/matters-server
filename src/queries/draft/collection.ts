@@ -1,9 +1,9 @@
-import type { GQLDraftResolvers } from 'definitions/index.js'
+import type { GQLDraftResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLDraftResolvers['collection'] = (
   { collection: connections },

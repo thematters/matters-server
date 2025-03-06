@@ -1,5 +1,4 @@
 const compact = require('lodash/compact')
-
 const { v4: uuidv4 } = require('uuid')
 
 const table = 'transaction'

@@ -1,4 +1,4 @@
-import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions/schema.js'
+import type { GQLCircleIncomeAnalyticsResolvers } from '#definitions/schema.js'
 
 import history from './history.js'
 import nextMonth from './nextMonth.js'

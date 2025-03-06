@@ -1,6 +1,6 @@
-import type { GQLUserStatusResolvers } from 'definitions/index.js'
+import type { GQLUserStatusResolvers } from '#definitions/index.js'
 
-import { MOMENT_STATE } from 'common/enums/index.js'
+import { MOMENT_STATE } from '#common/enums/index.js'
 
 const resolver: GQLUserStatusResolvers['momentCount'] = async (
   { id },

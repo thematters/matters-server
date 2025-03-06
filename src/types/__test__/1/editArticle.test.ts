@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
 
@@ -6,7 +6,7 @@ import {
   AtomService,
   ArticleService,
   PaymentService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 import {
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
@@ -15,8 +15,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums/index.js'
-import { toGlobalId, fromGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 import {
   getUserContext,
   testClient,

@@ -1,6 +1,6 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
-import { DraftService } from 'connectors/index.js'
+import { DraftService } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

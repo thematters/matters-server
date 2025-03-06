@@ -32,7 +32,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
-    "gen:schema": "tsc -p . && ts-node --files src/common/utils/exportSchema.ts",
+    "gen:schema": "tsc -p . && node build/common/utils/exportSchema.js",
     "gen:types": "graphql-codegen --config codegen.json",
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
@@ -95,7 +95,6 @@
     "lodash": "^4.17.21",
     "meilisearch": "^0.32.3",
     "mime-types": "^2.1.35",
-    "module-alias": "^2.2.2",
     "nanoid": "^3.3.7",
     "node-fetch": "^2.6.11",
     "number-precision": "^1.6.0",
@@ -118,10 +117,12 @@
     "xss": "^1.0.14"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.2.7",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.21.0",
     "@graphql-codegen/cli": "5.0.0",
     "@graphql-codegen/typescript": "4.0.1",
     "@graphql-codegen/typescript-resolvers": "4.0.1",
-    "@tsconfig/node18": "^18.2.4",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie": "^0.5.1",
     "@types/cors": "^2.8.13",
@@ -141,20 +142,20 @@
     "@types/uuid": "^8.3.4",
     "@types/validator": "^13.12.2",
     "@types/ws": "^8.5.4",
-    "@typescript-eslint/eslint-plugin": "^5.59.7",
-    "@typescript-eslint/parser": "^5.59.7",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
     "chokidar": "^3.5.3",
     "chokidar-cli": "^3.0.0",
     "codecov": "^3.8.3",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "^8.41.0",
+    "eslint": "^9.21.0",
     "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jsdoc": "^44.2.7",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsdoc": "^50.6.3",
     "eslint-plugin-prefer-arrow": "^1.2.3",
-    "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-unicorn": "^47.0.0",
+    "globals": "^16.0.0",
     "husky": "^9.1.7",
     "jest": "^29.5.0",
     "knex-migrate": "^1.7.4",
@@ -169,14 +170,31 @@
     "bufferutil": "^4.0.7",
     "utf-8-validate": "^6.0.3"
   },
-  "_moduleAliases": {
-    "common": "./build/common",
-    "connectors": "./build/connectors",
-    "definitions": "./build/definitions",
-    "middlewares": "./build/middlewares",
-    "mutations": "./build/mutations",
-    "queries": "./build/queries",
-    "types": "./build/types"
+  "imports": {
+    "#common/*": {
+      "dev-import": "./src/common/*",
+      "default": "./build/common/*"
+    },
+    "#connectors/*": {
+      "dev-import": "./src/connectors/*",
+      "default": "./build/connectors/*"
+    },
+    "#definitions/*": {
+      "dev-import": "./src/definitions/*",
+      "default": "./build/definitions/*"
+    },
+    "#middlewares/*": {
+      "dev-import": "./src/middlewares/*",
+      "default": "./build/middlewares/*"
+    },
+    "#mutations/*": {
+      "dev-import": "./src/mutations/*",
+      "default": "./build/mutations/*"
+    },
+    "#queries/*": {
+      "dev-import": "./src/queries/*",
+      "default": "./build/queries/*"
+    }
   },
   "prettier": {
     "singleQuote": true,

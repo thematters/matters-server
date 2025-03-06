@@ -1,3 +1,4 @@
+import { BLOCKCHAIN_RPC, BLOCKCHAIN_VIEM_CHAINS } from '#common/enums/index.js'
 import {
   type PublicClient,
   type Transport,
@@ -6,8 +7,6 @@ import {
   extractChain,
   http,
 } from 'viem'
-
-import { BLOCKCHAIN_RPC, BLOCKCHAIN_VIEM_CHAINS } from 'common/enums/index.js'
 
 export class BaseContract {
   public chainId: string

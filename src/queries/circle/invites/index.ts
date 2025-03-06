@@ -1,4 +1,4 @@
-import { GQLInvitesResolvers } from 'definitions/index.js'
+import { GQLInvitesResolvers } from '#definitions/index.js'
 
 import accepted from './accepted.js'
 import pending from './pending.js'

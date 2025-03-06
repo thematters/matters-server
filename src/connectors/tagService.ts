@@ -4,10 +4,7 @@ import type {
   ItemData,
   Tag,
   TagBoost,
-} from 'definitions/index.js'
-
-import { Knex } from 'knex'
-import { difference } from 'lodash'
+} from '#definitions/index.js'
 
 import {
   ARTICLE_STATE,
@@ -15,16 +12,18 @@ import {
   TAG_ACTION,
   MATERIALIZED_VIEW,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { TooManyTagsForArticleError, ForbiddenError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import {
   normalizeSearchKey,
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
-} from 'common/utils/index.js'
-import { BaseService, SystemService } from 'connectors/index.js'
+} from '#common/utils/index.js'
+import { BaseService, SystemService } from '#connectors/index.js'
+import { Knex } from 'knex'
+import { difference } from 'lodash'
 
 const logger = getLogger('service-tag')
 

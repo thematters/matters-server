@@ -2,7 +2,7 @@ import type {
   ARTICLE_STATE,
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 export interface Article {
   id: string

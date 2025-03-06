@@ -2,8 +2,8 @@ import {
   ARTICLE_PIN_COMMENT_LIMIT,
   COMMENT_TYPES_REVERSED,
   NODE_TYPES,
-} from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import articleCommentCount from './article/commentCount.js'
 import articleComments from './article/comments.js'

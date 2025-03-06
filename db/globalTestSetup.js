@@ -1,4 +1,5 @@
-const initDatabase = require('./initDatabase.js')
+import initDatabase from './initDatabase.js'
+
 process.env.MATTERS_CLOUDFLARE_ACCOUNT_HASH = 'kDRCwexxxx-pYA'
 
 module.exports = async function () {

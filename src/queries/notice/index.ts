@@ -12,14 +12,14 @@ import type {
   GQLUserNoticeResolvers,
   GQLNoticeResolvers,
   GQLUserResolvers,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
 import {
   NOTICE_TYPE as INNER_NOTICE_TYPE,
   NODE_TYPES,
-} from 'common/enums/index.js'
-import { ServerError } from 'common/errors.js'
-import { toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import notices from './notices.js'
 

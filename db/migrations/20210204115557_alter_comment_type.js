@@ -71,7 +71,7 @@ exports.up = async (knex) => {
    * Step 2: add back views with `target_id` instead of `article_id`
    */
   // topic
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${topicView} AS
       SELECT
         id,
@@ -123,7 +123,7 @@ exports.up = async (knex) => {
   `)
 
   // hottest
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${hottestView} AS WITH original_score AS (
       SELECT
         max(read_time_efficiency_boost) AS max_efficiency
@@ -245,7 +245,7 @@ exports.up = async (knex) => {
   `)
 
   // value
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${valueView} AS
       SELECT
         id,
@@ -349,7 +349,7 @@ exports.up = async (knex) => {
     `)
 
   // featured comment
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE materialized VIEW ${featuredCommentMaterialized} AS
       SELECT
         *

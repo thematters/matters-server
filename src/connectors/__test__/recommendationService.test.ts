@@ -1,10 +1,10 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import {
   MATTERS_CHOICE_TOPIC_STATE,
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
-} from 'common/enums/index.js'
-import { RecommendationService, AtomService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { RecommendationService, AtomService } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

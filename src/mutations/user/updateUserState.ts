@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers, User } from 'definitions/index.js'
+import type { GQLMutationResolvers, User } from '#definitions/index.js'
 
-import { USER_STATE } from 'common/enums/index.js'
-import { ActionFailedError, UserInputError } from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+import { USER_STATE } from '#common/enums/index.js'
+import { ActionFailedError, UserInputError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,

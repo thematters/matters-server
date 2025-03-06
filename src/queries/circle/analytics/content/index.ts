@@ -1,4 +1,4 @@
-import type { GQLCircleContentAnalyticsResolvers } from 'definitions/schema.js'
+import type { GQLCircleContentAnalyticsResolvers } from '#definitions/schema.js'
 
 import conetntPaywall from './paywall.js'
 import contentPublic from './public.js'

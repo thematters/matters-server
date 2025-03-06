@@ -1,6 +1,6 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { connectionFromPromisedArray } from 'common/utils/index.js'
+import { connectionFromPromisedArray } from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['drafts'] = (
   { id },

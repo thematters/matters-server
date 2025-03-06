@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -7,9 +7,9 @@ import {
   USER_STATE,
   IMAGE_ASSET_TYPE,
   MOMENT_STATE,
-} from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
-import { MomentService, SystemService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
+import { MomentService, SystemService } from '#connectors/index.js'
 
 import { genConnections, closeConnections, testClient } from '../utils.js'
 

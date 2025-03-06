@@ -1,6 +1,6 @@
-import { UserInputError } from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
-import { GQLMutationResolvers } from 'definitions/index.js'
+import { UserInputError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { GQLMutationResolvers } from '#definitions/index.js'
 
 const resolver: GQLMutationResolvers['unbindLikerId'] = async (
   _,

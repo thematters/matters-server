@@ -1,4 +1,4 @@
-import { isProd } from 'common/environment.js'
+import { isProd } from '#common/environment.js'
 
 const prefix = isProd ? '' : '__dev'
 

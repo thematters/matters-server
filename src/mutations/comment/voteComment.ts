@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { VOTE } from 'common/enums/index.js'
-import { CommentNotFoundError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
-import { fromGlobalId } from 'common/utils/index.js'
+import { VOTE } from '#common/enums/index.js'
+import { CommentNotFoundError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const logger = getLogger('resolvers-voteComment')
 

@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -11,8 +11,8 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   UserNotFoundError,
-} from 'common/errors.js'
-import { isValidPassword, isValidPaymentPassword } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { isValidPassword, isValidPaymentPassword } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['resetPassword'] = async (
   _,

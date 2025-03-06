@@ -1,6 +1,6 @@
-import type { GQLMemberResolvers } from 'definitions/index.js'
+import type { GQLMemberResolvers } from '#definitions/index.js'
 
-import { PRICE_STATE } from 'common/enums/index.js'
+import { PRICE_STATE } from '#common/enums/index.js'
 
 const resolver: GQLMemberResolvers['price'] = async (
   { id, circleId },

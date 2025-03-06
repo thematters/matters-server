@@ -1,11 +1,11 @@
-import type { GQLFollowingResolvers, Circle } from 'definitions/index.js'
+import type { GQLFollowingResolvers, Circle } from '#definitions/index.js'
 
-import { CIRCLE_ACTION } from 'common/enums/index.js'
+import { CIRCLE_ACTION } from '#common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLFollowingResolvers['circles'] = async (
   { id },

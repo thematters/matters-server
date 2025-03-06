@@ -1,5 +1,3 @@
-import Stripe from 'stripe'
-
 import {
   COUNTRY_CODE,
   LOCAL_STRIPE,
@@ -7,16 +5,17 @@ import {
   OAUTH_CALLBACK_ERROR_CODE,
   PAYMENT_CURRENCY,
   PAYMENT_MAX_DECIMAL_PLACES,
-} from 'common/enums/index.js'
-import { environment, isProd, isTest } from 'common/environment.js'
-import { PaymentAmountInvalidError, ServerError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
+} from '#common/enums/index.js'
+import { environment, isProd, isTest } from '#common/environment.js'
+import { PaymentAmountInvalidError, ServerError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import {
   getUTCNextMonday,
   getUTCNextMonthDayOne,
   toProviderAmount,
-} from 'common/utils/index.js'
-import SlackService from 'connectors/slack/index.js'
+} from '#common/utils/index.js'
+import SlackService from '#connectors/slack/index.js'
+import Stripe from 'stripe'
 
 const logger = getLogger('service-stripe')
 

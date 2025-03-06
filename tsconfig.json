@@ -1,24 +1,25 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
+    // copy from @tsconfig/node18/tsconfig.json
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
     "removeComments": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "preserveConstEnums": true,
     "sourceMap": true,
     "types": ["node", "jest"],
-    "baseUrl": "./src",
-    "paths": {
-      "common/*": ["common/*"],
-      "connectors/*": ["connectors/*"],
-      "definitions/*": ["definitions/*"],
-      "middlewares/*": ["middlewares/*"],
-      "mutations/*": ["mutations/*"],
-      "queries/*": ["queries/*"]
-    },
     "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": "./src",
+    "baseUrl": "./src",
     "outDir": "./build",
-    "resolveJsonModule": true
+    "customConditions": ["dev-import"]
   },
   "exclude": ["node_modules"]
 }

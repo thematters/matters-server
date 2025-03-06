@@ -12,7 +12,7 @@ exports.up = async (knex) => {
     DROP MATERIALIZED VIEW IF EXISTS ${topicMaterialized} CASCADE;
   `)
 
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${topicView} AS
       SELECT
         id,
@@ -66,6 +66,6 @@ exports.up = async (knex) => {
 
 exports.down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${topicMaterialized} CASCADE`
+    /* sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${topicMaterialized} CASCADE`
   )
 }

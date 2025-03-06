@@ -1,7 +1,7 @@
-import { EMAIL_TEMPLATE_ID } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { mailService } from 'connectors/index.js'
-import { LANGUAGES, UserHasUsername } from 'definitions/index.js'
+import { EMAIL_TEMPLATE_ID } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { mailService } from '#connectors/index.js'
+import { LANGUAGES, UserHasUsername } from '#definitions/index.js'
 
 import { trans } from './utils.js'
 

@@ -1,10 +1,10 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { getLogger } from 'common/logger.js'
+import { getLogger } from '#common/logger.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const logger = getLogger('resolver-user-articles')
 

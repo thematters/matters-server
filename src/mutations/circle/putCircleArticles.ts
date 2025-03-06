@@ -2,9 +2,7 @@ import type {
   GQLMutationResolvers,
   Article,
   Circle,
-} from 'definitions/index.js'
-
-import { uniq } from 'lodash'
+} from '#definitions/index.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -18,7 +16,7 @@ import {
   PRICE_STATE,
   USER_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionReachLimitError,
@@ -27,8 +25,9 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { uniq } from 'lodash'
 
 const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   _,

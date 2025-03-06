@@ -1,15 +1,14 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { nanoid } from 'nanoid'
-
-import { ASSET_TYPE } from 'common/enums/index.js'
+import { ASSET_TYPE } from '#common/enums/index.js'
 import {
   AssetNotFoundError,
   AuthenticationError,
   UserInputError,
-} from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { nanoid } from 'nanoid'
 
 const logger = getLogger('mutation-put-oauth-client')
 

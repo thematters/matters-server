@@ -1,8 +1,8 @@
-import type { GQLUserResolvers, Article, Moment } from 'definitions/index.js'
+import type { GQLUserResolvers, Article, Moment } from '#definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE, NODE_TYPES } from 'common/enums/index.js'
-import { ServerError } from 'common/errors.js'
-import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
+import { DEFAULT_TAKE_PER_PAGE, NODE_TYPES } from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['writings'] = async (
   { id },

@@ -1,13 +1,12 @@
-import { CookieOptions, Request, Response } from 'express'
-
 import {
   COOKIE_LANGUAGE,
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
-} from 'common/enums/index.js'
-import { isProd, isTest } from 'common/environment.js'
-import { extractRootDomain, getUserGroup } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { isProd, isTest } from '#common/environment.js'
+import { extractRootDomain, getUserGroup } from '#common/utils/index.js'
+import { CookieOptions, Request, Response } from 'express'
 
 const isDevOrigin = (url: string) =>
   /(localhost|127\.0\.0\.1)(:\d+)?$/.test(url) || /\.vercel\.app$/.test(url)

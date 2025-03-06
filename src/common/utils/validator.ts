@@ -1,6 +1,5 @@
+import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from '#common/enums/index.js'
 import { createRequire } from 'node:module'
-
-import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums/index.js'
 
 const require = createRequire(import.meta.url)
 const isEmail = require('validator/lib/isEmail')

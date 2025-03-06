@@ -1,13 +1,13 @@
-import type { ArticleVersion, Connections } from 'definitions/index.js'
+import type { ArticleVersion, Connections } from '#definitions/index.js'
 
-import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums/index.js'
-import { getLogger } from 'common/logger.js'
-import { shortHash } from 'common/utils/nanoid.js'
+import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import { getLogger } from '#common/logger.js'
+import { shortHash } from '#common/utils/nanoid.js'
 import {
   ArticleService,
   AtomService,
   ChannelClassifier,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 const logger = getLogger('service-channel')
 
 export class ChannelService {

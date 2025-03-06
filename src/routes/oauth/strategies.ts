@@ -1,15 +1,14 @@
-import type { User } from 'definitions/index.js'
+import type { User } from '#definitions/index.js'
 
+import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { UserService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
 import { Redis } from 'ioredis'
 import { get } from 'lodash'
 import passport from 'passport'
-
-import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { UserService } from 'connectors/index.js'
 
 import { connections } from '../connections.js'
 

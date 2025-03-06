@@ -3,15 +3,15 @@ import type {
   GQLBadgeType,
   GQLUserFeatureFlagType,
   GQLUserRestrictionType,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
 
-import { NODE_TYPES, USER_STATE } from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
-import { MomentService, CampaignService } from 'connectors/index.js'
+import { NODE_TYPES, USER_STATE } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
+import { MomentService, CampaignService } from '#connectors/index.js'
 
-import { createCampaign } from 'connectors/__test__/utils.js'
+import { createCampaign } from '#connectors/__test__/utils.js'
 
 import {
   delay,

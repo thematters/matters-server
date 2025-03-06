@@ -1,4 +1,4 @@
-import type { User } from 'definitions/index.js'
+import type { User } from '#definitions/index.js'
 
 import { isValidDisplayName } from './validator.js'
 

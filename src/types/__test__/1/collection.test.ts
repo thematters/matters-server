@@ -1,8 +1,8 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
-import { CollectionService, ArticleService } from 'connectors/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
+import { CollectionService, ArticleService } from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
 

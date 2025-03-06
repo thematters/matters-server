@@ -1,7 +1,7 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
-import { MONTH } from 'common/enums/index.js'
-import { NotificationService } from 'connectors/index.js'
+import { MONTH } from '#common/enums/index.js'
+import { NotificationService } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

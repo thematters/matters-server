@@ -1,7 +1,7 @@
-import type { GQLResolvers } from 'definitions/index.js'
+import type { GQLResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
-import { toGlobalId, fromDatetimeRangeString } from 'common/utils/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId, fromDatetimeRangeString } from '#common/utils/index.js'
 
 import announcements from './announcements.js'
 import application from './application.js'

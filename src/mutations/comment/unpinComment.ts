@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import togglePinCommentResolver from './togglePinComment.js'
 

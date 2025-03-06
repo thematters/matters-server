@@ -1,9 +1,8 @@
-import type { GQLArticleResolvers, Article } from 'definitions/index.js'
+import type { GQLArticleResolvers, Article } from '#definitions/index.js'
 
+import { ARTICLE_STATE, LATEST_WORKS_NUM } from '#common/enums/index.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 import _ from 'lodash'
-
-import { ARTICLE_STATE, LATEST_WORKS_NUM } from 'common/enums/index.js'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 
 const resolver: GQLArticleResolvers['relatedArticles'] = async (
   { id: articleId, authorId },

@@ -1,7 +1,7 @@
-import type { GQLInvitesResolvers } from 'definitions/index.js'
+import type { GQLInvitesResolvers } from '#definitions/index.js'
 
-import { INVITATION_STATE } from 'common/enums/index.js'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
+import { INVITATION_STATE } from '#common/enums/index.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
 const resolver: GQLInvitesResolvers['accepted'] = async (
   { id, owner },

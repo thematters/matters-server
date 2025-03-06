@@ -1,5 +1,5 @@
 exports.up = (knex) => {
-  return knex.raw(/*sql*/ `
+  return knex.raw(/* sql*/ `
   -- fill in data
   update appreciation
   set

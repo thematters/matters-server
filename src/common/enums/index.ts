@@ -1,4 +1,4 @@
-import type { SkippedListItemType } from 'definitions/index.js'
+import type { SkippedListItemType } from '#definitions/index.js'
 
 export * from './user.js'
 export * from './action.js'

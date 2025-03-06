@@ -1,4 +1,4 @@
-import type { GQLMomentResolvers } from 'definitions/index.js'
+import type { GQLMomentResolvers } from '#definitions/index.js'
 
 const resolver: GQLMomentResolvers['assets'] = async (
   { id },

@@ -1,7 +1,7 @@
-import type { GQLResolvers } from 'definitions/index.js'
+import type { GQLResolvers } from '#definitions/index.js'
 
-import { getLogger } from 'common/logger.js'
-import { Twitter } from 'connectors/oauth/index.js'
+import { getLogger } from '#common/logger.js'
+import { Twitter } from '#connectors/oauth/index.js'
 
 const logger = getLogger('resovler-oauthRequestToken')
 

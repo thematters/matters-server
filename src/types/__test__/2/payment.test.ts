@@ -1,12 +1,12 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import {
   NODE_TYPES,
   BLOCKCHAIN,
   TRANSACTION_PURPOSE,
   PAYMENT_CURRENCY,
-} from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
 

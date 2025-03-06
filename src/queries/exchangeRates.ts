@@ -1,4 +1,4 @@
-import type { GQLResolvers } from 'definitions/index.js'
+import type { GQLResolvers } from '#definitions/index.js'
 
 const exchangeRates: GQLResolvers = {
   Query: {

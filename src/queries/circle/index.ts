@@ -12,11 +12,11 @@ import type {
   GQLPersonResolvers,
   GQLPriceResolvers,
   GQLQueryResolvers,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
-import { ForbiddenError } from 'common/errors.js'
-import { toGlobalId } from 'common/utils/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import analytics from './analytics/index.js'
 import avatar from './avatar.js'

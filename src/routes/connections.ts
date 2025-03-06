@@ -1,10 +1,9 @@
+import { environment } from '#common/environment.js'
 import { Redis } from 'ioredis'
 import { knex } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
-import { environment } from 'common/environment.js'
-
-import knexConfig from '../../knexfile.js'
+import knexConfig from '../knexfile.js'
 
 // init connections
 const mainKnex = knex({

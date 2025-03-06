@@ -1,6 +1,6 @@
-import type { GQLCircleSubscriberAnalyticsResolvers } from 'definitions/index.js'
+import type { GQLCircleSubscriberAnalyticsResolvers } from '#definitions/index.js'
 
-import { PAYMENT_PROVIDER } from 'common/enums/index.js'
+import { PAYMENT_PROVIDER } from '#common/enums/index.js'
 
 const resolver: GQLCircleSubscriberAnalyticsResolvers['subscriberHistory'] =
   async (

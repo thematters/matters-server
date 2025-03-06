@@ -1,6 +1,5 @@
+import { isProd } from '#common/environment.js'
 import { CorsOptions } from 'cors'
-
-import { isProd } from 'common/environment.js'
 
 export const CORS_OPTIONS: CorsOptions = {
   origin: (origin, callback) => {

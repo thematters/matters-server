@@ -1,6 +1,6 @@
-import type { GQLCircleResolvers } from 'definitions/index.js'
+import type { GQLCircleResolvers } from '#definitions/index.js'
 
-import { INVITATION_STATE } from 'common/enums/index.js'
+import { INVITATION_STATE } from '#common/enums/index.js'
 
 const resolver: GQLCircleResolvers['invitedBy'] = async (
   { id },

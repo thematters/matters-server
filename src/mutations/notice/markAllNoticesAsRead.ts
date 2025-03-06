@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { AuthenticationError } from 'common/errors.js'
+import { AuthenticationError } from '#common/errors.js'
 
 const resolver: GQLMutationResolvers['markAllNoticesAsRead'] = async (
   _,

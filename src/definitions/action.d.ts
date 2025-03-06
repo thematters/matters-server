@@ -3,7 +3,7 @@ import type {
   TAG_ACTION,
   USER_ACTION,
   ARTICLE_ACTION,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 export interface ActionCircle {
   id: string

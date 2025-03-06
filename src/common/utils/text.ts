@@ -1,8 +1,7 @@
+import { MAX_TAG_CONTENT_LENGTH } from '#common/enums/index.js'
 import crypto from 'crypto'
 import { distance } from 'fastest-levenshtein'
 import { simplecc } from 'simplecc-wasm'
-
-import { MAX_TAG_CONTENT_LENGTH } from 'common/enums/index.js'
 
 /**
  * Get distances of two context diffs.

@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { UserInputError } from 'common/errors.js'
+import { UserInputError } from '#common/errors.js'
 
 const resolver: GQLMutationResolvers['deleteBlockedSearchKeywords'] = async (
   _,

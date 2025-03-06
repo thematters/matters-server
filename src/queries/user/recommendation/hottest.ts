@@ -1,6 +1,4 @@
-import type { GQLRecommendationResolvers } from 'definitions/index.js'
-
-import { Knex } from 'knex'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
 import {
   DEFAULT_TAKE_PER_PAGE,
@@ -8,13 +6,14 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums/index.js'
-import { ForbiddenError } from 'common/errors.js'
+} from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromPromisedArray,
   excludeSpam,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
+import { Knex } from 'knex'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,

@@ -1,10 +1,10 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['bookmarkedArticles'] = async (
   { id },

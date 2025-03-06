@@ -2,13 +2,12 @@ import type {
   GQLArticleResolvers,
   Article,
   Comment,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
+import { NODE_TYPES } from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import _last from 'lodash/last.js'
-
-import { NODE_TYPES } from 'common/enums/index.js'
-import { ServerError } from 'common/errors.js'
-import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLArticleResolvers['responses'] = async (
   { id: articleId },

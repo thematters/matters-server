@@ -1,4 +1,4 @@
-import type { GQLArticleAccessResolvers, Circle } from 'definitions/index.js'
+import type { GQLArticleAccessResolvers, Circle } from '#definitions/index.js'
 
 export const circle: GQLArticleAccessResolvers['circle'] = async (
   { id },

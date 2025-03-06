@@ -1,9 +1,9 @@
+import type { Connections } from '#definitions/index.js'
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections } from 'definitions/index.js'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums/index.js'
-import { getLogger } from 'common/logger.js'
-import { AtomService, aws, cfsvc } from 'connectors/index.js'
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from '#common/enums/index.js'
+import { getLogger } from '#common/logger.js'
+import { AtomService, aws, cfsvc } from '#connectors/index.js'
 
 import { getOrCreateQueue } from './utils.js'
 

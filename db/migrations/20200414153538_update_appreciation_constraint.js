@@ -18,7 +18,7 @@ exports.up = async (knex) => {
 
   await knex.raw(alterEnumString(table, 'type', ['LIKE', 'MAT']))
 
-  return knex.raw(/*sql*/ `
+  return knex.raw(/* sql*/ `
     alter table ${table}
       drop constraint if exists ${table}_sender_id_foreign,
       drop constraint if exists ${table}_recipient_id_foreign;
@@ -30,7 +30,7 @@ exports.up = async (knex) => {
 }
 
 exports.down = (knex) =>
-  knex.raw(/*sql*/ `
+  knex.raw(/* sql*/ `
   alter table ${table}
     drop constraint if exists ${table}_purpose_check,
     drop constraint if exists ${table}_type_check,

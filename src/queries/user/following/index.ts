@@ -1,4 +1,4 @@
-import { type GQLFollowingResolvers } from 'definitions/index.js'
+import { type GQLFollowingResolvers } from '#definitions/index.js'
 
 import circles from './circles.js'
 import users from './users.js'

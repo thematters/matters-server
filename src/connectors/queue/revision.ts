@@ -1,8 +1,5 @@
+import type { Connections, Article } from '#definitions/index.js'
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections, Article } from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import _difference from 'lodash/difference.js'
 
 import {
   ARTICLE_STATE,
@@ -12,10 +9,12 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums/index.js'
-import { getLogger } from 'common/logger.js'
-import { extractMentionIds } from 'common/utils/index.js'
-import { AtomService, NotificationService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { getLogger } from '#common/logger.js'
+import { extractMentionIds } from '#common/utils/index.js'
+import { AtomService, NotificationService } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import _difference from 'lodash/difference.js'
 
 import { getOrCreateQueue } from './utils.js'
 

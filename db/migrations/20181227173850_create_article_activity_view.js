@@ -1,7 +1,7 @@
 const table = 'article_activity_view'
 
 exports.up = async (knex) =>
-  knex.raw(/*sql*/ `
+  knex.raw(/* sql*/ `
     create view ${table} as
         select
             article.*,
@@ -42,5 +42,5 @@ exports.up = async (knex) =>
     `)
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view if exists ${table}`)
+  return knex.raw(/* sql*/ `drop view if exists ${table}`)
 }

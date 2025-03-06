@@ -6,7 +6,7 @@ exports.up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.boolean(newColumn).notNullable().defaultTo(false)
   })
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE OR REPLACE VIEW ${view} AS
       SELECT a.*
       FROM article_version a

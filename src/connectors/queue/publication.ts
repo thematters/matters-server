@@ -1,13 +1,11 @@
-import type { CustomQueueOpts } from './utils.js'
-import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   Connections,
   Article,
   ArticleVersion,
   ArticleConnection,
-} from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
+} from '#definitions/index.js'
+import type { CustomQueueOpts } from './utils.js'
+import type { Queue, ProcessCallbackFunction } from 'bull'
 
 import {
   NOTICE_TYPE,
@@ -19,9 +17,9 @@ import {
   QUEUE_PRIORITY,
   METRICS_NAMES,
   MINUTE,
-} from 'common/enums/index.js'
-import { getLogger } from 'common/logger.js'
-import { normalizeTagInput, extractMentionIds } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { getLogger } from '#common/logger.js'
+import { normalizeTagInput, extractMentionIds } from '#common/utils/index.js'
 import {
   TagService,
   ArticleService,
@@ -31,7 +29,8 @@ import {
   AtomService,
   CampaignService,
   aws,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import { getOrCreateQueue } from './utils.js'
 

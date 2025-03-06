@@ -1,13 +1,13 @@
-import type { CommentFilter } from 'connectors/index.js'
-import type { GQLArticleResolvers } from 'definitions/index.js'
+import type { CommentFilter } from '#connectors/index.js'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { COMMENT_TYPE } from 'common/enums/index.js'
+import { COMMENT_TYPE } from '#common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
   fromGlobalId,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLArticleResolvers['comments'] = async (
   { id },

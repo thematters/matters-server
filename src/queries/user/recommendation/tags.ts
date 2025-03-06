@@ -1,12 +1,11 @@
-import type { GQLRecommendationResolvers } from 'definitions/index.js'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { chunk } from 'lodash'
-
-import { ForbiddenError } from 'common/errors.js'
+import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
+import { chunk } from 'lodash'
 
 export const tags: GQLRecommendationResolvers['tags'] = async (
   _,

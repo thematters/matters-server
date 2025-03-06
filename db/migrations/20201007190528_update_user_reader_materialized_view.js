@@ -2,7 +2,7 @@ const view = `user_reader_view`
 const materialized = `user_reader_materialized`
 
 exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
   drop view ${view} cascade;
 
   create view ${view} as

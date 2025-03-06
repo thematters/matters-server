@@ -1,7 +1,7 @@
 const table = 'featured_comment_materialized'
 
 exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
   create materialized view ${table} as
   select *
     from (
@@ -27,5 +27,5 @@ exports.up = async (knex) => {
 }
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop materialized view ${table}`)
+  return knex.raw(/* sql*/ `drop materialized view ${table}`)
 }

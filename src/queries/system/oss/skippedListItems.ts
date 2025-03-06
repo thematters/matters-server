@@ -1,11 +1,11 @@
-import type { GQLOssResolvers } from 'definitions/index.js'
+import type { GQLOssResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   toGlobalId,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 export const skippedListItems: GQLOssResolvers['skippedListItems'] = async (
   _,

@@ -1,14 +1,14 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
-import { CACHE_PREFIX, USER_ACTION } from 'common/enums/index.js'
-import { ActionFailedError } from 'common/errors.js'
+import { CACHE_PREFIX, USER_ACTION } from '#common/enums/index.js'
+import { ActionFailedError } from '#common/errors.js'
 import {
   AtomService,
   CacheService,
   UserService,
   PaymentService,
   ArticleService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 
 import { createDonationTx } from './utils.js'
 import { genConnections, closeConnections } from './utils.js'

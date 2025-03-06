@@ -2,7 +2,7 @@ const view = `article_hottest_a_view`
 const materialized = `article_hottest_a_materialized`
 
 exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
   drop view if exists ${view} cascade;
 
   create view ${view} as
@@ -71,7 +71,7 @@ exports.up = async (knex) => {
 }
 
 exports.down = function (knex) {
-  knex.raw(/*sql*/ `
+  knex.raw(/* sql*/ `
   drop view ${view} cascade;
   `)
 }

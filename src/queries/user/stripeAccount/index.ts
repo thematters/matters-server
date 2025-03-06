@@ -1,4 +1,4 @@
-import type { GQLStripeAccountResolvers } from 'definitions/index.js'
+import type { GQLStripeAccountResolvers } from '#definitions/index.js'
 
 import loginUrl from './loginUrl.js'
 

@@ -209,7 +209,7 @@ exports.up = async (knex) => {
       .onDelete('CASCADE')
   })
   // migrate data
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     update comment
     set target_type_id = (
       select

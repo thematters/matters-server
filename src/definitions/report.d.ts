@@ -1,4 +1,4 @@
-import { NODE_TYPES } from 'common/enums/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
 
 export type ReportType =
   | NODE_TYPES.Article

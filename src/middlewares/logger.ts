@@ -1,4 +1,4 @@
-import { getLogger } from 'common/logger.js'
+import { getLogger } from '#common/logger.js'
 
 const logger = getLogger('middleware-logger')
 

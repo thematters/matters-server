@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers, Circle } from 'definitions/index.js'
+import type { GQLMutationResolvers, Circle } from '#definitions/index.js'
 
 import {
   CACHE_KEYWORD,
@@ -9,14 +9,14 @@ import {
   PRICE_STATE,
   SUBSCRIPTION_ITEM_REMARK,
   SUBSCRIPTION_STATE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   AuthenticationError,
   CircleNotFoundError,
   EntityNotFoundError,
   ForbiddenError,
-} from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
   _,

@@ -1,4 +1,4 @@
-import { GQLRecommendationResolvers } from 'definitions/index.js'
+import { GQLRecommendationResolvers } from '#definitions/index.js'
 
 import { authors } from './authors.js'
 import { channelArticles } from './channelArticles.js'

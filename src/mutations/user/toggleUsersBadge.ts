@@ -1,10 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
+import { OFFICIAL_NOTICE_EXTEND_TYPE } from '#common/enums/index.js'
+import { UserInputError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 import _uniq from 'lodash/uniq.js'
-
-import { OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums/index.js'
-import { UserInputError } from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
   _,

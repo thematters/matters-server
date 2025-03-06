@@ -1,7 +1,7 @@
 const table = 'transaction_delta_view'
 
 exports.up = async (knex) =>
-  knex.raw(/*sql*/ `
+  knex.raw(/* sql*/ `
     create view ${table} as
         select
             "user".id as user_id,
@@ -33,5 +33,5 @@ exports.up = async (knex) =>
   `)
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `DROP view IF EXISTS ${table}`)
+  return knex.raw(/* sql*/ `DROP view IF EXISTS ${table}`)
 }

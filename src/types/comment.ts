@@ -1,5 +1,5 @@
-import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums/index.js'
-import { isProd } from 'common/environment.js'
+import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from '#common/enums/index.js'
+import { isProd } from '#common/environment.js'
 
 const PUT_COMMENT_RATE_LIMIT = isProd ? 6 : 1000
 

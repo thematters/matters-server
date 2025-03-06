@@ -1,6 +1,6 @@
-import type { GQLUserStatusResolvers } from 'definitions/index.js'
+import type { GQLUserStatusResolvers } from '#definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
+import { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 
 const resolver: GQLUserStatusResolvers['commentCount'] = async (
   { id },

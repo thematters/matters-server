@@ -3,7 +3,7 @@ import {
   CACHE_TTL,
   NODE_TYPES,
   SCOPE_GROUP,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Query {

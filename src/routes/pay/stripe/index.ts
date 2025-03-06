@@ -1,16 +1,15 @@
-import bodyParser from 'body-parser'
-import { RequestHandler, Router } from 'express'
-import Stripe from 'stripe'
-
 import {
   USER_BAN_REMARK,
   OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { toDBAmount } from 'common/utils/index.js'
-import { PaymentService, UserService } from 'connectors/index.js'
-import SlackService from 'connectors/slack/index.js'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { toDBAmount } from '#common/utils/index.js'
+import { PaymentService, UserService } from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
+import bodyParser from 'body-parser'
+import { RequestHandler, Router } from 'express'
+import Stripe from 'stripe'
 
 import { connections } from '../../connections.js'
 

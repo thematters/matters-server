@@ -1,4 +1,4 @@
-import type { GQLUserOssResolvers } from 'definitions/index.js'
+import type { GQLUserOssResolvers } from '#definitions/index.js'
 
 export const boost: GQLUserOssResolvers['boost'] = (
   { id },

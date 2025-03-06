@@ -1,7 +1,7 @@
 import { optimismSepolia } from 'viem/chains'
 
-import { CurationContract } from 'connectors/blockchain/index.js'
-import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from 'common/enums/index.js'
+import { CurationContract } from '#connectors/blockchain/index.js'
+import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from '#common/enums/index.js'
 
 describe('curationContract', () => {
   test('compute topics correctly', async () => {

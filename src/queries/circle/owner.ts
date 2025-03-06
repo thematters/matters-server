@@ -1,4 +1,4 @@
-import type { GQLCircleResolvers } from 'definitions/index.js'
+import type { GQLCircleResolvers } from '#definitions/index.js'
 
 const resolver: GQLCircleResolvers['owner'] = async (
   { owner },

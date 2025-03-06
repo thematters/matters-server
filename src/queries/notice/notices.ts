@@ -1,6 +1,6 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
 const MAX_NOTICE_COUNT = 1000
 

@@ -2,7 +2,7 @@ import {
   normalizeSearchKey,
   stripAllPunct,
   tagSlugify,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 test('stripAllPunct', () => {
   const pairs = [

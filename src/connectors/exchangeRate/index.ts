@@ -1,12 +1,11 @@
 import type { Redis, Cluster } from 'ioredis'
 
+import { CACHE_TTL } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { NetworkError, UnknownError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { CacheService } from '#connectors/index.js'
 import axios from 'axios'
-
-import { CACHE_TTL } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { NetworkError, UnknownError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
-import { CacheService } from 'connectors/index.js'
 
 const logger = getLogger('service-exchange-rate')
 

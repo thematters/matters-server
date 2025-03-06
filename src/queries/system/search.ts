@@ -2,21 +2,20 @@ import type {
   GQLNode,
   GQLQueryResolvers,
   SearchHistory,
-} from 'definitions/index.js'
-
-import { compact } from 'lodash'
+} from '#definitions/index.js'
 
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_API_VERSION,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
   stripSpaces,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
+import { compact } from 'lodash'
 
 const resolver: GQLQueryResolvers['search'] = async (
   _,

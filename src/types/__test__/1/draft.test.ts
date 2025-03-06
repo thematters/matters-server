@@ -1,14 +1,14 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
 
-import { AtomService, CampaignService } from 'connectors/index.js'
+import { AtomService, CampaignService } from '#connectors/index.js'
 import {
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
   CAMPAIGN_STATE,
-} from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import {
   testClient,

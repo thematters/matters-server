@@ -1,4 +1,4 @@
-import { ResponseType } from 'definitions/index.js'
+import { ResponseType } from '#definitions/index.js'
 
 import articleResponseCount from './article/responseCount.js'
 import articleResponses from './article/responses.js'

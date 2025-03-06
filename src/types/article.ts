@@ -3,8 +3,8 @@ import {
   CACHE_TTL,
   NODE_TYPES,
   SCOPE_GROUP,
-} from 'common/enums/index.js'
-import { isProd } from 'common/environment.js'
+} from '#common/enums/index.js'
+import { isProd } from '#common/environment.js'
 
 const PUBLISH_ARTICLE_RATE_LIMIT = isProd ? 1 : 100
 

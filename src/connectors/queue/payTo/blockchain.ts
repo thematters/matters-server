@@ -1,14 +1,10 @@
-import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   EmailableUser,
   Connections,
   BlockchainTransaction,
   GQLChain,
-} from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import _capitalize from 'lodash/capitalize.js'
-import { formatUnits, parseUnits } from 'viem'
+} from '#definitions/index.js'
+import type { Queue, ProcessCallbackFunction } from 'bull'
 
 import {
   BLOCKCHAIN,
@@ -28,26 +24,29 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
-} from 'common/enums/index.js'
-import { contract, environment, isProd, isTest } from 'common/environment.js'
-import { PaymentQueueJobDataError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
+} from '#common/enums/index.js'
+import { contract, environment, isProd, isTest } from '#common/environment.js'
+import { PaymentQueueJobDataError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import {
   CurationVaultContract,
   CurationVaultEvent,
-} from 'connectors/blockchain/curationVault.js'
+} from '#connectors/blockchain/curationVault.js'
 import {
   CurationContract,
   CurationEvent,
   Log,
-} from 'connectors/blockchain/index.js'
+} from '#connectors/blockchain/index.js'
 import {
   PaymentService,
   UserService,
   AtomService,
   ArticleService,
-} from 'connectors/index.js'
-import SlackService from 'connectors/slack/index.js'
+} from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import _capitalize from 'lodash/capitalize.js'
+import { formatUnits, parseUnits } from 'viem'
 
 import { getOrCreateQueue } from '../utils.js'
 

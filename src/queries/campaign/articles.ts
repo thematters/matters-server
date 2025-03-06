@@ -1,11 +1,11 @@
 import type {
   GQLWritingChallengeResolvers,
   DataSources,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
-import { UserInputError } from 'common/errors.js'
-import { connectionFromQuery, fromGlobalId } from 'common/utils/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { UserInputError } from '#common/errors.js'
+import { connectionFromQuery, fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLWritingChallengeResolvers['articles'] = async (
   { id: campaignId },

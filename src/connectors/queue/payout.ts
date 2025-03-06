@@ -1,5 +1,5 @@
+import type { Connections } from '#definitions/index.js'
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections } from 'definitions/index.js'
 
 import {
   PAYMENT_CURRENCY,
@@ -8,17 +8,17 @@ import {
   QUEUE_PRIORITY,
   SLACK_MESSAGE_STATE,
   TRANSACTION_STATE,
-} from 'common/enums/index.js'
-import { PaymentQueueJobDataError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
-import { numMinus, numRound, numTimes } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { PaymentQueueJobDataError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { numMinus, numRound, numTimes } from '#common/utils/index.js'
 import {
   AtomService,
   ExchangeRate,
   PaymentService,
   NotificationService,
-} from 'connectors/index.js'
-import SlackService from 'connectors/slack/index.js'
+} from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
 
 import { getOrCreateQueue } from './utils.js'
 

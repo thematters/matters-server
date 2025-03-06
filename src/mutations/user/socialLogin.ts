@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers, AuthMode } from 'definitions/index.js'
+import type { GQLMutationResolvers, AuthMode } from '#definitions/index.js'
 
-import { AUTH_RESULT_TYPE, SOCIAL_LOGIN_TYPE } from 'common/enums/index.js'
-import { UserInputError } from 'common/errors.js'
-import { checkIfE2ETest, throwOrReturnUserInfo } from 'common/utils/e2e.js'
-import { setCookie, getViewerFromUser } from 'common/utils/index.js'
+import { AUTH_RESULT_TYPE, SOCIAL_LOGIN_TYPE } from '#common/enums/index.js'
+import { UserInputError } from '#common/errors.js'
+import { checkIfE2ETest, throwOrReturnUserInfo } from '#common/utils/e2e.js'
+import { setCookie, getViewerFromUser } from '#common/utils/index.js'
 
 export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   _,

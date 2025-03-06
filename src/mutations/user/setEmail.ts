@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 const resolver: GQLMutationResolvers['setEmail'] = async (
   _,

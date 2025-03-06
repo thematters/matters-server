@@ -1,7 +1,6 @@
+import { LANGUAGE } from '#common/enums/index.js'
+import { getLogger } from '#common/logger.js'
 import _ from 'lodash'
-
-import { LANGUAGE } from 'common/enums/index.js'
-import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('utils-language')
 

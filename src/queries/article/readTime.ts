@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers } from 'definitions/index.js'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
 const resolver: GQLArticleResolvers['revisionCount'] = async (
   { id: articleId },

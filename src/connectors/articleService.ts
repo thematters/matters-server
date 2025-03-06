@@ -6,16 +6,7 @@ import type {
   ArticleVersion,
   ArticleBoost,
   Connections,
-} from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { makeSummary } from '@matters/ipns-site-generator'
-import { html2md } from '@matters/matters-editor/transformers'
-import DataLoader from 'dataloader'
-import { Knex } from 'knex'
-import { difference, isEqual, uniq } from 'lodash'
-import { simplecc } from 'simplecc-wasm'
-import { v4 } from 'uuid'
+} from '#definitions/index.js'
 
 import {
   APPRECIATION_PURPOSE,
@@ -38,8 +29,8 @@ import {
   NODE_TYPES,
   USER_FEATURE_FLAG_TYPE,
   QUEUE_URL,
-} from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
@@ -48,15 +39,15 @@ import {
   InvalidCursorError,
   EntityNotFoundError,
   ArticleCollectionReachLimitError,
-} from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
+} from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import {
   countWords,
   shortHash,
   normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 import {
   BaseService,
   SystemService,
@@ -68,7 +59,15 @@ import {
   SpamDetector,
   ChannelService,
   aws,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { makeSummary } from '@matters/ipns-site-generator'
+import { html2md } from '@matters/matters-editor/transformers'
+import DataLoader from 'dataloader'
+import { Knex } from 'knex'
+import { difference, isEqual, uniq } from 'lodash'
+import { simplecc } from 'simplecc-wasm'
+import { v4 } from 'uuid'
 
 const logger = getLogger('service-article')
 

@@ -1,12 +1,11 @@
 import type { Queue as QueueClass } from 'bull'
 
+import { QUEUE_COMPLETED_LIST_SIZE } from '#common/enums/index.js'
+import { environment, isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { genRandomString } from '#common/utils/text.js'
 import Queue, { RateLimiter } from 'bull'
 import { Redis } from 'ioredis'
-
-import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums/index.js'
-import { environment, isTest } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { genRandomString } from 'common/utils/text.js'
 
 const logger = getLogger('queue-base')
 

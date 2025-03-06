@@ -1,6 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
@@ -10,19 +8,20 @@ import {
   NODE_TYPES,
   USER_STATE,
   VERIFICATION_CODE_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors.js'
+} from '#common/errors.js'
 import {
   fromGlobalId,
   generateRegisterRedirectUrl,
   makeUserName,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 

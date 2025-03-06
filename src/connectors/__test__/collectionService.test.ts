@@ -1,12 +1,12 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import {
   CollectionService,
   AtomService,
   UserService,
-} from 'connectors/index.js'
-import { USER_STATE } from 'common/enums/index.js'
-import { ForbiddenByStateError, ForbiddenError } from 'common/errors.js'
+} from '#connectors/index.js'
+import { USER_STATE } from '#common/enums/index.js'
+import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

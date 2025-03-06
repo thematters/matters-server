@@ -1,9 +1,9 @@
-import type { LANGUAGES } from './language.js'
 import type {
   PUBLISH_STATE,
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
+import type { LANGUAGES } from './language.js'
 
 export interface Draft {
   id: string

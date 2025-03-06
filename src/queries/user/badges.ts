@@ -1,5 +1,5 @@
-import { ALL_BADGE_TYPES } from 'common/enums/index.js'
-import { GQLBadgeType, GQLUserInfoResolvers } from 'definitions/index.js'
+import { ALL_BADGE_TYPES } from '#common/enums/index.js'
+import { GQLBadgeType, GQLUserInfoResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserInfoResolvers['badges'] = async (
   { id },

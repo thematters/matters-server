@@ -1,10 +1,10 @@
-import type { GQLCryptoWalletResolvers } from 'definitions/index.js'
+import type { GQLCryptoWalletResolvers } from '#definitions/index.js'
 
-import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums/index.js'
-import { contract } from 'common/environment.js'
-import { toGlobalId } from 'common/utils/index.js'
-import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index.js'
-import { CacheService } from 'connectors/index.js'
+import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from '#common/enums/index.js'
+import { contract } from '#common/environment.js'
+import { toGlobalId } from '#common/utils/index.js'
+import { alchemy, AlchemyNetwork } from '#connectors/alchemy/index.js'
+import { CacheService } from '#connectors/index.js'
 
 interface OpenSeaNFTAsset {
   id: any

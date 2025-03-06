@@ -1,11 +1,11 @@
-import type { GQLCommentResolvers } from 'definitions/index.js'
+import type { GQLCommentResolvers } from '#definitions/index.js'
 
 import {
   COMMENT_TYPE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 const resolver: GQLCommentResolvers['fromDonator'] = async (
   { authorId, targetId, type },

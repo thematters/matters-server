@@ -1,4 +1,4 @@
-import type { GQLInvitationResolvers, Circle } from 'definitions/index.js'
+import type { GQLInvitationResolvers, Circle } from '#definitions/index.js'
 
 const resolver: GQLInvitationResolvers['circle'] = async (
   { circleId },

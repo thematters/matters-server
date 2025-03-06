@@ -1,11 +1,11 @@
-import type { GQLRecommendationResolvers } from 'definitions/index.js'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
   indexToCursor,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 import {
   type Activity,

@@ -1,4 +1,4 @@
-import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from 'common/enums/index.js'
+import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from '#common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Query {

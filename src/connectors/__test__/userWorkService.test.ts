@@ -1,12 +1,12 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import {
   UserWorkService,
   UserService,
   MomentService,
   ArticleService,
-} from 'connectors/index.js'
-import { NODE_TYPES } from 'common/enums/index.js'
+} from '#connectors/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
 import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections

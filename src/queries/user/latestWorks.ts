@@ -1,6 +1,6 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES, LATEST_WORKS_NUM } from 'common/enums/index.js'
+import { NODE_TYPES, LATEST_WORKS_NUM } from '#common/enums/index.js'
 
 const resolver: GQLUserResolvers['latestWorks'] = async (
   { id },

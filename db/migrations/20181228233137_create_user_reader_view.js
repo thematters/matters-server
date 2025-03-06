@@ -1,7 +1,7 @@
 const table = 'user_reader_view'
 
 exports.up = async (knex) =>
-  knex.raw(/*sql*/ `
+  knex.raw(/* sql*/ `
     create view ${table} as
         select
             "user".*,
@@ -48,5 +48,5 @@ exports.up = async (knex) =>
   `)
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
+  return knex.raw(/* sql*/ `drop view ${table}`)
 }

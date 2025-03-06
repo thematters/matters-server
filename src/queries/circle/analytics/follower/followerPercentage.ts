@@ -1,7 +1,7 @@
-import type { GQLCircleFollowerAnalyticsResolvers } from 'definitions/index.js'
+import type { GQLCircleFollowerAnalyticsResolvers } from '#definitions/index.js'
 
-import { CIRCLE_ACTION } from 'common/enums/index.js'
-import { numRound } from 'common/utils/index.js'
+import { CIRCLE_ACTION } from '#common/enums/index.js'
+import { numRound } from '#common/utils/index.js'
 
 const resolver: GQLCircleFollowerAnalyticsResolvers['followerPercentage'] =
   async (

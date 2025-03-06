@@ -1,8 +1,8 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
 
-import { SIGNING_MESSAGE_PURPOSE } from 'common/enums/index.js'
+import { SIGNING_MESSAGE_PURPOSE } from '#common/enums/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
 

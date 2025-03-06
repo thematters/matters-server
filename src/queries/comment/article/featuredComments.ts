@@ -1,7 +1,7 @@
-import type { GQLArticleResolvers, Comment } from 'definitions/index.js'
+import type { GQLArticleResolvers, Comment } from '#definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
-import { connectionFromArray } from 'common/utils/index.js'
+import { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
+import { connectionFromArray } from '#common/utils/index.js'
 
 const resolver: GQLArticleResolvers['featuredComments'] = async (
   { id: articleId },

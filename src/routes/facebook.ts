@@ -1,10 +1,9 @@
+import { SOCIAL_LOGIN_TYPE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { UserService } from '#connectors/index.js'
 import crypto from 'crypto'
 import { Router, urlencoded } from 'express'
-
-import { SOCIAL_LOGIN_TYPE } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { UserService } from 'connectors/index.js'
 
 import { connections } from './connections.js'
 

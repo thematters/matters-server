@@ -1,10 +1,10 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
+import { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['commentedArticles'] = async (
   { id },

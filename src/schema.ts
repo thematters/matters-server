@@ -1,3 +1,7 @@
+import { CACHE_KEYWORD, NODE_TYPES } from '#common/enums/index.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import mutations from '#mutations/index.js'
+import queries from '#queries/index.js'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import {
   logCacheDirective,
@@ -9,11 +13,6 @@ import {
 } from 'graphql-constraint-directive'
 import { merge } from 'lodash'
 
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums/index.js'
-import { fromGlobalId } from 'common/utils/index.js'
-
-import mutations from './mutations/index.js'
-import queries from './queries/index.js'
 import {
   objectCacheDirective,
   privateCacheDirective,
@@ -48,7 +47,7 @@ const idResolver = (type: string, result: any) => {
   try {
     const { id } = fromGlobalId(result?.id)
     return id
-  } catch (error) {
+  } catch {
     return result.id
   }
 }

@@ -1,9 +1,8 @@
+import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import { environment, isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { ValueOf } from '#definitions/index.js'
 import axios, { type AxiosRequestConfig } from 'axios'
-
-import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums/index.js'
-import { environment, isTest } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { ValueOf } from 'definitions/index.js'
 
 const logger = getLogger('channel-classifier')
 

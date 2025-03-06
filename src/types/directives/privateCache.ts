@@ -1,8 +1,7 @@
+import { CACHE_TTL } from '#common/enums/index.js'
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
-
-import { CACHE_TTL } from 'common/enums/index.js'
 
 export const privateCacheDirective = (directiveName = 'privateCache') => ({
   typeDef: `directive @${directiveName}(strict: Boolean! = false) on FIELD_DEFINITION`,

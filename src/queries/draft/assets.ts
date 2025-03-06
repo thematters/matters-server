@@ -1,4 +1,4 @@
-import type { GQLDraftResolvers } from 'definitions/index.js'
+import type { GQLDraftResolvers } from '#definitions/index.js'
 
 const resolver: GQLDraftResolvers['assets'] = async (
   { id, authorId },

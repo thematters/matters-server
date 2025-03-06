@@ -1,4 +1,4 @@
-import type { Connections, User } from 'definitions/index.js'
+import type { Connections, User } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import _get from 'lodash/get.js'
@@ -12,19 +12,19 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   VERIFICATION_CODE_STATUS,
-} from 'common/enums/index.js'
-import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   UserService,
   ArticleService,
   PaymentService,
   MomentService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 import {
   createDonationTx,
   createTx,
   refreshView,
-} from 'connectors/__test__/utils.js'
+} from '#connectors/__test__/utils.js'
 
 import {
   defaultTestUser,

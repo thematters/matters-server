@@ -1,4 +1,4 @@
-import type { GQLOfficialResolvers } from 'definitions/index.js'
+import type { GQLOfficialResolvers } from '#definitions/index.js'
 
 export const features: GQLOfficialResolvers['features'] = async (
   _,

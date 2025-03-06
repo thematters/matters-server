@@ -1,4 +1,4 @@
-import type { GQLQueryResolvers } from 'definitions/index.js'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
 const resolver: GQLQueryResolvers['oauthClient'] = async (
   root,

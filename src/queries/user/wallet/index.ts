@@ -1,4 +1,4 @@
-import { GQLWalletResolvers } from 'definitions/index.js'
+import { GQLWalletResolvers } from '#definitions/index.js'
 
 import balance from './balance.js'
 import cardLast4 from './cardLast4.js'

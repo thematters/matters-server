@@ -2,17 +2,16 @@ import type {
   GQLTransactionResolvers,
   TransactionTargetType,
   GQLTransactionPurpose,
-} from 'definitions/index.js'
-
-import { camelCase } from 'lodash'
+} from '#definitions/index.js'
 
 import {
   BLOCKCHAIN_CHAINNAME,
   NODE_TYPES,
   PAYMENT_PROVIDER,
-} from 'common/enums/index.js'
-import { ServerError } from 'common/errors.js'
-import { isNumeric, toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { isNumeric, toGlobalId } from '#common/utils/index.js'
+import { camelCase } from 'lodash'
 
 export const Transaction: GQLTransactionResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),

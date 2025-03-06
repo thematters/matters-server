@@ -4,7 +4,7 @@ import {
   getUTCNextMonday,
   getUTCNextMonthDayOne,
   fromDatetimeRangeString,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const UTC_1975_08_19_16 = new Date('August 19, 1975 16:30:00 GMT+00:00')
 const UTC8_1975_08_19_16 = new Date('August 19, 1975 16:30:00 GMT+08:00')

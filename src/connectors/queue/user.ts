@@ -1,5 +1,5 @@
+import type { Connections, PunishRecord } from '#definitions/index.js'
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections, PunishRecord } from 'definitions/index.js'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -8,15 +8,15 @@ import {
   QUEUE_PRIORITY,
   QUEUE_URL,
   USER_STATE,
-} from 'common/enums/index.js'
-import { isTest } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
+} from '#common/enums/index.js'
+import { isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
 import {
   aws,
   UserService,
   AtomService,
   NotificationService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 
 import { getOrCreateQueue } from './utils.js'
 

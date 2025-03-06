@@ -1,11 +1,11 @@
-import type { GQLUserResolvers } from 'definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { TAG_ACTION } from 'common/enums/index.js'
+import { TAG_ACTION } from '#common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['bookmarkedTags'] = async (
   { id },

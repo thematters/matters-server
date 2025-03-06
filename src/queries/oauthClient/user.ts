@@ -1,4 +1,4 @@
-import type { GQLOAuthClientResolvers } from 'definitions/index.js'
+import type { GQLOAuthClientResolvers } from '#definitions/index.js'
 
 const resolver: GQLOAuthClientResolvers['user'] = async (
   { userId },

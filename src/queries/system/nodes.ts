@@ -1,7 +1,7 @@
-import type { GQLQueryResolvers } from 'definitions/index.js'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums/index.js'
-import { ActionLimitExceededError } from 'common/errors.js'
+import { GRAPHQL_INPUT_LENGTH_LIMIT } from '#common/enums/index.js'
+import { ActionLimitExceededError } from '#common/errors.js'
 
 import { getNode } from './utils.js'
 

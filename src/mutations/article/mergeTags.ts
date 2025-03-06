@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers, Tag } from 'definitions/index.js'
+import type { GQLMutationResolvers, Tag } from '#definitions/index.js'
 
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { UserNotFoundError } from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+import { CACHE_KEYWORD, NODE_TYPES } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { UserNotFoundError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['mergeTags'] = async (
   _,

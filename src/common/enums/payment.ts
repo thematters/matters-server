@@ -1,3 +1,5 @@
+import { environment, isProd } from '#common/environment.js'
+import { GQLChain } from '#definitions/index.js'
 import {
   mainnet,
   optimism,
@@ -6,9 +8,6 @@ import {
   polygonMumbai,
   sepolia,
 } from 'viem/chains'
-
-import { environment, isProd } from 'common/environment.js'
-import { GQLChain } from 'definitions/index.js'
 
 import { LANGUAGE } from './language.js'
 

@@ -1,7 +1,7 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { EntityNotFoundError } from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+import { EntityNotFoundError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['setBoost'] = async (
   _,

@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -9,14 +9,14 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   FEATURE_NAME,
   FEATURE_FLAG,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   ArticleService,
   UserWorkService,
   AtomService,
   SystemService,
   ChannelService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

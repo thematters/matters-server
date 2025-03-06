@@ -14,7 +14,7 @@ exports.down = async (knex) => {
   await Promise.all(
     tables.map(async (table) => {
       await knex.raw(
-        /*sql*/ `alter table "${table}" drop column if exists remark cascade`
+        /* sql*/ `alter table "${table}" drop column if exists remark cascade`
       )
     })
   )

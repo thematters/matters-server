@@ -1,4 +1,4 @@
-import type { GQLUserInfoResolvers } from 'definitions/index.js'
+import type { GQLUserInfoResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserInfoResolvers['profileCover'] = async (
   { profileCover },

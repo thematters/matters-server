@@ -6,12 +6,17 @@ import type {
   NoticeEntitiesMap,
   NoticeEntity,
   User,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
-import { MONTH, NOTICE_TYPE, QUEUE_URL, CACHE_TTL } from 'common/enums/index.js'
-import { isTest } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
-import { aws, AtomService } from 'connectors/index.js'
+import {
+  MONTH,
+  NOTICE_TYPE,
+  QUEUE_URL,
+  CACHE_TTL,
+} from '#common/enums/index.js'
+import { isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { aws, AtomService } from '#connectors/index.js'
 
 import { mail } from './mail/index.js'
 

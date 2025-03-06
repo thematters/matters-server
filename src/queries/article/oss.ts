@@ -1,4 +1,4 @@
-import type { GQLArticleOssResolvers } from 'definitions/index.js'
+import type { GQLArticleOssResolvers } from '#definitions/index.js'
 
 export const boost: GQLArticleOssResolvers['boost'] = async (
   { id: articleId },

@@ -1,4 +1,4 @@
-import type { GQLCircleFollowerAnalyticsResolvers } from 'definitions/schema.js'
+import type { GQLCircleFollowerAnalyticsResolvers } from '#definitions/schema.js'
 
 import current from './current.js'
 import followerPercentage from './followerPercentage.js'

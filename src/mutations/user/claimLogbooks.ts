@@ -1,5 +1,13 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
+import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from '#common/enums/index.js'
+import { environment, isProd, contract } from '#common/environment.js'
+import {
+  EntityNotFoundError,
+  EthAddressNotFoundError,
+  UserInputError,
+} from '#common/errors.js'
+import { alchemy, AlchemyNetwork } from '#connectors/index.js'
 import axios from 'axios'
 import { Knex } from 'knex'
 import {
@@ -15,15 +23,6 @@ import {
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { polygon } from 'viem/chains'
-
-import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from 'common/enums/index.js'
-import { environment, isProd, contract } from 'common/environment.js'
-import {
-  EntityNotFoundError,
-  EthAddressNotFoundError,
-  UserInputError,
-} from 'common/errors.js'
-import { alchemy, AlchemyNetwork } from 'connectors/index.js'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   _,

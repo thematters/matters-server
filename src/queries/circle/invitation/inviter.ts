@@ -1,4 +1,4 @@
-import type { GQLInvitationResolvers } from 'definitions/index.js'
+import type { GQLInvitationResolvers } from '#definitions/index.js'
 
 const resolver: GQLInvitationResolvers['inviter'] = async (
   { inviter },

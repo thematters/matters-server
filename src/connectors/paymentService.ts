@@ -6,11 +6,7 @@ import type {
   Connections,
   UserHasUsername,
   LANGUAGES,
-} from 'definitions/index.js'
-
-import slugify from '@matters/slugify'
-import { Knex } from 'knex'
-import { v4 } from 'uuid'
+} from '#definitions/index.js'
 
 import {
   BLOCKCHAIN_TRANSACTION_STATE,
@@ -23,15 +19,18 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums/index.js'
-import { ServerError } from 'common/errors.js'
-import { getLogger } from 'common/logger.js'
-import { getUTC8Midnight, numRound } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { getUTC8Midnight, numRound } from '#common/utils/index.js'
 import {
   ArticleService,
   BaseService,
   NotificationService,
-} from 'connectors/index.js'
+} from '#connectors/index.js'
+import slugify from '@matters/slugify'
+import { Knex } from 'knex'
+import { v4 } from 'uuid'
 
 import { stripe } from './stripe/index.js'
 

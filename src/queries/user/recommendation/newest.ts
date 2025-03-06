@@ -1,11 +1,11 @@
-import type { GQLRecommendationResolvers } from 'definitions/index.js'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE } from 'common/enums/index.js'
-import { ForbiddenError } from 'common/errors.js'
+import { DEFAULT_TAKE_PER_PAGE } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 export const newest: GQLRecommendationResolvers['newest'] = async (
   _,

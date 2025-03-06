@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
 
@@ -6,8 +6,8 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
-} from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import {
   delay,

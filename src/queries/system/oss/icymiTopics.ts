@@ -1,9 +1,9 @@
-import type { GQLOssResolvers } from 'definitions/index.js'
+import type { GQLOssResolvers } from '#definitions/index.js'
 
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 
 export const icymiTopics: GQLOssResolvers['icymiTopics'] = async (
   _,

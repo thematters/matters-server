@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 
-import { PAYMENT_CURRENCY } from 'common/enums/index.js'
+import { PAYMENT_CURRENCY } from '#common/enums/index.js'
 
 import { stripe } from '../stripe/index.js'
 

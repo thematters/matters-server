@@ -1,7 +1,7 @@
-import type { Draft, Connections } from 'definitions/index.js'
+import type { Draft, Connections } from '#definitions/index.js'
 
-import { PUBLISH_STATE } from 'common/enums/index.js'
-import { BaseService } from 'connectors/index.js'
+import { PUBLISH_STATE } from '#common/enums/index.js'
+import { BaseService } from '#connectors/index.js'
 
 export class DraftService extends BaseService<Draft> {
   public constructor(connections: Connections) {

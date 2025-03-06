@@ -1,8 +1,8 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
-import { ChannelService, AtomService } from 'connectors/index.js'
+import { ChannelService, AtomService } from '#connectors/index.js'
 import { genConnections, closeConnections } from './utils.js'
-import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums/index.js'
+import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 
 let connections: Connections
 let channelService: ChannelService

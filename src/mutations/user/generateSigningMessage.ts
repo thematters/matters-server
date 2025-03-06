@@ -1,11 +1,10 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
+import { SIGNING_MESSAGE_PURPOSE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { UserInputError } from '#common/errors.js'
 import { customAlphabet } from 'nanoid'
 import { isAddress } from 'viem'
-
-import { SIGNING_MESSAGE_PURPOSE } from 'common/enums/index.js'
-import { environment } from 'common/environment.js'
-import { UserInputError } from 'common/errors.js'
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 12)
 

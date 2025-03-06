@@ -1,12 +1,12 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums/index.js'
+import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from '#common/enums/index.js'
 import {
   ForbiddenError,
   UserInputError,
   ActionLimitExceededError,
-} from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['reorderCollectionArticles'] = async (
   _,

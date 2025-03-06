@@ -4,16 +4,16 @@ import type {
   Campaign,
   CampaignStage,
   Article,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
 import {
   CAMPAIGN_STATE,
   USER_STATE,
   CAMPAIGN_USER_STATE,
   ARTICLE_STATE,
-} from 'common/enums/index.js'
-import { ForbiddenError } from 'common/errors.js'
-import { CampaignService, AtomService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
+import { CampaignService, AtomService } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

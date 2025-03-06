@@ -1,9 +1,8 @@
-import type { GQLOfficialResolvers } from 'definitions/index.js'
+import type { GQLOfficialResolvers } from '#definitions/index.js'
 
+import { NODE_TYPES } from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import { Knex } from 'knex'
-
-import { NODE_TYPES } from 'common/enums/index.js'
-import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 
 export const announcements: GQLOfficialResolvers['announcements'] = async (
   _,

@@ -1,3 +1,11 @@
+import {
+  BLOCKCHAIN,
+  BLOCKCHAIN_CHAINID,
+  BLOCKCHAIN_RPC,
+  MINUTE,
+} from '#common/enums/index.js'
+import { isProd } from '#common/environment.js'
+import { environment, contract } from '#common/environment.js'
 import { createMultiOwnerModularAccount } from '@alchemy/aa-accounts'
 import {
   LocalAccountSigner,
@@ -20,15 +28,6 @@ import {
   decodeEventLog,
   Hash,
 } from 'viem'
-
-import {
-  BLOCKCHAIN,
-  BLOCKCHAIN_CHAINID,
-  BLOCKCHAIN_RPC,
-  MINUTE,
-} from 'common/enums/index.js'
-import { isProd } from 'common/environment.js'
-import { environment, contract } from 'common/environment.js'
 
 import { BaseContract } from './baseContract.js'
 

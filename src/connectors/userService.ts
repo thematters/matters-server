@@ -17,26 +17,7 @@ import type {
   LANGUAGES,
   UserBoost,
   UserFeatureFlag,
-} from 'definitions/index.js'
-
-import axios from 'axios'
-import { compare } from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import { Knex } from 'knex'
-import _, { random } from 'lodash'
-import { customAlphabet, nanoid } from 'nanoid'
-import { v4 } from 'uuid'
-import {
-  Hex,
-  createPublicClient,
-  getContract,
-  hashMessage,
-  http,
-  isAddress,
-  recoverMessageAddress,
-  trim,
-} from 'viem'
-import { mainnet, polygon, sepolia } from 'viem/chains'
+} from '#definitions/index.js'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -78,8 +59,8 @@ import {
   BLOCKCHAIN_RPC,
   DAY,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums/index.js'
-import { environment, isProd } from 'common/environment.js'
+} from '#common/enums/index.js'
+import { environment, isProd } from '#common/environment.js'
 import {
   EmailNotFoundError,
   CryptoWalletExistsError,
@@ -98,8 +79,8 @@ import {
   ForbiddenError,
   ActionFailedError,
   ForbiddenByStateError,
-} from 'common/errors.js'
-import { getLogger, auditLog } from 'common/logger.js'
+} from '#common/errors.js'
+import { getLogger, auditLog } from '#common/logger.js'
 import {
   generatePasswordhash,
   isValidUserName,
@@ -109,15 +90,33 @@ import {
   genDisplayName,
   RatelimitCounter,
   normalizeSearchKey,
-} from 'common/utils/index.js'
+} from '#common/utils/index.js'
 import {
   AtomService,
   BaseService,
   CacheService,
   OAuthService,
   NotificationService,
-} from 'connectors/index.js'
-import { Twitter } from 'connectors/oauth/index.js'
+} from '#connectors/index.js'
+import { Twitter } from '#connectors/oauth/index.js'
+import axios from 'axios'
+import { compare } from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import { Knex } from 'knex'
+import _, { random } from 'lodash'
+import { customAlphabet, nanoid } from 'nanoid'
+import { v4 } from 'uuid'
+import {
+  Hex,
+  createPublicClient,
+  getContract,
+  hashMessage,
+  http,
+  isAddress,
+  recoverMessageAddress,
+  trim,
+} from 'viem'
+import { mainnet, polygon, sepolia } from 'viem/chains'
 
 import { LikeCoin } from './likecoin/index.js'
 

@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers } from 'definitions/index.js'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums/index.js'
+import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from '#common/enums/index.js'
 
 // ACL for article content
 const resolver: GQLArticleResolvers['content'] = async (

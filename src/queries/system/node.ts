@@ -1,4 +1,4 @@
-import type { GQLQueryResolvers } from 'definitions/index.js'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
 import { getNode } from './utils.js'
 

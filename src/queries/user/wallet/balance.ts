@@ -1,6 +1,6 @@
-import type { GQLWalletResolvers } from 'definitions/index.js'
+import type { GQLWalletResolvers } from '#definitions/index.js'
 
-import { PAYMENT_CURRENCY } from 'common/enums/index.js'
+import { PAYMENT_CURRENCY } from '#common/enums/index.js'
 
 const resolver: GQLWalletResolvers['balance'] = async (
   { id },

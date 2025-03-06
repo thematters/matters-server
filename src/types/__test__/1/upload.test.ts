@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import { createReadStream } from 'fs'
 import { FileUpload, Upload } from 'graphql-upload'
@@ -7,9 +7,9 @@ import {
   AUDIO_ASSET_TYPE,
   IMAGE_ASSET_TYPE,
   NODE_TYPES,
-} from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
-import { SystemService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
+import { SystemService } from '#connectors/index.js'
 
 import { genConnections, closeConnections, testClient } from '../utils.js'
 

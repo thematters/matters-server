@@ -1,4 +1,4 @@
-import { SCOPE_PREFIX } from 'common/enums/index.js'
+import { SCOPE_PREFIX } from '#common/enums/index.js'
 
 /**
  * Check if scope is valid

@@ -1,11 +1,5 @@
+import type { Connections } from '#definitions/index.js'
 import type { Queue } from 'bull'
-import type { Connections } from 'definitions/index.js'
-
-import { makeSummary } from '@matters/ipns-site-generator'
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
 
 import {
   ASSET_TYPE,
@@ -16,17 +10,22 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums/index.js'
-import { isTest } from 'common/environment.js'
-import { getLogger } from 'common/logger.js'
+} from '#common/enums/index.js'
+import { isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
 import {
   UserService,
   NotificationService,
   SystemService,
   DraftService,
-} from 'connectors/index.js'
-import { medium } from 'connectors/medium/index.js'
-import { UserHasUsername } from 'definitions/index.js'
+} from '#connectors/index.js'
+import { medium } from '#connectors/medium/index.js'
+import { UserHasUsername } from '#definitions/index.js'
+import { makeSummary } from '@matters/ipns-site-generator'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 
 import { getOrCreateQueue } from './utils.js'
 

@@ -3,14 +3,7 @@ import type {
   Draft,
   Circle,
   GQLMutationResolvers,
-} from 'definitions/index.js'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { stripHtml } from '@matters/ipns-site-generator'
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+} from '#definitions/index.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -25,7 +18,7 @@ import {
   NODE_TYPES,
   USER_STATE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionReachLimitError,
@@ -34,8 +27,14 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { stripHtml } from '@matters/ipns-site-generator'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 
 const resolver: GQLMutationResolvers['editArticle'] = async (
   _,

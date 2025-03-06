@@ -1,5 +1,5 @@
+import type { MOMENT_STATE } from '#common/enums/index.js'
 import type { ValueOf } from './generic.js'
-import type { MOMENT_STATE } from 'common/enums/index.js'
 
 export interface Moment {
   id: string

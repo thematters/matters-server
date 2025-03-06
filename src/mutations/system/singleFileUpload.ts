@@ -1,8 +1,4 @@
-import type { Asset, GQLMutationResolvers } from 'definitions/index.js'
-
-import axios from 'axios'
-import { FileUpload } from 'graphql-upload'
-import { v4 } from 'uuid'
+import type { Asset, GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
@@ -15,10 +11,13 @@ import {
   UPLOAD_FILE_SIZE_LIMIT,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
-} from 'common/enums/index.js'
-import { UnableToUploadFromUrl, UserInputError } from 'common/errors.js'
-import { getLogger, auditLog } from 'common/logger.js'
-import { fromGlobalId } from 'common/utils/index.js'
+} from '#common/enums/index.js'
+import { UnableToUploadFromUrl, UserInputError } from '#common/errors.js'
+import { getLogger, auditLog } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import axios from 'axios'
+import { FileUpload } from 'graphql-upload'
+import { v4 } from 'uuid'
 
 const logger = getLogger('mutation-upload')
 

@@ -1,4 +1,4 @@
-import { GQLUserAnalyticsResolvers } from 'definitions/index.js'
+import { GQLUserAnalyticsResolvers } from '#definitions/index.js'
 
 import topDonators from './topDonators.js'
 

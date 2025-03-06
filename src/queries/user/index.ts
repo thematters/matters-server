@@ -19,10 +19,10 @@ import type {
   GQLWalletResolvers,
   GQLCollectionResolvers,
   GQLPinnableWorkResolvers,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums/index.js'
-import { toGlobalId } from 'common/utils/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 import UserAnalytics from './analytics/index.js'
 import { Appreciation } from './appreciation.js'

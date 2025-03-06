@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers } from 'definitions/index.js'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { NOTICE_TYPE } from 'common/enums/index.js'
-import { AuthenticationError, UserInputError } from 'common/errors.js'
-import { fromGlobalId } from 'common/utils/index.js'
+import { NOTICE_TYPE } from '#common/enums/index.js'
+import { AuthenticationError, UserInputError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 export const likeCollection: GQLMutationResolvers['likeCollection'] = async (
   _,

@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -8,8 +8,8 @@ import {
   COMMENT_STATE,
   FEATURE_FLAG,
   FEATURE_NAME,
-} from 'common/enums/index.js'
-import { SystemService, AtomService, MomentService } from 'connectors/index.js'
+} from '#common/enums/index.js'
+import { SystemService, AtomService, MomentService } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

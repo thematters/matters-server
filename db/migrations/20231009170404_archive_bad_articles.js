@@ -23,7 +23,7 @@ const isProd = process.env['MATTERS_ENV'] === 'production'
 exports.up = async (knex) => {
   if (isProd) {
     await knex.raw(
-      /*sql*/ "UPDATE article SET state = 'archived' WHERE id = ANY(?) ;",
+      /* sql*/ "UPDATE article SET state = 'archived' WHERE id = ANY(?) ;",
       [badArticles]
     )
   }
@@ -32,7 +32,7 @@ exports.up = async (knex) => {
 exports.down = async (knex) => {
   if (isProd) {
     await knex.raw(
-      /*sql*/ "UPDATE article SET state = 'active' WHERE id = ANY(?) ;",
+      /* sql*/ "UPDATE article SET state = 'active' WHERE id = ANY(?) ;",
       [badArticles]
     )
   }

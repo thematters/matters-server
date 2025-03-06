@@ -1,9 +1,9 @@
-import type { PaymentService, CampaignService } from 'connectors/index.js'
+import type { PaymentService, CampaignService } from '#connectors/index.js'
 import type {
   Connections,
   MaterializedView,
   Article,
-} from 'definitions/index.js'
+} from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import { createRequire } from 'node:module'
@@ -12,7 +12,7 @@ import { knex } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 // @ts-ignore
 import initDatabase from '@root/db/initDatabase'
-import { genRandomString } from 'common/utils/index.js'
+import { genRandomString } from '#common/utils/index.js'
 
 import {
   CAMPAIGN_STATE,
@@ -22,7 +22,7 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums/index.js'
+} from '#common/enums/index.js'
 
 const require = createRequire(import.meta.url)
 const Redis = require('ioredis-mock')
