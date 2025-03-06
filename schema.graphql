@@ -34,6 +34,7 @@ type Query {
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
   moment(input: MomentInput!): Moment
+  channel(input: ChannelInput!): Channel
   channels: [Channel!]!
 }
 
@@ -3839,6 +3840,10 @@ type Channel {
   providerId: String!
   enabled: Boolean!
   articles(input: ConnectionArgs!): ArticleConnection!
+}
+
+input ChannelInput {
+  shortHash: String!
 }
 
 input PutChannelInput {
