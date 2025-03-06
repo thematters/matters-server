@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions/index.js'
 
-import { APPRECIATION_PURPOSE } from 'common/enums'
+import { APPRECIATION_PURPOSE } from 'common/enums/index.js'
 
 const resolver: GQLArticleResolvers['hasAppreciate'] = async (
   { id },

@@ -3,7 +3,7 @@ import type {
   Circle,
   Article,
   ValueOf,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -12,9 +12,9 @@ import {
   COMMENT_TYPE,
   NODE_TYPES,
   OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums'
-import { ForbiddenError } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from 'common/enums/index.js'
+import { ForbiddenError } from 'common/errors.js'
+import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   _,

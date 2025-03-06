@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { clearCookie } from 'common/utils'
+import { clearCookie } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['userLogout'] = async (
   _,

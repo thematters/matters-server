@@ -1,14 +1,14 @@
 import cors from 'cors'
 import express, { RequestHandler } from 'express'
 import helmet from 'helmet'
-import 'module-alias/register'
+import 'module-alias/register.js'
 import requestIp from 'request-ip'
 import { v4 } from 'uuid'
 
-import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from 'common/enums'
-import { contextStorage, LoggingContextKey } from 'common/logger'
+import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from 'common/enums/index.js'
+import { contextStorage, LoggingContextKey } from 'common/logger.js'
 
-import * as routes from './routes'
+import * as routes from './routes/index.js'
 ;(async () => {
   /**
    * Init

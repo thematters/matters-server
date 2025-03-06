@@ -1,8 +1,9 @@
-import Redis, { Cluster } from 'ioredis'
+import type { Redis, Cluster } from 'ioredis'
+
 import _ from 'lodash'
 
-import { CACHE_TTL } from 'common/enums'
-import { UnknownError } from 'common/errors'
+import { CACHE_TTL } from 'common/enums/index.js'
+import { UnknownError } from 'common/errors.js'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares

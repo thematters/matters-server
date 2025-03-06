@@ -1,4 +1,4 @@
-import type { GQLWalletResolvers } from 'definitions'
+import type { GQLWalletResolvers } from 'definitions/index.js'
 
 const resolver: GQLWalletResolvers['stripeAccount'] = async (
   { id },

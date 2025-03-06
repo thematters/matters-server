@@ -1,4 +1,4 @@
-import type { User } from 'definitions'
+import type { User } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
@@ -6,12 +6,12 @@ import { Redis } from 'ioredis'
 import { get } from 'lodash'
 import passport from 'passport'
 
-import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { UserService } from 'connectors'
+import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
+import { UserService } from 'connectors/index.js'
 
-import { connections } from '../connections'
+import { connections } from '../connections.js'
 
 const logger = getLogger('route-auth')
 

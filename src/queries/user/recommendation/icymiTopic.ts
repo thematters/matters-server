@@ -1,6 +1,6 @@
-import type { GQLRecommendationResolvers } from 'definitions'
+import type { GQLRecommendationResolvers } from 'definitions/index.js'
 
-import { MATTERS_CHOICE_TOPIC_STATE } from 'common/enums'
+import { MATTERS_CHOICE_TOPIC_STATE } from 'common/enums/index.js'
 
 export const icymiTopic: GQLRecommendationResolvers['icymiTopic'] = async (
   _,

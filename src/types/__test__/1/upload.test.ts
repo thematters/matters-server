@@ -1,13 +1,17 @@
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
 import { createReadStream } from 'fs'
 import { FileUpload, Upload } from 'graphql-upload'
 
-import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE, NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { SystemService } from 'connectors'
+import {
+  AUDIO_ASSET_TYPE,
+  IMAGE_ASSET_TYPE,
+  NODE_TYPES,
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
+import { SystemService } from 'connectors/index.js'
 
-import { genConnections, closeConnections, testClient } from '../utils'
+import { genConnections, closeConnections, testClient } from '../utils.js'
 
 let connections: Connections
 beforeAll(async () => {

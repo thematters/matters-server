@@ -1,4 +1,4 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers } from 'definitions/index.js'
 
 const resolver: GQLUserResolvers['avatar'] = async (
   { avatar },

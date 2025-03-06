@@ -1,10 +1,10 @@
-import type { GQLTagResolvers } from 'definitions'
+import type { GQLTagResolvers } from 'definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 const resolver: GQLTagResolvers['recommendedAuthors'] = async (
   { id },

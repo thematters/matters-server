@@ -2,8 +2,8 @@ import axios from 'axios'
 import crypto from 'node:crypto'
 import Oauth from 'oauth-1.0a'
 
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
+import { environment } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('oauth-twitter')
 

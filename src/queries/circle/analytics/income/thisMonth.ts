@@ -1,4 +1,4 @@
-import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions'
+import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions/index.js'
 
 import {
   PAYMENT_PROVIDER,
@@ -6,7 +6,7 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 
 const resolver: GQLCircleIncomeAnalyticsResolvers['thisMonth'] = async (
   { id, owner },

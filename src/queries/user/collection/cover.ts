@@ -1,4 +1,4 @@
-import type { GQLCollectionResolvers } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions/index.js'
 
 const resolver: GQLCollectionResolvers['cover'] = async (
   { cover },

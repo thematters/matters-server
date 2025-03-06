@@ -1,5 +1,9 @@
-import type { AtomService } from 'connectors'
-import type { DataSources, GQLMutationResolvers, Draft } from 'definitions'
+import type { AtomService } from 'connectors/index.js'
+import type {
+  DataSources,
+  GQLMutationResolvers,
+  Draft,
+} from 'definitions/index.js'
 
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
@@ -22,8 +26,8 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   ArticleCollectionReachLimitError,
   ArticleNotFoundError,
@@ -35,8 +39,8 @@ import {
   ForbiddenError,
   TooManyTagsForArticleError,
   UserInputError,
-} from 'common/errors'
-import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,

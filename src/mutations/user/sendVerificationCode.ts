@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import {
   MINUTE,
@@ -8,8 +8,8 @@ import {
   VERIFICATION_DOMAIN_WHITELIST,
   VERIFICATION_CODE_TYPE,
   USER_STATE,
-} from 'common/enums'
-import { isProd } from 'common/environment'
+} from 'common/enums/index.js'
+import { isProd } from 'common/environment.js'
 import {
   AuthenticationError,
   EmailExistsError,
@@ -17,10 +17,10 @@ import {
   EmailNotFoundError,
   UserInputError,
   ForbiddenByStateError,
-} from 'common/errors'
-import { getLogger } from 'common/logger'
-import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
-import { Passphrases } from 'connectors/passphrases'
+} from 'common/errors.js'
+import { getLogger } from 'common/logger.js'
+import { extractRootDomain, verifyCaptchaToken } from 'common/utils/index.js'
+import { Passphrases } from 'connectors/passphrases/index.js'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 

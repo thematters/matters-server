@@ -1,26 +1,25 @@
-import Redis from 'ioredis'
+import { Redis } from 'ioredis'
 import { knex } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
-import { environment } from 'common/environment'
+import { environment } from 'common/environment.js'
 
-// @ts-ignore
-import knexConfig from '../../knexfile'
+import knexConfig from '../../knexfile.js'
 
 // init connections
 const mainKnex = knex({
-  ...knexConfig[environment.env],
+  ...knexConfig[environment.env as keyof typeof knexConfig],
   ...knexSnakeCaseMappers(),
 })
 
 const readonlyKnex = knex({
-  ...knexConfig[environment.env],
+  ...knexConfig[environment.env as keyof typeof knexConfig],
   ...knexSnakeCaseMappers(),
   ...{ connection: environment.pgReadonlyConnectionString },
 })
 
 const searchKnexDB = knex({
-  ...knexConfig[environment.env],
+  ...knexConfig[environment.env as keyof typeof knexConfig],
   ...knexSnakeCaseMappers(),
   ...{ connection: environment.searchPgConnectionString },
 })

@@ -1,4 +1,4 @@
-import { GQLSigningMessagePurpose } from './schema'
+import type { GQLSigningMessagePurpose } from './schema.js'
 
 export interface CryptoWallet {
   id: string

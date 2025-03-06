@@ -1,9 +1,9 @@
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId, fromGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { toGlobalId, fromGlobalId } from 'common/utils/index.js'
 
-import { testClient, genConnections, closeConnections } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 

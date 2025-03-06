@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -8,13 +8,13 @@ import {
   PAYMENT_MINIMAL_PAYOUT_AMOUNT,
   PAYMENT_PROVIDER,
   PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   PaymentBalanceInsufficientError,
   PaymentPayoutAccountExistsError,
   ServerError,
-} from 'common/errors'
+} from 'common/errors.js'
 
 const resolver: GQLMutationResolvers['connectStripeAccount'] = async (
   _,

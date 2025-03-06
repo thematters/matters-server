@@ -1,7 +1,7 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { ForbiddenError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['resetLikerId'] = async (
   _,

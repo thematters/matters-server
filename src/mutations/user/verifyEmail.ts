@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers, AuthMode } from 'definitions'
+import type { GQLMutationResolvers, AuthMode } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -6,10 +6,10 @@ import {
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
   NODE_TYPES,
-} from 'common/enums'
-import { ForbiddenError, UserNotFoundError } from 'common/errors'
-import { setCookie, getViewerFromUser } from 'common/utils'
-import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
+} from 'common/enums/index.js'
+import { ForbiddenError, UserNotFoundError } from 'common/errors.js'
+import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e.js'
+import { setCookie, getViewerFromUser } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['verifyEmail'] = async (
   _,

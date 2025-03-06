@@ -1,4 +1,4 @@
-import type { Context } from 'definitions'
+import type { Context } from 'definitions/index.js'
 
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
@@ -18,12 +18,12 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import { Express, RequestHandler, Request, Response } from 'express'
 import { applyMiddleware } from 'graphql-middleware'
-import expressPlayground from 'graphql-playground-middleware-express'
 import { directiveEstimator, simpleEstimator } from 'graphql-query-complexity'
 import { graphqlUploadExpress } from 'graphql-upload'
 import Keyv from 'keyv'
 import { omit } from 'lodash'
-import 'module-alias/register'
+import { createRequire } from 'node:module'
+import 'module-alias/register.js'
 
 import {
   CACHE_TTL,
@@ -31,10 +31,10 @@ import {
   GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
-} from 'common/enums'
-import { isProd, isLocal, isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { getViewerFromReq } from 'common/utils'
+} from 'common/enums/index.js'
+import { isProd, isLocal, isTest } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
+import { getViewerFromReq } from 'common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -56,7 +56,7 @@ import {
   TranslationService,
   LikeCoin,
   ExchangeRate,
-} from 'connectors'
+} from 'connectors/index.js'
 import {
   PublicationQueue,
   RevisionQueue,
@@ -66,12 +66,15 @@ import {
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
-} from 'connectors/queue'
-import { loggerMiddleware } from 'middlewares/logger'
+} from 'connectors/queue/index.js'
+import { loggerMiddleware } from 'middlewares/logger.js'
 
-import schema from '../schema'
+import schema from '../schema.js'
 
-import { connections } from './connections'
+import { connections } from './connections.js'
+
+const require = createRequire(import.meta.url)
+const expressPlayground = require('graphql-playground-middleware-express')
 
 const logger = getLogger('graphql-server')
 

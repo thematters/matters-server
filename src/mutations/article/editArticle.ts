@@ -1,4 +1,9 @@
-import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
+import type {
+  Article,
+  Draft,
+  Circle,
+  GQLMutationResolvers,
+} from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -20,7 +25,7 @@ import {
   NODE_TYPES,
   USER_STATE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionReachLimitError,
@@ -29,8 +34,8 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['editArticle'] = async (
   _,

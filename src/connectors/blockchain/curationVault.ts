@@ -26,11 +26,11 @@ import {
   BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_RPC,
   MINUTE,
-} from 'common/enums'
-import { isProd } from 'common/environment'
-import { environment, contract } from 'common/environment'
+} from 'common/enums/index.js'
+import { isProd } from 'common/environment.js'
+import { environment, contract } from 'common/environment.js'
 
-import { BaseContract } from './baseContract'
+import { BaseContract } from './baseContract.js'
 
 // type
 export interface CurationVaultEvent {
@@ -399,7 +399,8 @@ export class CurationVaultContract extends BaseContract {
     const { v, r, s } = parseSignature(signature)
 
     console.log('signer: ', await this.signer.getAddress())
-    console.log('smart account: ', client.getAddress())
+    // TODO: fix type error
+    // console.log('smart account: ', await client.getAddress())
 
     return client.sendUserOperation({
       uo: {

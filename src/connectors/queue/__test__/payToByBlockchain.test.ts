@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/ban-ts-comment: 0 */
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 import { v4 } from 'uuid'
 
 import { Knex } from 'knex'
@@ -15,14 +15,14 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { PaymentQueueJobDataError } from 'common/errors'
-import { PaymentService } from 'connectors'
-import { CurationContract } from 'connectors/blockchain'
-import { PayToByBlockchainQueue } from 'connectors/queue'
+} from 'common/enums/index.js'
+import { PaymentQueueJobDataError } from 'common/errors.js'
+import { PaymentService } from 'connectors/index.js'
+import { CurationContract } from 'connectors/blockchain/index.js'
+import { PayToByBlockchainQueue } from 'connectors/queue/index.js'
 
-import { genConnections, closeConnections } from '../../__test__/utils'
-import { contract } from 'common/environment'
+import { genConnections, closeConnections } from '../../__test__/utils.js'
+import { contract } from 'common/environment.js'
 
 // setup mock
 

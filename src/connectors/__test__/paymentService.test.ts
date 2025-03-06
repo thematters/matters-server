@@ -1,4 +1,4 @@
-import type { Connections, EmailableUser } from 'definitions'
+import type { Connections, EmailableUser } from 'definitions/index.js'
 
 import {
   BLOCKCHAIN,
@@ -8,15 +8,15 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleService,
   mailService,
   PaymentService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 
-import { createDonationTx, genConnections, closeConnections } from './utils'
+import { createDonationTx, genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let paymentService: PaymentService

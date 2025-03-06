@@ -1,8 +1,8 @@
 import { v2 as TranslateAPI } from '@google-cloud/translate'
 
-import { LANGUAGE } from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
+import { LANGUAGE } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('service-gcp')
 

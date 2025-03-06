@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { compare } from 'bcrypt'
@@ -12,7 +12,7 @@ import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   CircleNotFoundError,
   DuplicateCircleSubscriptionError,
@@ -21,8 +21,8 @@ import {
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   _,

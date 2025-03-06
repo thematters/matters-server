@@ -1,5 +1,5 @@
-import { isTest } from 'common/environment'
-import { cfsvc } from 'connectors'
+import { isTest } from 'common/environment.js'
+import { cfsvc } from 'connectors/index.js'
 
 // returns isHuman: boolean
 export async function verifyCaptchaToken(token: string, ip: string) {

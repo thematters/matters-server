@@ -1,6 +1,6 @@
-import type { GQLCollectionResolvers } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions/index.js'
 
-import { connectionFromArray, connectionFromQuery } from 'common/utils'
+import { connectionFromArray, connectionFromQuery } from 'common/utils/index.js'
 
 const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },

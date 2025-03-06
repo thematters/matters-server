@@ -1,7 +1,11 @@
-import isEmail from 'validator/lib/isEmail'
-export { default as isUrl } from 'validator/lib/isURL'
+import { createRequire } from 'node:module'
 
-import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums'
+import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums/index.js'
+
+const require = createRequire(import.meta.url)
+const isEmail = require('validator/lib/isEmail')
+
+export const isUrl = require('validator/lib/isURL')
 
 /**
  * Validate email address.

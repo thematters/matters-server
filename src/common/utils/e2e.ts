@@ -1,5 +1,5 @@
-import { SOCIAL_LOGIN_TYPE } from 'common/enums'
-import { isProd } from 'common/environment'
+import { SOCIAL_LOGIN_TYPE } from 'common/enums/index.js'
+import { isProd } from 'common/environment.js'
 import {
   CodeExpiredError,
   CodeInvalidError,
@@ -7,7 +7,7 @@ import {
   CodeInactiveError,
   OAuthTokenInvalidError,
   PasswordInvalidError,
-} from 'common/errors'
+} from 'common/errors.js'
 
 const PASSPHREASE_EXPIRED = 'e2ets-loent-loent-loent-loent-expir'
 const PASSPHREASE_MISMATCH = 'e2ets-loent-loent-loent-loent-misma'

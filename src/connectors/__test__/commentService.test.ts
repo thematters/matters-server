@@ -1,16 +1,16 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE, USER_STATE } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE, USER_STATE } from 'common/enums/index.js'
 
 import {
   CommentService,
   AtomService,
   MomentService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let atomService: AtomService

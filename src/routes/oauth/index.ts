@@ -7,16 +7,16 @@ import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
   OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { getViewerFromReq } from 'common/utils/getViewer'
-import { OAuthService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
+import { getViewerFromReq } from 'common/utils/getViewer.js'
+import { OAuthService } from 'connectors/index.js'
 
-import { connections } from '../connections'
+import { connections } from '../connections.js'
 
-import OAuthServer from './express-oauth-server'
-import initPassportStrategies from './strategies'
+import OAuthServer from './express-oauth-server.js'
+import initPassportStrategies from './strategies.js'
 
 const logger = getLogger('route-oauth')
 

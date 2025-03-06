@@ -1,6 +1,6 @@
-import avatar from './avatar'
-import rootOAuthClient from './rootOAuthClient'
-import user from './user'
+import avatar from './avatar.js'
+import rootOAuthClient from './rootOAuthClient.js'
+import user from './user.js'
 
 export default {
   Query: {

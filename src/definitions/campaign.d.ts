@@ -1,10 +1,9 @@
-import type { ValueOf } from './generic'
-
-import {
+import type { ValueOf } from './generic.js'
+import type {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 
 export interface Campaign {
   id: string

@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -10,19 +10,19 @@ import {
   NODE_TYPES,
   USER_STATE,
   VERIFICATION_CODE_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   fromGlobalId,
   generateRegisterRedirectUrl,
   makeUserName,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 

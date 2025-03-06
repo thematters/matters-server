@@ -1,6 +1,10 @@
-import type { GQLUserStatusResolvers } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions/index.js'
 
-import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
+import {
+  ActivityType,
+  LOG_RECORD_TYPES,
+  MATERIALIZED_VIEW,
+} from 'common/enums/index.js'
 
 const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
   { id: userId },

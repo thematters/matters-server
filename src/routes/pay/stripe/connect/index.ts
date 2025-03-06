@@ -2,14 +2,14 @@ import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { PaymentService, AtomService } from 'connectors'
-import SlackService from 'connectors/slack'
+import { environment } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
+import { PaymentService, AtomService } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 
-import { connections } from '../../../connections'
+import { connections } from '../../../connections.js'
 
-import { updateAccount } from './account'
+import { updateAccount } from './account.js'
 
 const logger = getLogger('router-stripe-connect')
 

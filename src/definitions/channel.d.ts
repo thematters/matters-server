@@ -1,4 +1,5 @@
-import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
+import type { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums/index.js'
+
 export interface Channel {
   id: string
   shortHash: string

@@ -2,9 +2,12 @@ import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
 import { Knex } from 'knex'
 
-import { DEFAULT_TAKE_PER_PAGE, MAX_TAKE_PER_PAGE } from 'common/enums'
-import { UserInputError } from 'common/errors'
-import { selectWithTotalCount, selectWithRowNumber } from 'common/utils'
+import { DEFAULT_TAKE_PER_PAGE, MAX_TAKE_PER_PAGE } from 'common/enums/index.js'
+import { UserInputError } from 'common/errors.js'
+import {
+  selectWithTotalCount,
+  selectWithRowNumber,
+} from 'common/utils/index.js'
 
 export type ConnectionCursor = string
 

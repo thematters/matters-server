@@ -1,6 +1,6 @@
-import type { GQLRecommendationResolvers } from 'definitions'
+import type { GQLRecommendationResolvers } from 'definitions/index.js'
 
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 
 export const icymi: GQLRecommendationResolvers['icymi'] = async (
   _,

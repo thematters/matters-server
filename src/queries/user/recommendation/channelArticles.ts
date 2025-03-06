@@ -1,12 +1,12 @@
-import type { GQLRecommendationResolvers } from 'definitions'
+import type { GQLRecommendationResolvers } from 'definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
-import { UserInputError } from 'common/errors'
+import { DEFAULT_TAKE_PER_PAGE } from 'common/enums/index.js'
+import { UserInputError } from 'common/errors.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   fromGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 export const channelArticles: GQLRecommendationResolvers['channelArticles'] =
   async (_, { input }, { dataSources: { articleService, atomService } }) => {

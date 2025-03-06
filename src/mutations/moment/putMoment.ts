@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
-import { NODE_TYPES } from 'common/enums'
-import { AuthenticationError } from 'common/errors'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { AuthenticationError } from 'common/errors.js'
 
 const resolver: GQLMutationResolvers['putMoment'] = async (
   _,

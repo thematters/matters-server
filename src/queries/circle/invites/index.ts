@@ -1,7 +1,7 @@
-import { GQLInvitesResolvers } from 'definitions'
+import { GQLInvitesResolvers } from 'definitions/index.js'
 
-import accepted from './accepted'
-import pending from './pending'
+import accepted from './accepted.js'
+import pending from './pending.js'
 
 const Invites: GQLInvitesResolvers = {
   accepted,

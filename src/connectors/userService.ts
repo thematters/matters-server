@@ -17,7 +17,7 @@ import type {
   LANGUAGES,
   UserBoost,
   UserFeatureFlag,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import axios from 'axios'
 import { compare } from 'bcrypt'
@@ -78,8 +78,8 @@ import {
   BLOCKCHAIN_RPC,
   DAY,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums'
-import { environment, isProd } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment, isProd } from 'common/environment.js'
 import {
   EmailNotFoundError,
   CryptoWalletExistsError,
@@ -98,8 +98,8 @@ import {
   ForbiddenError,
   ActionFailedError,
   ForbiddenByStateError,
-} from 'common/errors'
-import { getLogger, auditLog } from 'common/logger'
+} from 'common/errors.js'
+import { getLogger, auditLog } from 'common/logger.js'
 import {
   generatePasswordhash,
   isValidUserName,
@@ -109,17 +109,17 @@ import {
   genDisplayName,
   RatelimitCounter,
   normalizeSearchKey,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import {
   AtomService,
   BaseService,
   CacheService,
   OAuthService,
   NotificationService,
-} from 'connectors'
-import { Twitter } from 'connectors/oauth'
+} from 'connectors/index.js'
+import { Twitter } from 'connectors/oauth/index.js'
 
-import { LikeCoin } from './likecoin'
+import { LikeCoin } from './likecoin/index.js'
 
 const logger = getLogger('service-user')
 
@@ -894,14 +894,18 @@ export class UserService extends BaseService<User> {
         nodes: records,
         total: totalCount,
         query,
-      } = await fetch(u).then((res) => res.json())
+      } = (await fetch(u).then((res) => res.json())) as {
+        nodes: Array<{ id: string }>
+        total: number
+        query: string
+      }
       logger.info(
         `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}': sample: %j`,
         records[0]
       )
 
       const nodes = (await this.models.userIdLoader.loadMany(
-        records.map((item: { id: string }) => `${item.id}`).filter(Boolean)
+        records.map((item) => `${item.id}`).filter(Boolean)
       )) as Item[]
 
       return { nodes, totalCount }

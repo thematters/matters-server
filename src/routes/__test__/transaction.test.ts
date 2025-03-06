@@ -1,4 +1,4 @@
-import type { Connections, Customer } from 'definitions'
+import type { Connections, Customer } from 'definitions/index.js'
 import type Stripe from 'stripe'
 
 import {
@@ -6,19 +6,19 @@ import {
   TRANSACTION_PURPOSE,
   PAYMENT_CURRENCY,
   TRANSACTION_STATE,
-} from 'common/enums'
-import { PaymentService } from 'connectors'
+} from 'common/enums/index.js'
+import { PaymentService } from 'connectors/index.js'
 
 import {
   genConnections,
   closeConnections,
-} from '../../connectors/__test__/utils'
+} from '../../connectors/__test__/utils.js'
 import {
   createOrUpdateFailedRefundTx,
   createDisputeTx,
   updateDisputeTx,
   createPayoutReversalTx,
-} from '../pay/stripe/transaction'
+} from '../pay/stripe/transaction.js'
 
 let connections: Connections
 let paymentServce: PaymentService

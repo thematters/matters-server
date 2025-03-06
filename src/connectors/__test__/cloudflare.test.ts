@@ -1,5 +1,5 @@
-import { environment } from 'common/environment'
-import { cfsvc } from 'connectors'
+import { environment } from 'common/environment.js'
+import { cfsvc } from 'connectors/index.js'
 
 const ACCOUNT_HASH = 'kDRCwexxxx-pYA'
 

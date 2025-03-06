@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import _isEmpty from 'lodash/isEmpty'
+import _isEmpty from 'lodash/isEmpty.js'
 
-import { UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { UserInputError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['updateUserExtra'] = async (
   _,

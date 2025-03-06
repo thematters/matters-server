@@ -1,6 +1,5 @@
-import { APPRECIATION_PURPOSE } from 'common/enums'
-
-import { ValueOf } from './generic'
+import type { ValueOf } from './generic.js'
+import type { APPRECIATION_PURPOSE } from 'common/enums/index.js'
 
 export interface Appreciation {
   id: string

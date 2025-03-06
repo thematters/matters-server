@@ -1,11 +1,11 @@
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
-import { getLogger } from 'common/logger'
-import { AtomService, aws, cfsvc } from 'connectors'
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums/index.js'
+import { getLogger } from 'common/logger.js'
+import { AtomService, aws, cfsvc } from 'connectors/index.js'
 
-import { getOrCreateQueue } from './utils'
+import { getOrCreateQueue } from './utils.js'
 
 const logger = getLogger('queue-asset')
 

@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
@@ -12,8 +12,8 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   EntityNotFoundError,
   ForbiddenByStateError,
@@ -25,8 +25,8 @@ import {
   PaymentReachMaximumLimitError,
   UserInputError,
   UserNotFoundError,
-} from 'common/errors'
-import { fromGlobalId, isValidTransactionHash } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId, isValidTransactionHash } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['payTo'] = async (
   _,

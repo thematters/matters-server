@@ -9,18 +9,18 @@ import {
 } from 'graphql-constraint-directive'
 import { merge } from 'lodash'
 
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
-import { fromGlobalId } from 'common/utils'
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums/index.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
-import mutations from './mutations'
-import queries from './queries'
-import baseTypeDefs from './types'
+import mutations from './mutations/index.js'
+import queries from './queries/index.js'
 import {
   objectCacheDirective,
   privateCacheDirective,
   rateLimitDirective,
   authDirective,
-} from './types/directives'
+} from './types/directives/index.js'
+import baseTypeDefs from './types/index.js'
 
 const typeResolver = (type: string, result: any) => {
   const unionsAndInterfaces = [

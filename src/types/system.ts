@@ -1,4 +1,9 @@
-import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import {
+  AUTH_MODE,
+  CACHE_TTL,
+  NODE_TYPES,
+  SCOPE_GROUP,
+} from 'common/enums/index.js'
 
 const UPLOAD_RATE_LIMIT = 40 // 20 pictures per 12 minutes, `directImageUpload` called twice for each picture
 

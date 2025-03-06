@@ -1,4 +1,4 @@
-import { SpamDetector } from 'connectors'
+import { SpamDetector } from 'connectors/index.js'
 
 test.skip('detect', async () => {
   const spamDetection = new SpamDetector()

@@ -1,4 +1,4 @@
-import { GQLTagOssResolvers } from 'definitions'
+import { GQLTagOssResolvers } from 'definitions/index.js'
 
 export const boost: GQLTagOssResolvers['boost'] = (
   { id },

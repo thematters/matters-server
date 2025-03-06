@@ -3,9 +3,9 @@ import type { Redis } from 'ioredis'
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 
-import { CACHE_PREFIX } from 'common/enums'
-import { ActionLimitExceededError } from 'common/errors'
-import { genCacheKey } from 'connectors'
+import { CACHE_PREFIX } from 'common/enums/index.js'
+import { ActionLimitExceededError } from 'common/errors.js'
+import { genCacheKey } from 'connectors/index.js'
 
 const checkOperationLimit = async ({
   user,

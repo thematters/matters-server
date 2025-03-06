@@ -1,18 +1,18 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums'
+import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums/index.js'
 import {
   AtomService,
   CommentService,
   MomentService,
   UserService,
-} from 'connectors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from 'connectors/index.js'
+import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 
-import { testClient, genConnections, closeConnections } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService

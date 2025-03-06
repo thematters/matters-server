@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions/index.js'
 
-import { USER_FEATURE_FLAG_TYPE, USER_STATE } from 'common/enums'
+import { USER_FEATURE_FLAG_TYPE, USER_STATE } from 'common/enums/index.js'
 
 const resolver: GQLArticleResolvers['noindex'] = async (
   { id, spamScore, isSpam, authorId },

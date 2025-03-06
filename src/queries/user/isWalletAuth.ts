@@ -1,4 +1,4 @@
-import type { GQLUserInfoResolvers } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions/index.js'
 
 const resolver: GQLUserInfoResolvers['isWalletAuth'] = async (
   { id },

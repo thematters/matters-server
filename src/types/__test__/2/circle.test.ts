@@ -1,13 +1,13 @@
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
-} from 'common/enums'
-import { toGlobalId } from 'common/utils'
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
 import {
   delay,
@@ -16,7 +16,7 @@ import {
   testClient,
   genConnections,
   closeConnections,
-} from '../utils'
+} from '../utils.js'
 
 let connections: Connections
 

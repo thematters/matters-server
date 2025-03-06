@@ -1,6 +1,6 @@
-import type { GQLArticleAccessResolvers } from 'definitions'
+import type { GQLArticleAccessResolvers } from 'definitions/index.js'
 
-import { ForbiddenError } from 'common/errors'
+import { ForbiddenError } from 'common/errors.js'
 
 export const secret: GQLArticleAccessResolvers['secret'] = async (
   { id, authorId },

@@ -1,6 +1,6 @@
-import type { GQLArticleContentsResolvers } from 'definitions'
+import type { GQLArticleContentsResolvers } from 'definitions/index.js'
 
-import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums/index.js'
 
 export const html: GQLArticleContentsResolvers['html'] = async (
   { articleId, contentId },

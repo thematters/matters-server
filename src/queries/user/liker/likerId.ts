@@ -1,6 +1,6 @@
-import type { GQLLikerResolvers } from 'definitions'
+import type { GQLLikerResolvers } from 'definitions/index.js'
 
-import { environment } from 'common/environment'
+import { environment } from 'common/environment.js'
 
 const resolver: GQLLikerResolvers['likerId'] = async (
   { likerId },

@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions/index.js'
 
 import slugify from '@matters/slugify'
 

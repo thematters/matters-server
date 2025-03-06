@@ -1,12 +1,12 @@
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
 import {
   MATTERS_CHOICE_TOPIC_STATE,
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
-} from 'common/enums'
-import { RecommendationService, AtomService } from 'connectors'
+} from 'common/enums/index.js'
+import { RecommendationService, AtomService } from 'connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let atomService: AtomService

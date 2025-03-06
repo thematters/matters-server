@@ -1,6 +1,6 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers } from 'definitions/index.js'
 
-import { connectionFromArray, connectionFromQuery } from 'common/utils'
+import { connectionFromArray, connectionFromQuery } from 'common/utils/index.js'
 
 const resolver: GQLUserResolvers['followers'] = async (
   { id },

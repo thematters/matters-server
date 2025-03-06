@@ -1,6 +1,9 @@
-import type { GQLOssResolvers } from 'definitions'
+import type { GQLOssResolvers } from 'definitions/index.js'
 
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 
 export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
   _,

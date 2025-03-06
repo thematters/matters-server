@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import {
   ARTICLE_STATE,
@@ -6,16 +6,16 @@ import {
   AUDIT_LOG_STATUS,
   NODE_TYPES,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ForbiddenError,
   UserInputError,
   EntityNotFoundError,
   ArticleNotFoundError,
   ActionLimitExceededError,
-} from 'common/errors'
-import { auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { auditLog } from 'common/logger.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   _,

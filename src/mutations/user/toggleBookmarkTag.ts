@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
-import { ForbiddenError, TagNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums/index.js'
+import { ForbiddenError, TagNotFoundError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['toggleBookmarkTag'] = async (
   _,

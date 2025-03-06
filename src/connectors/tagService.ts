@@ -1,4 +1,10 @@
-import type { Connections, Item, ItemData, Tag, TagBoost } from 'definitions'
+import type {
+  Connections,
+  Item,
+  ItemData,
+  Tag,
+  TagBoost,
+} from 'definitions/index.js'
 
 import { Knex } from 'knex'
 import { difference } from 'lodash'
@@ -9,16 +15,16 @@ import {
   TAG_ACTION,
   MATERIALIZED_VIEW,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
-import { getLogger } from 'common/logger'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors.js'
+import { getLogger } from 'common/logger.js'
 import {
   normalizeSearchKey,
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
-} from 'common/utils'
-import { BaseService, SystemService } from 'connectors'
+} from 'common/utils/index.js'
+import { BaseService, SystemService } from 'connectors/index.js'
 
 const logger = getLogger('service-tag')
 
@@ -450,14 +456,18 @@ export class TagService extends BaseService<Tag> {
         nodes: records,
         total: totalCount,
         query,
-      } = await fetch(u).then((res) => res.json())
+      } = (await fetch(u).then((res) => res.json())) as {
+        nodes: Array<{ id: string }>
+        total: number
+        query: string
+      }
       logger.info(
         `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}': sample: %j`,
         records[0]
       )
 
       const nodes = await this.models.tagIdLoader.loadMany(
-        records.map((item: any) => `${item.id}`).filter(Boolean)
+        records.map((item) => `${item.id}`).filter(Boolean)
       )
 
       return { nodes, totalCount }

@@ -1,4 +1,4 @@
-import type { User, Connections } from 'definitions'
+import type { User, Connections } from 'definitions/index.js'
 
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
@@ -13,14 +13,18 @@ import {
   IMAGE_ASSET_TYPE,
   NOTICE_TYPE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ForbiddenError,
   ForbiddenByStateError,
   UserInputError,
-} from 'common/errors'
-import { shortHash, extractMentionIds } from 'common/utils'
-import { AtomService, UserService, NotificationService } from 'connectors'
+} from 'common/errors.js'
+import { shortHash, extractMentionIds } from 'common/utils/index.js'
+import {
+  AtomService,
+  UserService,
+  NotificationService,
+} from 'connectors/index.js'
 
 export class MomentService {
   private connections: Connections

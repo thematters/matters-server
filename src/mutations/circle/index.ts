@@ -1,9 +1,9 @@
-import invite from './invite'
-import putCircle from './putCircle'
-import putCircleArticles from './putCircleArticles'
-import subscribeCircle from './subscribeCircle'
-import toggleFollowCircle from './toggleFollowCircle'
-import unsubscribeCircle from './unsubscribeCircle'
+import invite from './invite.js'
+import putCircle from './putCircle.js'
+import putCircleArticles from './putCircleArticles.js'
+import subscribeCircle from './subscribeCircle.js'
+import toggleFollowCircle from './toggleFollowCircle.js'
+import unsubscribeCircle from './unsubscribeCircle.js'
 
 export default {
   Mutation: {

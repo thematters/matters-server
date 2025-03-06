@@ -1,4 +1,4 @@
-import type { Connections, Article } from 'definitions'
+import type { Connections, Article } from 'definitions/index.js'
 
 import _ from 'lodash'
 
@@ -14,7 +14,7 @@ import {
   USER_RESTRICTION_TYPE,
   FEATURE_NAME,
   FEATURE_FLAG,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   RecommendationService,
   AtomService,
@@ -24,16 +24,16 @@ import {
   PaymentService,
   CampaignService,
   SystemService,
-} from 'connectors'
-import { toGlobalId } from 'common/utils'
+} from 'connectors/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
-import { makeUserFollowUserActivityQuery } from '../../../queries/user/recommendation/following/sql'
-import { testClient, genConnections, closeConnections } from '../utils'
+import { makeUserFollowUserActivityQuery } from '../../../queries/user/recommendation/following/sql.js'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 import {
   createTx,
   refreshView,
   createCampaign,
-} from 'connectors/__test__/utils'
+} from 'connectors/__test__/utils.js'
 
 let connections: Connections
 let recommendationService: RecommendationService

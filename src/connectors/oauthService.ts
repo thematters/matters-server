@@ -10,7 +10,7 @@ import type {
   OAuthToken,
   User,
   Connections,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import jwt from 'jsonwebtoken'
 import { nanoid } from 'nanoid'
@@ -19,11 +19,11 @@ import {
   NODE_TYPES,
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { isScopeAllowed, toGlobalId } from 'common/utils'
-import { BaseService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
+import { isScopeAllowed, toGlobalId } from 'common/utils/index.js'
+import { BaseService } from 'connectors/index.js'
 
 const logger = getLogger('service-oauth')
 

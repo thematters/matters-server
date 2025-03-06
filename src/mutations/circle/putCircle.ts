@@ -1,7 +1,7 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import _trim from 'lodash/trim'
+import _trim from 'lodash/trim.js'
 
 import {
   ASSET_TYPE,
@@ -11,8 +11,8 @@ import {
   PAYMENT_MAX_DECIMAL_PLACES,
   PAYMENT_MAXIMUM_CIRCLE_AMOUNT,
   PAYMENT_MINIMAL_CIRCLE_AMOUNT,
-} from 'common/enums'
-import { isProd } from 'common/environment'
+} from 'common/enums/index.js'
+import { isProd } from 'common/environment.js'
 import {
   AssetNotFoundError,
   CircleCreationReachLimitError,
@@ -26,12 +26,12 @@ import {
   PaymentReachMaximumLimitError,
   ServerError,
   UserInputError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   fromGlobalId,
   isValidCircleName,
   isValidDisplayName,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 const INTERVAL = isProd ? 'month' : 'week'
 

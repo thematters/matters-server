@@ -1,10 +1,10 @@
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { AtomService, ArticleService } from 'connectors'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
+import { AtomService, ArticleService } from 'connectors/index.js'
 
-import { testClient, genConnections, closeConnections } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 beforeAll(async () => {

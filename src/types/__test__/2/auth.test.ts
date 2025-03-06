@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
 import axios from 'axios'
 import _ from 'lodash'
@@ -8,9 +8,9 @@ import {
   NODE_TYPES,
   SCOPE_PREFIX,
   VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { UserService, SystemService } from 'connectors'
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
+import { UserService, SystemService } from 'connectors/index.js'
 
 import {
   adminUser,
@@ -19,7 +19,7 @@ import {
   testClient,
   genConnections,
   closeConnections,
-} from '../utils'
+} from '../utils.js'
 
 jest.mock('axios')
 

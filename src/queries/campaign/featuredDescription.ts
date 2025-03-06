@@ -1,4 +1,4 @@
-import type { GQLWritingChallengeResolvers } from 'definitions'
+import type { GQLWritingChallengeResolvers } from 'definitions/index.js'
 
 const resolver: GQLWritingChallengeResolvers['featuredDescription'] = async (
   { id, featuredDescription },

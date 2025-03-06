@@ -1,11 +1,11 @@
-import type { GQLCircleResolvers } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions/index.js'
 
-import { CIRCLE_ACTION } from 'common/enums'
+import { CIRCLE_ACTION } from 'common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 const resolver: GQLCircleResolvers['followers'] = async (
   { id },

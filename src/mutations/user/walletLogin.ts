@@ -3,7 +3,7 @@ import type {
   GQLAuthResultType,
   GQLMutationResolvers,
   User,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import { Hex } from 'viem'
 
@@ -12,10 +12,10 @@ import {
   SIGNING_MESSAGE_PURPOSE,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
-} from 'common/enums'
-import { EthAddressNotFoundError, UserInputError } from 'common/errors'
-import { auditLog } from 'common/logger'
-import { getViewerFromUser, setCookie } from 'common/utils'
+} from 'common/enums/index.js'
+import { EthAddressNotFoundError, UserInputError } from 'common/errors.js'
+import { auditLog } from 'common/logger.js'
+import { getViewerFromUser, setCookie } from 'common/utils/index.js'
 
 const sigTable = 'crypto_wallet_signature'
 

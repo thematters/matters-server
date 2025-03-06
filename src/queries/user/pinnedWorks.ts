@@ -1,6 +1,6 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers } from 'definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums/index.js'
 
 const resolver: GQLUserResolvers['pinnedWorks'] = async (
   { id },

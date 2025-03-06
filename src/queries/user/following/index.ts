@@ -1,7 +1,7 @@
-import { type GQLFollowingResolvers } from 'definitions'
+import { type GQLFollowingResolvers } from 'definitions/index.js'
 
-import circles from './circles'
-import users from './users'
+import circles from './circles.js'
+import users from './users.js'
 
 const Following: GQLFollowingResolvers = {
   circles,

@@ -1,4 +1,4 @@
-import type { GQLLikerResolvers } from 'definitions'
+import type { GQLLikerResolvers } from 'definitions/index.js'
 
 const resolver: GQLLikerResolvers['total'] = async (
   { id },

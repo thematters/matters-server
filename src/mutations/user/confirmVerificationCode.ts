@@ -1,11 +1,11 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import { VERIFICATION_CODE_STATUS } from 'common/enums/index.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
-} from 'common/errors'
+} from 'common/errors.js'
 
 const resolver: GQLMutationResolvers['confirmVerificationCode'] = async (
   _,

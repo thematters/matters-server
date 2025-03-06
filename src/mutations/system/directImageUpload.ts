@@ -1,4 +1,4 @@
-import type { ItemData, GQLMutationResolvers } from 'definitions'
+import type { ItemData, GQLMutationResolvers } from 'definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -7,11 +7,11 @@ import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
-} from 'common/enums'
-import { AssetNotFoundError, UserInputError } from 'common/errors'
-import { getLogger, auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
-import { cfsvc } from 'connectors'
+} from 'common/enums/index.js'
+import { AssetNotFoundError, UserInputError } from 'common/errors.js'
+import { getLogger, auditLog } from 'common/logger.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { cfsvc } from 'connectors/index.js'
 
 const logger = getLogger('mutation-upload')
 

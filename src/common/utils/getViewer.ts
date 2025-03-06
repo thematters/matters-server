@@ -1,4 +1,4 @@
-import type { Viewer, Connections, LANGUAGES } from 'definitions'
+import type { Viewer, Connections, LANGUAGES } from 'definitions/index.js'
 
 import cookie from 'cookie'
 import { Request, Response } from 'express'
@@ -11,12 +11,12 @@ import {
   COOKIE_LANGUAGE,
   USER_ROLE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { clearCookie, getLanguage } from 'common/utils'
-import { OAuthService, SystemService, AtomService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { ForbiddenByStateError, TokenInvalidError } from 'common/errors.js'
+import { getLogger } from 'common/logger.js'
+import { clearCookie, getLanguage } from 'common/utils/index.js'
+import { OAuthService, SystemService, AtomService } from 'connectors/index.js'
 
 const logger = getLogger('utils-auth')
 

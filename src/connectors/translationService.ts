@@ -1,6 +1,6 @@
-import type { Connections, TableName, LANGUAGES } from 'definitions'
+import type { Connections, TableName, LANGUAGES } from 'definitions/index.js'
 
-import { AtomService, SystemService } from 'connectors'
+import { AtomService, SystemService } from 'connectors/index.js'
 
 export class TranslationService {
   private connections: Connections

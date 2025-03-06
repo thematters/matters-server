@@ -1,14 +1,14 @@
 import type {
   GQLAppreciationResolvers,
   GQLAppreciationPurpose,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import { camelCase } from 'lodash'
 
-import { APPRECIATION_PURPOSE } from 'common/enums'
-import { ArticleNotFoundError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { i18n } from 'common/utils/i18n'
+import { APPRECIATION_PURPOSE } from 'common/enums/index.js'
+import { ArticleNotFoundError } from 'common/errors.js'
+import { getLogger } from 'common/logger.js'
+import { i18n } from 'common/utils/i18n.js'
 
 const logger = getLogger('query-appreciation')
 

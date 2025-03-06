@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers, AuthMode } from 'definitions'
+import type { GQLMutationResolvers, AuthMode } from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -9,17 +9,17 @@ import {
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
   USER_STATE,
-} from 'common/enums'
-import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
-import { auditLog } from 'common/logger'
+} from 'common/enums/index.js'
+import { EmailInvalidError, ForbiddenByStateError } from 'common/errors.js'
+import { auditLog } from 'common/logger.js'
+import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e.js'
 import {
   isValidEmail,
   setCookie,
   getViewerFromUser,
   isEmailinWhitelist,
-} from 'common/utils'
-import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
-import { Passphrases } from 'connectors/passphrases'
+} from 'common/utils/index.js'
+import { Passphrases } from 'connectors/passphrases/index.js'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   root,

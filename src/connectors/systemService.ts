@@ -10,7 +10,7 @@ import type {
   BaseDBSchema,
   LogRecord,
   Blocklist,
-} from 'definitions'
+} from 'definitions/index.js'
 import type { Knex } from 'knex'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -29,10 +29,10 @@ import {
   NODE_TYPES,
   CACHE_PREFIX,
   CACHE_TTL,
-} from 'common/enums'
-import { isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { BaseService, CacheService } from 'connectors'
+} from 'common/enums/index.js'
+import { isTest } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
+import { BaseService, CacheService } from 'connectors/index.js'
 
 const logger = getLogger('service-system')
 

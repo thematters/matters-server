@@ -1,11 +1,12 @@
-import axios from 'axios'
-import Redis, { Cluster } from 'ioredis'
+import type { Redis, Cluster } from 'ioredis'
 
-import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
-import { NetworkError, UnknownError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { CacheService } from 'connectors'
+import axios from 'axios'
+
+import { CACHE_TTL } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { NetworkError, UnknownError } from 'common/errors.js'
+import { getLogger } from 'common/logger.js'
+import { CacheService } from 'connectors/index.js'
 
 const logger = getLogger('service-exchange-rate')
 
@@ -45,15 +46,15 @@ const EXCHANGE_RATES_DATA_API_URL =
 // MAIN
 
 export class ExchangeRate {
-  cache: CacheService
-  expire: number
+  public expire: number
+  private cache: CacheService
 
-  constructor(redis: Redis | Cluster) {
+  public constructor(redis: Redis | Cluster) {
     this.cache = new CacheService('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
   }
 
-  getRates = async (
+  public getRates = async (
     from?: FromCurrency,
     to?: ToCurrency
   ): Promise<Rate[] | never> => {
@@ -69,7 +70,7 @@ export class ExchangeRate {
     return Promise.all(pairs.map((p) => this.getRate(p.from, p.to)))
   }
 
-  getRate = async (
+  public getRate = async (
     from: FromCurrency,
     to: ToCurrency
   ): Promise<Rate | never> => {

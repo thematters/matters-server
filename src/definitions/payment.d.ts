@@ -1,9 +1,9 @@
-import {
+import type {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 
 export interface PayoutAccount {
   id: string

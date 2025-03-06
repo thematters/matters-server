@@ -1,12 +1,12 @@
-import type { AtomService } from 'connectors'
-import type SlackService from 'connectors/slack'
+import type { AtomService } from 'connectors/index.js'
+import type SlackService from 'connectors/slack/index.js'
 import type { Cluster, Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _ from 'lodash'
 import Stripe from 'stripe'
 
-import { METADATA_KEY, NODE_TYPES } from 'common/enums'
+import { METADATA_KEY, NODE_TYPES } from 'common/enums/index.js'
 
 export const updateAccount = async (
   {

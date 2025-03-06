@@ -1,4 +1,4 @@
-import type { GQLWalletResolvers, LANGUAGES } from 'definitions'
+import type { GQLWalletResolvers, LANGUAGES } from 'definitions/index.js'
 
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
 
@@ -8,12 +8,12 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TransactionRemarkText,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 const resolver: GQLWalletResolvers['transactions'] = async (
   { id: userId },

@@ -1,3 +1,6 @@
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
 const { name, version } = require('./package.json')
 
 const baseConfig = {
@@ -18,7 +21,7 @@ const baseConfig = {
   },
 }
 
-module.exports = {
+export default {
   local: baseConfig,
 
   development: baseConfig,

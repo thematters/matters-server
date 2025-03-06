@@ -1,8 +1,17 @@
-import type { Collection, Connections, User, Article } from 'definitions'
+import type {
+  Collection,
+  Connections,
+  User,
+  Article,
+} from 'definitions/index.js'
 
 import { Knex } from 'knex'
 
-import { ARTICLE_STATE, MAX_PINNED_WORKS_LIMIT, USER_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  MAX_PINNED_WORKS_LIMIT,
+  USER_STATE,
+} from 'common/enums/index.js'
 import {
   ForbiddenError,
   EntityNotFoundError,
@@ -10,9 +19,9 @@ import {
   UserInputError,
   ActionLimitExceededError,
   ForbiddenByStateError,
-} from 'common/errors'
-import { selectWithTotalCount } from 'common/utils'
-import { BaseService, UserWorkService, UserService } from 'connectors'
+} from 'common/errors.js'
+import { selectWithTotalCount } from 'common/utils/index.js'
+import { BaseService, UserWorkService, UserService } from 'connectors/index.js'
 
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {

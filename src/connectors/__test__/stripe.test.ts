@@ -1,8 +1,8 @@
 import Stripe from 'stripe'
 
-import { PAYMENT_CURRENCY } from 'common/enums'
+import { PAYMENT_CURRENCY } from 'common/enums/index.js'
 
-import { stripe } from '../stripe'
+import { stripe } from '../stripe/index.js'
 
 const testUser1 = {
   id: '1',

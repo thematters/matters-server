@@ -1,11 +1,10 @@
-import type { ValueOf } from './generic'
-
-import {
+import type { ValueOf } from './generic.js'
+import type {
   SKIPPED_LIST_ITEM_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
   FEATURE_NAME,
   FEATURE_FLAG,
-} from 'common/enums'
+} from 'common/enums/index.js'
 
 export interface FeatureFlag {
   id: string

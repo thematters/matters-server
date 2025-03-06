@@ -1,4 +1,4 @@
-import { Passphrases } from 'connectors'
+import { Passphrases } from 'connectors/index.js'
 
 test('Passphrases validation', () => {
   const passphrases = new Passphrases()

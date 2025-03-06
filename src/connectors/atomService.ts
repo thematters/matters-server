@@ -18,7 +18,7 @@ import type {
   CampaignStage,
   TableTypeMap,
   TableTypeMapKey,
-} from 'definitions'
+} from 'definitions/index.js'
 import type { Knex } from 'knex'
 
 import DataLoader from 'dataloader'
@@ -27,7 +27,7 @@ import {
   EntityNotFoundError,
   ArticleNotFoundError,
   CommentNotFoundError,
-} from 'common/errors'
+} from 'common/errors.js'
 
 type Mode = 'id' | 'uuid'
 

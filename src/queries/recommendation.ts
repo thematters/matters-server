@@ -1,7 +1,7 @@
-import type { GQLResolvers } from 'definitions'
+import type { GQLResolvers } from 'definitions/index.js'
 
-import { NODE_TYPES, MATTERS_CHOICE_TOPIC_STATE } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES, MATTERS_CHOICE_TOPIC_STATE } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
 const recommendation: GQLResolvers = {
   IcymiTopic: {

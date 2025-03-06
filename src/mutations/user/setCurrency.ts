@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { AuthenticationError } from 'common/errors'
+import { AuthenticationError } from 'common/errors.js'
 
 const resolver: GQLMutationResolvers['setCurrency'] = async (
   _,

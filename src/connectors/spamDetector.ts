@@ -1,7 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 
-import { environment, isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
+import { environment, isTest } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('spam-detector')
 

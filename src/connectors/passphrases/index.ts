@@ -1,12 +1,12 @@
 import axios from 'axios'
 import { ServerError } from 'oauth2-server'
 
-import { environment } from 'common/environment'
+import { environment } from 'common/environment.js'
 import {
   CodeExpiredError,
   PasswordInvalidError,
   UnknownError,
-} from 'common/errors'
+} from 'common/errors.js'
 
 const TAKE = 6
 const WORD_CHAR_LENGTH = 5

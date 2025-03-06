@@ -1,10 +1,10 @@
-import type { GQLUserAnalyticsResolvers } from 'definitions'
+import type { GQLUserAnalyticsResolvers } from 'definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { id },

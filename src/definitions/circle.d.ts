@@ -1,12 +1,11 @@
-import {
+import type { valueof } from './generic.js'
+import type { User } from './user.js'
+import type {
   CIRCLE_STATE,
   INVITATION_STATE,
   SUBSCRIPTION_STATE,
   PAYMENT_PROVIDER,
-} from 'common/enums'
-
-import { valueof } from './generic'
-import { User } from './user'
+} from 'common/enums/index.js'
 
 export interface Circle {
   id: string

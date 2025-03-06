@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import {
   normalizeArticleHTML,
@@ -10,15 +10,15 @@ import {
   PUBLISH_STATE,
   USER_STATE,
   AUDIT_LOG_ACTION,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { auditLog } from 'common/logger.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,

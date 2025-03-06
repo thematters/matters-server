@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 const resolver: GQLMutationResolvers['setPassword'] = async (
   _,

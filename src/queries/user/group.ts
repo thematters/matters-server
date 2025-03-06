@@ -1,6 +1,6 @@
-import type { GQLUserInfoResolvers } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions/index.js'
 
-import { getUserGroup } from 'common/utils'
+import { getUserGroup } from 'common/utils/index.js'
 
 const resolver: GQLUserInfoResolvers['group'] = async (
   { id },

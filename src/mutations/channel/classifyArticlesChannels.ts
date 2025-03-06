@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums'
-import { AuthenticationError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { ARTICLE_CHANNEL_JOB_STATE } from 'common/enums/index.js'
+import { AuthenticationError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['classifyArticlesChannels'] = async (
   _,

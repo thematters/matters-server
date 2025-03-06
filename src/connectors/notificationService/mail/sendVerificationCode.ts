@@ -1,9 +1,12 @@
-import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPE } from 'common/enums'
-import { environment } from 'common/environment'
-import { mailService } from 'connectors'
-import { LANGUAGES, User } from 'definitions'
+import {
+  EMAIL_TEMPLATE_ID,
+  VERIFICATION_CODE_TYPE,
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { mailService } from 'connectors/index.js'
+import { LANGUAGES, User } from 'definitions/index.js'
 
-import { trans } from './utils'
+import { trans } from './utils.js'
 
 export const sendVerificationCode = async ({
   to,

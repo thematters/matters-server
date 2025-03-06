@@ -1,9 +1,9 @@
-import {
+import type {
   CIRCLE_ACTION,
   TAG_ACTION,
   USER_ACTION,
   ARTICLE_ACTION,
-} from 'common/enums'
+} from 'common/enums/index.js'
 
 export interface ActionCircle {
   id: string

@@ -6,7 +6,7 @@ import type {
   Circle,
   Comment,
   Moment,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -30,7 +30,7 @@ import {
   NODE_TYPES,
   USER_STATE,
   MOMENT_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleNotFoundError,
   CircleNotFoundError,
@@ -39,8 +39,8 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId, extractMentionIds } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId, extractMentionIds } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putComment'] = async (
   _,

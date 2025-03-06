@@ -1,7 +1,7 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { LOG_RECORD_TYPES } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
+import { LOG_RECORD_TYPES } from 'common/enums/index.js'
+import { ForbiddenError } from 'common/errors.js'
 
 const resolver: GQLMutationResolvers['logRecord'] = async (
   root,

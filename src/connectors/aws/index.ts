@@ -1,12 +1,12 @@
-import type { GQLAssetType, ValueOf } from 'definitions'
+import type { GQLAssetType, ValueOf } from 'definitions/index.js'
 
 import * as AWS from 'aws-sdk'
 import getStream from 'get-stream'
 import mime from 'mime-types'
 
-import { LOCAL_S3_ENDPOINT, QUEUE_URL } from 'common/enums'
-import { environment, isLocal, isProd, isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
+import { LOCAL_S3_ENDPOINT, QUEUE_URL } from 'common/enums/index.js'
+import { environment, isLocal, isProd, isTest } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('service-aws')
 

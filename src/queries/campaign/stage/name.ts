@@ -1,4 +1,4 @@
-import type { GQLCampaignStageResolvers } from 'definitions'
+import type { GQLCampaignStageResolvers } from 'definitions/index.js'
 
 const resolver: GQLCampaignStageResolvers['name'] = async (
   { id, name },

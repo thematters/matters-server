@@ -1,4 +1,4 @@
-import type { ValueOf, TableName } from 'definitions'
+import type { ValueOf, TableName } from 'definitions/index.js'
 
 import { AsyncLocalStorage } from 'async_hooks'
 import util from 'node:util'
@@ -9,8 +9,8 @@ import {
   LOGGING_LEVEL,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 
 export type LoggingLevel = ValueOf<typeof LOGGING_LEVEL>
 export type LoggingContextKey = ValueOf<typeof LOGGING_CONTEXT_KEY>

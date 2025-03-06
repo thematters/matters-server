@@ -1,4 +1,4 @@
-import type { GQLCommentResolvers } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions/index.js'
 
 const voteMap = {
   up_vote: 'up',

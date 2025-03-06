@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import togglePinCommentResolver from './togglePinComment'
+import togglePinCommentResolver from './togglePinComment.js'
 
 const resolver: GQLMutationResolvers['unpinComment'] = async (
   parent,

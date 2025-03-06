@@ -4,7 +4,7 @@ import type {
   Campaign,
   CampaignStage,
   Article,
-} from 'definitions'
+} from 'definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -14,11 +14,15 @@ import {
   NODE_TYPES,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
-} from 'common/enums'
-import { CampaignService, SystemService, AtomService } from 'connectors'
-import { toGlobalId } from 'common/utils'
+} from 'common/enums/index.js'
+import {
+  CampaignService,
+  SystemService,
+  AtomService,
+} from 'connectors/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
-import { genConnections, closeConnections, testClient } from '../utils'
+import { genConnections, closeConnections, testClient } from '../utils.js'
 
 let connections: Connections
 let campaignService: CampaignService

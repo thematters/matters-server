@@ -1,5 +1,5 @@
 import type { Queue } from 'bull'
-import type { Connections } from 'definitions'
+import type { Connections } from 'definitions/index.js'
 
 import { makeSummary } from '@matters/ipns-site-generator'
 import {
@@ -16,19 +16,19 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums'
-import { isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
+} from 'common/enums/index.js'
+import { isTest } from 'common/environment.js'
+import { getLogger } from 'common/logger.js'
 import {
   UserService,
   NotificationService,
   SystemService,
   DraftService,
-} from 'connectors'
-import { medium } from 'connectors/medium'
-import { UserHasUsername } from 'definitions'
+} from 'connectors/index.js'
+import { medium } from 'connectors/medium/index.js'
+import { UserHasUsername } from 'definitions/index.js'
 
-import { getOrCreateQueue } from './utils'
+import { getOrCreateQueue } from './utils.js'
 
 const logger = getLogger('queue-migration')
 

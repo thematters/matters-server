@@ -1,7 +1,7 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers } from 'definitions/index.js'
 
-import { CAMPAIGN_STATE } from 'common/enums'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { CAMPAIGN_STATE } from 'common/enums/index.js'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 
 const resolver: GQLUserResolvers['campaigns'] = async (
   { id },

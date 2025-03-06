@@ -1,4 +1,4 @@
-import type { GQLCircleResolvers } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions/index.js'
 
 const resolver: GQLCircleResolvers['isMember'] = async (
   { id },

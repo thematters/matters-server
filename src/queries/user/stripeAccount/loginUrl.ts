@@ -1,4 +1,4 @@
-import type { GQLStripeAccountResolvers } from 'definitions'
+import type { GQLStripeAccountResolvers } from 'definitions/index.js'
 
 const resolver: GQLStripeAccountResolvers['loginUrl'] = async (
   { accountId },

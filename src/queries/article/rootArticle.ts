@@ -1,7 +1,7 @@
-import type { GQLQueryResolvers } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions/index.js'
 
-import { UserInputError } from 'common/errors'
-import { getLogger } from 'common/logger'
+import { UserInputError } from 'common/errors.js'
+import { getLogger } from 'common/logger.js'
 
 const logger = getLogger('resolver-root-articles')
 

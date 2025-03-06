@@ -1,9 +1,9 @@
-import type { GQLQueryResolvers } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions/index.js'
 
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
 
-import { CACHE_TTL } from 'common/enums'
-import { UserInputError } from 'common/errors'
+import { CACHE_TTL } from 'common/enums/index.js'
+import { UserInputError } from 'common/errors.js'
 
 const resolver: GQLQueryResolvers['user'] = async (
   _,

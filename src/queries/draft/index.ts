@@ -1,18 +1,18 @@
-import type { GQLResolvers } from 'definitions'
+import type { GQLResolvers } from 'definitions/index.js'
 
 import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
-import { NODE_TYPES } from 'common/enums'
-import { countWords, toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { countWords, toGlobalId } from 'common/utils/index.js'
 
-import * as draftAccess from './access'
-import assets from './assets'
-import campaigns from './campaigns'
-import collection from './collection'
-import draftContent from './content'
-import draftCover from './cover'
-import drafts from './drafts'
+import * as draftAccess from './access/index.js'
+import assets from './assets.js'
+import campaigns from './campaigns.js'
+import collection from './collection.js'
+import draftContent from './content.js'
+import draftCover from './cover.js'
+import drafts from './drafts.js'
 
 const schema: GQLResolvers = {
   User: {

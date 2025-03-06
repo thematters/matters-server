@@ -1,7 +1,10 @@
-import type { GQLChannelResolvers } from 'definitions'
+import type { GQLChannelResolvers } from 'definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { DEFAULT_TAKE_PER_PAGE } from 'common/enums/index.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 
 const resolver: GQLChannelResolvers['articles'] = async (
   { id },

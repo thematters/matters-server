@@ -1,6 +1,6 @@
-import type { GQLInvitationResolvers } from 'definitions'
+import type { GQLInvitationResolvers } from 'definitions/index.js'
 
-import { ServerError } from 'common/errors'
+import { ServerError } from 'common/errors.js'
 
 const resolver: GQLInvitationResolvers['invitee'] = async (
   { email, userId },

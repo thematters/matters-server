@@ -1,4 +1,4 @@
-import type { GQLMemberResolvers } from 'definitions'
+import type { GQLMemberResolvers } from 'definitions/index.js'
 
 const resolver: GQLMemberResolvers['user'] = async (
   { id },

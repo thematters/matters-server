@@ -1,4 +1,4 @@
-import {
+import type {
   GraphQLResolveInfo,
   GraphQLScalarType,
   GraphQLScalarTypeConfig,
@@ -7,38 +7,38 @@ import {
   User as UserModel,
   Wallet as WalletModel,
   OAuthClientDB as OAuthClientDBModel,
-} from './user'
-import { Tag as TagModel } from './tag'
-import { Collection as CollectionModel } from './collection'
-import { Comment as CommentModel } from './comment'
+} from './user.js'
+import { Tag as TagModel } from './tag.js'
+import { Collection as CollectionModel } from './collection.js'
+import { Comment as CommentModel } from './comment.js'
 import {
   Article as ArticleModel,
   ArticleVersion as ArticleVersionModel,
-} from './article'
-import { Draft as DraftModel } from './draft'
+} from './article.js'
+import { Draft as DraftModel } from './draft.js'
 import {
   Circle as CircleModel,
   CircleInvitation as CircleInvitationModel,
   CircleMember as CircleMemberModel,
-} from './circle'
+} from './circle.js'
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
   Writing as WritingModel,
   Context,
-} from './index'
-import { PayoutAccount as PayoutAccountModel } from './payment'
-import { Asset as AssetModel } from './asset'
-import { NoticeItem as NoticeItemModel } from './notification'
-import { Appreciation as AppreciationModel } from './appreciation'
-import { Report as ReportModel } from './report'
-import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
-import { Moment as MomentModel } from './moment'
+} from './index.js'
+import { PayoutAccount as PayoutAccountModel } from './payment.js'
+import { Asset as AssetModel } from './asset.js'
+import { NoticeItem as NoticeItemModel } from './notification.js'
+import { Appreciation as AppreciationModel } from './appreciation.js'
+import { Report as ReportModel } from './report.js'
+import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc.js'
+import { Moment as MomentModel } from './moment.js'
 import {
   Campaign as CampaignModel,
   CampaignStage as CampaignStageModel,
-} from './campaign'
-import { Channel as ChannelModel } from './channel'
+} from './campaign.js'
+import { Channel as ChannelModel } from './channel.js'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {

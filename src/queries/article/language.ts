@@ -1,9 +1,9 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions/index.js'
 
 import { stripHtml } from '@matters/ipns-site-generator'
 
-import { stripMentions } from 'common/utils'
-import { GCP } from 'connectors'
+import { stripMentions } from 'common/utils/index.js'
+import { GCP } from 'connectors/index.js'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId },

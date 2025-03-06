@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
-import { ForbiddenError } from 'common/errors'
+import { ForbiddenError } from 'common/errors.js'
 
 const resolver: GQLMutationResolvers['setUserName'] = async (
   _,

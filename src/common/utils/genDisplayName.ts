@@ -1,6 +1,6 @@
-import type { User } from 'definitions'
+import type { User } from 'definitions/index.js'
 
-import { isValidDisplayName } from './validator'
+import { isValidDisplayName } from './validator.js'
 
 export const genDisplayName = (user: User): string | undefined => {
   const { displayName: orignalName, email, userName } = user

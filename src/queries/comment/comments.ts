@@ -1,6 +1,6 @@
-import type { GQLCommentResolvers } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions/index.js'
 
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 
 const resolver: GQLCommentResolvers['comments'] = async (
   { id },

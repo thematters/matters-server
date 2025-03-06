@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions/index.js'
 
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
@@ -10,7 +10,7 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ForbiddenByStateError,
   EntityNotFoundError,
@@ -20,8 +20,8 @@ import {
   PaymentPasswordNotSetError,
   PaymentPayoutTransactionExistsError,
   UserInputError,
-} from 'common/errors'
-import { calcMattersFee } from 'common/utils'
+} from 'common/errors.js'
+import { calcMattersFee } from 'common/utils/index.js'
 
 const resolver: GQLMutationResolvers['payout'] = async (
   _,
