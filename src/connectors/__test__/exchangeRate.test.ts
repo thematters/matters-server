@@ -103,7 +103,7 @@ const rates = [
 describe('exchangeRate', () => {
   let exchangeRate: ExchangeRate
   beforeEach(() => {
-    exchangeRate = new ExchangeRate(connections.redis)
+    exchangeRate = new ExchangeRate(connections.objectCacheRedis)
     // mock
     exchangeRate.expire = 3 // 3 seconds
     // @ts-ignore

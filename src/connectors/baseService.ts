@@ -17,6 +17,7 @@ export class BaseService<T extends BaseDBSchema> {
   protected knexRO: Knex
   protected searchKnex: Knex
   protected redis: Redis
+  protected objectCacheRedis: Redis
   protected models: AtomService
 
   public aws: typeof aws
@@ -29,6 +30,7 @@ export class BaseService<T extends BaseDBSchema> {
     this.knexRO = connections.knexRO
     this.searchKnex = connections.knexSearch
     this.redis = connections.redis
+    this.objectCacheRedis = connections.objectCacheRedis
     this.aws = aws
     this.cfsvc = cfsvc
     this.models = new AtomService(connections)

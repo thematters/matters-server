@@ -149,7 +149,7 @@ export class PayoutQueue {
 
       // transfer to recipient's account in USD
       let HKDtoUSD: number
-      const exchangeRate = new ExchangeRate(this.connections.redis)
+      const exchangeRate = new ExchangeRate(this.connections.objectCacheRedis)
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
       } catch (err: unknown) {

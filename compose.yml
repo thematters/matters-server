@@ -12,6 +12,7 @@ services:
     depends_on:
       - db
       - redis
+      - objectCacheRedis
       - s3
       - stripe
     ports:
@@ -31,6 +32,13 @@ services:
     container_name: redis
     ports:
       - '6379:6379'
+    restart: always
+  objectCacheRedis:
+    image: redis
+    container_name: objectCacheRedis
+    command: ['redis-server', '--port', '6380']
+    ports:
+      - '6380:6380'
     restart: always
   s3:
     container_name: s3

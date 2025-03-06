@@ -21,11 +21,11 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   {
     dataSources: {
       userService,
-      connections: { redis },
+      connections: { objectCacheRedis },
     },
   }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS, redis)
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS, objectCacheRedis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
@@ -53,11 +53,11 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   {
     dataSources: {
       userService,
-      connections: { redis },
+      connections: { objectCacheRedis },
     },
   }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS, redis)
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS, objectCacheRedis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address

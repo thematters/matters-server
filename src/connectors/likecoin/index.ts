@@ -83,11 +83,13 @@ const ENDPOINTS = {
 export class LikeCoin {
   knex: Knex
   redis: Redis
+  objectCacheRedis: Redis
   aws: typeof aws
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
     this.redis = connections.redis
+    this.objectCacheRedis = connections.objectCacheRedis
     this.aws = aws
   }
 
@@ -281,7 +283,10 @@ export class LikeCoin {
     likerId: string
     userId: string
   }): Promise<boolean> => {
-    const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER, this.redis)
+    const cache = new CacheService(
+      CACHE_PREFIX.CIVIC_LIKER,
+      this.objectCacheRedis
+    )
     const keys = { id: likerId }
     const isCivicLiker = (await cache.getObject({
       keys,

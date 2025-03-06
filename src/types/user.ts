@@ -210,7 +210,7 @@ export default /* GraphQL */ `
     following(input: RecommendationFollowingInput!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Global articles sort by publish time."
-    newest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    newest(input: RecommendationNewestInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by latest activity time."
     hottest(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -1060,6 +1060,14 @@ export default /* GraphQL */ `
     first: Int
     after: String
     filter: RecommendationFollowingFilterInput
+  }
+
+  input RecommendationNewestInput {
+    after: String
+    first: Int @constraint(min: 0)
+    oss: Boolean
+    filter: FilterInput
+    excludeChannelArticles: Boolean
   }
 
   input RecommendationFollowingFilterInput {
