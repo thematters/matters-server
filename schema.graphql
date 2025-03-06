@@ -3835,7 +3835,7 @@ type Channel {
   id: ID!
   shortHash: String!
   name(input: TranslationArgs): String!
-  description: String
+  description(input: TranslationArgs): String
   providerId: String!
   enabled: Boolean!
   articles(input: ConnectionArgs!): ArticleConnection!
@@ -3845,7 +3845,7 @@ input PutChannelInput {
   id: ID
   providerId: String!
   name: [TranslationInput!]
-  description: String
+  description: [TranslationInput!]
   enabled: Boolean
 }
 

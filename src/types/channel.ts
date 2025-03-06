@@ -10,7 +10,7 @@ export default /* GraphQL */ `
     shortHash: String!
     name(input: TranslationArgs): String!
 
-    description: String @auth(mode: "${AUTH_MODE.admin}")
+    description(input: TranslationArgs): String
     providerId: String! @auth(mode: "${AUTH_MODE.admin}")
     enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
 
@@ -27,7 +27,7 @@ export default /* GraphQL */ `
     id: ID
     providerId: String!
     name: [TranslationInput!]
-    description: String
+    description: [TranslationInput!]
     enabled: Boolean
   }
 
