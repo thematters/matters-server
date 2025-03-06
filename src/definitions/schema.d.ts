@@ -825,6 +825,10 @@ export type GQLChannelArticlesArgs = {
   input: GQLConnectionArgs
 }
 
+export type GQLChannelDescriptionArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
 export type GQLChannelNameArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
@@ -2754,7 +2758,7 @@ export type GQLPutAnnouncementInput = {
 }
 
 export type GQLPutChannelInput = {
-  description?: InputMaybe<Scalars['String']['input']>
+  description?: InputMaybe<Array<GQLTranslationInput>>
   enabled?: InputMaybe<Scalars['Boolean']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
@@ -6653,7 +6657,8 @@ export type GQLChannelResolvers<
   description?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
-    ContextType
+    ContextType,
+    Partial<GQLChannelDescriptionArgs>
   >
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>

@@ -18,7 +18,7 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
     channel = await channelService.updateOrCreateChannel({
       providerId,
       name: name ? name[0].text : '',
-      description,
+      description: description ? description[0].text : '',
       ...(typeof enabled === 'boolean' ? { enabled } : {}),
     })
   } else {
@@ -31,7 +31,7 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
       id,
       providerId,
       name: name ? name[0].text : '',
-      description,
+      description: description ? description[0].text : '',
       ...(typeof enabled === 'boolean' ? { enabled } : {}),
     })
   }
@@ -42,6 +42,19 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
       await translationService.updateOrCreateTranslation({
         table: 'channel',
         field: 'name',
+        id: channel.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  // create or update description translations
+  if (description) {
+    for (const trans of description) {
+      await translationService.updateOrCreateTranslation({
+        table: 'channel',
+        field: 'description',
         id: channel.id,
         language: trans.language,
         text: trans.text,
