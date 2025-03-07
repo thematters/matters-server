@@ -81,7 +81,7 @@ export const environment = {
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
-  translateCert: process.env.MATTERS_TRANSLATE_CREDENTIAL,
+  translateKey: process.env.MATTERS_GCP_TRANSLATE_KEY,
   OICDPrivateKey: process.env.MATTERS_OICD_PRIVATE_KEY || '',
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
