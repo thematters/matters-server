@@ -22,12 +22,15 @@ import {
 import { medium } from '#connectors/medium/index.js'
 import { UserHasUsername } from '#definitions/index.js'
 import { makeSummary } from '@matters/ipns-site-generator'
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+import { createRequire } from 'node:module'
 
 import { getOrCreateQueue } from './utils.js'
+
+const require = createRequire(import.meta.url)
+const {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} = require('@matters/matters-editor/transformers')
 
 const logger = getLogger('queue-migration')
 

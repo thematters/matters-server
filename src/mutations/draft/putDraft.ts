@@ -35,11 +35,16 @@ import {
 } from '#common/errors.js'
 import { extractAssetDataFromHtml, fromGlobalId } from '#common/utils/index.js'
 import { stripHtml } from '@matters/ipns-site-generator'
-import {
+import _ from 'lodash'
+import { createRequire } from 'node:module'
+
+const { isUndefined, omitBy, isString, uniq } = _
+
+const require = createRequire(import.meta.url)
+const {
   normalizeArticleHTML,
   sanitizeHTML,
-} from '@matters/matters-editor/transformers'
-import { isUndefined, omitBy, isString, uniq } from 'lodash'
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,

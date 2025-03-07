@@ -7,7 +7,7 @@ import {
   fromConnectionArgs,
   normalizeTagInput,
 } from '#common/utils/index.js'
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
 const resolver: GQLTagResolvers['recommended'] = async (
   { id },

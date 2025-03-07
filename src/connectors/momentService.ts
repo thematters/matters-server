@@ -20,10 +20,13 @@ import {
   NotificationService,
 } from '#connectors/index.js'
 import { stripHtml } from '@matters/ipns-site-generator'
-import {
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const {
   sanitizeHTML,
   normalizeMomentHTML,
-} from '@matters/matters-editor/transformers'
+} = require('@matters/matters-editor/transformers')
 
 export class MomentService {
   private connections: Connections

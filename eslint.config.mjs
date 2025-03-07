@@ -93,6 +93,7 @@ export default [{
 
             "newlines-between": "always",
 
+	    // TODO: fix subpath imports ordering when got support, see https://github.com/import-js/eslint-plugin-import/issues/2679
             groups: [
                 "type",
                 ["builtin", "external", "unknown"],

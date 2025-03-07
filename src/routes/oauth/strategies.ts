@@ -7,7 +7,7 @@ import { UserService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
 import { Redis } from 'ioredis'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import passport from 'passport'
 
 import { connections } from '../connections.js'

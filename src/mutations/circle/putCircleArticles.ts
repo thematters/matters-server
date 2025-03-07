@@ -27,7 +27,7 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
-import { uniq } from 'lodash'
+import uniq from 'lodash/uniq.js'
 
 const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   _,

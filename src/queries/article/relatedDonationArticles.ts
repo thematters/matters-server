@@ -4,7 +4,7 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from '#common/utils/index.js'
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
 const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
   { id: articleId },

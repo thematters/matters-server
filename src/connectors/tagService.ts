@@ -23,7 +23,7 @@ import {
 } from '#common/utils/index.js'
 import { BaseService, SystemService } from '#connectors/index.js'
 import { Knex } from 'knex'
-import { difference } from 'lodash'
+import _ from 'lodash'
 
 const logger = getLogger('service-tag')
 
@@ -966,7 +966,7 @@ export class TagService extends BaseService<Tag> {
     // check if add tags include matty's tag
     const mattyTagId = environment.mattyChoiceTagId || ''
     const isMatty = environment.mattyId === actorId
-    const addIds = difference(newIds, oldIds)
+    const addIds = _.difference(newIds, oldIds)
     if (addIds.includes(mattyTagId) && !isMatty) {
       throw new ForbiddenError('not allow to add official tag')
     }
@@ -981,7 +981,7 @@ export class TagService extends BaseService<Tag> {
     // delete unwanted
     await this.deleteArticleTagsByTagIds({
       articleId: article.id,
-      tagIds: difference(oldIds, newIds),
+      tagIds: _.difference(oldIds, newIds),
     })
   }
 }

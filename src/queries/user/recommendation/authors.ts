@@ -7,7 +7,7 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from '#common/utils/index.js'
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },

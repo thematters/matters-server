@@ -103,7 +103,7 @@ import axios from 'axios'
 import { compare } from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
-import _, { random } from 'lodash'
+import _ from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 import {
@@ -629,7 +629,7 @@ export class UserService extends BaseService<User> {
       if (retries >= 20) {
         throw new NameInvalidError('cannot generate user name')
       }
-      userName = `${mainName}${random(1, 999)}`
+      userName = `${mainName}${_.random(1, 999)}`
       retries += 1
     }
 

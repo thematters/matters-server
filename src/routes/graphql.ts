@@ -63,7 +63,7 @@ import { applyMiddleware } from 'graphql-middleware'
 import { directiveEstimator, simpleEstimator } from 'graphql-query-complexity'
 import { graphqlUploadExpress } from 'graphql-upload'
 import Keyv from 'keyv'
-import { omit } from 'lodash'
+import omit from 'lodash/omit.js'
 import { createRequire } from 'node:module'
 
 import { loggerMiddleware } from 'middlewares/logger.js'

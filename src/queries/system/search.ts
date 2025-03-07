@@ -15,7 +15,7 @@ import {
   fromGlobalId,
   stripSpaces,
 } from '#common/utils/index.js'
-import { compact } from 'lodash'
+import compact from 'lodash/compact.js'
 
 const resolver: GQLQueryResolvers['search'] = async (
   _,

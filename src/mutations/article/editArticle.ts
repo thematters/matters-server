@@ -31,10 +31,13 @@ import {
 import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
-import {
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const {
   normalizeArticleHTML,
   sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['editArticle'] = async (
   _,

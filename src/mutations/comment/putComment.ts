@@ -34,12 +34,15 @@ import {
 import { fromGlobalId, extractMentionIds } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
-import {
+import get from 'lodash/get.js'
+import { createRequire } from 'node:module'
+import { v4 } from 'uuid'
+
+const require = createRequire(import.meta.url)
+const {
   normalizeCommentHTML,
   sanitizeHTML,
-} from '@matters/matters-editor/transformers'
-import { get } from 'lodash'
-import { v4 } from 'uuid'
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['putComment'] = async (
   _,

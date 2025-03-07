@@ -62,12 +62,17 @@ import {
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
-import { html2md } from '@matters/matters-editor/transformers'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
-import { difference, isEqual, uniq } from 'lodash'
+import _ from 'lodash'
+import { createRequire } from 'node:module'
 import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
+
+const { difference, isEqual, uniq } = _
+
+const require = createRequire(import.meta.url)
+const { html2md } = require('@matters/matters-editor/transformers')
 
 const logger = getLogger('service-article')
 

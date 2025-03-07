@@ -1,4 +1,4 @@
-import { merge } from 'lodash'
+import merge from 'lodash/merge.js'
 
 import article from './article/index.js'
 import campaign from './campaign/index.js'

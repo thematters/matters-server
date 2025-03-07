@@ -14,10 +14,13 @@ import {
 } from '#common/errors.js'
 import { auditLog } from '#common/logger.js'
 import { fromGlobalId } from '#common/utils/index.js'
-import {
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const {
   normalizeArticleHTML,
   sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,

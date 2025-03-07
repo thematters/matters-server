@@ -11,7 +11,7 @@ import {
   constraintDirective,
   constraintDirectiveTypeDefs,
 } from 'graphql-constraint-directive'
-import { merge } from 'lodash'
+import merge from 'lodash/merge.js'
 
 import {
   objectCacheDirective,

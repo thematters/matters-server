@@ -11,7 +11,7 @@ import {
 } from '#common/enums/index.js'
 import { ServerError } from '#common/errors.js'
 import { isNumeric, toGlobalId } from '#common/utils/index.js'
-import { camelCase } from 'lodash'
+import camelCase from 'lodash/camelCase.js'
 
 export const Transaction: GQLTransactionResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),
