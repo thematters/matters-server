@@ -19,13 +19,10 @@ const MOCKED_TRANSLATION = 'translated text'
 
 jest.mock('@google-cloud/translate', () => {
   return {
-    v3: {
-      TranslationServiceClient: function () {
-        this.translateText = jest.fn().mockResolvedValue([
-          {
-            translations: [{ translatedText: 'translated text' }],
-          },
-        ])
+    v2: {
+      Translate: function () {
+        this.detect = jest.fn().mockResolvedValue([{ language: 'en' }])
+        this.translate = jest.fn().mockResolvedValue(['translated text'])
       },
     } as any,
     __esModule: true,
