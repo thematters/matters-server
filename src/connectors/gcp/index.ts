@@ -14,7 +14,9 @@ export class GCP {
   public constructor() {
     this.translateAPI = new TranslateAPI.TranslationServiceClient({
       projectId: environment.gcpProjectId,
-      keyFilename: environment.translateCertPath,
+      credentials: JSON.parse(
+        environment.translateCert || '{ "client_email": "", "private_key": "" }'
+      ),
     })
   }
 

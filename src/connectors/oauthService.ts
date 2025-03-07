@@ -168,11 +168,20 @@ export class OAuthService extends BaseService<OAuthClientDB> {
       emailVerified: user.emailVerified,
     }
 
-    const id_token = jwt.sign(payload, environment.OICDPrivateKey, {
-      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-      issuer: 'matters.news',
-      algorithm: 'RS256',
-    })
+    let id_token
+    try {
+      id_token = jwt.sign(
+        payload,
+        JSON.parse(environment.OICDPrivateKey || '{}').private_key,
+        {
+          expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
+          issuer: 'matters.news',
+          algorithm: 'RS256',
+        }
+      )
+    } catch (error) {
+      logger.error(`Failed to sign JWT: ${error}`)
+    }
 
     return {
       accessToken: accessToken.token,
