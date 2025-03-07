@@ -56,6 +56,22 @@ describe('manage channels', () => {
     }
   `
 
+  const QUERY_CHANNEL = /* GraphQL */ `
+    query ($input: ChannelInput!) {
+      channel(input: $input) {
+        id
+      }
+    }
+  `
+
+  const QUERY_CHANNEL_BY_ADMIN = /* GraphQL */ `
+    query ($input: ChannelInput!) {
+      channel(input: $input) {
+        id
+        enabled
+      }
+    }
+  `
   const QUERY_CHANNELS = /* GraphQL */ `
     query {
       channels {
@@ -228,6 +244,52 @@ describe('manage channels', () => {
     expect(data.setArticleChannels.oss.channels[0].score).toBeNull()
   })
 
+  test('query channel', async () => {
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const normalServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: normalUser },
+    })
+
+    // add channel
+    const { data: channelData } = await adminServer.executeOperation({
+      query: PUT_CHANNEL,
+      variables: {
+        input: {
+          providerId: 'test-provider-2',
+          name: [{ text: 'test', language: 'en' }],
+          enabled: false,
+        },
+      },
+    })
+
+    // Query by admin user
+    const { data: adminQueryData, errors: adminErrors } =
+      await adminServer.executeOperation({
+        query: QUERY_CHANNEL_BY_ADMIN,
+        variables: {
+          input: { shortHash: channelData.putChannel.shortHash },
+        },
+      })
+    expect(adminErrors).toBeUndefined()
+    expect(adminQueryData.channel.id).toBe(channelData.putChannel.id)
+    expect(adminQueryData.channel.enabled).toBe(false)
+
+    // Query by normal user
+    const { data: normalUserData } = await normalServer.executeOperation({
+      query: QUERY_CHANNEL,
+      variables: {
+        input: { shortHash: channelData.putChannel.shortHash },
+      },
+    })
+    expect(normalUserData.channel).toBeNull()
+  })
+
   test('query channels', async () => {
     const adminServer = await testClient({
       connections,
@@ -245,7 +307,7 @@ describe('manage channels', () => {
       query: PUT_CHANNEL,
       variables: {
         input: {
-          providerId: 'test-provider-2',
+          providerId: 'test-provider-3',
           name: [{ text: 'test', language: 'en' }],
         },
       },
@@ -255,7 +317,7 @@ describe('manage channels', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.channels).toBeDefined()
-    expect(data.channels.length).toBe(2)
+    expect(data.channels.length).toBe(3)
 
     // disable channel
     await adminServer.executeOperation({
@@ -274,7 +336,7 @@ describe('manage channels', () => {
       }
     )
     expect(errors2).toBeUndefined()
-    expect(data2.channels.length).toBe(2)
+    expect(data2.channels.length).toBe(3)
     expect(data2.channels[0].enabled).toBe(false)
 
     // query by normal user

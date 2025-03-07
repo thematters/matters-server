@@ -840,6 +840,10 @@ export type GQLChannelArticlesInput = {
   shortHash?: InputMaybe<Scalars['String']['input']>
 }
 
+export type GQLChannelInput = {
+  shortHash: Scalars['String']['input']
+}
+
 export type GQLCircle = GQLNode & {
   __typename?: 'Circle'
   /** Analytics dashboard. */
@@ -2900,6 +2904,7 @@ export type GQLQuery = {
   article?: Maybe<GQLArticle>
   campaign?: Maybe<GQLCampaign>
   campaigns: GQLCampaignConnection
+  channel?: Maybe<GQLChannel>
   channels: Array<GQLChannel>
   circle?: Maybe<GQLCircle>
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
@@ -2926,6 +2931,10 @@ export type GQLQueryCampaignArgs = {
 
 export type GQLQueryCampaignsArgs = {
   input: GQLCampaignsInput
+}
+
+export type GQLQueryChannelArgs = {
+  input: GQLChannelInput
 }
 
 export type GQLQueryCircleArgs = {
@@ -4706,6 +4715,7 @@ export type GQLResolversTypes = ResolversObject<{
   Chain: GQLChain
   Channel: ResolverTypeWrapper<ChannelModel>
   ChannelArticlesInput: GQLChannelArticlesInput
+  ChannelInput: GQLChannelInput
   Circle: ResolverTypeWrapper<CircleModel>
   CircleAnalytics: ResolverTypeWrapper<CircleModel>
   CircleConnection: ResolverTypeWrapper<
@@ -5336,6 +5346,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CampaignsInput: GQLCampaignsInput
   Channel: ChannelModel
   ChannelArticlesInput: GQLChannelArticlesInput
+  ChannelInput: GQLChannelInput
   Circle: CircleModel
   CircleAnalytics: CircleModel
   CircleConnection: Omit<GQLCircleConnection, 'edges'> & {
@@ -8730,6 +8741,12 @@ export type GQLQueryResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLQueryCampaignsArgs, 'input'>
+  >
+  channel?: Resolver<
+    Maybe<GQLResolversTypes['Channel']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryChannelArgs, 'input'>
   >
   channels?: Resolver<
     Array<GQLResolversTypes['Channel']>,
