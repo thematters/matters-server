@@ -1,22 +1,6 @@
 import dotenv from 'dotenv'
-import fs from 'fs'
-import path from 'path'
 
 dotenv.config()
-
-let OICDPrivateKey = ''
-if (process.env.MATTERS_OICD_PRIVATE_KEY) {
-  const filePath = path.resolve(
-    __dirname,
-    `../../${process.env.MATTERS_OICD_PRIVATE_KEY}`
-  )
-
-  try {
-    OICDPrivateKey = fs.readFileSync(filePath, { encoding: 'utf8' })
-  } catch (e) {
-    console.error(new Date(), `Failed to load OICD private key on ${filePath}`)
-  }
-}
 
 export const isLocal = process.env.MATTERS_ENV === 'local'
 export const isTest = process.env.MATTERS_ENV === 'test'
@@ -97,8 +81,8 @@ export const environment = {
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
-  translateCertPath: process.env.MATTERS_TRANSLATE_CREDENTIAL_PATH,
-  OICDPrivateKey,
+  translateCert: process.env.MATTERS_TRANSLATE_CREDENTIAL,
+  OICDPrivateKey: process.env.MATTERS_OICD_PRIVATE_KEY || '',
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
   likecoinApiURL: process.env.MATTERS_LIKECOIN_API_URL || '',
