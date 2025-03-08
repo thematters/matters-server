@@ -1,8 +1,8 @@
-const { v4 } = require('uuid')
+import { v4 } from 'uuid'
 
 const table = 'asset_map'
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   /**
    * prepare seeds
    */
