@@ -212,7 +212,7 @@ const incorrectLikerIds = [
   'JChan-matters',
 ]
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   /**
    * delete incorrect likers to re-generate
    */
@@ -236,4 +236,4 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = () => {}
+export const down = () => {}

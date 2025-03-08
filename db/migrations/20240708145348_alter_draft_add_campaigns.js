@@ -1,13 +1,13 @@
 const table = 'draft'
 const newColumn = 'campaigns'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.jsonb(newColumn)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn(newColumn)
   })

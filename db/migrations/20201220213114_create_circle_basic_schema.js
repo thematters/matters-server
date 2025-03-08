@@ -1,6 +1,6 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // circle table
   let table = 'circle'
   await knex('entity_type').insert({ table })
@@ -227,7 +227,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await baseDown('circle_subscription_item')(knex)
   await baseDown('circle_subscription')(knex)
   await baseDown('article_circle')(knex)

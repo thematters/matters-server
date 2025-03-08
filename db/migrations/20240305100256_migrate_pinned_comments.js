@@ -1,6 +1,6 @@
 const REMARK = 'updated by 20240305100256_migrate_pinned_comments.js'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`UPDATE comment SET pinned = false, remark = '${REMARK}'
     WHERE pinned = true
       AND type ='article'
@@ -10,6 +10,6 @@ exports.up = async (knex) => {
         GROUP BY comment.target_id)`)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(`UPDATE comment SET pinned = true WHERE remark = '${REMARK}'`)
 }

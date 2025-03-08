@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add article_version_id field
   await knex.schema.alterTable('comment', (t) => {
     t.bigInteger('article_version_id')
@@ -18,7 +18,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable('article_translation', (t) => {
     t.dropColumn('article_version_id')
   })

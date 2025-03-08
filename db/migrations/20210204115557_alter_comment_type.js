@@ -1,4 +1,4 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const commentTable = 'comment'
 const activityView = 'article_activity_view'
@@ -21,7 +21,7 @@ const boost = 1
 const boost_window = 3
 const matty_donation_decay_factor = 0.95
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   /**
    * Step 0: drop views
    */
@@ -387,7 +387,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(/* sql */ `
     DROP VIEW IF EXISTS ${hottestAView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${hottestAMaterialized} CASCADE;

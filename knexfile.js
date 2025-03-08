@@ -1,7 +1,14 @@
+import dotenv from 'dotenv'
 import { createRequire } from 'node:module'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
 const { name, version } = require('./package.json')
+
+dotenv.config()
+
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const baseConfig = {
   client: 'postgresql',
@@ -14,10 +21,10 @@ const baseConfig = {
   },
   migrations: {
     tableName: 'knex_migrations',
-    directory: __dirname + '/db/migrations',
+    directory: path.join(dirname, 'db/migrations'),
   },
   seeds: {
-    directory: __dirname + '/db/seeds',
+    directory: path.join(dirname, 'db/seeds'),
   },
 }
 

@@ -1,6 +1,6 @@
 const table = 'user_notify_setting'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     // add circle related settings for circle owners
     t.boolean('circle_new_subscriber').notNullable().defaultTo(true)
@@ -21,7 +21,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     // drop circle related settings
     t.dropColumn('circle_new_subscriber')

@@ -1,9 +1,9 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const topicView = 'article_count_view'
 const topicMaterialized = 'article_count_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // remove dependency on article.title
   // DDL belowed derived from 20210204115557_alter_comment_type.js
 
@@ -64,7 +64,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     /* sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${topicMaterialized} CASCADE`
   )

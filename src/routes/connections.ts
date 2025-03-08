@@ -3,22 +3,23 @@ import { Redis } from 'ioredis'
 import { knex } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
-import knexConfig from '../knexfile.js'
+// @ts-expect-error #explicit-any
+import knexConfig from '../../knexfile.js'
 
 // init connections
 const mainKnex = knex({
-  ...knexConfig[environment.env as keyof typeof knexConfig],
+  ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
 })
 
 const readonlyKnex = knex({
-  ...knexConfig[environment.env as keyof typeof knexConfig],
+  ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
   ...{ connection: environment.pgReadonlyConnectionString },
 })
 
 const searchKnexDB = knex({
-  ...knexConfig[environment.env as keyof typeof knexConfig],
+  ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
   ...{ connection: environment.searchPgConnectionString },
 })

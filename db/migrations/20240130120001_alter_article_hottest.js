@@ -9,7 +9,7 @@ const boost_window = 3
 const matty_donation_decay_factor = 0.95
 const circle_boost = 2
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // remove dependency on `article.title` and `article.media_hash` and create index
   // DDL belowed derived from 20231221080000_update_hottest_feed-tag-boost.js
 
@@ -134,7 +134,7 @@ WITH original_score AS (
   `)
 }
 
-exports.down = function (knex) {
+export const down = function (knex) {
   knex.raw(/* sql*/ `
   drop view ${view} cascade;
   `)

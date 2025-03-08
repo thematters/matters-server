@@ -1,12 +1,12 @@
 const table = 'article_read'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.string('ip')
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('ip')
   })

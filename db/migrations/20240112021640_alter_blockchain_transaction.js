@@ -1,6 +1,6 @@
 const table = 'blockchain_transaction'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add new columns
   await knex.schema.table(table, (t) => {
     t.string('from')
@@ -22,7 +22,7 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('block_number')
     t.dropColumn('to')

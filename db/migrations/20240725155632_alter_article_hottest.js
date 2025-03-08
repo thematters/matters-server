@@ -9,7 +9,7 @@ const boost_window = 3
 const matty_donation_decay_factor = 0.95
 const circle_boost = 2
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add campaign_boost
   // DDL below derived from db/migrations/0240718201942_alter_article_hottest.js
 
@@ -137,7 +137,7 @@ WITH original_score AS (
   `)
 }
 
-exports.down = function (knex) {
+export const down = function (knex) {
   knex.raw(/* sql*/ `
   drop view ${view} cascade;
   `)

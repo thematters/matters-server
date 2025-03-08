@@ -1,4 +1,4 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const campaign_table = 'campaign'
 
@@ -6,7 +6,7 @@ const campaign_stage_table = 'campaign_stage'
 const campaign_user_table = 'campaign_user'
 const campaign_article_table = 'campaign_article'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // campaign
   await knex('entity_type').insert({ table: campaign_table })
   await knex.schema.createTable(campaign_table, (t) => {
@@ -78,7 +78,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await baseDown(campaign_article_table)(knex)
   await baseDown(campaign_user_table)(knex)
   await baseDown(campaign_stage_table)(knex)

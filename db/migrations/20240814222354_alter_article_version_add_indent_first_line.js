@@ -2,7 +2,7 @@ const table = 'article_version'
 const newColumn = 'indent_first_line'
 const view = 'article_version_newest'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.boolean(newColumn).notNullable().defaultTo(false)
   })
@@ -16,7 +16,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropColumn(newColumn)
   })

@@ -1,8 +1,8 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const table = 'user'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex('user').where({ state: 'onboarding' }).update({ state: 'active' })
 
   await knex.raw(`ALTER TABLE "user" ALTER COLUMN state SET DEFAULT 'active';`)
@@ -11,7 +11,7 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     alterEnumString(table, 'state', [
       'onboarding',

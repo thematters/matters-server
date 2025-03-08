@@ -160,6 +160,12 @@ export default [{
         }],
     },
 }, {
+    files: ["**/*.cjs"],
+    rules: {
+        "@typescript-eslint/no-require-imports": "off",
+        "import/no-commonjs": "off"
+    }
+}, {
     files: ["db/migrations/*.js"],
 
     rules: {

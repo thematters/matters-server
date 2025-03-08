@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // delete data
 
   const covers = await knex('topic').select('cover')
@@ -30,6 +30,6 @@ exports.up = async (knex) => {
   await deleteTable('topic')
 }
 
-exports.down = () => {
+export const down = () => {
   // do nothing
 }

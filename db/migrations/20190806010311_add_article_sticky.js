@@ -1,12 +1,12 @@
 const table = 'article'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.boolean('sticky').defaultTo(false)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('sticky')
   })

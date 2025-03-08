@@ -1,4 +1,4 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const table = 'article'
 const newColumn = 'pinned_at'
@@ -6,7 +6,7 @@ const newColumn = 'pinned_at'
 const oldName = 'sticky'
 const newName = 'pinned'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.timestamp(newColumn)
     t.renameColumn(oldName, newName)
@@ -16,7 +16,7 @@ exports.up = async (knex) => {
     .where({ pinned: true })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn(newColumn)
     t.renameColumn(newName, oldName)

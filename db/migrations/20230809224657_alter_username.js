@@ -1,12 +1,12 @@
 const table = 'user'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.setNullable('user_name')
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropNullable('user_name')
   })

@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // populate article_version_id
   await knex.raw(`
     UPDATE comment
@@ -47,6 +47,6 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = () => {
+export const down = () => {
   // do nothing
 }

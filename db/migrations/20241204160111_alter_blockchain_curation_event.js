@@ -1,6 +1,6 @@
 const table = 'blockchain_curation_event'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.bigInteger('creator_id').unsigned()
     t.string('creator_address').nullable().alter()
@@ -11,7 +11,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropColumn('creator_id')
     t.string('creator_address').notNullable().alter()

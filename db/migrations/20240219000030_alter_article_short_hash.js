@@ -2,14 +2,14 @@ const table = 'article'
 
 const newColumn = 'short_hash'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.string(newColumn).unique() // add .notNullable() after filled short_hash for all rows
     t.index(newColumn)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn(newColumn)
   })

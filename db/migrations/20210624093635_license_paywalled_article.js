@@ -1,7 +1,7 @@
 const draft_table = 'draft'
 const article_circle_table = 'article_circle'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // mark license of paywalled articles as `arr`
   await knex.raw(`
     UPDATE
@@ -22,4 +22,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async () => {}
+export const down = async () => {}

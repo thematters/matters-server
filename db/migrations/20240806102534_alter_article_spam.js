@@ -1,6 +1,6 @@
 const table = 'article'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.float('spam_score').nullable()
     t.boolean('is_spam').nullable()
@@ -10,7 +10,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropIndex('spam_score')
     t.dropIndex('is_spam')

@@ -1,13 +1,13 @@
 const table = 'article_recommend_setting'
 const newColumn = 'in_search'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.boolean(newColumn).defaultTo(true)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropColumn(newColumn)
   })

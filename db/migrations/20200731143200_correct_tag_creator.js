@@ -1,6 +1,6 @@
 const table = 'tag'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // reset matty's tags
   const matty = await knex('user')
     .select('id')
@@ -68,4 +68,4 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

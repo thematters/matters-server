@@ -1,11 +1,11 @@
-const { customAlphabet } = require('nanoid')
+import { customAlphabet } from 'nanoid'
 
 const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
 const shortHash = customAlphabet(ALPHABET, 12) // ~35 years or 308M IDs needed, in order to have a 1% probability of one collision // https://zelark.github.io/nano-id-cc/
 
 const table = 'channel'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, function (t) {
     t.string('short_hash').unique()
   })
@@ -22,7 +22,7 @@ exports.up = async (knex) => {
   await knex.raw(`ALTER TABLE ${table} ALTER COLUMN short_hash SET NOT NULL`)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('short_hash')
   })
