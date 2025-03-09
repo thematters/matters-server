@@ -1,7 +1,6 @@
 import { LANGUAGE } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
-
 import { v2 as TranslateAPI } from '@google-cloud/translate'
 
 const logger = getLogger('service-gcp')

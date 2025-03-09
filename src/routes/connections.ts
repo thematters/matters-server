@@ -1,7 +1,9 @@
 import { environment } from '#common/environment.js'
 import { Redis } from 'ioredis'
-import { knex } from 'knex'
+import pkg from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
+
+const { knex } = pkg
 
 // @ts-expect-error #explicit-any
 import knexConfig from '../../knexfile.js'

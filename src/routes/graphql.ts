@@ -42,6 +42,7 @@ import {
   PayoutQueue,
   UserQueue,
 } from '#connectors/queue/index.js'
+import { loggerMiddleware } from '#middlewares/logger.js'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
@@ -66,14 +67,15 @@ import Keyv from 'keyv'
 import omit from 'lodash/omit.js'
 import { createRequire } from 'node:module'
 
-import { loggerMiddleware } from 'middlewares/logger.js'
 
 import schema from '../schema.js'
 
 import { connections } from './connections.js'
 
 const require = createRequire(import.meta.url)
-const expressPlayground = require('graphql-playground-middleware-express')
+const {
+  default: expressPlayground,
+} = require('graphql-playground-middleware-express')
 
 const logger = getLogger('graphql-server')
 
