@@ -25,12 +25,13 @@ const resolver: GQLArticleResolvers['language'] = async (
   const excerpt = stripHtml(stripMentions(content)).slice(0, 300)
 
   gcp.detectLanguage(excerpt).then((language) => {
-    language &&
+    if (language) {
       atomService.update({
         table: 'article_version',
         where: { id: versionId },
         data: { language },
       })
+    }
   })
 
   // return first to prevent blocking

@@ -11,10 +11,10 @@ import globals from "globals";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
+    baseDirectory: dirname,
     recommendedConfig: js.configs.recommended,
     allConfig: js.configs.all
 });
@@ -57,8 +57,12 @@ export default [{
 
     rules: {
         "@typescript-eslint/ban-ts-comment": "warn",
+        "@typescript-eslint/no-explicit-any": "warn",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "warn",
+        "no-unused-expressions": "off",
+        "@typescript-eslint/no-unused-expressions": "error",
         "no-case-declarations": "warn",
-
         "@typescript-eslint/array-type": ["error", {
             default: "array-simple",
         }],
@@ -167,8 +171,12 @@ export default [{
     }
 }, {
     files: ["db/migrations/*.js"],
-
     rules: {
         "prefer-arrow/prefer-arrow-functions": "off",
+    },
+}, {
+    files: ["db/seeds/*.js"],
+    rules: {
+        "@typescript-eslint/no-unused-vars": "off",
     },
 }];

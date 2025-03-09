@@ -20,10 +20,10 @@ import {
   setCookie,
 } from '#common/utils/index.js'
 import { cfsvc } from '#connectors/index.js'
-import _ from 'lodash'
+import pkg from 'lodash'
 import { v4 } from 'uuid'
 
-const { has, isEmpty } = _
+const { has, isEmpty } = pkg
 
 const logger = getLogger('mutation-update-user-info')
 

@@ -35,10 +35,10 @@ import {
 } from '#common/errors.js'
 import { extractAssetDataFromHtml, fromGlobalId } from '#common/utils/index.js'
 import { stripHtml } from '@matters/ipns-site-generator'
-import _ from 'lodash'
+import pkg from 'lodash'
 import { createRequire } from 'node:module'
 
-const { isUndefined, omitBy, isString, uniq } = _
+const { isUndefined, omitBy, isString, uniq } = pkg
 
 const require = createRequire(import.meta.url)
 const {
