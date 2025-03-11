@@ -153,11 +153,14 @@ export class CollectionService extends BaseService<Collection> {
       }
     }
 
+    await this.knex('action_collection').whereIn('target_id', ids).del()
     await this.knex('collection_article').whereIn('collection_id', ids).del()
+
     const result = await this.knex('collection')
       .whereIn('id', ids)
       .andWhere('author_id', authorId)
       .del()
+
     return result > 0
   }
 
