@@ -1,14 +1,16 @@
-const { spawn } = require('child_process')
+import { spawn } from 'child_process'
+import dotenv from 'dotenv'
+import pkg from 'knex'
 
-require('dotenv').config()
+const { Knex } = pkg
+
+dotenv.config()
 
 const debug = process.env.MATTERS_LOGGING_LEVEL === 'debug'
 
-module.exports = async (database) => {
+export default async (database) => {
   if (process.env.MATTERS_ENV !== 'test')
     throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
-
-  const Knex = require('knex')
 
   const knexConfig = {
     client: 'postgresql',

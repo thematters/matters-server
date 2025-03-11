@@ -67,7 +67,6 @@ import Keyv from 'keyv'
 import omit from 'lodash/omit.js'
 import { createRequire } from 'node:module'
 
-
 import schema from '../schema.js'
 
 import { connections } from './connections.js'
