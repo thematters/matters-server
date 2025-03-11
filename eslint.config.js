@@ -35,6 +35,16 @@ export default [
     'prettier'
   ),
   {
+    files: ['**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
+  },
+  {
+    files: ['**/*.ts'],
     plugins: {
       import: fixupPluginRules(_import),
       jsdoc,
