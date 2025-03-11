@@ -56,30 +56,39 @@ export class ChannelService {
       where: { articleId },
     })
 
-    // Track both id and enabled status
+    // Track id, enabled status, and isByModel status
     const existingChannelMap = new Map(
-      existingChannels.map((c) => [c.channelId, c.enabled])
+      existingChannels.map((c) => [
+        c.channelId,
+        { enabled: c.enabled, isByModel: c.isByModel },
+      ])
     )
 
     // Diff channels
     const toAdd = channelIds.filter(
       (id) =>
-        !existingChannelMap.has(id) || existingChannelMap.get(id) === false
+        !existingChannelMap.has(id) ||
+        existingChannelMap.get(id)?.enabled === false
     )
     const toRemove = [...existingChannelMap.entries()]
-      .filter(([id, enabled]) => enabled && !channelIds.includes(id))
+      .filter(([id, { enabled }]) => enabled && !channelIds.includes(id))
       .map(([id]) => id)
 
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
       await this.models.upsertOnConflict({
         table: 'article_channel',
-        data: toAdd.map((channelId) => ({
-          articleId,
-          channelId,
-          enabled: true,
-          isLabeled: true,
-        })),
+        data: toAdd.map((channelId) => {
+          const existing = existingChannelMap.get(channelId)
+          return {
+            articleId,
+            channelId,
+            enabled: true,
+            isLabeled: true,
+            // Only set isByModel to false if it's a new channel or not already true
+            ...((!existing || !existing.isByModel) && { isByModel: false }),
+          }
+        }),
         onConflict: ['articleId', 'channelId'],
       })
     }

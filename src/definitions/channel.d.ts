@@ -16,6 +16,7 @@ export interface ArticleChannel {
   channelId: string
   score?: number
   isLabeled: boolean
+  isByModel?: boolean
   enabled: boolean
   createdAt: Date
   updatedAt: Date

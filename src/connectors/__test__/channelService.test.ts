@@ -115,8 +115,10 @@ describe('setArticleChannels', () => {
     )
     expect(articleChannels[0].enabled).toBe(true)
     expect(articleChannels[0].isLabeled).toBe(true)
+    expect(articleChannels[0].isByModel).toBe(false)
     expect(articleChannels[1].enabled).toBe(true)
     expect(articleChannels[1].isLabeled).toBe(true)
+    expect(articleChannels[1].isByModel).toBe(false)
   })
 
   test('removes existing channels when setting empty array', async () => {
@@ -138,6 +140,7 @@ describe('setArticleChannels', () => {
     expect(articleChannels[0].channelId).toBe(channel.id)
     expect(articleChannels[0].enabled).toBe(false)
     expect(articleChannels[0].isLabeled).toBe(true)
+    expect(articleChannels[0].isByModel).toBe(false)
   })
 
   test('updates channels when called multiple times', async () => {
@@ -167,7 +170,7 @@ describe('setArticleChannels', () => {
     expect(articleChannels[0].isLabeled).toBe(true)
 
     expect(articleChannels[1].channelId).toBe(channel1.id)
-    expect(articleChannels[1].enabled).toBe(false)
+    expect(articleChannels[1].enabled).toBe(false) // turns into false
     expect(articleChannels[1].isLabeled).toBe(true)
   })
 
@@ -203,6 +206,59 @@ describe('setArticleChannels', () => {
       where: { articleId },
     })
     expect(articleChannels[0].enabled).toBe(true)
+  })
+
+  test('sets isByModel correctly for new and re-enabled channels', async () => {
+    const channel1 = await channelService.updateOrCreateChannel(channelData)
+    const channel2 = await channelService.updateOrCreateChannel({
+      ...channelData,
+      name: 'Test Channel 2',
+      providerId: 'test-channel-2',
+    })
+
+    // First, manually add channel1 with isByModel = true to simulate a channel added by model
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId,
+        channelId: channel1.id,
+        enabled: true,
+        isLabeled: false,
+        isByModel: true,
+      },
+    })
+
+    // Then disable channel1 by setting empty array
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [],
+    })
+
+    // Now add channel1 (re-enable) and channel2 (new)
+    await channelService.setArticleChannels({
+      articleId,
+      channelIds: [channel1.id, channel2.id],
+    })
+
+    let articleChannels = await atomService.findMany({
+      table: 'article_channel',
+      where: { articleId },
+      orderBy: [{ column: 'id', order: 'asc' }],
+    })
+
+    expect(articleChannels).toHaveLength(2)
+
+    console.log(articleChannels[0], channel2, channel1)
+
+    // channel1 should have isByModel = true since it's a record added by model
+    expect(articleChannels[0]).toBeDefined()
+    expect(articleChannels[0]?.enabled).toBe(true)
+    expect(articleChannels[0]?.isByModel).toBe(true)
+
+    // channel2 should have isByModel = false since it's a new record
+    expect(articleChannels[1]).toBeDefined()
+    expect(articleChannels[1]?.enabled).toBe(true)
+    expect(articleChannels[1]?.isByModel).toBe(false)
   })
 })
 
