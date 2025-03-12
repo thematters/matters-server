@@ -21,7 +21,7 @@
     "watch:server": "nodemon build/index.js",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
-    "testcmd": "MATTERS_ENV=test node --experimental-vm-modules node_modules/.bin/jest --runInBand",
+    "testcmd": "MATTERS_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
     "test:connectors": "npm run testcmd -- build/connectors/ --forceExit",
     "test:utils": "npm run testcmd -- build/common/utils/",
     "test:routes": "npm run testcmd -- build/routes/ --forceExit",
