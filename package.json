@@ -26,7 +26,7 @@
     "test:utils": "npm run testcmd -- build/common/utils/",
     "test:routes": "npm run testcmd -- build/routes/ --forceExit",
     "test:types": "npm run testcmd -- build/types/ --forceExit",
-    "test": "npm run testcmd -- build/ --maxWorkers=50% --forceExit  && codecov",
+    "test": "npm run testcmd -- build/ --maxWorkers=25% --forceExit  && codecov",
     "lint": "eslint . --ext .ts --quiet",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
