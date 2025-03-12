@@ -167,6 +167,10 @@
     "utf-8-validate": "^6.0.3"
   },
   "imports": {
+    "#root/*": {
+      "dev-import": "./*",
+      "default": "./*"
+    },
     "#db/*": {
       "dev-import": "./db/*",
       "default": "./db/*"

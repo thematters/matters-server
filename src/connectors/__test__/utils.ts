@@ -10,6 +10,9 @@ import { createRequire } from 'node:module'
 
 import pkg from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
+
+// @ts-ignore
+import knexConfigs from '#root/knexfile.js'
 // @ts-ignore
 import initDatabase from '#db/initDatabase.js'
 import { genRandomString } from '#common/utils/index.js'
@@ -34,17 +37,9 @@ export const genConnections = async (): Promise<Connections> => {
   await initDatabase(database)
 
   const knexConfig = {
-    client: 'postgresql',
-    connection: {
-      host: process.env.MATTERS_PG_HOST,
-      user: process.env.MATTERS_PG_USER,
-      password: process.env.MATTERS_PG_PASSWORD,
-      database,
-    },
-    // set pool size to 1 to detect db connection acquiring deadlock
-    // explained in https://github.com/Vincit/objection.js/issues/1137#issuecomment-561149456
-    pool: { min: 1, max: 1 },
-  }
+    ...knexConfigs.test,
+  } as any
+  knexConfig.connection.database = database
 
   // emulate the connections object in src/routes/connections.ts
   return {

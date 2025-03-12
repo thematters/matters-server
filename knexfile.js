@@ -31,6 +31,13 @@ const baseConfig = {
 export default {
   local: baseConfig,
 
+  test: {
+    ...baseConfig,
+    // set pool size to 1 to detect db connection acquiring deadlock
+    // explained in https://github.com/Vincit/objection.js/issues/1137#issuecomment-561149456
+    pool: { min: 1, max: 1 },
+  },
+
   development: baseConfig,
 
   stage: baseConfig,
