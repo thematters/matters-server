@@ -16,6 +16,8 @@ import {
   UserService,
 } from '#connectors/index.js'
 
+import { jest } from '@jest/globals'
+
 import { createDonationTx, genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
@@ -297,7 +299,7 @@ describe('Transaction CRUD', () => {
 })
 
 describe('notifyDonation', () => {
-  mailService.send = jest.fn()
+  mailService.send = jest.fn() as any
   test('donationCount value is correct', async () => {
     const getDonationCount = () =>
       // @ts-ignore

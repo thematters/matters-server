@@ -5,6 +5,7 @@ import type {
   Tag,
   TagBoost,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   ARTICLE_STATE,
@@ -22,7 +23,6 @@ import {
   excludeSpam as excludeSpamModifier,
 } from '#common/utils/index.js'
 import { BaseService, SystemService } from '#connectors/index.js'
-import { Knex } from 'knex'
 import _ from 'lodash'
 
 const logger = getLogger('service-tag')

@@ -4,6 +4,7 @@ import type {
   User,
   Article,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   ARTICLE_STATE,
@@ -20,7 +21,6 @@ import {
 } from '#common/errors.js'
 import { selectWithTotalCount } from '#common/utils/index.js'
 import { BaseService, UserWorkService, UserService } from '#connectors/index.js'
-import { Knex } from 'knex'
 
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {

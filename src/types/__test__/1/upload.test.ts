@@ -2,6 +2,9 @@ import type { Connections } from '#definitions/index.js'
 
 import { createReadStream } from 'fs'
 import { FileUpload, Upload } from 'graphql-upload'
+import { jest } from '@jest/globals'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import {
   AUDIO_ASSET_TYPE,
@@ -12,6 +15,8 @@ import { toGlobalId } from '#common/utils/index.js'
 import { SystemService } from '#connectors/index.js'
 
 import { genConnections, closeConnections, testClient } from '../utils.js'
+
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let connections: Connections
 beforeAll(async () => {
@@ -37,7 +42,7 @@ const SINGLE_FILE_UPLOAD = /* GraphQL */ `
   }
 `
 const createUpload = (mimetype: string) => {
-  const file = createReadStream(__dirname)
+  const file = createReadStream(dirname)
   const fileUpload: FileUpload = {
     createReadStream: () => file as any,
     filename: 'some-filename',

@@ -1,5 +1,6 @@
 import type { UserOAuthLikeCoin, Connections } from '#definitions/index.js'
 import type { Redis } from 'ioredis'
+import type { Knex } from 'knex'
 
 import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
@@ -12,7 +13,6 @@ import {
 import { getLogger } from '#common/logger.js'
 import { aws, CacheService } from '#connectors/index.js'
 import axios, { type AxiosRequestConfig } from 'axios'
-import { Knex } from 'knex'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 

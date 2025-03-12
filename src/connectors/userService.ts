@@ -18,6 +18,7 @@ import type {
   UserBoost,
   UserFeatureFlag,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -102,7 +103,6 @@ import { Twitter } from '#connectors/oauth/index.js'
 import axios from 'axios'
 import { compare } from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import { Knex } from 'knex'
 import _ from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'

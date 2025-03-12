@@ -1,3 +1,5 @@
+import type { Knex } from 'knex'
+
 import {
   ActivityType,
   CIRCLE_ACTION,
@@ -9,7 +11,6 @@ import {
   MOMENT_STATE,
 } from '#common/enums/index.js'
 import { selectWithTotalCount } from '#common/utils/index.js'
-import { Knex } from 'knex'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
 

@@ -1,7 +1,7 @@
 import type { GQLCircleFollowerAnalyticsResolvers } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import { CIRCLE_ACTION } from '#common/enums/index.js'
-import { Knex } from 'knex'
 
 const resolver: GQLCircleFollowerAnalyticsResolvers['history'] = async (
   { id },

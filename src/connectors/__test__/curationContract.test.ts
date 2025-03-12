@@ -1,4 +1,5 @@
 import { optimismSepolia } from 'viem/chains'
+import { jest } from '@jest/globals'
 
 import { CurationContract } from '#connectors/blockchain/index.js'
 import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from '#common/enums/index.js'

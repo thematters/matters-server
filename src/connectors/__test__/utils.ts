@@ -8,10 +8,10 @@ import type { Knex } from 'knex'
 
 import { createRequire } from 'node:module'
 
-import { knex } from 'knex'
+import pkg from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 // @ts-ignore
-import initDatabase from '@root/db/initDatabase'
+import initDatabase from '#db/initDatabase.js'
 import { genRandomString } from '#common/utils/index.js'
 
 import {
@@ -23,6 +23,8 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from '#common/enums/index.js'
+
+const { knex } = pkg
 
 const require = createRequire(import.meta.url)
 const Redis = require('ioredis-mock')

@@ -1,8 +1,10 @@
 import { spawn } from 'child_process'
 import dotenv from 'dotenv'
-import pkg from 'knex'
+import Knex from 'knex'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const { Knex } = pkg
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 dotenv.config()
 
@@ -22,10 +24,10 @@ export default async (database) => {
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: __dirname + '/migrations',
+      directory: dirname + '/migrations',
     },
     seeds: {
-      directory: __dirname + '/seeds',
+      directory: dirname + '/seeds',
     },
   }
 
@@ -73,7 +75,7 @@ export default async (database) => {
 
 async function runShellDBRollup(connection) {
   const { host, user, password, database } = connection
-  const cwd = __dirname
+  const cwd = dirname
   const env = {
     PGPASSWORD: password,
     PSQL: `psql -h ${host} -U ${user} -d ${database} -w`,

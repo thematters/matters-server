@@ -7,6 +7,7 @@ import type {
   ArticleBoost,
   Connections,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   APPRECIATION_PURPOSE,
@@ -63,7 +64,6 @@ import {
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 import DataLoader from 'dataloader'
-import { Knex } from 'knex'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
 import { simplecc } from 'simplecc-wasm'

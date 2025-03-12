@@ -1,6 +1,7 @@
 import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
+import { jest } from '@jest/globals'
 
 import {
   COMMENT_STATE,

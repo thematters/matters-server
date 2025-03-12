@@ -7,6 +7,7 @@ import type {
   UserHasUsername,
   LANGUAGES,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   BLOCKCHAIN_TRANSACTION_STATE,
@@ -29,7 +30,6 @@ import {
   NotificationService,
 } from '#connectors/index.js'
 import slugify from '@matters/slugify'
-import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
 import { stripe } from './stripe/index.js'

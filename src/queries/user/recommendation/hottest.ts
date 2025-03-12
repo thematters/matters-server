@@ -1,4 +1,5 @@
 import type { GQLRecommendationResolvers } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   DEFAULT_TAKE_PER_PAGE,
@@ -13,7 +14,6 @@ import {
   excludeSpam,
   fromConnectionArgs,
 } from '#common/utils/index.js'
-import { Knex } from 'knex'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,

@@ -1,11 +1,11 @@
 import type { Connections, BaseDBSchema } from '#definitions/index.js'
 import type { Redis } from 'ioredis'
+import type { Knex } from 'knex'
 
 import { getLogger } from '#common/logger.js'
 import { aws, cfsvc } from '#connectors/index.js'
 import { AtomService, isUpdateableTable } from '#connectors/index.js'
 import { ItemData, TableName } from '#definitions/index.js'
-import { Knex } from 'knex'
 
 const logger = getLogger('service-base')
 

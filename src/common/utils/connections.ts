@@ -1,3 +1,5 @@
+import type { Knex } from 'knex'
+
 import {
   DEFAULT_TAKE_PER_PAGE,
   MAX_TAKE_PER_PAGE,
@@ -9,7 +11,6 @@ import {
 } from '#common/utils/index.js'
 import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
-import { Knex } from 'knex'
 
 export type ConnectionCursor = string
 
