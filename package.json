@@ -27,7 +27,7 @@
     "test:routes": "npm run testcmd -- build/routes/ --forceExit",
     "test:types:1": "npm run testcmd -- build/types/__test__/1/ --forceExit",
     "test:types:2": "npm run testcmd -- build/types/__test__/2/ --forceExit",
-    "test": "run-s build test:*  && codecov",
+    "test": "run-s build test:* test:types:* && codecov",
     "lint": "eslint . --ext .ts --quiet",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
