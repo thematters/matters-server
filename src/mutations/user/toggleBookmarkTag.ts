@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { GQLMutationResolvers, Tag } from '#definitions/index.js'
 
 import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from '#common/enums/index.js'
 import { ForbiddenError, TagNotFoundError } from '#common/errors.js'
@@ -40,8 +40,7 @@ const resolver: GQLMutationResolvers['toggleBookmarkTag'] = async (
   })
 
   // invalidate extra nodes
-  // @ts-ignore
-  tag[CACHE_KEYWORD] = [
+  ;(tag as Tag & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
     {
       id: viewer.id,
       type: NODE_TYPES.User,

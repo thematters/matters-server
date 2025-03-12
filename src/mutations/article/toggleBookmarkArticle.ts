@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { Article, GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   ARTICLE_STATE,
@@ -6,6 +6,8 @@ import {
   USER_ACTION,
   USER_STATE,
   ARTICLE_ACTION,
+  NODE_TYPES,
+  CACHE_KEYWORD,
 } from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
@@ -83,6 +85,14 @@ const resolver: GQLMutationResolvers['toggleBookmarkArticle'] = async (
       create: { ...data, articleVersionId },
       update: { ...data, articleVersionId },
     })
+
+    // invalidate extra nodes
+    ;(article as Article & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
+      {
+        id: viewer.id,
+        type: NODE_TYPES.User,
+      },
+    ]
 
     // trigger notifications
     notificationService.trigger({
