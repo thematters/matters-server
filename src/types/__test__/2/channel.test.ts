@@ -28,7 +28,9 @@ describe('manage channels', () => {
         nameEn: name(input: { language: en })
         nameZhHant: name(input: { language: zh_hant })
         nameZhHans: name(input: { language: zh_hans })
-        description
+        descriptionEn: description(input: { language: en })
+        descriptionZhHant: description(input: { language: zh_hant })
+        descriptionZhHans: description(input: { language: zh_hans })
         enabled
       }
     }
@@ -54,6 +56,22 @@ describe('manage channels', () => {
     }
   `
 
+  const QUERY_CHANNEL = /* GraphQL */ `
+    query ($input: ChannelInput!) {
+      channel(input: $input) {
+        id
+      }
+    }
+  `
+
+  const QUERY_CHANNEL_BY_ADMIN = /* GraphQL */ `
+    query ($input: ChannelInput!) {
+      channel(input: $input) {
+        id
+        enabled
+      }
+    }
+  `
   const QUERY_CHANNELS = /* GraphQL */ `
     query {
       channels {
@@ -100,6 +118,10 @@ describe('manage channels', () => {
       text: 'test channel ' + lang,
       language: lang,
     }))
+    const description = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'test description ' + lang,
+      language: lang,
+    }))
 
     const { data, errors } = await server.executeOperation({
       query: PUT_CHANNEL,
@@ -107,7 +129,7 @@ describe('manage channels', () => {
         input: {
           providerId: 'test-provider',
           name,
-          description: 'test description',
+          description,
         },
       },
     })
@@ -117,7 +139,9 @@ describe('manage channels', () => {
     expect(data.putChannel.providerId).toBe('test-provider')
     expect(data.putChannel.nameEn).toBe('test channel en')
     expect(data.putChannel.nameZhHans).toBe('test channel zh_hans')
-    expect(data.putChannel.description).toBe('test description')
+    expect(data.putChannel.descriptionEn).toBe('test description en')
+    expect(data.putChannel.descriptionZhHans).toBe('test description zh_hans')
+    expect(data.putChannel.descriptionZhHant).toBe('test description zh_hant')
     expect(data.putChannel.enabled).toBe(true)
 
     const channel = await atomService.findFirst({
@@ -143,6 +167,10 @@ describe('manage channels', () => {
       text: 'updated channel ' + lang,
       language: lang,
     }))
+    const newDescription = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'updated description ' + lang,
+      language: lang,
+    }))
 
     const { data, errors } = await server.executeOperation({
       query: PUT_CHANNEL,
@@ -151,7 +179,7 @@ describe('manage channels', () => {
           id: toGlobalId({ type: NODE_TYPES.Channel, id: channel.id }),
           providerId: 'test-provider-updated',
           name: newName,
-          description: 'updated description',
+          description: newDescription,
           enabled: false,
         },
       },
@@ -160,7 +188,13 @@ describe('manage channels', () => {
     expect(errors).toBeUndefined()
     expect(data.putChannel.providerId).toBe('test-provider-updated')
     expect(data.putChannel.nameEn).toBe('updated channel en')
-    expect(data.putChannel.description).toBe('updated description')
+    expect(data.putChannel.descriptionEn).toBe('updated description en')
+    expect(data.putChannel.descriptionZhHans).toBe(
+      'updated description zh_hans'
+    )
+    expect(data.putChannel.descriptionZhHant).toBe(
+      'updated description zh_hant'
+    )
     expect(data.putChannel.enabled).toBe(false)
   })
 
@@ -210,6 +244,52 @@ describe('manage channels', () => {
     expect(data.setArticleChannels.oss.channels[0].score).toBeNull()
   })
 
+  test('query channel', async () => {
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const normalServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: normalUser },
+    })
+
+    // add channel
+    const { data: channelData } = await adminServer.executeOperation({
+      query: PUT_CHANNEL,
+      variables: {
+        input: {
+          providerId: 'test-provider-2',
+          name: [{ text: 'test', language: 'en' }],
+          enabled: false,
+        },
+      },
+    })
+
+    // Query by admin user
+    const { data: adminQueryData, errors: adminErrors } =
+      await adminServer.executeOperation({
+        query: QUERY_CHANNEL_BY_ADMIN,
+        variables: {
+          input: { shortHash: channelData.putChannel.shortHash },
+        },
+      })
+    expect(adminErrors).toBeUndefined()
+    expect(adminQueryData.channel.id).toBe(channelData.putChannel.id)
+    expect(adminQueryData.channel.enabled).toBe(false)
+
+    // Query by normal user
+    const { data: normalUserData } = await normalServer.executeOperation({
+      query: QUERY_CHANNEL,
+      variables: {
+        input: { shortHash: channelData.putChannel.shortHash },
+      },
+    })
+    expect(normalUserData.channel).toBeNull()
+  })
+
   test('query channels', async () => {
     const adminServer = await testClient({
       connections,
@@ -227,7 +307,7 @@ describe('manage channels', () => {
       query: PUT_CHANNEL,
       variables: {
         input: {
-          providerId: 'test-provider-2',
+          providerId: 'test-provider-3',
           name: [{ text: 'test', language: 'en' }],
         },
       },
@@ -237,7 +317,7 @@ describe('manage channels', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.channels).toBeDefined()
-    expect(data.channels.length).toBe(2)
+    expect(data.channels.length).toBe(3)
 
     // disable channel
     await adminServer.executeOperation({
@@ -256,7 +336,7 @@ describe('manage channels', () => {
       }
     )
     expect(errors2).toBeUndefined()
-    expect(data2.channels.length).toBe(2)
+    expect(data2.channels.length).toBe(3)
     expect(data2.channels[0].enabled).toBe(false)
 
     // query by normal user

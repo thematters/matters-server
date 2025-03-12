@@ -2,7 +2,8 @@ import { AUTH_MODE, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    channels: [Channel!]! @logCache(type: "${NODE_TYPES.Channel}")
+    channel(input: ChannelInput!): Channel @privateCache @logCache(type: "${NODE_TYPES.Channel}")
+    channels: [Channel!]! @privateCache @logCache(type: "${NODE_TYPES.Channel}")
   }
 
   type Channel {
@@ -10,7 +11,7 @@ export default /* GraphQL */ `
     shortHash: String!
     name(input: TranslationArgs): String!
 
-    description: String @auth(mode: "${AUTH_MODE.admin}")
+    description(input: TranslationArgs): String
     providerId: String! @auth(mode: "${AUTH_MODE.admin}")
     enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
 
@@ -23,11 +24,15 @@ export default /* GraphQL */ `
     classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
+  input ChannelInput {
+    shortHash: String!
+  }
+
   input PutChannelInput {
     id: ID
     providerId: String!
     name: [TranslationInput!]
-    description: String
+    description: [TranslationInput!]
     enabled: Boolean
   }
 
