@@ -40,6 +40,7 @@ export const genConnections = async (): Promise<Connections> => {
     ...knexConfigs.test,
   } as any
   knexConfig.connection.database = database
+  knexConfig.connection.application_name = 'genConnections_' + database
 
   // emulate the connections object in src/routes/connections.ts
   return {

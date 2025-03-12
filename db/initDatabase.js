@@ -20,7 +20,8 @@ export default async (database) => {
       host: process.env.MATTERS_PG_HOST,
       user: process.env.MATTERS_PG_USER,
       password: process.env.MATTERS_PG_PASSWORD,
-      database: 'postgres', // set to var database below,
+      database: 'postgres', // set to database param below,
+      application_name: 'initDatabase_' + database,
     },
     migrations: {
       tableName: 'knex_migrations',
