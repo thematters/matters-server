@@ -17,7 +17,6 @@
     "pretty": true,
     "resolveJsonModule": true,
     "rootDir": "./src",
-    "baseUrl": "./src",
     "outDir": "./build",
     "customConditions": ["dev-import"]
   },
