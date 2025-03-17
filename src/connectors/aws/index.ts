@@ -144,7 +144,7 @@ export class AWSService {
       MessageDeduplicationId: messageDeduplicationId,
     }
     const res = await this.sqs?.sendMessage(payload)
-    logger.info(
+    logger.debug(
       'SQS sent message %j with request-id %s',
       payload,
       res?.$metadata?.requestId
@@ -168,7 +168,7 @@ export class AWSService {
       MetricData,
       Namespace,
     })) as any
-    logger.info(
+    logger.debug(
       'cloudwatch:putMetricData %o with res RequestId: %s',
       MetricData,
       res?.$metadata?.requestId
