@@ -34,6 +34,7 @@ export class AWSService {
 
     this.sqs = new SQS({
       credentials: credentials,
+      region: environment.awsRegion,
     })
     this.cloudwatch = new CloudWatch({
       credentials: credentials,
@@ -142,11 +143,11 @@ export class AWSService {
       MessageGroupId: messageGroupId,
       MessageDeduplicationId: messageDeduplicationId,
     }
-    const res = (await this.sqs?.sendMessage(payload)) as any
+    const res = await this.sqs?.sendMessage(payload)
     logger.debug(
       'SQS sent message %j with request-id %s',
       payload,
-      res.ResponseMetadata.RequestId
+      res?.$metadata?.requestId
     )
   }
 
@@ -167,10 +168,10 @@ export class AWSService {
       MetricData,
       Namespace,
     })) as any
-    logger.info(
+    logger.debug(
       'cloudwatch:putMetricData %o with res RequestId: %s',
       MetricData,
-      res.ResponseMetadata.RequestId
+      res?.$metadata?.requestId
     )
   }
 }
