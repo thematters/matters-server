@@ -311,7 +311,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     )
     return isImageType
       ? this.cfsvc.genUrl(asset.path)
-      : `${this.aws.s3Endpoint}/${asset.path}`
+      : `${this.aws.getS3Endpoint()}/${asset.path}`
   }
   /**
    * Find the url of an asset by a given id.
