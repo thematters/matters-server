@@ -3,54 +3,55 @@ import type { GQLAssetType, ValueOf } from '#definitions/index.js'
 import { LOCAL_S3_ENDPOINT, QUEUE_URL } from '#common/enums/index.js'
 import { environment, isLocal, isProd, isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
-import AWS from 'aws-sdk'
+import { CloudWatch } from '@aws-sdk/client-cloudwatch'
+import { S3 } from '@aws-sdk/client-s3'
+import { SQS } from '@aws-sdk/client-sqs'
+import { Upload } from '@aws-sdk/lib-storage'
 import getStream from 'get-stream'
 import mime from 'mime-types'
 
 const logger = getLogger('service-aws')
 
 export class AWSService {
-  public s3: AWS.S3
-  public sqs: AWS.SQS
-  public cloudwatch: AWS.CloudWatch
+  public s3: S3
+  public sqs: SQS
+  public cloudwatch: CloudWatch
   public s3Bucket: string
-  public s3Endpoint: string
 
   public constructor() {
-    AWS.config.update(this.getAWSConfig())
-    this.s3 = new AWS.S3()
-    this.s3Bucket = this.getS3Bucket()
-    this.s3Endpoint = this.getS3Endpoint()
-    this.sqs = new AWS.SQS()
-    this.cloudwatch = new AWS.CloudWatch()
-  }
+    const credentials = {
+      accessKeyId: environment.awsAccessId,
+      secretAccessKey: environment.awsAccessKey,
+    }
+    this.s3 = new S3({
+      credentials,
+      region: environment.awsRegion,
+      ...(isLocal
+        ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
+        : {}),
+    })
+    this.s3Bucket = environment.awsS3Bucket
 
-  /**
-   * Get AWS config.
-   */
-  private getAWSConfig = () => ({
-    region: environment.awsRegion,
-    accessKeyId: environment.awsAccessId,
-    secretAccessKey: environment.awsAccessKey,
-    ...(isLocal ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT } : {}),
-  })
+    this.sqs = new SQS({
+      credentials: credentials,
+    })
+    this.cloudwatch = new CloudWatch({
+      credentials: credentials,
+      region: environment.awsRegion,
+    })
+  }
 
   /**
    * Get S3 endpoint. If AWS Cloud Front is enabled, the default S3 endpoint
    * will be replaced.
    */
-  private getS3Endpoint = (): string =>
+  public getS3Endpoint = (): string =>
     isTest
       ? `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
       : `https://${
           environment.awsCloudFrontEndpoint ||
           `${this.s3Bucket}.${environment.awsS3Endpoint}`
         }`
-
-  /**
-   * Get S3 bucket.
-   */
-  private getS3Bucket = (): string => environment.awsS3Bucket
 
   /**
    * Upload file to AWS S3.
@@ -74,12 +75,10 @@ export class AWSService {
 
     // check if already exists
     try {
-      const data = await this.s3
-        .headObject({
-          Bucket: this.s3Bucket,
-          Key: key,
-        })
-        .promise()
+      const data = await this.s3.headObject({
+        Bucket: this.s3Bucket,
+        Key: key,
+      })
 
       if (
         data.ContentLength === buffer.length &&
@@ -89,7 +88,7 @@ export class AWSService {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      switch (err.code) {
+      switch (err.name) {
         case 'NotFound':
           break
         default:
@@ -98,14 +97,16 @@ export class AWSService {
       }
     }
 
-    await this.s3
-      .upload({
+    await new Upload({
+      client: this.s3,
+
+      params: {
         Body: buffer,
         Bucket: this.s3Bucket,
         ContentType: mimetype,
         Key: key,
-      })
-      .promise()
+      },
+    }).done()
 
     return key
   }
@@ -115,12 +116,10 @@ export class AWSService {
    */
   public baseDeleteFile = async (key: string) => {
     logger.info(`Deleting file from S3: ${key}`)
-    await this.s3
-      .deleteObject({
-        Bucket: this.s3Bucket,
-        Key: key,
-      })
-      .promise()
+    await this.s3.deleteObject({
+      Bucket: this.s3Bucket,
+      Key: key,
+    })
   }
 
   public sqsSendMessage = async ({
@@ -143,7 +142,7 @@ export class AWSService {
       MessageGroupId: messageGroupId,
       MessageDeduplicationId: messageDeduplicationId,
     }
-    const res = (await this.sqs?.sendMessage(payload).promise()) as any
+    const res = (await this.sqs?.sendMessage(payload)) as any
     logger.debug(
       'SQS sent message %j with request-id %s',
       payload,
@@ -164,9 +163,10 @@ export class AWSService {
     if (isProd) {
       Namespace = 'MattersProd/Server'
     }
-    const res = (await this.cloudwatch
-      .putMetricData({ MetricData, Namespace })
-      .promise()) as any
+    const res = (await this.cloudwatch.putMetricData({
+      MetricData,
+      Namespace,
+    })) as any
     logger.info(
       'cloudwatch:putMetricData %o with res RequestId: %s',
       MetricData,

@@ -44,7 +44,7 @@ test('findAssetUrl', async () => {
 
   // not-image assets return s3 url
   const notImageUrl = await systemService.findAssetUrl('7')
-  expect(notImageUrl).toContain(systemService.aws.s3Endpoint)
+  expect(notImageUrl).toContain(systemService.aws.getS3Endpoint())
 })
 
 test('create and delete asset', async () => {
