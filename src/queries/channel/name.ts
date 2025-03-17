@@ -1,4 +1,4 @@
-import type { GQLChannelResolvers } from 'definitions'
+import type { GQLChannelResolvers } from '#definitions/index.js'
 
 const resolver: GQLChannelResolvers['name'] = async (
   { id, name },

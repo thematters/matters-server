@@ -1,13 +1,12 @@
+import { environment, isProd, isTest } from '#common/environment.js'
+import { ActionFailedError, UserInputError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { GQLAssetType } from '#definitions/index.js'
 import FormData from 'form-data'
 import mime from 'mime-types'
 import fetch from 'node-fetch'
 import path from 'path'
 import { v4 } from 'uuid'
-
-import { environment, isProd, isTest } from 'common/environment'
-import { ActionFailedError, UserInputError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { GQLAssetType } from 'definitions'
 
 const logger = getLogger('service-cloudflare')
 
@@ -135,7 +134,10 @@ export class CloudflareService {
     })
 
     try {
-      const resData = await res.json()
+      const resData = (await res.json()) as {
+        success: boolean
+        result: { id: string; uploadURL: string }
+      }
       logger.info('direct upload image: %j', resData)
       if (resData?.success) {
         return {
@@ -230,7 +232,10 @@ export class CloudflareService {
     )
     logger.info('cloudflare turnstile res: %o', res.ok, res.headers)
 
-    const resData = await res.json()
+    const resData = (await res.json()) as {
+      success: boolean
+      'error-codes'?: string[]
+    }
     logger.info('cloudflare turnstile res data: %o', resData)
     if (!resData?.success) {
       logger.warn(

@@ -1,12 +1,11 @@
+import { SOCIAL_LOGIN_TYPE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { UserService } from '#connectors/index.js'
 import crypto from 'crypto'
 import { Router, urlencoded } from 'express'
 
-import { SOCIAL_LOGIN_TYPE } from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { UserService } from 'connectors'
-
-import { connections } from './connections'
+import { connections } from './connections.js'
 
 type Data = {
   algorithm: string

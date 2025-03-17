@@ -1,9 +1,8 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
+import { stripMentions } from '#common/utils/index.js'
+import { GCP } from '#connectors/index.js'
 import { stripHtml } from '@matters/ipns-site-generator'
-
-import { stripMentions } from 'common/utils'
-import { GCP } from 'connectors'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId },
@@ -26,12 +25,13 @@ const resolver: GQLArticleResolvers['language'] = async (
   const excerpt = stripHtml(stripMentions(content)).slice(0, 300)
 
   gcp.detectLanguage(excerpt).then((language) => {
-    language &&
+    if (language) {
       atomService.update({
         table: 'article_version',
         where: { id: versionId },
         data: { language },
       })
+    }
   })
 
   // return first to prevent blocking

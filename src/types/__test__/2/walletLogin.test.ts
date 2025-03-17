@@ -1,16 +1,16 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
 
-import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
+import { SIGNING_MESSAGE_PURPOSE } from '#common/enums/index.js'
 
-import { testClient, genConnections, closeConnections } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 
-jest.mock('common/utils', () => ({
-  __esModule: true,
-  ...jest.requireActual('common/utils'),
-  getAlchemyProvider: () => ({ getCode: jest.fn(() => '0x') }),
-}))
+// jest.mock('common/utils', () => ({
+//   __esModule: true,
+//   ...(jest.requireActual('#common/utils.js') ?? {}),
+//   getAlchemyProvider: () => ({ getCode: jest.fn(() => '0x') }),
+// }))
 
 let connections: Connections
 

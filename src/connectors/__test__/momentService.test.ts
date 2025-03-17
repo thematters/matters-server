@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -7,15 +7,15 @@ import {
   MOMENT_STATE,
   MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ForbiddenError,
   ForbiddenByStateError,
   UserInputError,
-} from 'common/errors'
-import { MomentService, UserService, SystemService } from 'connectors'
+} from '#common/errors.js'
+import { MomentService, UserService, SystemService } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let momentService: MomentService

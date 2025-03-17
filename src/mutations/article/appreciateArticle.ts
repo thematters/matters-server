@@ -1,6 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   ARTICLE_STATE,
@@ -8,8 +6,8 @@ import {
   APPRECIATION_TYPES,
   NOTICE_TYPE,
   NODE_TYPES,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
@@ -17,9 +15,10 @@ import {
   ForbiddenByTargetStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { LikeCoin } from 'connectors'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { LikeCoin } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,

@@ -1,18 +1,21 @@
-import type { GQLNode, GQLQueryResolvers, SearchHistory } from 'definitions'
-
-import { compact } from 'lodash'
+import type {
+  GQLNode,
+  GQLQueryResolvers,
+  SearchHistory,
+} from '#definitions/index.js'
 
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_API_VERSION,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
   stripSpaces,
-} from 'common/utils'
+} from '#common/utils/index.js'
+import compact from 'lodash/compact.js'
 
 const resolver: GQLQueryResolvers['search'] = async (
   _,

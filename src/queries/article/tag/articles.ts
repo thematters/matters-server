@@ -1,6 +1,9 @@
-import type { GQLTagResolvers } from 'definitions'
+import type { GQLTagResolvers } from '#definitions/index.js'
 
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from '#common/utils/index.js'
 
 const resolver: GQLTagResolvers['articles'] = async (
   root,

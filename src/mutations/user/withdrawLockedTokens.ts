@@ -1,7 +1,7 @@
-import type { BlockchainTransaction, GQLMutationResolvers } from 'definitions'
-
-import { v4 } from 'uuid'
-import { formatUnits } from 'viem'
+import type {
+  BlockchainTransaction,
+  GQLMutationResolvers,
+} from '#definitions/index.js'
 
 import {
   BLOCKCHAIN,
@@ -14,15 +14,17 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_STATE,
-} from 'common/enums'
-import { contract as contractEnv } from 'common/environment'
+} from '#common/enums/index.js'
+import { contract as contractEnv } from '#common/environment.js'
 import {
   ForbiddenByStateError,
   ForbiddenError,
   ServerError,
-} from 'common/errors'
-import { CurationVaultContract } from 'connectors/blockchain/curationVault'
-import SlackService from 'connectors/slack'
+} from '#common/errors.js'
+import { CurationVaultContract } from '#connectors/blockchain/curationVault.js'
+import SlackService from '#connectors/slack/index.js'
+import { v4 } from 'uuid'
+import { formatUnits } from 'viem'
 
 const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
   _,

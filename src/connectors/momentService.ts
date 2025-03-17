@@ -1,10 +1,4 @@
-import type { User, Connections } from 'definitions'
-
-import { stripHtml } from '@matters/ipns-site-generator'
-import {
-  sanitizeHTML,
-  normalizeMomentHTML,
-} from '@matters/matters-editor/transformers'
+import type { User, Connections } from '#definitions/index.js'
 
 import {
   USER_STATE,
@@ -13,14 +7,26 @@ import {
   IMAGE_ASSET_TYPE,
   NOTICE_TYPE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ForbiddenError,
   ForbiddenByStateError,
   UserInputError,
-} from 'common/errors'
-import { shortHash, extractMentionIds } from 'common/utils'
-import { AtomService, UserService, NotificationService } from 'connectors'
+} from '#common/errors.js'
+import { shortHash, extractMentionIds } from '#common/utils/index.js'
+import {
+  AtomService,
+  UserService,
+  NotificationService,
+} from '#connectors/index.js'
+import { stripHtml } from '@matters/ipns-site-generator'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const {
+  sanitizeHTML,
+  normalizeMomentHTML,
+} = require('@matters/matters-editor/transformers')
 
 export class MomentService {
   private connections: Connections

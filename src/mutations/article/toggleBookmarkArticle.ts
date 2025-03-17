@@ -1,4 +1,4 @@
-import type { Article, GQLMutationResolvers } from 'definitions'
+import type { Article, GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   ARTICLE_STATE,
@@ -8,13 +8,13 @@ import {
   ARTICLE_ACTION,
   NODE_TYPES,
   CACHE_KEYWORD,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
   ForbiddenByStateError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['toggleBookmarkArticle'] = async (
   _,

@@ -1,11 +1,11 @@
-import type { GQLArticleResolvers, Transaction } from 'definitions'
+import type { GQLArticleResolvers, Transaction } from '#definitions/index.js'
 
-import { TRANSACTION_PURPOSE } from 'common/enums'
+import { TRANSACTION_PURPOSE } from '#common/enums/index.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   fromGlobalId,
-} from 'common/utils'
+} from '#common/utils/index.js'
 
 const dashCase = (str: string) =>
   str.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())

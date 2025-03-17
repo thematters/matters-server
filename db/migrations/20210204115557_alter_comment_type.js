@@ -1,4 +1,4 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const commentTable = 'comment'
 const activityView = 'article_activity_view'
@@ -21,7 +21,7 @@ const boost = 1
 const boost_window = 3
 const matty_donation_decay_factor = 0.95
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   /**
    * Step 0: drop views
    */
@@ -71,7 +71,7 @@ exports.up = async (knex) => {
    * Step 2: add back views with `target_id` instead of `article_id`
    */
   // topic
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${topicView} AS
       SELECT
         id,
@@ -123,7 +123,7 @@ exports.up = async (knex) => {
   `)
 
   // hottest
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${hottestView} AS WITH original_score AS (
       SELECT
         max(read_time_efficiency_boost) AS max_efficiency
@@ -245,7 +245,7 @@ exports.up = async (knex) => {
   `)
 
   // value
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE VIEW ${valueView} AS
       SELECT
         id,
@@ -349,7 +349,7 @@ exports.up = async (knex) => {
     `)
 
   // featured comment
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     CREATE materialized VIEW ${featuredCommentMaterialized} AS
       SELECT
         *
@@ -387,7 +387,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(/* sql */ `
     DROP VIEW IF EXISTS ${hottestAView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${hottestAMaterialized} CASCADE;

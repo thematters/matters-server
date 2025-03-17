@@ -1,12 +1,12 @@
-import type { GQLCollectionResolvers } from 'definitions'
+import type { GQLCollectionResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
-import articles from './articles'
-import author from './author'
-import contains from './contains'
-import cover from './cover'
+import articles from './articles.js'
+import author from './author.js'
+import contains from './contains.js'
+import cover from './cover.js'
 
 const schema: GQLCollectionResolvers = {
   id: ({ id }: { id: string }) =>

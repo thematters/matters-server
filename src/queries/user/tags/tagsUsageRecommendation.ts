@@ -1,10 +1,10 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   connectionFromArray,
-} from 'common/utils'
+} from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['tags'] = async (
   { id },

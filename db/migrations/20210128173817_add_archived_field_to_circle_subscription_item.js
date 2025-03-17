@@ -1,12 +1,12 @@
 const table = 'circle_subscription_item'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.boolean('archived').defaultTo(false)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('archived')
   })

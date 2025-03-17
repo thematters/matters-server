@@ -1,4 +1,4 @@
-import { LANGUAGES } from './language'
+import type { LANGUAGES } from './language.js'
 
 export interface Translation {
   id: string

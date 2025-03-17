@@ -1,13 +1,13 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import _difference from 'lodash/difference'
-import _get from 'lodash/get'
+import _difference from 'lodash/difference.js'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
-import { testClient, genConnections, closeConnections } from '../utils'
-import { TagService } from 'connectors'
+import { testClient, genConnections, closeConnections } from '../utils.js'
+import { TagService } from '#connectors/index.js'
 
 declare global {
   // eslint-disable-next-line no-var

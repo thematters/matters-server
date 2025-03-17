@@ -1,9 +1,9 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const table = 'user_badge'
 const newColumn = 'extra' // use jsonb for book-keeping some more features
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.jsonb(newColumn)
   })
@@ -18,7 +18,7 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     alterEnumString(table, 'type', ['seed', 'golden_motor', 'architect'])
   )

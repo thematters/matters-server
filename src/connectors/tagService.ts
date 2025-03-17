@@ -1,7 +1,11 @@
-import type { Connections, Item, ItemData, Tag, TagBoost } from 'definitions'
-
-import { Knex } from 'knex'
-import { difference } from 'lodash'
+import type {
+  Connections,
+  Item,
+  ItemData,
+  Tag,
+  TagBoost,
+} from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   ARTICLE_STATE,
@@ -9,16 +13,18 @@ import {
   TAG_ACTION,
   MATERIALIZED_VIEW,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
-import { getLogger } from 'common/logger'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { TooManyTagsForArticleError, ForbiddenError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import {
   normalizeSearchKey,
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
-} from 'common/utils'
-import { BaseService, SystemService } from 'connectors'
+} from '#common/utils/index.js'
+import { BaseService, SystemService } from '#connectors/index.js'
+import _ from 'lodash'
+import fetch from 'node-fetch'
 
 const logger = getLogger('service-tag')
 
@@ -450,14 +456,18 @@ export class TagService extends BaseService<Tag> {
         nodes: records,
         total: totalCount,
         query,
-      } = await fetch(u).then((res) => res.json())
+      } = (await fetch(u).then((res) => res.json())) as {
+        nodes: Array<{ id: string }>
+        total: number
+        query: string
+      }
       logger.info(
         `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}': sample: %j`,
         records[0]
       )
 
       const nodes = await this.models.tagIdLoader.loadMany(
-        records.map((item: any) => `${item.id}`).filter(Boolean)
+        records.map((item) => `${item.id}`).filter(Boolean)
       )
 
       return { nodes, totalCount }
@@ -957,7 +967,7 @@ export class TagService extends BaseService<Tag> {
     // check if add tags include matty's tag
     const mattyTagId = environment.mattyChoiceTagId || ''
     const isMatty = environment.mattyId === actorId
-    const addIds = difference(newIds, oldIds)
+    const addIds = _.difference(newIds, oldIds)
     if (addIds.includes(mattyTagId) && !isMatty) {
       throw new ForbiddenError('not allow to add official tag')
     }
@@ -972,7 +982,7 @@ export class TagService extends BaseService<Tag> {
     // delete unwanted
     await this.deleteArticleTagsByTagIds({
       articleId: article.id,
-      tagIds: difference(oldIds, newIds),
+      tagIds: _.difference(oldIds, newIds),
     })
   }
 }

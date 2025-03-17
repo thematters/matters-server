@@ -1,6 +1,6 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { CIRCLE_STATE } from 'common/enums'
+import { CIRCLE_STATE } from '#common/enums/index.js'
 
 const resolver: GQLUserResolvers['ownCircles'] = async (
   { id },

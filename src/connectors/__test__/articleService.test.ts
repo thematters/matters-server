@@ -1,6 +1,7 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
+import { jest } from '@jest/globals'
 
 import {
   COMMENT_STATE,
@@ -9,16 +10,16 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   FEATURE_NAME,
   FEATURE_FLAG,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ArticleService,
   UserWorkService,
   AtomService,
   SystemService,
   ChannelService,
-} from 'connectors'
+} from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let articleService: ArticleService

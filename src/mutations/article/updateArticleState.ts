@@ -1,7 +1,10 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { ARTICLE_STATE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
-import { fromGlobalId } from 'common/utils'
+import {
+  ARTICLE_STATE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from '#common/enums/index.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['updateArticleState'] = async (
   _,

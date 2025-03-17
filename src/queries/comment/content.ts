@@ -1,6 +1,6 @@
-import type { GQLCommentResolvers } from 'definitions'
+import type { GQLCommentResolvers } from '#definitions/index.js'
 
-import { COMMENT_STATE } from 'common/enums'
+import { COMMENT_STATE } from '#common/enums/index.js'
 
 const resolver: GQLCommentResolvers['content'] = (
   { content, state },

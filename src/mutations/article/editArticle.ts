@@ -1,11 +1,9 @@
-import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { stripHtml } from '@matters/ipns-site-generator'
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+import type {
+  Article,
+  Draft,
+  Circle,
+  GQLMutationResolvers,
+} from '#definitions/index.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -20,7 +18,7 @@ import {
   NODE_TYPES,
   USER_STATE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionReachLimitError,
@@ -29,8 +27,17 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { stripHtml } from '@matters/ipns-site-generator'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['editArticle'] = async (
   _,

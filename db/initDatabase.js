@@ -1,14 +1,18 @@
-const { spawn } = require('child_process')
+import { spawn } from 'child_process'
+import dotenv from 'dotenv'
+import Knex from 'knex'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-require('dotenv').config()
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+dotenv.config()
 
 const debug = process.env.MATTERS_LOGGING_LEVEL === 'debug'
 
-module.exports = async (database) => {
+export default async (database) => {
   if (process.env.MATTERS_ENV !== 'test')
     throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
-
-  const Knex = require('knex')
 
   const knexConfig = {
     client: 'postgresql',
@@ -16,14 +20,15 @@ module.exports = async (database) => {
       host: process.env.MATTERS_PG_HOST,
       user: process.env.MATTERS_PG_USER,
       password: process.env.MATTERS_PG_PASSWORD,
-      database: 'postgres', // set to var database below,
+      database: 'postgres', // set to database param below,
+      application_name: 'initDatabase_' + database,
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: __dirname + '/migrations',
+      directory: dirname + '/migrations',
     },
     seeds: {
-      directory: __dirname + '/seeds',
+      directory: dirname + '/seeds',
     },
   }
 
@@ -71,7 +76,7 @@ module.exports = async (database) => {
 
 async function runShellDBRollup(connection) {
   const { host, user, password, database } = connection
-  const cwd = __dirname
+  const cwd = dirname
   const env = {
     PGPASSWORD: password,
     PSQL: `psql -h ${host} -U ${user} -d ${database} -w`,

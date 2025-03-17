@@ -1,14 +1,13 @@
-import type { GQLTagResolvers } from 'definitions'
+import type { GQLTagResolvers } from '#definitions/index.js'
 
-import { chunk } from 'lodash'
-
-import { TAGS_RECOMMENDED_LIMIT } from 'common/enums'
+import { TAGS_RECOMMENDED_LIMIT } from '#common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
   normalizeTagInput,
-} from 'common/utils'
+} from '#common/utils/index.js'
+import chunk from 'lodash/chunk.js'
 
 const resolver: GQLTagResolvers['recommended'] = async (
   { id },

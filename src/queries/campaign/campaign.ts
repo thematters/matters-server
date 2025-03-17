@@ -1,6 +1,6 @@
-import type { GQLQueryResolvers } from 'definitions'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { CAMPAIGN_STATE } from 'common/enums'
+import { CAMPAIGN_STATE } from '#common/enums/index.js'
 
 const resolver: GQLQueryResolvers['campaign'] = async (
   _,

@@ -1,8 +1,8 @@
 const view = `article_value_view`
 const materialized = `article_value_materialized`
 
-exports.up = (knex) =>
-  knex.raw(/*sql*/ `
+export const up = (knex) =>
+  knex.raw(/* sql*/ `
   drop view ${view} cascade;
 
   create view ${view} as
@@ -73,8 +73,8 @@ exports.up = (knex) =>
   where base_score1 + base_score2 + boost_score1 + boost_score2 > 0
   `)
 
-exports.down = (knex) =>
-  knex.raw(/*sql*/ `
+export const down = (knex) =>
+  knex.raw(/* sql*/ `
   drop view ${view} cascade;
 
   create view ${view} as

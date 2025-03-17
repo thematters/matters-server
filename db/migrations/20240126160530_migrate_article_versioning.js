@@ -1,10 +1,10 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const articleTable = 'article'
 const articleContentTable = 'article_content'
 const articleVersionTable = 'article_version'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // schema migration
 
   // create new tables, add new columns to article table
@@ -74,7 +74,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await baseDown(articleVersionTable)(knex)
   await baseDown(articleContentTable)(knex)
   await knex.schema.alterTable(articleTable, (t) => {

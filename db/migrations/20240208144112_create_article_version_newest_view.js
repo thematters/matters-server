@@ -1,7 +1,7 @@
 const table = 'article_version_newest'
 
-exports.up = async (knex) =>
-  knex.raw(/*sql*/ `
+export const up = async (knex) =>
+  knex.raw(/* sql*/ `
     create view ${table} as
       SELECT a.*
       FROM article_version a
@@ -10,6 +10,6 @@ exports.up = async (knex) =>
       WHERE b.id IS NULL;
   `)
 
-exports.down = function (knex) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
+export const down = function (knex) {
+  return knex.raw(/* sql*/ `drop view ${table}`)
 }

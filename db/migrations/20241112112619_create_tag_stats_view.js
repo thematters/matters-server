@@ -1,6 +1,6 @@
 const materialized = 'tag_stats_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${materialized}`)
 
   await knex.raw(`
@@ -62,6 +62,6 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${materialized} CASCADE`)
 }

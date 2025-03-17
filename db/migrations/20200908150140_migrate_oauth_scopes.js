@@ -2,7 +2,7 @@ const oauthAuthorizationTable = 'oauth_authorization_code'
 const oauthAccessTokenTable = 'oauth_access_token'
 const oauthRefreshTokenTable = 'oauth_refresh_token'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // fix & alter `oauth_authorization_code`
   await knex.raw(`
     UPDATE
@@ -45,7 +45,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(oauthAuthorizationTable, function (t) {
     t.text('scope').alter()
   })

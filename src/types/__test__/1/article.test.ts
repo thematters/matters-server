@@ -1,7 +1,7 @@
-import type { Connections, Article } from 'definitions'
-
-import _get from 'lodash/get'
-import _omit from 'lodash/omit'
+import type { Connections, Article } from '#definitions/index.js'
+import _get from 'lodash/get.js'
+import _omit from 'lodash/omit.js'
+import { jest } from '@jest/globals'
 
 import {
   NODE_TYPES,
@@ -12,15 +12,15 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   CAMPAIGN_STATE,
-} from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
   PaymentService,
   UserService,
   CampaignService,
-} from 'connectors'
+} from '#connectors/index.js'
 
 import {
   publishArticle,
@@ -29,7 +29,7 @@ import {
   updateUserState,
   genConnections,
   closeConnections,
-} from '../utils'
+} from '../utils.js'
 
 let connections: Connections
 let userService: UserService

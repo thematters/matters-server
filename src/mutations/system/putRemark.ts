@@ -1,5 +1,5 @@
-import { fromGlobalId } from 'common/utils'
-import { GQLMutationResolvers, TableName } from 'definitions'
+import { fromGlobalId } from '#common/utils/index.js'
+import { GQLMutationResolvers, TableName } from '#definitions/index.js'
 
 const resolver: GQLMutationResolvers['putRemark'] = async (
   _,

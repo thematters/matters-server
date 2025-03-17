@@ -2,9 +2,9 @@ const materialized_view_name =
   'recommended_articles_from_read_tags_materialized'
 const tag_article_limit = 20
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // create materialized view
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
     DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
 
     CREATE MATERIALIZED VIEW ${materialized_view_name} AS
@@ -61,8 +61,8 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE`
+    /* sql*/ `DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE`
   )
 }

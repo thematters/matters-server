@@ -1,9 +1,9 @@
-import addCollectionsArticles from './addCollectionsArticles'
-import deleteCollectionArticles from './deleteCollectionArticles'
-import deleteCollections from './deleteCollections'
-import { likeCollection, unlikeCollection } from './likeCollection'
-import putCollection from './putCollection'
-import reorderCollectionArticles from './reorderCollectionArticles'
+import addCollectionsArticles from './addCollectionsArticles.js'
+import deleteCollectionArticles from './deleteCollectionArticles.js'
+import deleteCollections from './deleteCollections.js'
+import { likeCollection, unlikeCollection } from './likeCollection.js'
+import putCollection from './putCollection.js'
+import reorderCollectionArticles from './reorderCollectionArticles.js'
 
 export default {
   Mutation: {

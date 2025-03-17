@@ -1,5 +1,5 @@
-exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+export const up = async (knex) => {
+  await knex.raw(/* sql*/ `
   drop view article_activity_view cascade;
 
 
@@ -64,4 +64,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = function (knex, Promise) {}
+export const down = function (knex, Promise) {}

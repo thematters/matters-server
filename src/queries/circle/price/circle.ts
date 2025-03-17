@@ -1,4 +1,4 @@
-import type { GQLPriceResolvers, Circle } from 'definitions'
+import type { GQLPriceResolvers, Circle } from '#definitions/index.js'
 
 const resolver: GQLPriceResolvers['circle'] = async (
   { circleId },

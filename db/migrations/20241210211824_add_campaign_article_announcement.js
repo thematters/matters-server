@@ -1,6 +1,6 @@
 const table = 'campaign_article'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.boolean('announcement').defaultTo(false)
   })
@@ -11,7 +11,7 @@ exports.up = async (knex) => {
     .update({ announcement: true })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('announcement')
   })

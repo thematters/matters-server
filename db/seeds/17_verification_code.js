@@ -1,8 +1,8 @@
-const { v4 } = require('uuid')
+import { v4 } from 'uuid'
 
 const table = 'verification_code'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {

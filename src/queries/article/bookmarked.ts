@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { USER_ACTION } from 'common/enums'
+import { USER_ACTION } from '#common/enums/index.js'
 
 const resolver: GQLArticleResolvers['bookmarked'] = async (
   { id: articleId },

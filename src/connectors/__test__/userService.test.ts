@@ -1,17 +1,17 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
-import { ActionFailedError } from 'common/errors'
+import { CACHE_PREFIX, USER_ACTION } from '#common/enums/index.js'
+import { ActionFailedError } from '#common/errors.js'
 import {
   AtomService,
   CacheService,
   UserService,
   PaymentService,
   ArticleService,
-} from 'connectors'
+} from '#connectors/index.js'
 
-import { createDonationTx } from './utils'
-import { genConnections, closeConnections } from './utils'
+import { createDonationTx } from './utils.js'
+import { genConnections, closeConnections } from './utils.js'
 
 const TEST_RECIPIENT_ID = '9'
 let connections: Connections

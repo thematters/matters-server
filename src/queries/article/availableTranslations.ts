@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers, LANGUAGES } from 'definitions'
+import type { GQLArticleResolvers, LANGUAGES } from '#definitions/index.js'
 
-import { LANGUAGE } from 'common/enums'
+import { LANGUAGE } from '#common/enums/index.js'
 
 const resolver: GQLArticleResolvers['availableTranslations'] = async (
   { id },

@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const draftEntityTypeId = (
     await knex('entity_type').select('id').where({ table: 'draft' }).first()
   ).id
@@ -21,6 +21,6 @@ exports.up = async (knex) => {
 `)
 }
 
-exports.down = async () => {
+export const down = async () => {
   // do nothing
 }

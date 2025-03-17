@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
 
@@ -8,10 +8,10 @@ import {
   COMMENT_STATE,
   FEATURE_FLAG,
   FEATURE_NAME,
-} from 'common/enums'
-import { SystemService, AtomService, MomentService } from 'connectors'
+} from '#common/enums/index.js'
+import { SystemService, AtomService, MomentService } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 const assetValidation = {
   id: expect.any(String),
@@ -44,7 +44,7 @@ test('findAssetUrl', async () => {
 
   // not-image assets return s3 url
   const notImageUrl = await systemService.findAssetUrl('7')
-  expect(notImageUrl).toContain(systemService.aws.s3Endpoint)
+  expect(notImageUrl).toContain(systemService.aws.getS3Endpoint())
 })
 
 test('create and delete asset', async () => {

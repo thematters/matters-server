@@ -5,9 +5,7 @@ import type {
   Campaign,
   User,
   Article,
-} from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
+} from '#definitions/index.js'
 
 import {
   CAMPAIGN_TYPE,
@@ -17,8 +15,8 @@ import {
   USER_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   ARTICLE_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ForbiddenByTargetStateError,
   ForbiddenByStateError,
@@ -27,15 +25,16 @@ import {
   CampaignStageNotFoundError,
   ActionFailedError,
   UserInputError,
-} from 'common/errors'
+} from '#common/errors.js'
 import {
   shortHash,
   toDatetimeRangeString,
   fromDatetimeRangeString,
   fromGlobalId,
   // excludeSpam,
-} from 'common/utils'
-import { AtomService, NotificationService } from 'connectors'
+} from '#common/utils/index.js'
+import { AtomService, NotificationService } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 interface Stage {
   name: string

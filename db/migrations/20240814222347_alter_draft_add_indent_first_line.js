@@ -1,13 +1,13 @@
 const table = 'draft'
 const newColumn = 'indent_first_line'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.boolean(newColumn).notNullable().defaultTo(false)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropColumn(newColumn)
   })

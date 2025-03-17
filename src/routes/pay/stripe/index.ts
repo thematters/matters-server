@@ -1,22 +1,24 @@
+import {
+  USER_BAN_REMARK,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { toDBAmount } from '#common/utils/index.js'
+import { PaymentService, UserService } from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
-import { USER_BAN_REMARK, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { toDBAmount } from 'common/utils'
-import { PaymentService, UserService } from 'connectors'
-import SlackService from 'connectors/slack'
-
-import { connections } from '../../connections'
+import { connections } from '../../connections.js'
 
 import {
   completeCircleInvoice,
   completeCircleSubscription,
   updateSubscription,
-} from './circle'
-import { updateCustomerCard } from './customer'
+} from './circle.js'
+import { updateCustomerCard } from './customer.js'
 import {
   createRefundTxs,
   updateTxState,
@@ -24,7 +26,7 @@ import {
   createDisputeTx,
   updateDisputeTx,
   createPayoutReversalTx,
-} from './transaction'
+} from './transaction.js'
 
 const logger = getLogger('route-stripe')
 
@@ -252,11 +254,13 @@ stripeRouter.post('/', async (req, res) => {
         })
         break
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.error(err)
     slack.sendStripeAlert({
       data: slackEventData,
-      message: `Server error: ${err.message}`,
+      message: `Server error: ${
+        err instanceof Error ? err.message : 'Unknown error'
+      }`,
     })
     throw err
   }

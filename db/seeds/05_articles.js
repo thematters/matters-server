@@ -1,4 +1,4 @@
-exports.seed = async function (knex, Promise) {
+export const seed = async function (knex, Promise) {
   const draftTable = 'draft'
   const articleTable = 'article'
   const articleVersionTable = 'article_version'

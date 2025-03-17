@@ -1,13 +1,13 @@
-import type { CommentFilter } from 'connectors'
-import type { GQLCircleResolvers } from 'definitions'
+import type { CommentFilter } from '#connectors/index.js'
+import type { GQLCircleResolvers } from '#definitions/index.js'
 
-import { COMMENT_TYPE } from 'common/enums'
+import { COMMENT_TYPE } from '#common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
   fromGlobalId,
-} from 'common/utils'
+} from '#common/utils/index.js'
 
 const resolver: GQLCircleResolvers['discussion'] = async (
   { id, owner },

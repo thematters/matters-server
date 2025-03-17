@@ -1,4 +1,4 @@
-import type { GQLUserStatusResolvers } from 'definitions'
+import type { GQLUserStatusResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserStatusResolvers['unreadNoticeCount'] = (
   { id },

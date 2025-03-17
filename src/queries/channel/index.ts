@@ -1,13 +1,13 @@
-import type { GQLResolvers } from 'definitions'
+import type { GQLResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
-import articles from './articles'
-import channel from './channel'
-import channels from './channels'
-import description from './description'
-import name from './name'
+import articles from './articles.js'
+import channel from './channel.js'
+import channels from './channels.js'
+import description from './description.js'
+import name from './name.js'
 
 const schema: GQLResolvers = {
   Query: {

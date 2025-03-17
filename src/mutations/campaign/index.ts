@@ -1,8 +1,8 @@
-import applyCampaign from './applyCampaign'
-import putWritingChallenge from './putWritingChallenge'
-import sendCampaignAnnouncement from './sendCampaignAnnouncement'
-import toggleWritingChallengeFeaturedArticles from './toggleWritingChallengeFeaturedArticles'
-import updateCampaignApplicationState from './updateCampaignApplicationState'
+import applyCampaign from './applyCampaign.js'
+import putWritingChallenge from './putWritingChallenge.js'
+import sendCampaignAnnouncement from './sendCampaignAnnouncement.js'
+import toggleWritingChallengeFeaturedArticles from './toggleWritingChallengeFeaturedArticles.js'
+import updateCampaignApplicationState from './updateCampaignApplicationState.js'
 
 export default {
   Mutation: {

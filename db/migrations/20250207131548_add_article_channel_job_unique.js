@@ -1,6 +1,6 @@
 const table = 'article_channel_job'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropUnique('article_id')
     t.dropUnique('job_id')
@@ -9,7 +9,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropUnique(['article_id', 'job_id'])
 

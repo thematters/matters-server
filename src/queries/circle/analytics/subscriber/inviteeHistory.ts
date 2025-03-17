@@ -1,4 +1,4 @@
-import type { GQLCircleSubscriberAnalyticsResolvers } from 'definitions'
+import type { GQLCircleSubscriberAnalyticsResolvers } from '#definitions/index.js'
 
 const resolver: GQLCircleSubscriberAnalyticsResolvers['inviteeHistory'] =
   async (

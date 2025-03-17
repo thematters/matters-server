@@ -9,11 +9,11 @@ const boost_window = 3
 const matty_donation_decay_factor = 0.95
 const circle_boost = 2
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // remove dependency on `article.title` and `article.media_hash` and create index
   // DDL belowed derived from 20231221080000_update_hottest_feed-tag-boost.js
 
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
 CREATE OR REPLACE AGGREGATE mul(real) ( SFUNC = float4mul, STYPE=real );
 -- or the generic version: CREATE OR REPLACE FUNCTION mul(anyelement, anyelement) RETURNS anyelement LANGUAGE sql AS 'SELECT $1 * coalesce($2, 1)' ;
 
@@ -134,8 +134,8 @@ WITH original_score AS (
   `)
 }
 
-exports.down = function (knex) {
-  knex.raw(/*sql*/ `
+export const down = function (knex) {
+  knex.raw(/* sql*/ `
   drop view ${view} cascade;
   `)
 }

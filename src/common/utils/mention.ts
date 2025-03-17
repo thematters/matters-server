@@ -2,7 +2,7 @@ import type { BasicAcceptedElems } from 'cheerio'
 
 import * as cheerio from 'cheerio'
 
-import { fromGlobalId } from './globalId'
+import { fromGlobalId } from './globalId.js'
 
 export const extractMentionIds = (content: string): string[] => {
   const $ = cheerio.load(content)

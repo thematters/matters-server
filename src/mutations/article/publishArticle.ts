@@ -1,24 +1,26 @@
-import type { GQLMutationResolvers } from 'definitions'
-
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   MAX_CONTENT_LINK_TEXT_LENGTH,
   PUBLISH_STATE,
   USER_STATE,
   AUDIT_LOG_ACTION,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { auditLog } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,

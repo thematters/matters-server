@@ -4,7 +4,7 @@
  * which is updated after 2020-07-31 20:29 GMT+8 by 1000.
  */
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`
     UPDATE
         article_read_count
@@ -15,4 +15,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

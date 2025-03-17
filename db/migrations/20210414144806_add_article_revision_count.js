@@ -2,7 +2,7 @@ const table = 'article'
 
 const MAX_REVISION_COUNT = 2
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add `revision_count` column
   await knex.schema.table(table, (t) => {
     t.integer('revision_count').notNullable().defaultTo(0)
@@ -31,7 +31,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('revision_count')
   })

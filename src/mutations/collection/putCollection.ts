@@ -1,7 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { validate as validateUUID } from 'uuid'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   ASSET_TYPE,
@@ -10,15 +7,17 @@ import {
   MAX_COLLECTION_TITLE_LENGTH,
   MAX_COLLECTION_DESCRIPTION_LENGTH,
   NODE_TYPES,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ForbiddenError,
   EntityNotFoundError,
   UserInputError,
   AssetNotFoundError,
-} from 'common/errors'
-import { auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { auditLog } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { validate as validateUUID } from 'uuid'
 
 const resolver: GQLMutationResolvers['putCollection'] = async (
   _,

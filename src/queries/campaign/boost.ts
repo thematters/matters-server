@@ -1,4 +1,4 @@
-import type { GQLCampaignOssResolvers } from 'definitions'
+import type { GQLCampaignOssResolvers } from '#definitions/index.js'
 
 const resolver: GQLCampaignOssResolvers['boost'] = async (
   { id: campaignId },

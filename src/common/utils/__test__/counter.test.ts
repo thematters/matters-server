@@ -1,6 +1,8 @@
-import Redis from 'ioredis-mock'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const Redis = require('ioredis-mock')
 
-import { RatelimitCounter } from 'common/utils'
+import { RatelimitCounter } from '#common/utils/index.js'
 
 test('increment', async () => {
   const redis = new Redis()

@@ -1,6 +1,6 @@
-import type { GQLUserStatusResolvers } from 'definitions'
+import type { GQLUserStatusResolvers } from '#definitions/index.js'
 
-import { CHANGE_EMAIL_TIMES_LIMIT_PER_DAY } from 'common/enums'
+import { CHANGE_EMAIL_TIMES_LIMIT_PER_DAY } from '#common/enums/index.js'
 
 const resolver: GQLUserStatusResolvers['changeEmailTimesLeft'] = async (
   { id },

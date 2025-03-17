@@ -1,13 +1,13 @@
-import { GQLRecommendationResolvers } from 'definitions'
+import { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { authors } from './authors'
-import { channelArticles } from './channelArticles'
-import following from './following'
-import { hottest } from './hottest'
-import { icymi } from './icymi'
-import { icymiTopic } from './icymiTopic'
-import { newest } from './newest'
-import { tags } from './tags'
+import { authors } from './authors.js'
+import { channelArticles } from './channelArticles.js'
+import following from './following/index.js'
+import { hottest } from './hottest.js'
+import { icymi } from './icymi.js'
+import { icymiTopic } from './icymiTopic.js'
+import { newest } from './newest.js'
+import { tags } from './tags.js'
 
 const resolvers: GQLRecommendationResolvers = {
   authors,

@@ -1,18 +1,19 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
+import { jest } from '@jest/globals'
 
-import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums'
+import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from '#common/enums/index.js'
 import {
   AtomService,
   CommentService,
   MomentService,
   UserService,
-} from 'connectors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from '#connectors/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 
-import { testClient, genConnections, closeConnections } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService
@@ -247,7 +248,7 @@ describe('put commment', () => {
     expect(comment.articleVersionId).not.toBeNull()
 
     // check notification
-    expect(mockTrigger.mock.calls.map((call) => call[0].event)).toEqual([
+    expect(mockTrigger.mock.calls.map((call: any) => call[0].event)).toEqual([
       NOTICE_TYPE.article_new_comment,
       NOTICE_TYPE.comment_new_reply,
     ])
@@ -280,7 +281,7 @@ describe('put commment', () => {
         },
       },
     })
-    expect(mockTrigger.mock.calls.map((call) => call[0].event)).toEqual([
+    expect(mockTrigger.mock.calls.map((call: any) => call[0].event)).toEqual([
       NOTICE_TYPE.article_new_comment,
     ])
   })
@@ -320,7 +321,7 @@ describe('put commment', () => {
     expect(data.putComment.id).toBeDefined()
     expect(data.putComment.node.shortHash).toBe(moment.shortHash)
 
-    expect(mockTrigger.mock.calls.map((call) => call[0].event)).toEqual([
+    expect(mockTrigger.mock.calls.map((call: any) => call[0].event)).toEqual([
       NOTICE_TYPE.moment_new_comment,
       NOTICE_TYPE.moment_comment_mentioned_you,
     ])

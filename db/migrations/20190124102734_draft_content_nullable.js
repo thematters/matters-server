@@ -1,9 +1,9 @@
 const table = 'draft'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.text('content').nullable().alter()
   })
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

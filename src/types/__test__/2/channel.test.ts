@@ -1,10 +1,10 @@
-import type { Connections, User } from 'definitions'
+import type { Connections, User } from '#definitions/index.js'
 
-import { NODE_TYPES, LANGUAGE } from 'common/enums'
-import { AtomService } from 'connectors'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES, LANGUAGE } from '#common/enums/index.js'
+import { AtomService } from '#connectors/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
-import { genConnections, closeConnections, testClient } from '../utils'
+import { genConnections, closeConnections, testClient } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService

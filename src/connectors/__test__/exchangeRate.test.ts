@@ -1,8 +1,8 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import { ExchangeRate } from 'connectors'
+import { ExchangeRate } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 

@@ -1,14 +1,13 @@
-import type { GQLRecommendationResolvers } from 'definitions'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { chunk } from 'lodash'
-
-import { AUTHOR_TYPE } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
+import { AUTHOR_TYPE } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from '#common/utils/index.js'
+import chunk from 'lodash/chunk.js'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },

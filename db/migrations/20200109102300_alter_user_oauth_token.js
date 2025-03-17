@@ -1,6 +1,6 @@
 const table = 'user_oauth'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.renameColumn('token', 'access_token')
     t.string('refresh_token').notNullable()
@@ -10,7 +10,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.renameColumn('access_token', 'token')
     t.dropColumn('refresh_token')

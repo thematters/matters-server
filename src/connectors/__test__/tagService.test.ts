@@ -1,19 +1,19 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import {
   FEATURE_NAME,
   FEATURE_FLAG,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   TagService,
   AtomService,
   ArticleService,
   UserService,
   SystemService,
-} from 'connectors'
+} from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let tagService: TagService

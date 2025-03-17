@@ -1,6 +1,5 @@
+import { environment } from '#common/environment.js'
 import axios from 'axios'
-
-import { environment } from 'common/environment'
 
 const { alchemyApiKey } = environment
 export enum AlchemyNetwork {

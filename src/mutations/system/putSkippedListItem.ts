@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES, SKIPPED_LIST_ITEM_TYPES } from 'common/enums'
-import { EntityNotFoundError, UserInputError } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { NODE_TYPES, SKIPPED_LIST_ITEM_TYPES } from '#common/enums/index.js'
+import { EntityNotFoundError, UserInputError } from '#common/errors.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
   _,

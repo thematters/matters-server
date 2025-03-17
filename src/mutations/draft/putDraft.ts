@@ -1,12 +1,9 @@
-import type { AtomService } from 'connectors'
-import type { DataSources, GQLMutationResolvers, Draft } from 'definitions'
-
-import { stripHtml } from '@matters/ipns-site-generator'
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
-import { isUndefined, omitBy, isString, uniq } from 'lodash'
+import type { AtomService } from '#connectors/index.js'
+import type {
+  DataSources,
+  GQLMutationResolvers,
+  Draft,
+} from '#definitions/index.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -22,8 +19,8 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleCollectionReachLimitError,
   ArticleNotFoundError,
@@ -35,8 +32,19 @@ import {
   ForbiddenError,
   TooManyTagsForArticleError,
   UserInputError,
-} from 'common/errors'
-import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { extractAssetDataFromHtml, fromGlobalId } from '#common/utils/index.js'
+import { stripHtml } from '@matters/ipns-site-generator'
+import pkg from 'lodash'
+import { createRequire } from 'node:module'
+
+const { isUndefined, omitBy, isString, uniq } = pkg
+
+const require = createRequire(import.meta.url)
+const {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,

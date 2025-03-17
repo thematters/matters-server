@@ -1,8 +1,7 @@
+import { CACHE_TTL } from '#common/enums/index.js'
+import { contract, environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
 import { RESTDataSource, AugmentedRequest } from '@apollo/datasource-rest'
-
-import { CACHE_TTL } from 'common/enums'
-import { contract, environment } from 'common/environment'
-import { getLogger } from 'common/logger'
 
 const logger = getLogger('service-opensea')
 

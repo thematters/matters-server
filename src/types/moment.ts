@@ -1,5 +1,5 @@
-import { AUTH_MODE, NODE_TYPES } from 'common/enums'
-import { isProd } from 'common/environment'
+import { AUTH_MODE, NODE_TYPES } from '#common/enums/index.js'
+import { isProd } from '#common/environment.js'
 
 const POST_MOMENT_RATE_LIMIT = isProd ? 2 : 20
 

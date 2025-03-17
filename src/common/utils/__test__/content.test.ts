@@ -1,4 +1,4 @@
-import { countWords } from 'common/utils'
+import { countWords } from '#common/utils/index.js'
 
 test('countWords', async () => {
   const contents = [

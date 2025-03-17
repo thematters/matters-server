@@ -1,7 +1,10 @@
-import type { GQLArticleResolvers, Item } from 'definitions'
+import type { GQLArticleResolvers, Item } from '#definitions/index.js'
 
-import { ARTICLE_STATE } from 'common/enums'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { ARTICLE_STATE } from '#common/enums/index.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from '#common/utils/index.js'
 
 const resolver: GQLArticleResolvers['collection'] = async (
   { id },

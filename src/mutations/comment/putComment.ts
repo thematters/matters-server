@@ -6,16 +6,7 @@ import type {
   Circle,
   Comment,
   Moment,
-} from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { stripHtml } from '@matters/ipns-site-generator'
-import {
-  normalizeCommentHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
-import { get } from 'lodash'
-import { v4 } from 'uuid'
+} from '#definitions/index.js'
 
 import {
   ARTICLE_ACCESS_TYPE,
@@ -30,7 +21,7 @@ import {
   NODE_TYPES,
   USER_STATE,
   MOMENT_STATE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
   CircleNotFoundError,
@@ -39,8 +30,19 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId, extractMentionIds } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId, extractMentionIds } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { stripHtml } from '@matters/ipns-site-generator'
+import get from 'lodash/get.js'
+import { createRequire } from 'node:module'
+import { v4 } from 'uuid'
+
+const require = createRequire(import.meta.url)
+const {
+  normalizeCommentHTML,
+  sanitizeHTML,
+} = require('@matters/matters-editor/transformers')
 
 const resolver: GQLMutationResolvers['putComment'] = async (
   _,

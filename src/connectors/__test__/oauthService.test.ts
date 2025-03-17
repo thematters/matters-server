@@ -1,11 +1,11 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import _ from 'lodash'
 
-import { SCOPE_PREFIX } from 'common/enums'
-import { OAuthService, AtomService } from 'connectors'
+import { SCOPE_PREFIX } from '#common/enums/index.js'
+import { OAuthService, AtomService } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let oauthService: OAuthService

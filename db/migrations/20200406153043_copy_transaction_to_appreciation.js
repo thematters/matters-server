@@ -1,14 +1,14 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // copy transaction table
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
   create table if not exists appreciation as
   table "transaction";
   `)
 
   // update article activity view and article activity materialized
-  return knex.raw(/*sql*/ `
+  return knex.raw(/* sql*/ `
   drop view article_activity_view cascade;
 
 
@@ -71,4 +71,4 @@ exports.up = async (knex) => {
   from article_activity_view`)
 }
 
-exports.down = async () => {}
+export const down = async () => {}

@@ -6,11 +6,8 @@ import type {
   Connections,
   UserHasUsername,
   LANGUAGES,
-} from 'definitions'
-
-import slugify from '@matters/slugify'
-import { Knex } from 'knex'
-import { v4 } from 'uuid'
+} from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   BLOCKCHAIN_TRANSACTION_STATE,
@@ -23,13 +20,19 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { ServerError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { getUTC8Midnight, numRound } from 'common/utils'
-import { ArticleService, BaseService, NotificationService } from 'connectors'
+} from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { getUTC8Midnight, numRound } from '#common/utils/index.js'
+import {
+  ArticleService,
+  BaseService,
+  NotificationService,
+} from '#connectors/index.js'
+import slugify from '@matters/slugify'
+import { v4 } from 'uuid'
 
-import { stripe } from './stripe'
+import { stripe } from './stripe/index.js'
 
 const logger = getLogger('service-payment')
 

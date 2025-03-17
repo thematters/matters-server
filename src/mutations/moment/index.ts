@@ -1,6 +1,6 @@
-import deleteMoment from './deleteMoment'
-import { likeMoment, unlikeMoment } from './likeMoment'
-import putMoment from './putMoment'
+import deleteMoment from './deleteMoment.js'
+import { likeMoment, unlikeMoment } from './likeMoment.js'
+import putMoment from './putMoment.js'
 
 export default {
   Mutation: {

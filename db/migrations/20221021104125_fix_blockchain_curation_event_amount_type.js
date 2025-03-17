@@ -1,8 +1,8 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const table = 'blockchain_curation_event'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropColumn('amount')
   })
@@ -11,7 +11,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropColumn('amount')
   })

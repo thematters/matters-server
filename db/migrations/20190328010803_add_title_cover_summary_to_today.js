@@ -1,6 +1,6 @@
 const table = 'matters_today'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.bigInteger('cover')
     t.string('title')
@@ -8,7 +8,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('cover')
     t.dropColumn('title')

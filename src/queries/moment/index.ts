@@ -1,10 +1,10 @@
-import type { GQLResolvers } from 'definitions'
+import type { GQLResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES, COMMENT_TYPE } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES, COMMENT_TYPE } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
-import assets from './assets'
-import comments from './comments'
+import assets from './assets.js'
+import comments from './comments.js'
 
 const schema: GQLResolvers = {
   Query: {

@@ -1,6 +1,6 @@
-import classifyArticlesChannels from './classifyArticlesChannels'
-import putChannel from './putChannel'
-import setArticleChannels from './setArticleChannels'
+import classifyArticlesChannels from './classifyArticlesChannels.js'
+import putChannel from './putChannel.js'
+import setArticleChannels from './setArticleChannels.js'
 
 export default {
   Mutation: {

@@ -1,4 +1,4 @@
-import type { GQLArticleVersionResolvers } from 'definitions'
+import type { GQLArticleVersionResolvers } from '#definitions/index.js'
 
 const resolver: GQLArticleVersionResolvers['translation'] = async (
   root,

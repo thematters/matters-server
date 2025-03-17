@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // data migration
 
   // migrate data from draft to article_content, article_version that uncovered by previous migration
@@ -99,6 +99,6 @@ $$;
   `)
 }
 
-exports.down = () => {
+export const down = () => {
   // do nothing
 }

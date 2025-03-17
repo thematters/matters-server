@@ -4,7 +4,7 @@
  */
 const view = 'curation_tag_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // remove dependency on article.title
   // DDL belowed derived from 20220420023434_update_curation_tag_materialized.js
 
@@ -31,6 +31,6 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${view}`)
 }

@@ -1,6 +1,6 @@
-import type { GQLQueryResolvers } from 'definitions'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { getNode } from './utils'
+import { getNode } from './utils.js'
 
 const resolver: GQLQueryResolvers['node'] = async (
   _,
