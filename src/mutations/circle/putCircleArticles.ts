@@ -120,6 +120,18 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
 
   // add articles to circle
   if (actionType === 'add') {
+    // Check if articles are in campaigns
+    const articlesInCampaigns = await atomService.findMany({
+      table: 'campaign_article',
+      whereIn: ['article_id', targetArticleIds],
+    })
+
+    if (articlesInCampaigns?.length > 0) {
+      throw new ForbiddenError(
+        'Articles in campaigns cannot be added to circles'
+      )
+    }
+
     // retrieve circle members and followers
     const members = await knex
       .from('circle_subscription_item as csi')
