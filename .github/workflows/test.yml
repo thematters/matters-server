@@ -43,7 +43,8 @@ jobs:
         with:
           node-version: '18'
 
-      - uses: actions/github-script@v6
+      - name: Get PR HEAD Commit SHA
+        uses: actions/github-script@v6
         id: get-pr-commits
         if: github.event.pull_request.merged == true
         with:
