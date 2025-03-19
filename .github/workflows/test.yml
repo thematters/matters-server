@@ -66,7 +66,27 @@ jobs:
           npm run lint \
           && npm run format:check
 
+      - name: Download Previous Test Result
+        uses: actions/download-artifact@v3
+        id: download_test_result
+        continue-on-error: true
+        with:
+          name: test-result-${{ github.sha }}
+          path: .
+
+      - name: Check for Previous Test Result
+        id: check_test_result
+        run: |
+          if [ -f "test_result.txt" ] && grep -q "test_passed=true" test_result.txt; then
+            echo "test_already_passed=true" >> $GITHUB_OUTPUT
+            echo "Tests already passed in a previous workflow run. Skipping tests."
+          else
+            echo "test_already_passed=false" >> $GITHUB_OUTPUT
+            echo "Previous test results not found or tests failed. Running tests."
+          fi
+
       - name: Test
+        if: steps.check_test_result.outputs.test_already_passed != 'true'
         run: npm run test
         env:
           NODE_OPTIONS: '--no-experimental-fetch'
@@ -87,7 +107,7 @@ jobs:
           MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY: '0x8441d82233625acbb5738a56d9ad0a841515e882d536a06b5962c628472af073'
 
       - name: Save Test Result
-        if: success()
+        if: steps.check_test_result.outputs.test_already_passed == 'true' || success()
         id: cache_test_result
         run: echo "test_passed=true" > test_result.txt
 
