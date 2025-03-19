@@ -43,22 +43,6 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Get PR HEAD Commit SHA
-        uses: actions/github-script@v6
-        id: get-pr-commits
-        with:
-          script: |
-            console.log(context.payload)
-            const prNumber = context.payload.pull_request.number;
-            const { data: commits } = await github.rest.pulls.listCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-            console.log(commits)
-            return commits[commits.length-1].sha;
-          result-encoding: string
-
       - name: Cache
         uses: actions/cache@v3
         id: cache
@@ -68,7 +52,7 @@ jobs:
             build
             .test-result
             .lint-result
-          key: ${{ runner.os }}-v18-${{ steps.get-pr-commits.outputs.result }}
+          key: ${{ runner.os }}-v18-${{ github.sha }}
 
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
