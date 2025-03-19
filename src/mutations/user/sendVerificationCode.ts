@@ -54,22 +54,22 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     //   throw new ForbiddenError('registration via scripting is not allowed')
     // }
 
-    if (!(await userService.isEmailinWhitelist(email))) {
-      logger.warn(`email ${email} is not in whitelist`)
-      return true
-    }
-  }
-  if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
-    // const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
-    // if (!isHuman) {
-    //   throw new ForbiddenError('registration via scripting is not allowed')
+    // if (!(await userService.isEmailinWhitelist(email))) {
+    //   logger.warn(`email ${email} is not in whitelist`)
+    //   return true
     // }
-
-    if (!(await userService.isEmailinWhitelist(email))) {
-      logger.warn(`email ${email} is not in whitelist`)
-      return true
-    }
   }
+  // if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
+  //    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
+  //    if (!isHuman) {
+  //      throw new ForbiddenError('registration via scripting is not allowed')
+  //    }
+
+  //   if (!(await userService.isEmailinWhitelist(email))) {
+  //     logger.warn(`email ${email} is not in whitelist`)
+  //     return true
+  //   }
+  // }
 
   if (
     type === VERIFICATION_CODE_TYPE.payment_password_reset ||
