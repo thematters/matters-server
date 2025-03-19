@@ -43,40 +43,30 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Cache NPM dependencies
+      - name: Cache
         uses: actions/cache@v3
-        id: node_modules_cache
+        id: cache
         with:
-          path: node_modules
-          key: ${{ runner.os }}-v18-npm-v3-${{ hashFiles('package-lock.json') }}
+          path: |
+            node_modules
+            build
+            .test-result
+            .lint-result
+          key: ${{ runner.os }}-v18-${{ github.sha }}
 
       - name: Install Dependencies
-        if: steps.node_modules_cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Cache Build
-        uses: actions/cache@v3
-        id: build_cache
-        with:
-          path: build
-          key: ${{ runner.os }}-build-${{ github.sha }}
-
       - name: Lint
+        if: steps.cache.outputs.cache-hit != 'true' || !hashFiles('.lint-result/result.txt')
         run: |
-          npm run lint \
-          && npm run format:check
-
-      - name: Check for Previous Test Result
-        id: check_test_result
-        uses: actions/cache@v3
-        with:
-          path: .test-result
-          key: test-result-${{ github.sha }}
-          restore-keys: |
-            test-result-${{ github.sha }}
+          npm run lint && npm run format:check
+          mkdir -p .lint-result
+          echo "lint_passed=true" > .lint-result/result.txt
 
       - name: Test
-        if: steps.check_test_result.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true' || !hashFiles('.test-result/result.txt')
         run: |
           npm run test
           mkdir -p .test-result
@@ -99,13 +89,6 @@ jobs:
           MATTERS_OPENSEA_API_BASE: 'https://rinkeby-api.opensea.io/api/v1'
           MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY: '0x8441d82233625acbb5738a56d9ad0a841515e882d536a06b5962c628472af073'
 
-      - name: Save Test Result
-        if: success() && steps.check_test_result.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: .test-result
-          key: test-result-${{ github.sha }}
-
       - name: Build
-        if: steps.build_cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm run build
