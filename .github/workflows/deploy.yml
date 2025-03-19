@@ -53,40 +53,30 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Cache NPM dependencies
+      - name: Cache
         uses: actions/cache@v3
-        id: node_modules_cache
+        id: cache
         with:
-          path: node_modules
-          key: ${{ runner.os }}-v18-npm-v3-${{ hashFiles('package-lock.json') }}
+          path: |
+            node_modules
+            build
+            .test-result
+            .lint-result
+          key: ${{ runner.os }}-v18-${{ github.sha }}
 
       - name: Install Dependencies
-        if: steps.node_modules_cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Cache Build
-        uses: actions/cache@v3
-        id: build_cache
-        with:
-          path: build
-          key: ${{ runner.os }}-build-${{ github.sha }}
-
       - name: Lint
+        if: steps.cache.outputs.cache-hit != 'true' || !hashFiles('.lint-result/result.txt')
         run: |
-          npm run lint \
-          && npm run format:check
-
-      - name: Check for Test Result
-        id: check_test_result
-        uses: actions/cache@v3
-        with:
-          path: .test-result
-          key: test-result-${{ github.sha }}
-          restore-keys: |
-            test-result-${{ github.sha }}
+          npm run lint && npm run format:check
+          mkdir -p .lint-result
+          echo "lint_passed=true" > .lint-result/result.txt
 
       - name: Test
-        if: steps.check_test_result.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true' || !hashFiles('.test-result/result.txt')
         run: |
           npm run test
           mkdir -p .test-result
@@ -108,19 +98,14 @@ jobs:
           MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY: '0x8441d82233625acbb5738a56d9ad0a841515e882d536a06b5962c628472af073'
 
       - name: Build
-        if: steps.build_cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm run build
 
-      # === predeploy ===
-      - name: Docker Configuration (develop)
-        if: github.base_ref == 'develop'
+      - name: Docker Configuration
+        if: github.base_ref == 'develop' || github.base_ref == 'master'
         run: |
-          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/develop/" > Dockerrun.aws.json
-
-      - name: Docker Configuration (production)
-        if: github.base_ref == 'master'
-        run: |
-          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/prod/" > Dockerrun.aws.json
+          IMAGE_TAG=$([[ "${{ github.base_ref }}" == "develop" ]] && echo "develop" || echo "prod")
+          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/$IMAGE_TAG/" > Dockerrun.aws.json
 
       - name: Generate deployment package
         if: github.base_ref == 'develop' || github.base_ref == 'master'
@@ -138,7 +123,18 @@ jobs:
         if: github.base_ref == 'develop' || github.base_ref == 'master'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      # === [END] predeploy ===
+
+      - name: Set up Docker Buildx
+        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        uses: actions/cache@v3
+        id: docker-cache
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.base_ref }}-${{ github.sha }}
 
       # === `develop` branch ===
       - name: Start VPN (develop)
@@ -173,19 +169,6 @@ jobs:
           MATTERS_PG_PASSWORD: ${{ secrets.DEVELOP_PG_PASSWORD }}
           MATTERS_STRIPE_SECRET: ${{ secrets.DEVELOP_STRIPE_SECRET }}
 
-      - name: Set up Docker Buildx (develop)
-        if: github.base_ref == 'develop'
-        uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers (develop)
-        if: github.base_ref == 'develop'
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache-develop
-          key: ${{ runner.os }}-buildx-develop-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-develop-
-
       - name: Check if image exists (develop)
         if: github.base_ref == 'develop'
         id: check-image-develop
@@ -204,18 +187,18 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/matters-server:develop
           labels: |
             commit=${{ github.SHA }}
-          cache-from: type=local,src=/tmp/.buildx-cache-develop
-          cache-to: type=local,dest=/tmp/.buildx-cache-develop-new,mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: matters-server
           IMAGE_TAG: develop
 
-      - name: Move cache (develop)
-        if: github.base_ref == 'develop'
+      - name: Move Docker cache (develop)
+        if: github.base_ref == 'develop' && steps.docker-cache.outputs.cache-hit != 'true'
         run: |
-          rm -rf /tmp/.buildx-cache-develop
-          mv /tmp/.buildx-cache-develop-new /tmp/.buildx-cache-develop
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Deploy to EB (develop)
         if: github.base_ref == 'develop'
@@ -270,19 +253,6 @@ jobs:
         if: always()
         run: sudo killall openvpn || true
 
-      - name: Set up Docker Buildx (production)
-        if: github.base_ref == 'master'
-        uses: docker/setup-buildx-action@v2
-
-      - name: Cache Docker layers (production)
-        if: github.base_ref == 'master'
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache-prod
-          key: ${{ runner.os }}-buildx-prod-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-prod-
-
       - name: Check if image exists (production)
         if: github.base_ref == 'master'
         id: check-image-prod
@@ -298,18 +268,18 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/matters-server:prod
-          cache-from: type=local,src=/tmp/.buildx-cache-prod
-          cache-to: type=local,dest=/tmp/.buildx-cache-prod-new,mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: matters-server
           IMAGE_TAG: prod
 
-      - name: Move cache (production)
-        if: github.base_ref == 'master'
+      - name: Move Docker cache (production)
+        if: github.base_ref == 'master' && steps.docker-cache.outputs.cache-hit != 'true'
         run: |
-          rm -rf /tmp/.buildx-cache-prod
-          mv /tmp/.buildx-cache-prod-new /tmp/.buildx-cache-prod
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Deploy to EB (production)
         if: github.base_ref == 'master'
