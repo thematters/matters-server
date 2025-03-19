@@ -43,6 +43,7 @@ export const AUDIT_LOG_ACTION = {
   addPublishArticleJob: 'add_publish_article_job',
   uploadImage: 'upload_image',
   uploadFile: 'upload_file',
+  setFeatureFlag: 'set_feature_flag',
 } as const
 
 export const AUDIT_LOG_STATUS = {
