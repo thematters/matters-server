@@ -62,6 +62,12 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     throw new UserInputError('content is required')
   }
 
+  if (draft.circleId && draft.campaigns?.length > 0) {
+    throw new UserInputError(
+      'Article cannot be added to campaign or circle at the same time'
+    )
+  }
+
   if (
     draft.publishState === PUBLISH_STATE.pending ||
     (draft.archived && isPublished)

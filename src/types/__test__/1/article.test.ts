@@ -289,6 +289,68 @@ describe('publish article', () => {
     expect(article.content).not.toBeNull()
     expect(article.indentFirstLine).toBe(false)
   })
+
+  test('cannot publish article with both circle and campaign', async () => {
+    jest.setTimeout(10000)
+
+    const campaignData = {
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-02 11:30'),
+        new Date('2010-01-02 15:00'),
+      ] as const,
+      creatorId: '2',
+    }
+    const campaignService = new CampaignService(connections)
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+    ])
+    const userId = '1'
+    const circle = await atomService.create({
+      table: 'circle',
+      data: {
+        name: 'circle-test',
+        owner: userId,
+        displayName: 'circle-test',
+        providerProductId: 'circle-test-product-id',
+      },
+    })
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        authorId: userId,
+        circleId: circle.id,
+        campaigns: JSON.stringify([
+          { campaign: campaign.id, stage: stages[0].id },
+        ]),
+      },
+    })
+    const server = await testClient({ isAuth: true, userId, connections })
+
+    const { errors } = await server.executeOperation({
+      query: PUBLISH_ARTICLE,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }) },
+      },
+    })
+
+    expect(errors?.[0].message).toContain(
+      'Article cannot be added to campaign or circle at the same time'
+    )
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
 })
 
 describe('toggle article state', () => {
