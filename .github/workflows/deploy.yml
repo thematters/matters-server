@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - develop
+      - ci_test_deploy
     types:
       - closed
 
