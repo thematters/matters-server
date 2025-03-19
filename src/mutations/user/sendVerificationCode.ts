@@ -13,20 +13,19 @@ import { isProd } from '#common/environment.js'
 import {
   AuthenticationError,
   EmailExistsError,
-  ForbiddenError,
   EmailNotFoundError,
   UserInputError,
   ForbiddenByStateError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { extractRootDomain, verifyCaptchaToken } from '#common/utils/index.js'
+import { extractRootDomain } from '#common/utils/index.js'
 import { Passphrases } from '#connectors/passphrases/index.js'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
 const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
-  { input: { email: rawEmail, type, token, redirectUrl, language } },
+  { input: { email: rawEmail, type, redirectUrl, language } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
@@ -50,10 +49,10 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
       throw new EmailExistsError('email has been registered')
     }
 
-    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
-    if (!isHuman) {
-      throw new ForbiddenError('registration via scripting is not allowed')
-    }
+    // const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
+    // if (!isHuman) {
+    //   throw new ForbiddenError('registration via scripting is not allowed')
+    // }
 
     if (!(await userService.isEmailinWhitelist(email))) {
       logger.warn(`email ${email} is not in whitelist`)
@@ -61,10 +60,10 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     }
   }
   if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
-    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
-    if (!isHuman) {
-      throw new ForbiddenError('registration via scripting is not allowed')
-    }
+    // const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
+    // if (!isHuman) {
+    //   throw new ForbiddenError('registration via scripting is not allowed')
+    // }
 
     if (!(await userService.isEmailinWhitelist(email))) {
       logger.warn(`email ${email} is not in whitelist`)
