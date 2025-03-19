@@ -76,28 +76,21 @@ jobs:
           npm run lint \
           && npm run format:check
 
-      - name: Download Test Result
-        uses: actions/download-artifact@v4
-        id: download_test_result
-        continue-on-error: true
-        with:
-          name: test-result-${{ github.sha }}
-          path: .
-
       - name: Check for Test Result
         id: check_test_result
-        run: |
-          if [ -f "test_result.txt" ] && grep -q "test_passed=true" test_result.txt; then
-            echo "test_already_passed=true" >> $GITHUB_OUTPUT
-            echo "Tests already passed in the Test workflow. Skipping tests."
-          else
-            echo "test_already_passed=false" >> $GITHUB_OUTPUT
-            echo "Previous test results not found or tests failed. Running tests."
-          fi
+        uses: actions/cache@v3
+        with:
+          path: .test-result
+          key: test-result-${{ github.sha }}
+          restore-keys: |
+            test-result-${{ github.sha }}
 
       - name: Test
-        if: steps.check_test_result.outputs.test_already_passed != 'true'
-        run: npm run test
+        if: steps.check_test_result.outputs.cache-hit != 'true'
+        run: |
+          npm run test
+          mkdir -p .test-result
+          echo "test_passed=true" > .test-result/result.txt
         env:
           CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
           MATTERS_ENV: test
