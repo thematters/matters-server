@@ -1,6 +1,6 @@
 # Audit Logging
 
-Audit logging is a critical component of our application that tracks user actions and system events for security, compliance, and debugging purposes. This document explains how to implement audit logging in your code.
+Audit logging is a critical component of our application that tracks user actions and system events for security, analytics, and debugging purposes. This document explains how to implement audit logging in your code.
 
 ## Purpose
 
