@@ -54,6 +54,13 @@ jobs:
         if: steps.node_modules_cache.outputs.cache-hit != 'true'
         run: npm ci
 
+      - name: Cache Build
+        uses: actions/cache@v3
+        id: build_cache
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
       - name: Lint
         run: |
           npm run lint \
@@ -80,4 +87,5 @@ jobs:
           MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY: '0x8441d82233625acbb5738a56d9ad0a841515e882d536a06b5962c628472af073'
 
       - name: Build
+        if: steps.build_cache.outputs.cache-hit != 'true'
         run: npm run build
