@@ -46,7 +46,6 @@ jobs:
       - name: Get PR HEAD Commit SHA
         uses: actions/github-script@v6
         id: get-pr-commits
-        if: github.event.pull_request.merged == true
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
