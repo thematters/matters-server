@@ -67,7 +67,7 @@ jobs:
           && npm run format:check
 
       - name: Download Previous Test Result
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         id: download_test_result
         continue-on-error: true
         with:
