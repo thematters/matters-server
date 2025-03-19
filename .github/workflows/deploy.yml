@@ -102,17 +102,17 @@ jobs:
         run: npm run build
 
       - name: Docker Configuration
-        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        if: github.base_ref == 'develop' || github.base_ref == 'master' || github.base_ref == 'ci_test_deploy'
         run: |
           IMAGE_TAG=$([[ "${{ github.base_ref }}" == "develop" ]] && echo "develop" || echo "prod")
           cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/$IMAGE_TAG/" > Dockerrun.aws.json
 
       - name: Generate deployment package
-        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        if: github.base_ref == 'develop' || github.base_ref == 'master' || github.base_ref == 'ci_test_deploy'
         run: zip -r deploy.zip . -x node_modules/\* .git/\*
 
       - name: Setup AWS
-        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        if: github.base_ref == 'develop' || github.base_ref == 'master' || github.base_ref == 'ci_test_deploy'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -120,16 +120,16 @@ jobs:
           aws-region: ap-southeast-1
 
       - name: Login to Amazon ECR
-        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        if: github.base_ref == 'develop' || github.base_ref == 'master' || github.base_ref == 'ci_test_deploy'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Set up Docker Buildx
-        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        if: github.base_ref == 'develop' || github.base_ref == 'master' || github.base_ref == 'ci_test_deploy'
         uses: docker/setup-buildx-action@v2
 
       - name: Cache Docker layers
-        if: github.base_ref == 'develop' || github.base_ref == 'master'
+        if: github.base_ref == 'develop' || github.base_ref == 'master' || github.base_ref == 'ci_test_deploy'
         uses: actions/cache@v3
         id: docker-cache
         with:
@@ -138,7 +138,7 @@ jobs:
 
       # === `develop` branch ===
       - name: Start VPN (develop)
-        if: github.base_ref == 'develop'
+        if: github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy'
         run: |
           sudo apt-get update \
           && sudo apt-get install openvpn \
@@ -153,13 +153,13 @@ jobs:
           VPN_AUTH_PATH: '.github/auth.txt'
 
       - name: Check DB Connection
-        if: github.base_ref == 'develop'
+        if: github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy'
         run: nc -zv -w 5 $MATTERS_PG_HOST 5432
         env:
           MATTERS_PG_HOST: ${{ secrets.DEVELOP_PG_HOST }}
 
       - name: DB Migration (develop)
-        if: github.base_ref == 'develop'
+        if: github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy'
         run: npm run db:migrate
         env:
           MATTERS_ENV: development
@@ -170,7 +170,7 @@ jobs:
           MATTERS_STRIPE_SECRET: ${{ secrets.DEVELOP_STRIPE_SECRET }}
 
       - name: Check if image exists (develop)
-        if: github.base_ref == 'develop'
+        if: github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy'
         id: check-image-develop
         run: |
           # Try to get metadata for the image and check if this commit SHA is in the description
@@ -178,8 +178,8 @@ jobs:
           echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
 
       - name: Build, tag, and push image to Amazon ECR (develop)
-        if: github.base_ref == 'develop' && steps.check-image-develop.outputs.exists != 'true'
-        uses: docker/build-push-action@v4
+        if: (github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy') && steps.check-image-develop.outputs.exists != 'true'
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
@@ -195,13 +195,13 @@ jobs:
           IMAGE_TAG: develop
 
       - name: Move Docker cache (develop)
-        if: github.base_ref == 'develop' && steps.docker-cache.outputs.cache-hit != 'true'
+        if: (github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy') && steps.docker-cache.outputs.cache-hit != 'true'
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Deploy to EB (develop)
-        if: github.base_ref == 'develop'
+        if: github.base_ref == 'develop' || github.base_ref == 'ci_test_deploy'
         uses: einaregilsson/beanstalk-deploy@v19
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -262,7 +262,7 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR (production)
         if: github.base_ref == 'master' && steps.check-image-prod.outputs.exists != 'true'
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
