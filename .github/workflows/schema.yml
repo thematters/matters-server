@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -32,7 +32,7 @@ jobs:
         uses: martinbeentjes/npm-get-version-action@master
 
       - name: Cache NPM dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: node_modules_cache
         with:
           path: node_modules

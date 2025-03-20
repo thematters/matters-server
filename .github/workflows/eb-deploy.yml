@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Download deployment package
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: deploy-package-${{ inputs.environment }}
           path: .

@@ -41,12 +41,12 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
       - name: Cache NPM dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: node_modules_cache
         with:
           path: node_modules
@@ -100,7 +100,7 @@ jobs:
       # Upload artifacts
       - name: Upload Deployment Package
         if: inputs.environment == 'develop' || inputs.environment == 'production'
-        uses: actions/upload-artifact@v2
+        uses: upload-artifact@v4
         with:
           name: deploy-package-${{ inputs.environment }}
           path: deploy.zip
