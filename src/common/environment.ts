@@ -55,7 +55,6 @@ export const environment = {
     // fallback to primary DB for test'ing
     // `postgresql://${process.env.MATTERS_PG_HOST}:${process.env.MATTERS_PG_PASSWORD}@${process.env.MATTERS_PG_HOST}/${process.env.MATTERS_PG_DATABASE}`,
     'postgresql://no-exist@no-exist/no-exist',
-  searchPgPassword: process.env.MATTERS_SEARCH_PG_PASSWORD,
   searchPgCoefficients: JSON.parse(
     process.env.MATTERS_SEARCH_PG_COEFFICIENTS || '[1,1,1,1]'
   ),
