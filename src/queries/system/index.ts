@@ -1,4 +1,4 @@
-import type { GQLResolvers } from '#definitions/index.js'
+import type { GQLResolvers, GlobalId } from '#definitions/index.js'
 
 import frequentSearch from './frequentSearch.js'
 import node from './node.js'
@@ -24,7 +24,7 @@ const system: GQLResolvers = {
     __resolveType: ({ __type }: any) => __type,
   },
   Asset: {
-    id: ({ uuid }: { uuid: string }) => uuid,
+    id: ({ uuid }: { uuid: string }) => uuid as GlobalId,
     path: (asset, _, { dataSources: { systemService } }) =>
       systemService.genAssetUrl(asset),
   },

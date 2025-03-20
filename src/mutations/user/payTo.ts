@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { GQLMutationResolvers, GlobalId } from '#definitions/index.js'
 
 import {
   BLOCKCHAIN_CHAINID,
@@ -48,7 +48,6 @@ const resolver: GQLMutationResolvers['payTo'] = async (
       atomService,
       articleService,
       paymentService,
-      userService,
       queues: { payToByMattersQueue, payToByBlockchainQueue },
     },
   }
@@ -70,8 +69,10 @@ const resolver: GQLMutationResolvers['payTo'] = async (
   }
 
   // check target and recipient
-  const { id: recipientDbId } = fromGlobalId(recipientId || '')
-  const { id: targetDbId, type: targetType } = fromGlobalId(targetId || '')
+  const { id: recipientDbId } = fromGlobalId(recipientId || ('' as GlobalId))
+  const { id: targetDbId, type: targetType } = fromGlobalId(
+    targetId || ('' as GlobalId)
+  )
 
   // only allow article target for now
   const isArticleTarget = targetType === 'Article'

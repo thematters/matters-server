@@ -1,4 +1,5 @@
 import type { GQLMutationResolvers, Circle } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   CACHE_KEYWORD,
@@ -45,7 +46,7 @@ const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
   }
 
   // check circle
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
   const [circle, price] = await Promise.all([
     atomService.findFirst({
       table: 'circle',

@@ -3,6 +3,7 @@ import type {
   Article,
   Circle,
 } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -65,7 +66,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id as GlobalId)
   const articleIds = articles.map((articleId) => fromGlobalId(articleId).id)
   const [circle, targetArticles] = await Promise.all([
     atomService.findFirst({

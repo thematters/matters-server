@@ -37,7 +37,7 @@ const resolver: GQLQueryResolvers['search'] = async (
 
   if (input?.filter?.authorId) {
     const { id: authorId } = fromGlobalId(input.filter.authorId)
-    input.filter.authorId = authorId
+    input.filter.authorId = authorId as any
   }
 
   const { take, skip } = fromConnectionArgs(input)

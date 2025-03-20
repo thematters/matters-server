@@ -219,7 +219,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    */
   if (collection !== undefined) {
     const connections = (collection ?? []).map(
-      (globalId) => fromGlobalId(globalId as unknown as string).id
+      (globalId) => fromGlobalId(globalId).id
     )
 
     if (connections.toString() !== articleVersion.connections.toString()) {

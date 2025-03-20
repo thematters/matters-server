@@ -143,6 +143,7 @@ export * from './moment.js'
 export * from './campaign.js'
 export * from './translation.js'
 export * from './channel.js'
+export * from './nominal.js'
 
 export interface Context extends BasedContext {
   viewer: Viewer

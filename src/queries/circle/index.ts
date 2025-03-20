@@ -12,6 +12,7 @@ import type {
   GQLPersonResolvers,
   GQLPriceResolvers,
   GQLQueryResolvers,
+  GlobalId,
 } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
@@ -59,7 +60,8 @@ const circle: {
   },
 
   Circle: {
-    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Circle, id }) : ''),
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.Circle, id }) : ('' as GlobalId),
     avatar,
     cover,
     prices,
@@ -90,14 +92,16 @@ const circle: {
   },
 
   Price: {
-    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Price, id }) : ''),
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.Price, id }) : ('' as GlobalId),
     circle: priceCircle,
   },
 
   Invites,
 
   Invitation: {
-    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Invitation, id }) : ''),
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.Invitation, id }) : ('' as GlobalId),
     invitee,
     inviter,
     circle: invitationCircle,

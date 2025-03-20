@@ -1,4 +1,8 @@
-import type { Asset, GQLMutationResolvers } from '#definitions/index.js'
+import type {
+  Asset,
+  GQLMutationResolvers,
+  GlobalId,
+} from '#definitions/index.js'
 
 import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
@@ -73,7 +77,9 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   }
 
   const relatedEntityId =
-    entityType === 'user' ? viewer.id : fromGlobalId(entityId || '').id
+    entityType === 'user'
+      ? viewer.id
+      : fromGlobalId(entityId || ('' as GlobalId)).id
   if (!relatedEntityId) {
     throw new UserInputError('Entity id is incorrect')
   }

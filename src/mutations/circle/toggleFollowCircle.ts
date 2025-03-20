@@ -1,4 +1,5 @@
 import type { GQLMutationResolvers, Circle } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   CACHE_KEYWORD,
@@ -43,7 +44,7 @@ const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
   }
 
   const action = enabled ? ACTION.follow : ACTION.unfollow
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
   const circle = await atomService.findFirst({
     table: 'circle',
     where: { id: circleId, state: CIRCLE_STATE.active },

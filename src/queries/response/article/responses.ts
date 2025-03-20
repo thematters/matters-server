@@ -2,6 +2,7 @@ import type {
   GQLArticleResolvers,
   Article,
   Comment,
+  GlobalId,
 } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
@@ -24,10 +25,10 @@ const resolver: GQLArticleResolvers['responses'] = async (
   let after
   let before
   if (restParams.after) {
-    after = fromGlobalId(restParams.after)
+    after = fromGlobalId(restParams.after as GlobalId)
   }
   if (restParams.before) {
-    before = fromGlobalId(restParams.before)
+    before = fromGlobalId(restParams.before as GlobalId)
   }
 
   // fetch order and range based on Collection and Comment

@@ -38,7 +38,7 @@ import { stripHtml } from '@matters/ipns-site-generator'
 import pkg from 'lodash'
 import { createRequire } from 'node:module'
 
-const { isUndefined, omitBy, isString, uniq } = pkg
+const { isUndefined, omitBy, compact, uniq } = pkg
 
 const require = createRequire(import.meta.url)
 const {
@@ -56,7 +56,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       content,
       tags,
       cover,
-      collection: collectionGlobalId,
+      collection: connectionGlobalIds,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -108,18 +108,15 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     coverId = asset.id
   }
 
-  // check collection
-  // TODO: rename collection to connection
-  const collection = collectionGlobalId
+  // check connections
+  const connections = connectionGlobalIds
     ? uniq(
-        collectionGlobalId
-          .filter(isString)
-          .map((articleId: string) => fromGlobalId(articleId).id)
+        compact(connectionGlobalIds).map((_id) => fromGlobalId(_id).id)
       ).filter((articleId) => !!articleId)
-    : collectionGlobalId // do not convert null or undefined
-  if (collection) {
+    : connectionGlobalIds // do not convert null or undefined
+  if (connections) {
     await validateConnections({
-      connections: collection,
+      connections,
       atomService,
     })
   }
@@ -162,7 +159,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       license: license && validateLicense(license),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
-      collection: collection?.length === 0 ? null : collection,
+      collection: connections?.length === 0 ? null : connections,
       circleId,
       access: accessType,
       sensitiveByAuthor: sensitive,
@@ -218,12 +215,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     }
 
     // check for collection limit
-    if (collection) {
+    if (connections) {
       const oldConnectionLength =
         draft.collection == null ? 0 : draft.collection.length
       if (
-        collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
-        collection.length > oldConnectionLength
+        connections.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
+        connections.length > oldConnectionLength
       ) {
         throw new ArticleCollectionReachLimitError(
           `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
@@ -282,7 +279,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
       )
     }
-    if (collection && collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
+    if (connections && connections.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
       throw new ArticleCollectionReachLimitError(
         `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
       )
