@@ -128,7 +128,7 @@ export const graphql = async (app: Express) => {
   }: {
     req: Request
     res: Response
-    connection?: any
+    connection?: { context: Context }
   }): Promise<Context> => {
     if (connection) {
       return connection.context
