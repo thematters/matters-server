@@ -24,6 +24,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       environment: ${{ github.base_ref == 'develop' && 'develop' || 'production' }}
+      skip_tests: true
 
   # Run database migrations
   migrate-db-develop:

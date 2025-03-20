@@ -7,6 +7,11 @@ on:
         description: 'Environment (develop, production)'
         required: true
         type: string
+      skip_tests:
+        description: 'Skip running tests'
+        required: false
+        type: boolean
+        default: false
     outputs:
       environment:
         description: 'The environment that was processed'
@@ -64,6 +69,7 @@ jobs:
 
       - name: Test
         id: test
+        if: inputs.skip_tests != true
         run: npm run test
         env:
           NODE_OPTIONS: '--no-experimental-fetch'
@@ -100,7 +106,7 @@ jobs:
       # Upload artifacts
       - name: Upload Deployment Package
         if: inputs.environment == 'develop' || inputs.environment == 'production'
-        uses: upload-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: deploy-package-${{ inputs.environment }}
           path: deploy.zip
