@@ -76,6 +76,12 @@
           "CampaignStage": "./campaign.js#CampaignStage",
           "Channel": "./channel.js#Channel"
         },
+        "scalars": {
+          "ID": {
+            "input": "string",
+            "output": "string"
+          }
+        },
         "contextType": "./index.js#Context",
         "makeResolverTypeCallable": true,
         "onlyResolveTypeForInterfaces": true,
