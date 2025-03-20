@@ -3,9 +3,9 @@ name: Push Schema to Apollo
 on:
   pull_request:
     branches:
+      - main
       - master
       - develop
-      - stage
     types:
       - closed
 
@@ -51,14 +51,8 @@ jobs:
         env:
           APOLLO_KEY: ${{ secrets.DEVELOP_APOLLO_API_KEY }}
 
-      # - name: Push Schema (stage)
-      #   if: github.base_ref == 'stage'
-      #   run: npm run schema:push
-      #   env:
-      #     APOLLO_KEY: ${{ secrets.STAGE_APOLLO_API_KEY }}
-
       - name: Push Schema (production)
-        if: github.base_ref == 'master'
+        if: github.base_ref == 'master' || github.base_ref == 'main'
         run: npm run schema:push:prod
         env:
           APOLLO_KEY: ${{ secrets.PROD_APOLLO_API_KEY }}
