@@ -65,12 +65,11 @@ jobs:
     with:
       environment: 'develop'
       app_name: 'matters-stage'
-      env_name: 'matters-server-develop'
       image_tag: 'develop'
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
+      AWS_EB_ENV_NAME: ${{ secrets.AWS_EB_ENV_NAME_DEV }}
   deploy-production:
     needs: migrate-db-production
     if: github.event.pull_request.merged == true && (github.base_ref == 'master' || github.base_ref == 'main')
@@ -78,11 +77,11 @@ jobs:
     with:
       environment: 'production'
       app_name: 'matters-prod'
-      env_name: 'matters-server-prod'
       image_tag: 'prod'
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_EB_ENV_NAME: ${{ secrets.AWS_EB_ENV_NAME_PROD }}
 
   # Notify Slack
   notify-develop:
