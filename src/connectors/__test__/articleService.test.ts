@@ -441,20 +441,42 @@ test('countReaders', async () => {
 
 describe('latestArticles', () => {
   test('base', async () => {
-    const articles = await articleService.latestArticles({
+    const [articles, totalCount] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
       oss: false,
       excludeSpam: false,
     })
+    console.dir(articles, { depth: null })
     expect(articles.length).toBeGreaterThan(0)
+    expect(totalCount).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
+  test('should ignore `maxTake` limit when oss=true', async () => {
+    const [articles1, totalCount1] = await articleService.latestArticles({
+      maxTake: 1,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: false,
+    })
+    expect(articles1.length).toBe(1)
+    expect(totalCount1).toBe(1)
+    const [articles2, totalCount2] = await articleService.latestArticles({
+      maxTake: 1,
+      skip: 0,
+      take: 10,
+      oss: true,
+      excludeSpam: false,
+    })
+    expect(articles2.length).toBeGreaterThan(1)
+    expect(totalCount2).toBeGreaterThan(1)
+  })
   test('spam are excluded', async () => {
-    const articles = await articleService.latestArticles({
+    const [articles] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -468,7 +490,7 @@ describe('latestArticles', () => {
       value: spamThreshold,
     })
     // spam flag is on but no detected articles
-    const articles1 = await articleService.latestArticles({
+    const [articles1] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -483,7 +505,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const articles2 = await articleService.latestArticles({
+    const [articles2] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -498,7 +520,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { isSpam: false },
     })
-    const articles3 = await articleService.latestArticles({
+    const [articles3] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -513,7 +535,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { spamScore: spamThreshold - 0.1 },
     })
-    const articles4 = await articleService.latestArticles({
+    const [articles4] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -528,7 +550,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { isSpam: true },
     })
-    const articles5 = await articleService.latestArticles({
+    const [articles5] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
