@@ -12,17 +12,22 @@ on:
         required: false
         type: boolean
         default: false
+      skip_docker:
+        description: 'Skip building and pushing Docker image'
+        required: false
+        type: boolean
+        default: false
     outputs:
       environment:
         description: 'The environment that was processed'
         value: ${{ inputs.environment }}
     secrets:
       AWS_ACCESS_KEY_ID:
-        required: true
+        required: false
       AWS_SECRET_ACCESS_KEY:
-        required: true
+        required: false
       AWS_REGION:
-        required: true
+        required: false
 
 jobs:
   build:
@@ -111,7 +116,7 @@ jobs:
 
       # Build and push Docker image
       - name: Setup AWS
-        if: inputs.environment == 'develop' || inputs.environment == 'production'
+        if: (inputs.environment == 'develop' || inputs.environment == 'production') && inputs.skip_docker != true
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.AWS_REGION }}
@@ -119,12 +124,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Login to Amazon ECR
-        if: inputs.environment == 'develop' || inputs.environment == 'production'
+        if: (inputs.environment == 'develop' || inputs.environment == 'production') && inputs.skip_docker != true
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push image to Amazon ECR
-        if: inputs.environment == 'develop' || inputs.environment == 'production'
+        if: (inputs.environment == 'develop' || inputs.environment == 'production') && inputs.skip_docker != true
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
