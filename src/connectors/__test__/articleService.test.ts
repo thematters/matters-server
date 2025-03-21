@@ -559,6 +559,51 @@ describe('latestArticles', () => {
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
   })
+
+  test('channel articles are excluded', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+    // create channel
+    const channel = await channelService.updateOrCreateChannel({
+      name: 'test',
+      description: 'test',
+      providerId: 'test-latest',
+      enabled: true,
+    })
+
+    // create article channel
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: '1',
+        channelId: channel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+
+    const [_, totalCount1] = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 1,
+      oss: false,
+      excludeSpam: false,
+      excludeChannelArticles: false,
+    })
+    const [__, totalCount2] = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 1,
+      oss: false,
+      excludeSpam: false,
+      excludeChannelArticles: true,
+    })
+    expect(totalCount1).toBe(totalCount2 + 1)
+  })
 })
 
 describe('findChannelArticles', () => {
