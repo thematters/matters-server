@@ -48,6 +48,7 @@ import {
   normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
+  selectWithTotalCount as selectWithTotalCountModifier,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -344,7 +345,7 @@ export class ArticleService extends BaseService<Article> {
     oss: boolean
     excludeSpam: boolean
     excludeChannelArticles?: boolean
-  }): Promise<Article[]> => {
+  }): Promise<[Article[], number]> => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
     const query = this.knexRO
@@ -371,7 +372,11 @@ export class ArticleService extends BaseService<Article> {
               .where('type', 'articleNewest')
           )
           .orderBy('article.id', 'desc')
-          .limit(maxTake * 2) // add some extra to cover excluded ones in settings
+          .modify((builder) => {
+            if (!oss) {
+              builder.limit(maxTake * 2) // add some extra to cover excluded ones in settings
+            }
+          })
           .as('article_set')
       )
       .where((builder) => {
@@ -394,12 +399,15 @@ export class ArticleService extends BaseService<Article> {
       })
       .as('newest')
 
-    return this.knexRO
-      .select()
-      .from(query.limit(maxTake))
+    const records = await this.knexRO
+      .select('*')
+      .modify(selectWithTotalCountModifier)
+      .from(oss ? query : query.limit(maxTake))
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take)
+
+    return [records, parseInt(records[0]?.totalCount ?? '0', 10)]
   }
 
   public findChannelArticles = async ({
