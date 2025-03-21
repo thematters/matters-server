@@ -11,10 +11,6 @@ on:
         description: 'EB application name'
         required: true
         type: string
-      env_name:
-        description: 'EB environment name'
-        required: true
-        type: string
       image_tag:
         description: 'ECR image tag (develop, prod)'
         required: true
@@ -23,6 +19,8 @@ on:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_EB_ENV_NAME:
         required: true
 
 jobs:
@@ -38,7 +36,7 @@ jobs:
 
       # AWS Deployment
       - name: Setup AWS
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -46,7 +44,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push image to Amazon ECR
         run: |
@@ -58,13 +56,13 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
 
       - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v19
+        uses: einaregilsson/beanstalk-deploy@v22
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: ${{ inputs.app_name }}
-          environment_name: ${{ inputs.env_name }}
-          version_label: ${{ inputs.env_name }}-${{ hashFiles('deploy.zip') }}
+          environment_name: ${{ secrets.AWS_EB_ENV_NAME }}
+          version_label: ${{ secrets.AWS_EB_ENV_NAME }}-${{ hashFiles('deploy.zip') }}
           version_description: ${{ github.SHA }}
           region: ap-southeast-1
           deployment_package: deploy.zip
