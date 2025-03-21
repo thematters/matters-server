@@ -5,6 +5,7 @@ import type {
   Campaign,
   User,
   Article,
+  GlobalId,
 } from '#definitions/index.js'
 
 import {
@@ -535,7 +536,7 @@ export class CampaignService {
     })
 
   public validateCampaigns = async (
-    campaigns: Array<{ campaign: string; stage?: string }>,
+    campaigns: Array<{ campaign: GlobalId; stage?: GlobalId }>,
     userId: string
   ) => {
     const _campaigns = campaigns.map(

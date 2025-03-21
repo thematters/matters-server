@@ -19,6 +19,7 @@ import type {
   GQLWalletResolvers,
   GQLCollectionResolvers,
   GQLPinnableWorkResolvers,
+  GlobalId,
 } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
@@ -110,7 +111,8 @@ const user: {
     user: rootUser,
   },
   User: {
-    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.User, id }) : ''),
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.User, id }) : ('' as GlobalId),
     avatar,
     likerId,
     liker: (root) => root,
@@ -206,7 +208,7 @@ const user: {
 
   CryptoWallet: {
     id: ({ id }) =>
-      id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
+      id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : ('' as GlobalId),
     address: ({ address }) => address,
     // createdAt: ({ createdAt }) => createdAt,
 

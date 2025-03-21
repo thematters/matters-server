@@ -13,7 +13,7 @@ const resolver: GQLMutationResolvers['putFeaturedTags'] = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const dbIds = ids.filter(Boolean).map((id: string) => fromGlobalId(id).id)
+  const dbIds = ids.filter(Boolean).map((id) => fromGlobalId(id).id)
 
   const entry = await systemService.baseUpdateOrCreate<UserTagsOrder>({
     table: 'user_tags_order',

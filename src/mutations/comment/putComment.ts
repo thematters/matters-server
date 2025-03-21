@@ -275,7 +275,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   }
 
   data.mentionedUserIds =
-    mentions?.map((userId: string) => fromGlobalId(userId).id) ||
+    mentions?.map((userId) => fromGlobalId(userId).id) ||
     extractMentionIds(content)
 
   const parentCommentAuthor = get(parentComment, 'authorId') as string

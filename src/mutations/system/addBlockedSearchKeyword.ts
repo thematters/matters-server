@@ -26,7 +26,8 @@ const resolver: GQLMutationResolvers['addBlockedSearchKeyword'] = async (
   const newAddedKeyword = {
     ...newItem,
   }
-  return newAddedKeyword
+  // TODO: figure out if globalId transform is needed then remove any
+  return newAddedKeyword as any
 }
 
 export default resolver

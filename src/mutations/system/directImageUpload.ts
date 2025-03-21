@@ -1,4 +1,8 @@
-import type { ItemData, GQLMutationResolvers } from '#definitions/index.js'
+import type {
+  ItemData,
+  GQLMutationResolvers,
+  GlobalId,
+} from '#definitions/index.js'
 
 import {
   IMAGE_ASSET_TYPE,
@@ -42,7 +46,9 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   }
 
   const relatedEntityId =
-    entityType === 'user' ? viewer.id : fromGlobalId(entityId || '').id
+    entityType === 'user'
+      ? viewer.id
+      : fromGlobalId(entityId || ('' as GlobalId)).id
   if (!relatedEntityId) {
     throw new UserInputError('Entity id is incorrect')
   }

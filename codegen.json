@@ -3,7 +3,11 @@
   "schema": "schema.graphql",
   "generates": {
     "src/definitions/schema.d.ts": {
-      "plugins": ["typescript", "typescript-resolvers"],
+      "plugins": [
+        "typescript",
+        "typescript-resolvers",
+        { "add": { "content": "import { GlobalId } from './nominal.js'" } }
+      ],
       "config": {
         "useIndexSignature": true,
         "typesPrefix": "GQL",
@@ -75,6 +79,12 @@
           "WritingChallenge": "./campaign.js#Campaign",
           "CampaignStage": "./campaign.js#CampaignStage",
           "Channel": "./channel.js#Channel"
+        },
+        "scalars": {
+          "ID": {
+            "input": "GlobalId",
+            "output": "GlobalId"
+          }
         },
         "contextType": "./index.js#Context",
         "makeResolverTypeCallable": true,

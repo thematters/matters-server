@@ -1,4 +1,5 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   ASSET_TYPE,
@@ -194,7 +195,7 @@ const resolver: GQLMutationResolvers['putCircle'] = async (
       let data: Record<string, any> = {}
       let unusedAssetIds: string[] = []
 
-      const { id: circleId } = fromGlobalId(id || '')
+      const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
       const circle = await atomService.findFirst({
         table: 'circle',
         where: { id: circleId, owner: viewer.id, state: CIRCLE_STATE.active },

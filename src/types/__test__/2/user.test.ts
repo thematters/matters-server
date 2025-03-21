@@ -1,4 +1,4 @@
-import type { Connections, User } from '#definitions/index.js'
+import type { Connections, User, GlobalId } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import _get from 'lodash/get.js'
@@ -1068,7 +1068,7 @@ describe('user recommendations', () => {
             node: { author: { id: string } }
           }) => id
         )
-        .map((id: string) => fromGlobalId(id).id)
+        .map((id: GlobalId) => fromGlobalId(id).id)
 
     await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
     // before restricted
@@ -1108,7 +1108,7 @@ describe('user recommendations', () => {
             node: { author: { id: string } }
           }) => id
         )
-        .map((id: string) => fromGlobalId(id).id)
+        .map((id: GlobalId) => fromGlobalId(id).id)
 
     // before restricted
     const server = await testClient({

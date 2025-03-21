@@ -1,4 +1,5 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   CIRCLE_ACTION,
@@ -70,7 +71,7 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   }
 
   // check circle
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
   const [circle, price] = await Promise.all([
     atomService.findFirst({
       table: 'circle',

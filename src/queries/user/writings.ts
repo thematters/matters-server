@@ -1,4 +1,9 @@
-import type { GQLUserResolvers, Article, Moment } from '#definitions/index.js'
+import type {
+  GQLUserResolvers,
+  Article,
+  Moment,
+  GlobalId,
+} from '#definitions/index.js'
 
 import { DEFAULT_TAKE_PER_PAGE, NODE_TYPES } from '#common/enums/index.js'
 import { ServerError } from '#common/errors.js'
@@ -10,7 +15,7 @@ const resolver: GQLUserResolvers['writings'] = async (
   { dataSources: { userWorkService, atomService } }
 ) => {
   const take = input.first ?? DEFAULT_TAKE_PER_PAGE
-  const after = input.after ? fromGlobalId(input.after) : undefined
+  const after = input.after ? fromGlobalId(input.after as GlobalId) : undefined
   const [records, totalCount, hasNextPage] = await userWorkService.findWritings(
     id,
     { take, after }

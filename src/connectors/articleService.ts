@@ -1048,8 +1048,12 @@ export class ArticleService extends BaseService<Article> {
     take: number
     skip: number
     viewerId?: string | null
-    filter?: GQLSearchFilter
-    exclude?: GQLSearchExclude
+    filter?: {
+      authorId?: string
+    }
+    exclude?: {
+      blocked?: boolean
+    }
     coefficients?: string
     quicksearch?: boolean
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
@@ -1102,7 +1106,9 @@ export class ArticleService extends BaseService<Article> {
     key: string
     take?: number
     skip?: number
-    filter?: GQLSearchFilter
+    filter?: {
+      authorId?: string
+    }
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = simplecc(key, 't2s')
     const keyTraditional = simplecc(key, 's2t')
