@@ -16,4 +16,5 @@ jobs:
     with:
       environment: ''
       skip_tests: false
+      skip_docker: true
     secrets: {}
