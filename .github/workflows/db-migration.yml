@@ -1,0 +1,84 @@
+name: DB Migration
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment (develop, production)'
+        required: true
+        type: string
+    secrets:
+      MATTERS_PG_HOST:
+        required: true
+      MATTERS_PG_DATABASE:
+        required: true
+      MATTERS_PG_USER:
+        required: true
+      MATTERS_PG_PASSWORD:
+        required: true
+      MATTERS_STRIPE_SECRET:
+        required: true
+      VPN_CONFIG:
+        required: false
+      VPN_AUTH:
+        required: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v4
+        id: node_modules_cache
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-v18-npm-v3-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        if: steps.node_modules_cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Start VPN for DB connection if needed
+      - name: Start VPN
+        if: inputs.environment == 'develop' || inputs.environment == 'production'
+        run: |
+          sudo apt-get update \
+          && sudo apt-get install openvpn \
+          && echo $VPN_AUTH | base64 -d > $VPN_AUTH_PATH \
+          && echo $VPN_CONFIG | base64 -d > $VPN_CONFIG_PATH \
+          && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
+          && sleep 15s
+        env:
+          VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
+          VPN_CONFIG_PATH: '.github/config.ovpn'
+          VPN_AUTH: ${{ secrets.VPN_AUTH }}
+          VPN_AUTH_PATH: '.github/auth.txt'
+
+      # DB Migration
+      - name: Check DB Connection
+        run: nc -zv -w 5 $MATTERS_PG_HOST 5432
+        env:
+          MATTERS_PG_HOST: ${{ secrets.MATTERS_PG_HOST }}
+
+      - name: Run DB Migration
+        run: npm run db:migrate
+        env:
+          MATTERS_ENV: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
+          MATTERS_PG_HOST: ${{ secrets.MATTERS_PG_HOST }}
+          MATTERS_PG_DATABASE: ${{ secrets.MATTERS_PG_DATABASE }}
+          MATTERS_PG_USER: ${{ secrets.MATTERS_PG_USER }}
+          MATTERS_PG_PASSWORD: ${{ secrets.MATTERS_PG_PASSWORD }}
+          MATTERS_STRIPE_SECRET: ${{ secrets.MATTERS_STRIPE_SECRET }}
+
+      - name: Kill VPN
+        if: always()
+        run: sudo killall openvpn || true
