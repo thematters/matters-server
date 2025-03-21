@@ -354,15 +354,16 @@ export class ArticleService extends BaseService<Article> {
         this.knexRO
           .select('article.*')
           .from('article')
-          .leftJoin(
-            'article_channel',
-            'article.id',
-            'article_channel.article_id'
-          )
           .where({ 'article.state': ARTICLE_STATE.active })
           .modify((builder) => {
             if (excludeChannelArticles) {
-              builder.whereNull('article_channel.article_id')
+              builder
+                .leftJoin(
+                  'article_channel',
+                  'article.id',
+                  'article_channel.article_id'
+                )
+                .whereNull('article_channel.article_id')
             }
           })
           .whereNotIn(
