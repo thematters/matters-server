@@ -5,6 +5,7 @@ import { environment } from '#common/environment.js'
 import { NetworkError, UnknownError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { CacheService } from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
 import axios from 'axios'
 
 const logger = getLogger('service-exchange-rate')
@@ -47,10 +48,12 @@ const EXCHANGE_RATES_DATA_API_URL =
 export class ExchangeRate {
   public expire: number
   private cache: CacheService
+  private slackService: SlackService
 
   public constructor(redis: Redis | Cluster) {
     this.cache = new CacheService('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
+    this.slackService = new SlackService()
   }
 
   public getRates = async (
@@ -174,14 +177,23 @@ export class ExchangeRate {
         )
       }
       return reps.data
-    } catch (error: any) {
-      const path = error.request.path
-      const msg = error.response.data
-        ? JSON.stringify(error.response.data)
-        : error
-      throw new NetworkError(
-        `Failed to request Coingecko API( ${path} ): ${msg}`
-      )
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const path = error.request.path
+        const msg = error.response?.data
+          ? JSON.stringify(error.response.data)
+          : error
+        this.slackService.sendExchangeAPIAlert({
+          message: `Failed to request Coingecko API( ${path} ): ${msg}`,
+        })
+        throw new NetworkError(
+          `Failed to request Coingecko API( ${path} ): ${msg}`
+        )
+      }
+      this.slackService.sendExchangeAPIAlert({
+        message: `Unknown error: ${error}`,
+      })
+      throw new UnknownError('Unknown error')
     }
   }
 
@@ -200,19 +212,33 @@ export class ExchangeRate {
         headers,
       })
       if (!reps.data.success) {
+        this.slackService.sendExchangeAPIAlert({
+          message: `Unexpected Exchange Rates Data API response status: ${JSON.stringify(
+            reps.data
+          )}`,
+        })
         throw new UnknownError(
           `Unexpected Exchange Rates Data API response status`
         )
       }
       return reps.data
-    } catch (error: any) {
-      const path = error.request.path
-      const msg = error.response.data
-        ? JSON.stringify(error.response.data)
-        : error
-      throw new NetworkError(
-        `Failed to request Exchange Rates Data API( ${path} ): ${msg}`
-      )
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const path = error.request.path
+        const msg = error.response?.data
+          ? JSON.stringify(error.response.data)
+          : error
+        this.slackService.sendExchangeAPIAlert({
+          message: `Failed to request Exchange Rates Data API( ${path} ): ${msg}`,
+        })
+        throw new NetworkError(
+          `Failed to request Exchange Rates Data API( ${path} ): ${msg}`
+        )
+      }
+      this.slackService.sendExchangeAPIAlert({
+        message: `Unknown error: ${error}`,
+      })
+      throw new UnknownError('Unknown error')
     }
   }
 }

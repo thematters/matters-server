@@ -181,6 +181,24 @@ class SlackService {
       logger.error(error)
     }
   }
+
+  public sendExchangeAPIAlert = async ({ message }: { message: string }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackExchangeAPIChannel,
+        text: `[${environment.env}] - Alert`,
+        attachments: [
+          {
+            color: this.getMessageColor(SLACK_MESSAGE_STATE.failed),
+            text: '\n' + `\n- *Message*: ${message}`,
+          },
+        ],
+        markdown: true,
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
 }
 
 export default SlackService

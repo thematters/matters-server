@@ -106,6 +106,7 @@ export const environment = {
   slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
   slackCurationVaultChannel:
     process.env.MATTERS_SLACK_CURATION_VAULT_CHANNEL || '',
+  slackExchangeAPIChannel: process.env.MATTERS_SLACK_EXCHANGE_API_CHANNEL || '',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
