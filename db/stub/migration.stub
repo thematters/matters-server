@@ -1,4 +1,4 @@
-from { baseDown } import ('../utils.js')
+import { baseDown } from '../utils.js'
 
 const table = ''
 
