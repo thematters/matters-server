@@ -448,7 +448,6 @@ describe('latestArticles', () => {
       oss: false,
       excludeSpam: false,
     })
-    console.dir(articles, { depth: null })
     expect(articles.length).toBeGreaterThan(0)
     expect(totalCount).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
@@ -567,41 +566,101 @@ describe('latestArticles', () => {
       flag: FEATURE_FLAG.on,
       value: articleChannelThreshold,
     })
-    // create channel
-    const channel = await channelService.updateOrCreateChannel({
+
+    // create articles
+    const [article1] = await articleService.createArticle({
+      title: 'test',
+      content: 'test content 1',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test2',
+      content: 'test content 2',
+      authorId: '1',
+    })
+    const [article3] = await articleService.createArticle({
+      title: 'test3',
+      content: 'test content 3',
+      authorId: '1',
+    })
+
+    // create channels
+    const channel1 = await channelService.updateOrCreateChannel({
       name: 'test',
       description: 'test',
       providerId: 'test-latest',
       enabled: true,
     })
+    const channel2 = await channelService.updateOrCreateChannel({
+      name: 'test2',
+      description: 'test2',
+      providerId: 'test-latest2',
+      enabled: false,
+    })
 
-    // create article channel
+    // create article channels
     await atomService.create({
       table: 'article_channel',
       data: {
-        articleId: '1',
-        channelId: channel.id,
+        articleId: article1.id,
+        channelId: channel1.id,
         score: articleChannelThreshold + 0.1,
         enabled: true,
       },
     })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article2.id,
+        channelId: channel2.id, // disabled channel
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article3.id,
+        channelId: channel2.id, // disabled channel
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article3.id,
+        channelId: channel1.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: false, // disabled article channel
+      },
+    })
 
-    const [_, totalCount1] = await articleService.latestArticles({
+    const [articles, totalCount1] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
-      take: 1,
+      take: 10,
       oss: false,
       excludeSpam: false,
       excludeChannelArticles: false,
     })
-    const [__, totalCount2] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 1,
-      oss: false,
-      excludeSpam: false,
-      excludeChannelArticles: true,
-    })
+    const [articlesExcludedChannel, totalCount2] =
+      await articleService.latestArticles({
+        maxTake: 500,
+        skip: 0,
+        take: 10,
+        oss: false,
+        excludeSpam: false,
+        excludeChannelArticles: true,
+      })
+    expect(articles.map(({ id }) => id)).toContain(article1.id)
+    expect(articles.map(({ id }) => id)).toContain(article2.id)
+    expect(articles.map(({ id }) => id)).toContain(article3.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article1.id
+    )
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
     expect(totalCount1).toBe(totalCount2 + 1)
   })
 })
