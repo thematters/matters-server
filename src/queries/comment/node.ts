@@ -1,6 +1,6 @@
-import type { GQLCommentResolvers } from 'definitions'
+import type { GQLCommentResolvers } from '#definitions/index.js'
 
-import { CIRCLE_STATE, COMMENT_TYPE } from 'common/enums'
+import { CIRCLE_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 
 const resolver: GQLCommentResolvers['node'] = async (
   { targetId, targetTypeId, type },

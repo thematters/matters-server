@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   MINUTE,
@@ -8,25 +8,24 @@ import {
   VERIFICATION_DOMAIN_WHITELIST,
   VERIFICATION_CODE_TYPE,
   USER_STATE,
-} from 'common/enums'
-import { isProd } from 'common/environment'
+} from '#common/enums/index.js'
+import { isProd } from '#common/environment.js'
 import {
   AuthenticationError,
   EmailExistsError,
-  ForbiddenError,
   EmailNotFoundError,
   UserInputError,
   ForbiddenByStateError,
-} from 'common/errors'
-import { getLogger } from 'common/logger'
-import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
-import { Passphrases } from 'connectors/passphrases'
+} from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { extractRootDomain } from '#common/utils/index.js'
+import { Passphrases } from '#connectors/passphrases/index.js'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
 const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
-  { input: { email: rawEmail, type, token, redirectUrl, language } },
+  { input: { email: rawEmail, type, redirectUrl, language } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
@@ -50,28 +49,27 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
       throw new EmailExistsError('email has been registered')
     }
 
-    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
-    if (!isHuman) {
-      throw new ForbiddenError('registration via scripting is not allowed')
-    }
+    // const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
+    // if (!isHuman) {
+    //   throw new ForbiddenError('registration via scripting is not allowed')
+    // }
 
-    if (!(await userService.isEmailinWhitelist(email))) {
-      logger.warn(`email ${email} is not in whitelist`)
-      return true
-    }
+    // if (!(await userService.isEmailinWhitelist(email))) {
+    //   logger.warn(`email ${email} is not in whitelist`)
+    //   return true
+    // }
   }
-  if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
-    if (!isHuman) {
-      throw new ForbiddenError('registration via scripting is not allowed')
-    }
+  // if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
+  //    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
+  //    if (!isHuman) {
+  //      throw new ForbiddenError('registration via scripting is not allowed')
+  //    }
 
-    if (!(await userService.isEmailinWhitelist(email))) {
-      logger.warn(`email ${email} is not in whitelist`)
-      return true
-    }
-  }
+  //   if (!(await userService.isEmailinWhitelist(email))) {
+  //     logger.warn(`email ${email} is not in whitelist`)
+  //     return true
+  //   }
+  // }
 
   if (
     type === VERIFICATION_CODE_TYPE.payment_password_reset ||

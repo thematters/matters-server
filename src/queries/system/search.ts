@@ -1,31 +1,26 @@
-import type { GQLNode, GQLQueryResolvers, SearchHistory } from 'definitions'
-
-import { compact } from 'lodash'
+import type { GQLQueryResolvers, SearchHistory } from '#definitions/index.js'
 
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_API_VERSION,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
   stripSpaces,
-} from 'common/utils'
+} from '#common/utils/index.js'
+import compact from 'lodash/compact.js'
 
 const resolver: GQLQueryResolvers['search'] = async (
   _,
-  args, // { input },
-  context // { dataSources: { systemService, articleService, userService, tagService }, viewer, }
-) => {
-  const { input } = args
-  const {
-    // dataSources: { systemService },
+  { input },
+  {
     dataSources: { systemService, articleService, userService, tagService },
     viewer,
-  } = context
-
+  }
+) => {
   if (input.key) {
     const match = SEARCH_ARTICLE_URL_REGEX.exec(input.key)
     input.key = match
@@ -42,7 +37,7 @@ const resolver: GQLQueryResolvers['search'] = async (
 
   if (input?.filter?.authorId) {
     const { id: authorId } = fromGlobalId(input.filter.authorId)
-    input.filter.authorId = authorId
+    input.filter.authorId = authorId as any
   }
 
   const { take, skip } = fromConnectionArgs(input)
@@ -56,6 +51,7 @@ const resolver: GQLQueryResolvers['search'] = async (
   const keyOriginal = input.key
   input.key = stripSpaces(keyOriginal) as string
 
+  // TODO: remove unused search methods to fix any type error
   const connection = await (input.version === SEARCH_API_VERSION.v20230601
     ? serviceMap[input.type].searchV3
     : serviceMap[input.type].search)({
@@ -66,12 +62,16 @@ const resolver: GQLQueryResolvers['search'] = async (
   }).then(({ nodes, totalCount }) => {
     nodes = compact(nodes)
     return {
-      nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
+      nodes: nodes.map((node) => ({ __type: input.type, ...node })),
       totalCount,
     }
   })
 
-  return connectionFromArray(connection.nodes, input, connection.totalCount)
+  return connectionFromArray(
+    connection.nodes as any[],
+    input,
+    connection.totalCount
+  )
 }
 
 export default resolver

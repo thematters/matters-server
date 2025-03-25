@@ -5,8 +5,8 @@
 const schema = 'mat_views'
 const materialized_view_name = 'tags_view_materialized'
 
-exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+export const up = async (knex) => {
+  await knex.raw(/* sql*/ `
 CREATE SCHEMA IF NOT EXISTS "${schema}" ;
 
 CREATE OR REPLACE FUNCTION "${schema}".slug(input text) RETURNS text AS $f$
@@ -202,8 +202,8 @@ ORDER BY id_slug,
 ; `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${schema}.${materialized_view_name} CASCADE;`
+    /* sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${schema}.${materialized_view_name} CASCADE;`
   )
 }

@@ -1,7 +1,7 @@
-import type { GQLMutationResolvers, UserTagsOrder } from 'definitions'
+import type { GQLMutationResolvers, UserTagsOrder } from '#definitions/index.js'
 
-import { AuthenticationError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { AuthenticationError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putFeaturedTags'] = async (
   _,
@@ -13,7 +13,7 @@ const resolver: GQLMutationResolvers['putFeaturedTags'] = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const dbIds = ids.filter(Boolean).map((id: string) => fromGlobalId(id).id)
+  const dbIds = ids.filter(Boolean).map((id) => fromGlobalId(id).id)
 
   const entry = await systemService.baseUpdateOrCreate<UserTagsOrder>({
     table: 'user_tags_order',

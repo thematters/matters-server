@@ -1,6 +1,6 @@
 const table = 'tag'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // default creator would be matty if article_tag does not exist
   await knex.raw(`
     UPDATE
@@ -25,7 +25,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   const user = await knex('user')
     .select('id')
     .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })

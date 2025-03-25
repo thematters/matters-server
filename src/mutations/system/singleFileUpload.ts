@@ -1,8 +1,8 @@
-import type { Asset, GQLMutationResolvers } from 'definitions'
-
-import axios from 'axios'
-import { FileUpload } from 'graphql-upload'
-import { v4 } from 'uuid'
+import type {
+  Asset,
+  GQLMutationResolvers,
+  GlobalId,
+} from '#definitions/index.js'
 
 import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
@@ -15,10 +15,13 @@ import {
   UPLOAD_FILE_SIZE_LIMIT,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
-} from 'common/enums'
-import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
-import { getLogger, auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+} from '#common/enums/index.js'
+import { UnableToUploadFromUrl, UserInputError } from '#common/errors.js'
+import { getLogger, auditLog } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import axios from 'axios'
+import { FileUpload } from 'graphql-upload'
+import { v4 } from 'uuid'
 
 const logger = getLogger('mutation-upload')
 
@@ -74,7 +77,9 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   }
 
   const relatedEntityId =
-    entityType === 'user' ? viewer.id : fromGlobalId(entityId || '').id
+    entityType === 'user'
+      ? viewer.id
+      : fromGlobalId(entityId || ('' as GlobalId)).id
   if (!relatedEntityId) {
     throw new UserInputError('Entity id is incorrect')
   }

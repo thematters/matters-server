@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 
 const resolver: GQLArticleResolvers['pinnedComments'] = (
   { id: articleId },

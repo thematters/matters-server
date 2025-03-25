@@ -1,3 +1,5 @@
+import { environment, isProd } from '#common/environment.js'
+import { GQLChain } from '#definitions/index.js'
 import {
   mainnet,
   optimism,
@@ -7,10 +9,7 @@ import {
   sepolia,
 } from 'viem/chains'
 
-import { environment, isProd } from 'common/environment'
-import { GQLChain } from 'definitions'
-
-import { LANGUAGE } from './language'
+import { LANGUAGE } from './language.js'
 
 export enum TRANSACTION_STATE {
   pending = 'pending',
@@ -56,6 +55,15 @@ export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
   Polygon: 'Polygon',
   Optimism: 'Optimism',
 } as const
+
+export const BLOCKCHAIN_VIEM_CHAINS = [
+  mainnet,
+  sepolia,
+  polygon,
+  polygonMumbai,
+  optimism,
+  optimismSepolia,
+] as const
 
 export const BLOCKCHAIN_CHAINNAME: { [chainId: string]: GQLChain } = {
   [polygon.id]: BLOCKCHAIN.Polygon,

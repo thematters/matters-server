@@ -1,8 +1,13 @@
-import type { GQLMutationResolvers, Article, Circle, Moment } from 'definitions'
+import type {
+  GQLMutationResolvers,
+  Article,
+  Circle,
+  Moment,
+} from '#definitions/index.js'
 
-import { COMMENT_TYPE, USER_STATE, NOTICE_TYPE } from 'common/enums'
-import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { COMMENT_TYPE, USER_STATE, NOTICE_TYPE } from '#common/enums/index.js'
+import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['unvoteComment'] = async (
   _,

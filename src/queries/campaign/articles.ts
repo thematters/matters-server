@@ -1,8 +1,12 @@
-import type { GQLWritingChallengeResolvers, DataSources } from 'definitions'
+import type {
+  GQLWritingChallengeResolvers,
+  DataSources,
+  GlobalId,
+} from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { UserInputError } from 'common/errors'
-import { connectionFromQuery, fromGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { UserInputError } from '#common/errors.js'
+import { connectionFromQuery, fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLWritingChallengeResolvers['articles'] = async (
   { id: campaignId },
@@ -46,7 +50,7 @@ const resolver: GQLWritingChallengeResolvers['articles'] = async (
 }
 
 const validateStage = async (
-  stageId: string,
+  stageId: GlobalId,
   { atomService }: Pick<DataSources, 'atomService'>
 ) => {
   const { type, id } = fromGlobalId(stageId)

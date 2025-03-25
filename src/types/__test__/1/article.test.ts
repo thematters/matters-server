@@ -1,7 +1,7 @@
-import type { Connections, Article } from 'definitions'
-
-import _get from 'lodash/get'
-import _omit from 'lodash/omit'
+import type { Connections, Article } from '#definitions/index.js'
+import _get from 'lodash/get.js'
+import _omit from 'lodash/omit.js'
+import { jest } from '@jest/globals'
 
 import {
   NODE_TYPES,
@@ -12,15 +12,15 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   CAMPAIGN_STATE,
-} from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
   PaymentService,
   UserService,
   CampaignService,
-} from 'connectors'
+} from '#connectors/index.js'
 
 import {
   publishArticle,
@@ -29,7 +29,7 @@ import {
   updateUserState,
   genConnections,
   closeConnections,
-} from '../utils'
+} from '../utils.js'
 
 let connections: Connections
 let userService: UserService
@@ -288,6 +288,68 @@ describe('publish article', () => {
     expect(publishState).toBe(PUBLISH_STATE.published)
     expect(article.content).not.toBeNull()
     expect(article.indentFirstLine).toBe(false)
+  })
+
+  test('cannot publish article with both circle and campaign', async () => {
+    jest.setTimeout(10000)
+
+    const campaignData = {
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-02 11:30'),
+        new Date('2010-01-02 15:00'),
+      ] as const,
+      creatorId: '2',
+    }
+    const campaignService = new CampaignService(connections)
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+    ])
+    const userId = '1'
+    const circle = await atomService.create({
+      table: 'circle',
+      data: {
+        name: 'circle-test',
+        owner: userId,
+        displayName: 'circle-test',
+        providerProductId: 'circle-test-product-id',
+      },
+    })
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        authorId: userId,
+        circleId: circle.id,
+        campaigns: JSON.stringify([
+          { campaign: campaign.id, stage: stages[0].id },
+        ]),
+      },
+    })
+    const server = await testClient({ isAuth: true, userId, connections })
+
+    const { errors } = await server.executeOperation({
+      query: PUBLISH_ARTICLE,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }) },
+      },
+    })
+
+    expect(errors?.[0].message).toContain(
+      'Article cannot be added to campaign or circle at the same time'
+    )
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })
 

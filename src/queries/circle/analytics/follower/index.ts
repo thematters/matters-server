@@ -1,8 +1,8 @@
-import type { GQLCircleFollowerAnalyticsResolvers } from 'definitions/schema'
+import type { GQLCircleFollowerAnalyticsResolvers } from '#definitions/schema.js'
 
-import current from './current'
-import followerPercentage from './followerPercentage'
-import history from './history'
+import current from './current.js'
+import followerPercentage from './followerPercentage.js'
+import history from './history.js'
 
 const resolvers: GQLCircleFollowerAnalyticsResolvers = {
   history,

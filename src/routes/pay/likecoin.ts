@@ -1,11 +1,4 @@
-import type { EmailableUser } from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import bodyParser from 'body-parser'
-import { RequestHandler, Router } from 'express'
-import { Redis } from 'ioredis'
-import _capitalize from 'lodash/capitalize'
-import NP from 'number-precision'
+import type { EmailableUser } from '#definitions/index.js'
 
 import {
   NODE_TYPES,
@@ -13,13 +6,19 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { LikeCoinWebhookError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { AtomService, PaymentService, UserService } from 'connectors'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { LikeCoinWebhookError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { AtomService, PaymentService, UserService } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import bodyParser from 'body-parser'
+import { RequestHandler, Router } from 'express'
+import { Redis } from 'ioredis'
+import _capitalize from 'lodash/capitalize.js'
+import NP from 'number-precision'
 
-import { connections } from '../connections'
+import { connections } from '../connections.js'
 
 const logger = getLogger('route-likecoin')
 

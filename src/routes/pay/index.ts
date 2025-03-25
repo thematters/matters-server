@@ -1,8 +1,8 @@
 import { Router } from 'express'
 
-import likecoin from './likecoin'
-import stripe from './stripe'
-import stripeConnect from './stripe/connect'
+import likecoin from './likecoin.js'
+import stripeConnect from './stripe/connect/index.js'
+import stripe from './stripe/index.js'
 
 const payRouter = Router()
 

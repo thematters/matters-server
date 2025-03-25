@@ -1,11 +1,11 @@
-import type { GQLRecommendationResolvers } from 'definitions'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
   indexToCursor,
-} from 'common/utils'
+} from '#common/utils/index.js'
 
 import {
   type Activity,
@@ -15,7 +15,7 @@ import {
   makeUserDonateArticleActivityQuery,
   makeUserFollowUserActivityQuery,
   makeUserSubscribeCircleActivityQuery,
-} from './sql'
+} from './sql.js'
 
 export enum RecommendationSource {
   ReadArticlesTags = 'ReadArticlesTags',

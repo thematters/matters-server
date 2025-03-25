@@ -2,19 +2,22 @@ import type {
   GQLMutationResolvers,
   GQLCampaignStageInput,
   Campaign,
-} from 'definitions'
+} from '#definitions/index.js'
 
-import { invalidateFQC } from '@matters/apollo-response-cache'
-
-import { CAMPAIGN_STATE, NODE_TYPES } from 'common/enums'
+import { CAMPAIGN_STATE, NODE_TYPES } from '#common/enums/index.js'
 import {
   UserInputError,
   CampaignNotFoundError,
   AuthenticationError,
   ActionFailedError,
   ArticleNotFoundError,
-} from 'common/errors'
-import { fromGlobalId, toDatetimeRangeString, isUrl } from 'common/utils'
+} from '#common/errors.js'
+import {
+  fromGlobalId,
+  toDatetimeRangeString,
+  isUrl,
+} from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   _,

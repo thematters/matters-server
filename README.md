@@ -45,7 +45,7 @@ Please refer to the repo [matters-email](https://github.com/thematters/matters-e
 
 To make the login flow testing easier, the login-related mutations have hardcoded input values with respective behaviors in the non-production environment.
 
-see [test_mode.md](./test_mode.md) for detail
+see [test_mode.md](./docs/test_mode.md) for detail
 
 ## NOTE
 
@@ -58,3 +58,4 @@ AWS resources that we need to put in the same VPC
   - Cache
   - Queue
 - IPFS cluster EC2 instances
+- Lambda

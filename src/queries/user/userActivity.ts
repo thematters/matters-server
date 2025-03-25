@@ -2,8 +2,8 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
-import { GQLUserActivityResolvers } from 'definitions'
+} from '#common/utils/index.js'
+import { GQLUserActivityResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserActivityResolvers = {
   history: async ({ id }, { input }, { dataSources: { userService } }) => {

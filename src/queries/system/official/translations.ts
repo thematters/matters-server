@@ -1,7 +1,7 @@
-import type { GQLAnnouncementResolvers } from 'definitions'
+import type { GQLAnnouncementResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 
 export const translations: GQLAnnouncementResolvers['translations'] = async (
   { id },

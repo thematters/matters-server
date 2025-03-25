@@ -1,6 +1,6 @@
-import { GQLUserAnalyticsResolvers } from 'definitions'
+import { GQLUserAnalyticsResolvers } from '#definitions/index.js'
 
-import topDonators from './topDonators'
+import topDonators from './topDonators.js'
 
 const UserAnalytics: GQLUserAnalyticsResolvers = {
   topDonators,

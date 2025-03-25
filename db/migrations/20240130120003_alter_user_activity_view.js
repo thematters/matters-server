@@ -1,11 +1,11 @@
 const period = 30
 const materialized_view_name = 'user_activity_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // remove dependency on article.title and create index
   // DDL belowed derived from 20230914084208_alter_user_activity_view.js
 
-  await knex.raw(/*sql*/ `
+  await knex.raw(/* sql*/ `
       DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
 
       CREATE MATERIALIZED VIEW ${materialized_view_name} AS
@@ -165,8 +165,8 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE`
+    /* sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE`
   )
 }

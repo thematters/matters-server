@@ -5,8 +5,8 @@
 const schema = 'mat_views'
 const materialized_view_name = 'tags_lasts_view_materialized'
 
-exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+export const up = async (knex) => {
+  await knex.raw(/* sql*/ `
 CREATE SCHEMA IF NOT EXISTS "${schema}" ;
 
 CREATE OR REPLACE FUNCTION "${schema}".slug(input text) RETURNS text AS $f$
@@ -222,8 +222,8 @@ CREATE INDEX "${materialized_view_name}_dup_tag_ids_idx" ON "${schema}"."${mater
 `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS "${schema}"."${materialized_view_name}" CASCADE;`
+    /* sql*/ `DROP MATERIALIZED VIEW IF EXISTS "${schema}"."${materialized_view_name}" CASCADE;`
   )
 }

@@ -1,6 +1,9 @@
-import type { GQLMutationResolvers, Article, Circle } from 'definitions'
-
-import { uniq } from 'lodash'
+import type {
+  GQLMutationResolvers,
+  Article,
+  Circle,
+} from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -14,7 +17,7 @@ import {
   PRICE_STATE,
   USER_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionReachLimitError,
@@ -23,8 +26,9 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import uniq from 'lodash/uniq.js'
 
 const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   _,
@@ -62,7 +66,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id as GlobalId)
   const articleIds = articles.map((articleId) => fromGlobalId(articleId).id)
   const [circle, targetArticles] = await Promise.all([
     atomService.findFirst({
@@ -117,6 +121,18 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
 
   // add articles to circle
   if (actionType === 'add') {
+    // Check if articles are in campaigns
+    const articlesInCampaigns = await atomService.findMany({
+      table: 'campaign_article',
+      whereIn: ['article_id', targetArticleIds],
+    })
+
+    if (articlesInCampaigns?.length > 0) {
+      throw new ForbiddenError(
+        'Articles in campaigns cannot be added to circles'
+      )
+    }
+
     // retrieve circle members and followers
     const members = await knex
       .from('circle_subscription_item as csi')

@@ -1,5 +1,5 @@
-exports.up = (knex) => {
-  return knex.raw(/*sql*/ `
+export const up = (knex) => {
+  return knex.raw(/* sql*/ `
   -- fill in data
   update appreciation
   set
@@ -46,4 +46,4 @@ exports.up = (knex) => {
   `)
 }
 
-exports.down = () => {}
+export const down = () => {}

@@ -10,11 +10,9 @@ import type {
   BaseDBSchema,
   LogRecord,
   Blocklist,
-} from 'definitions'
+  TableName,
+} from '#definitions/index.js'
 import type { Knex } from 'knex'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { v4 } from 'uuid'
 
 import {
   ASSET_TYPE,
@@ -29,21 +27,23 @@ import {
   NODE_TYPES,
   CACHE_PREFIX,
   CACHE_TTL,
-} from 'common/enums'
-import { isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { BaseService, CacheService } from 'connectors'
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
+} from '#common/enums/index.js'
+import { isTest } from '#common/environment.js'
+import { getLogger, auditLog } from '#common/logger.js'
+import { BaseService, CacheService } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { v4 } from 'uuid'
 
 const logger = getLogger('service-system')
 
 export class SystemService extends BaseService<BaseDBSchema> {
-  private featureFlagTable: string
+  private featureFlagTable: TableName = 'feature_flag'
 
   public constructor(connections: Connections) {
     // @ts-ignore
     super('noop', connections)
-
-    this.featureFlagTable = 'feature_flag'
   }
 
   /*********************************
@@ -112,6 +112,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     flag: keyof typeof FEATURE_FLAG
     value?: number
   }) => {
+    const { flag: oldFlag, value: oldValue } = await this.getFeatureFlag(name)
     const [featureFlag] = await this.knex
       .where({ name })
       .update({
@@ -122,6 +123,18 @@ export class SystemService extends BaseService<BaseDBSchema> {
       })
       .into(this.featureFlagTable)
       .returning('*')
+
+    auditLog({
+      actorId: null,
+      action: AUDIT_LOG_ACTION.setFeatureFlag,
+      status: AUDIT_LOG_STATUS.succeeded,
+      entity: this.featureFlagTable,
+      entityId: featureFlag.id,
+      newValue: JSON.stringify({ flag, value }),
+      oldValue: JSON.stringify({ flag: oldFlag, value: oldValue }),
+      remark: `Set feature flag ${name} to ${flag} with value ${value}`,
+    })
+
     return featureFlag
   }
 
@@ -312,7 +325,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     )
     return isImageType
       ? this.cfsvc.genUrl(asset.path)
-      : `${this.aws.s3Endpoint}/${asset.path}`
+      : `${this.aws.getS3Endpoint()}/${asset.path}`
   }
   /**
    * Find the url of an asset by a given id.

@@ -3,84 +3,18 @@ name: Test
 on:
   push:
     branches-ignore:
-      - develop
       - main
       - master
-      - stage
+      - develop
   pull_request:
     branches:
       - develop
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
-
-    services:
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-      stripe:
-        image: stripemock/stripe-mock:latest
-        ports:
-          - 12111:12111
-          - 12112:12112
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: matters-test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-
-      - name: Cache NPM dependencies
-        uses: actions/cache@v3
-        id: node_modules_cache
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-v18-npm-v3-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Dependencies
-        if: steps.node_modules_cache.outputs.cache-hit != 'true'
-        run: npm ci
-
-      - name: Lint
-        run: |
-          npm run lint \
-          && npm run format:check
-
-      - name: Test
-        run: npm run test
-        env:
-          NODE_OPTIONS: '--no-experimental-fetch'
-          CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
-          MATTERS_ENV: test
-          MATTERS_LOGGING_LEVEL: critical
-          MATTERS_PG_HOST: localhost
-          MATTERS_PG_USER: postgres
-          MATTERS_PG_PASSWORD: postgres
-          MATTERS_PG_DATABASE: matters-test
-          MATTERS_QUEUE_HOST: localhost
-          MATTERS_CACHE_HOST: localhost
-          MATTERS_MATTY_ID: 6
-          MATTERS_JWT_SECRET: QsNmu9
-          MATTERS_ELASTICSEARCH_HOST: localhost
-          MATTERS_ELASTICSEARCH_PORT: 9200
-          MATTERS_IPFS_SERVERS: 'http://localhost:5001'
-          MATTERS_STRIPE_SECRET: sk_test_foobar
-          MATTERS_SENDGRID_API_KEY: SG.0-_abcabcabc.
-          MATTERS_OPENSEA_API_BASE: 'https://rinkeby-api.opensea.io/api/v1'
-          MATTERS_CURATION_VAULT_SIGNER_PRIVATE_KEY: '0x8441d82233625acbb5738a56d9ad0a841515e882d536a06b5962c628472af073'
-
-      - name: Build
-        run: npm run build
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: ''
+      skip_tests: false
+      skip_docker: true
+    secrets: {}

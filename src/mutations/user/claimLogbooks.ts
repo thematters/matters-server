@@ -1,7 +1,16 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, GlobalId } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
+import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from '#common/enums/index.js'
+import { environment, isProd, contract } from '#common/environment.js'
+import {
+  EntityNotFoundError,
+  EthAddressNotFoundError,
+  UserInputError,
+} from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { alchemy, AlchemyNetwork } from '#connectors/index.js'
 import axios from 'axios'
-import { Knex } from 'knex'
 import {
   Address,
   Hex,
@@ -16,14 +25,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts'
 import { polygon } from 'viem/chains'
 
-import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from 'common/enums'
-import { environment, isProd, contract } from 'common/environment'
-import {
-  EntityNotFoundError,
-  EthAddressNotFoundError,
-  UserInputError,
-} from 'common/errors'
-import { alchemy, AlchemyNetwork } from 'connectors'
+const logger = getLogger('mutation-claimLogbooks')
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   _,
@@ -113,7 +115,8 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   for (const tokenId of tokenIds) {
     try {
       await logbookContract.read.ownerOf([tokenId])
-    } catch (e) {
+    } catch (e: unknown) {
+      logger.error(e)
       unclaimedTokenIds.push(tokenId)
     }
   }
@@ -161,7 +164,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   })
 
   return {
-    ids: unclaimedTokenIds,
+    ids: unclaimedTokenIds as GlobalId[],
     txHash,
   }
 }

@@ -1,7 +1,5 @@
-import type { GQLMutationResolvers } from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { compare } from 'bcrypt'
+import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   CIRCLE_ACTION,
@@ -12,7 +10,7 @@ import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   CircleNotFoundError,
   DuplicateCircleSubscriptionError,
@@ -21,8 +19,10 @@ import {
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { compare } from 'bcrypt'
 
 const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   _,
@@ -71,7 +71,7 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   }
 
   // check circle
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
   const [circle, price] = await Promise.all([
     atomService.findFirst({
       table: 'circle',

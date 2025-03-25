@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { MATTERS_CHOICE_TOPIC_STATE } from 'common/enums'
-import { UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { MATTERS_CHOICE_TOPIC_STATE } from '#common/enums/index.js'
+import { UserInputError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putIcymiTopic'] = async (
   _,

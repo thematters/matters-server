@@ -1,6 +1,6 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { TRANSACTION_PURPOSE } from 'common/enums'
+import { TRANSACTION_PURPOSE } from '#common/enums/index.js'
 
 const resolver: GQLArticleResolvers['donationCount'] = async (
   { id, authorId },

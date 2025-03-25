@@ -21,8 +21,8 @@ export const environment = {
   siteDomain: (process.env.MATTERS_SITE_DOMAIN || 'matters.town') as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,
   awsRegion: process.env.MATTERS_AWS_REGION,
-  awsAccessId: process.env.MATTERS_AWS_ACCESS_ID,
-  awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY,
+  awsAccessId: process.env.MATTERS_AWS_ACCESS_ID || '',
+  awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY || '',
   awsS3Endpoint: process.env.MATTERS_AWS_S3_ENDPOINT,
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
   awsNotificationQueueUrl: process.env.MATTERS_AWS_NOTIFICATION_QUEUE_URL || '',
@@ -55,7 +55,6 @@ export const environment = {
     // fallback to primary DB for test'ing
     // `postgresql://${process.env.MATTERS_PG_HOST}:${process.env.MATTERS_PG_PASSWORD}@${process.env.MATTERS_PG_HOST}/${process.env.MATTERS_PG_DATABASE}`,
     'postgresql://no-exist@no-exist/no-exist',
-  searchPgPassword: process.env.MATTERS_SEARCH_PG_PASSWORD,
   searchPgCoefficients: JSON.parse(
     process.env.MATTERS_SEARCH_PG_COEFFICIENTS || '[1,1,1,1]'
   ),
@@ -107,6 +106,7 @@ export const environment = {
   slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
   slackCurationVaultChannel:
     process.env.MATTERS_SLACK_CURATION_VAULT_CHANNEL || '',
+  slackExchangeAPIChannel: process.env.MATTERS_SLACK_EXCHANGE_API_CHANNEL || '',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd

@@ -1,8 +1,8 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const crypto_wallet_table = 'crypto_wallet_signature'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(
     alterEnumString(crypto_wallet_table, 'purpose', [
       'airdrop',
@@ -14,7 +14,7 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     alterEnumString(crypto_wallet_table, 'purpose', [
       'airdrop',

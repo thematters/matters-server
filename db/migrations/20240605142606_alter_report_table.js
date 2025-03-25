@@ -1,6 +1,6 @@
 const table = 'report'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.bigInteger('moment_id').unsigned().nullable()
     t.foreign('moment_id').references('id').inTable('moment')
@@ -12,7 +12,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('moment_id')
 

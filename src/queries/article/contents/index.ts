@@ -1,2 +1,2 @@
-export * from './html'
-export * from './markdown'
+export * from './html.js'
+export * from './markdown.js'

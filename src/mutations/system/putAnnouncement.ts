@@ -1,15 +1,14 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import lodash from 'lodash'
-
-import { ASSET_TYPE, NODE_TYPES } from 'common/enums'
+import { ASSET_TYPE, NODE_TYPES } from '#common/enums/index.js'
 import {
   AssetNotFoundError,
   EntityNotFoundError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import lodash from 'lodash'
 
 const resolver: GQLMutationResolvers['putAnnouncement'] = async (
   _,

@@ -1,20 +1,22 @@
+import { BLOCKCHAIN_RPC, BLOCKCHAIN_VIEM_CHAINS } from '#common/enums/index.js'
 import {
+  type PublicClient,
+  type Transport,
   Address,
-  PublicClient,
   createPublicClient,
   extractChain,
   http,
 } from 'viem'
-import * as chains from 'viem/chains'
-
-import { BLOCKCHAIN_RPC } from 'common/enums'
 
 export class BaseContract {
   public chainId: string
   public address: Address
   public blockNum: string
 
-  protected client: PublicClient
+  protected client: PublicClient<
+    Transport,
+    (typeof BLOCKCHAIN_VIEM_CHAINS)[number]
+  >
 
   public constructor(chainId: string, address: Address, blockNum: string) {
     this.chainId = chainId
@@ -22,12 +24,12 @@ export class BaseContract {
     this.blockNum = blockNum
 
     const chain = extractChain({
-      chains: Object.values(chains),
+      chains: BLOCKCHAIN_VIEM_CHAINS,
       id: chainId as any,
-    }) as chains.Chain
+    })
 
     this.client = createPublicClient({
-      chain,
+      chain: chain,
       transport: http(BLOCKCHAIN_RPC[chainId]),
     })
   }

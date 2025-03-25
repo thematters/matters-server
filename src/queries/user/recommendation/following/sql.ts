@@ -1,4 +1,4 @@
-import { Knex } from 'knex'
+import type { Knex } from 'knex'
 
 import {
   ActivityType,
@@ -9,8 +9,8 @@ import {
   USER_ACTION,
   NODE_TYPES,
   MOMENT_STATE,
-} from 'common/enums'
-import { selectWithTotalCount } from 'common/utils'
+} from '#common/enums/index.js'
+import { selectWithTotalCount } from '#common/utils/index.js'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
 

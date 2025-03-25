@@ -1,12 +1,12 @@
-import type { GQLResolvers } from 'definitions'
+import type { GQLResolvers, GlobalId } from '#definitions/index.js'
 
-import frequentSearch from './frequentSearch'
-import node from './node'
-import nodes from './nodes'
-import { announcements, features, translations } from './official'
-import OSS from './oss'
-import report from './report'
-import search from './search'
+import frequentSearch from './frequentSearch.js'
+import node from './node.js'
+import nodes from './nodes.js'
+import { announcements, features, translations } from './official/index.js'
+import OSS from './oss/index.js'
+import report from './report.js'
+import search from './search.js'
 
 const system: GQLResolvers = {
   Query: {
@@ -24,7 +24,7 @@ const system: GQLResolvers = {
     __resolveType: ({ __type }: any) => __type,
   },
   Asset: {
-    id: ({ uuid }: { uuid: string }) => uuid,
+    id: ({ uuid }: { uuid: string }) => uuid as GlobalId,
     path: (asset, _, { dataSources: { systemService } }) =>
       systemService.genAssetUrl(asset),
   },

@@ -1,4 +1,4 @@
-import type { GQLDraftResolvers } from 'definitions'
+import type { GQLDraftResolvers } from '#definitions/index.js'
 
 // ACL for article content
 const resolver: GQLDraftResolvers['content'] = async (

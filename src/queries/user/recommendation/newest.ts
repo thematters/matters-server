@@ -1,8 +1,8 @@
-import type { GQLRecommendationResolvers } from 'definitions'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { DEFAULT_TAKE_PER_PAGE } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
 export const newest: GQLRecommendationResolvers['newest'] = async (
   _,
@@ -20,7 +20,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
 
-  const articles = await articleService.latestArticles({
+  const [articles, totalCount] = await articleService.latestArticles({
     take,
     skip,
     maxTake: MAX_ITEM_COUNT,
@@ -29,9 +29,5 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     excludeChannelArticles,
   })
 
-  return connectionFromPromisedArray(
-    articles,
-    input,
-    MAX_ITEM_COUNT // totalCount
-  )
+  return connectionFromArray(articles, input, totalCount)
 }

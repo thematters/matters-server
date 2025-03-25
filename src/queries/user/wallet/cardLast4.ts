@@ -1,6 +1,6 @@
-import type { Customer, GQLWalletResolvers } from 'definitions'
+import type { Customer, GQLWalletResolvers } from '#definitions/index.js'
 
-import { PAYMENT_PROVIDER } from 'common/enums'
+import { PAYMENT_PROVIDER } from '#common/enums/index.js'
 
 const resolver: GQLWalletResolvers['cardLast4'] = async (
   { id },

@@ -3,15 +3,15 @@ import type {
   GQLBadgeType,
   GQLUserFeatureFlagType,
   GQLUserRestrictionType,
-} from 'definitions'
+} from '#definitions/index.js'
 
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES, USER_STATE } from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { MomentService, CampaignService } from 'connectors'
+import { NODE_TYPES, USER_STATE } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
+import { MomentService, CampaignService } from '#connectors/index.js'
 
-import { createCampaign } from 'connectors/__test__/utils'
+import { createCampaign } from '#connectors/__test__/utils.js'
 
 import {
   delay,
@@ -22,7 +22,7 @@ import {
   updateUserDescription,
   genConnections,
   closeConnections,
-} from '../utils'
+} from '../utils.js'
 
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,

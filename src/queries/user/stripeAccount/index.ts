@@ -1,9 +1,9 @@
-import type { GQLStripeAccountResolvers } from 'definitions'
+import type { GQLStripeAccountResolvers, GlobalId } from '#definitions/index.js'
 
-import loginUrl from './loginUrl'
+import loginUrl from './loginUrl.js'
 
 const StripeAccount: GQLStripeAccountResolvers = {
-  id: ({ accountId }) => accountId,
+  id: ({ accountId }) => accountId as GlobalId,
   loginUrl,
 }
 

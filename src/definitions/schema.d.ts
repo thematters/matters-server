@@ -7,38 +7,39 @@ import {
   User as UserModel,
   Wallet as WalletModel,
   OAuthClientDB as OAuthClientDBModel,
-} from './user'
-import { Tag as TagModel } from './tag'
-import { Collection as CollectionModel } from './collection'
-import { Comment as CommentModel } from './comment'
+} from './user.js'
+import { Tag as TagModel } from './tag.js'
+import { Collection as CollectionModel } from './collection.js'
+import { Comment as CommentModel } from './comment.js'
 import {
   Article as ArticleModel,
   ArticleVersion as ArticleVersionModel,
-} from './article'
-import { Draft as DraftModel } from './draft'
+} from './article.js'
+import { Draft as DraftModel } from './draft.js'
 import {
   Circle as CircleModel,
   CircleInvitation as CircleInvitationModel,
   CircleMember as CircleMemberModel,
-} from './circle'
+} from './circle.js'
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
   Writing as WritingModel,
   Context,
-} from './index'
-import { PayoutAccount as PayoutAccountModel } from './payment'
-import { Asset as AssetModel } from './asset'
-import { NoticeItem as NoticeItemModel } from './notification'
-import { Appreciation as AppreciationModel } from './appreciation'
-import { Report as ReportModel } from './report'
-import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
-import { Moment as MomentModel } from './moment'
+} from './index.js'
+import { PayoutAccount as PayoutAccountModel } from './payment.js'
+import { Asset as AssetModel } from './asset.js'
+import { NoticeItem as NoticeItemModel } from './notification.js'
+import { Appreciation as AppreciationModel } from './appreciation.js'
+import { Report as ReportModel } from './report.js'
+import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc.js'
+import { Moment as MomentModel } from './moment.js'
 import {
   Campaign as CampaignModel,
   CampaignStage as CampaignStageModel,
-} from './campaign'
-import { Channel as ChannelModel } from './channel'
+} from './campaign.js'
+import { Channel as ChannelModel } from './channel.js'
+import { GlobalId } from './nominal.js'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -65,7 +66,7 @@ export type RequireFields<T, K extends keyof T> = Omit<T, K> & {
 }
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string }
+  ID: { input: GlobalId; output: GlobalId }
   String: { input: string; output: string }
   Boolean: { input: boolean; output: boolean }
   Int: { input: number; output: number }
@@ -4416,40 +4417,40 @@ export type DirectiveResolverFn<
 ) => TResult | Promise<TResult>
 
 /** Mapping of union types */
-export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
+export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
   ResolversObject<{
     FollowingActivity:
       | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
-          nodes?: Maybe<Array<RefType['Article']>>
+          nodes?: Maybe<Array<_RefType['Article']>>
         })
       | (Omit<GQLCircleRecommendationActivity, 'nodes'> & {
-          nodes?: Maybe<Array<RefType['Circle']>>
+          nodes?: Maybe<Array<_RefType['Circle']>>
         })
       | (Omit<GQLUserAddArticleTagActivity, 'actor' | 'node' | 'target'> & {
-          actor: RefType['User']
-          node: RefType['Article']
-          target: RefType['Tag']
+          actor: _RefType['User']
+          node: _RefType['Article']
+          target: _RefType['Tag']
         })
       | (Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
-          actor: RefType['User']
-          node: RefType['Comment']
-          target: RefType['Circle']
+          actor: _RefType['User']
+          node: _RefType['Comment']
+          target: _RefType['Circle']
         })
       | (Omit<GQLUserCreateCircleActivity, 'actor' | 'node'> & {
-          actor: RefType['User']
-          node: RefType['Circle']
+          actor: _RefType['User']
+          node: _RefType['Circle']
         })
       | (Omit<GQLUserPostMomentActivity, 'actor' | 'more' | 'node'> & {
-          actor: RefType['User']
-          more: Array<RefType['Moment']>
-          node: RefType['Moment']
+          actor: _RefType['User']
+          more: Array<_RefType['Moment']>
+          node: _RefType['Moment']
         })
       | (Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
-          actor: RefType['User']
-          node: RefType['Article']
+          actor: _RefType['User']
+          node: _RefType['Article']
         })
       | (Omit<GQLUserRecommendationActivity, 'nodes'> & {
-          nodes?: Maybe<Array<RefType['User']>>
+          nodes?: Maybe<Array<_RefType['User']>>
         })
     Invitee: GQLPerson | UserModel
     Response: ArticleModel | CommentModel
@@ -4459,80 +4460,86 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
 
 /** Mapping of interface types */
 export type GQLResolversInterfaceTypes<
-  RefType extends Record<string, unknown>
+  _RefType extends Record<string, unknown>
 > = ResolversObject<{
   Campaign: CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['AppreciationEdge']>>
+        edges?: Maybe<Array<_RefType['AppreciationEdge']>>
       })
     | (Omit<GQLArticleConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['ArticleEdge']>>
+        edges?: Maybe<Array<_RefType['ArticleEdge']>>
       })
     | (Omit<GQLArticleVersionsConnection, 'edges'> & {
-        edges: Array<Maybe<RefType['ArticleVersionEdge']>>
+        edges: Array<Maybe<_RefType['ArticleVersionEdge']>>
       })
     | (Omit<GQLCampaignArticleConnection, 'edges'> & {
-        edges: Array<RefType['CampaignArticleEdge']>
+        edges: Array<_RefType['CampaignArticleEdge']>
       })
     | (Omit<GQLCampaignConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['CampaignEdge']>>
+        edges?: Maybe<Array<_RefType['CampaignEdge']>>
       })
     | (Omit<GQLCampaignParticipantConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['CampaignParticipantEdge']>>
+        edges?: Maybe<Array<_RefType['CampaignParticipantEdge']>>
       })
     | (Omit<GQLCircleConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['CircleEdge']>>
+        edges?: Maybe<Array<_RefType['CircleEdge']>>
       })
     | (Omit<GQLCollectionConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['CollectionEdge']>>
+        edges?: Maybe<Array<_RefType['CollectionEdge']>>
       })
     | (Omit<GQLCommentConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['CommentEdge']>>
+        edges?: Maybe<Array<_RefType['CommentEdge']>>
       })
     | (Omit<GQLDraftConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['DraftEdge']>>
+        edges?: Maybe<Array<_RefType['DraftEdge']>>
       })
-    | GQLFollowingActivityConnection
+    | (Omit<GQLFollowingActivityConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['FollowingActivityEdge']>>
+      })
     | (Omit<GQLIcymiTopicConnection, 'edges'> & {
-        edges: Array<RefType['IcymiTopicEdge']>
+        edges: Array<_RefType['IcymiTopicEdge']>
       })
     | (Omit<GQLInvitationConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['InvitationEdge']>>
+        edges?: Maybe<Array<_RefType['InvitationEdge']>>
       })
     | (Omit<GQLMemberConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['MemberEdge']>>
+        edges?: Maybe<Array<_RefType['MemberEdge']>>
       })
     | (Omit<GQLNoticeConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['NoticeEdge']>>
+        edges?: Maybe<Array<_RefType['NoticeEdge']>>
       })
     | (Omit<GQLOAuthClientConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['OAuthClientEdge']>>
+        edges?: Maybe<Array<_RefType['OAuthClientEdge']>>
       })
     | (Omit<GQLReadHistoryConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['ReadHistoryEdge']>>
+        edges?: Maybe<Array<_RefType['ReadHistoryEdge']>>
       })
     | GQLRecentSearchConnection
     | (Omit<GQLReportConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['ReportEdge']>>
+        edges?: Maybe<Array<_RefType['ReportEdge']>>
       })
-    | GQLResponseConnection
-    | GQLSearchResultConnection
+    | (Omit<GQLResponseConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['ResponseEdge']>>
+      })
+    | (Omit<GQLSearchResultConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['SearchResultEdge']>>
+      })
     | GQLSkippedListItemsConnection
     | (Omit<GQLTagConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['TagEdge']>>
+        edges?: Maybe<Array<_RefType['TagEdge']>>
       })
     | (Omit<GQLTopDonatorConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['TopDonatorEdge']>>
+        edges?: Maybe<Array<_RefType['TopDonatorEdge']>>
       })
     | (Omit<GQLTransactionConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['TransactionEdge']>>
+        edges?: Maybe<Array<_RefType['TransactionEdge']>>
       })
     | (Omit<GQLUserConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['UserEdge']>>
+        edges?: Maybe<Array<_RefType['UserEdge']>>
       })
     | (Omit<GQLWritingConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['WritingEdge']>>
+        edges?: Maybe<Array<_RefType['WritingEdge']>>
       })
   Node:
     | ArticleModel
@@ -4703,7 +4710,8 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   CampaignParticipantEdge: ResolverTypeWrapper<
-    Omit<GQLCampaignParticipantEdge, 'node'> & {
+    Omit<GQLCampaignParticipantEdge, 'application' | 'node'> & {
+      application?: Maybe<GQLResolversTypes['CampaignApplication']>
       node: GQLResolversTypes['User']
     }
   >
@@ -4826,7 +4834,11 @@ export type GQLResolversTypes = ResolversObject<{
   FollowingActivity: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['FollowingActivity']
   >
-  FollowingActivityConnection: ResolverTypeWrapper<GQLFollowingActivityConnection>
+  FollowingActivityConnection: ResolverTypeWrapper<
+    Omit<GQLFollowingActivityConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['FollowingActivityEdge']>>
+    }
+  >
   FollowingActivityEdge: ResolverTypeWrapper<
     Omit<GQLFollowingActivityEdge, 'node'> & {
       node: GQLResolversTypes['FollowingActivity']
@@ -5030,7 +5042,11 @@ export type GQLResolversTypes = ResolversObject<{
   Response: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['Response']
   >
-  ResponseConnection: ResolverTypeWrapper<GQLResponseConnection>
+  ResponseConnection: ResolverTypeWrapper<
+    Omit<GQLResponseConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['ResponseEdge']>>
+    }
+  >
   ResponseEdge: ResolverTypeWrapper<
     Omit<GQLResponseEdge, 'node'> & { node: GQLResolversTypes['Response'] }
   >
@@ -5041,8 +5057,14 @@ export type GQLResolversTypes = ResolversObject<{
   SearchExclude: GQLSearchExclude
   SearchFilter: GQLSearchFilter
   SearchInput: GQLSearchInput
-  SearchResultConnection: ResolverTypeWrapper<GQLSearchResultConnection>
-  SearchResultEdge: ResolverTypeWrapper<GQLSearchResultEdge>
+  SearchResultConnection: ResolverTypeWrapper<
+    Omit<GQLSearchResultConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['SearchResultEdge']>>
+    }
+  >
+  SearchResultEdge: ResolverTypeWrapper<
+    Omit<GQLSearchResultEdge, 'node'> & { node: GQLResolversTypes['Node'] }
+  >
   SearchTypes: GQLSearchTypes
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
@@ -5337,7 +5359,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   > & {
     edges?: Maybe<Array<GQLResolversParentTypes['CampaignParticipantEdge']>>
   }
-  CampaignParticipantEdge: Omit<GQLCampaignParticipantEdge, 'node'> & {
+  CampaignParticipantEdge: Omit<
+    GQLCampaignParticipantEdge,
+    'application' | 'node'
+  > & {
+    application?: Maybe<GQLResolversParentTypes['CampaignApplication']>
     node: GQLResolversParentTypes['User']
   }
   CampaignParticipantsInput: GQLCampaignParticipantsInput
@@ -5430,7 +5456,9 @@ export type GQLResolversParentTypes = ResolversObject<{
   Float: Scalars['Float']['output']
   Following: UserModel
   FollowingActivity: GQLResolversUnionTypes<GQLResolversParentTypes>['FollowingActivity']
-  FollowingActivityConnection: GQLFollowingActivityConnection
+  FollowingActivityConnection: Omit<GQLFollowingActivityConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['FollowingActivityEdge']>>
+  }
   FollowingActivityEdge: Omit<GQLFollowingActivityEdge, 'node'> & {
     node: GQLResolversParentTypes['FollowingActivity']
   }
@@ -5585,15 +5613,21 @@ export type GQLResolversParentTypes = ResolversObject<{
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   Response: GQLResolversUnionTypes<GQLResolversParentTypes>['Response']
-  ResponseConnection: GQLResponseConnection
+  ResponseConnection: Omit<GQLResponseConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['ResponseEdge']>>
+  }
   ResponseEdge: Omit<GQLResponseEdge, 'node'> & {
     node: GQLResolversParentTypes['Response']
   }
   ResponsesInput: GQLResponsesInput
   SearchFilter: GQLSearchFilter
   SearchInput: GQLSearchInput
-  SearchResultConnection: GQLSearchResultConnection
-  SearchResultEdge: GQLSearchResultEdge
+  SearchResultConnection: Omit<GQLSearchResultConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['SearchResultEdge']>>
+  }
+  SearchResultEdge: Omit<GQLSearchResultEdge, 'node'> & {
+    node: GQLResolversParentTypes['Node']
+  }
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetArticleChannelsInput: GQLSetArticleChannelsInput

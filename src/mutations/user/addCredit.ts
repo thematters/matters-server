@@ -1,4 +1,4 @@
-import type { Customer, GQLMutationResolvers } from 'definitions'
+import type { Customer, GQLMutationResolvers } from '#definitions/index.js'
 
 import {
   PAYMENT_CURRENCY,
@@ -6,13 +6,13 @@ import {
   PAYMENT_MINIMAL_ADD_CREDIT_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   PaymentAmountInvalidError,
   PaymentAmountTooSmallError,
   ServerError,
   ForbiddenError,
-} from 'common/errors'
+} from '#common/errors.js'
 
 const resolver: GQLMutationResolvers['addCredit'] = async (
   _,

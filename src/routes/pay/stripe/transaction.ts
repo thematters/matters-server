@@ -1,7 +1,4 @@
-import type { Connections, UserHasUsername } from 'definitions'
-
-import _ from 'lodash'
-import Stripe from 'stripe'
+import type { Connections, UserHasUsername } from '#definitions/index.js'
 
 import {
   PAYMENT_CURRENCY,
@@ -9,9 +6,15 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { numRound, toDBAmount } from 'common/utils'
-import { NotificationService, PaymentService, AtomService } from 'connectors'
+} from '#common/enums/index.js'
+import { numRound, toDBAmount } from '#common/utils/index.js'
+import {
+  NotificationService,
+  PaymentService,
+  AtomService,
+} from '#connectors/index.js'
+import _ from 'lodash'
+import Stripe from 'stripe'
 
 const mappingTxPurposeToMailType = (type: TRANSACTION_PURPOSE) => {
   switch (type) {

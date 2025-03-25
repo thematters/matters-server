@@ -7,7 +7,7 @@ import type {
   GQLCommentsInput,
   User,
   ValueOf,
-} from 'definitions'
+} from '#definitions/index.js'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
@@ -16,14 +16,14 @@ import {
   USER_STATE,
   USER_ACTION,
   NOTICE_TYPE,
-} from 'common/enums'
-import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
+} from '#common/enums/index.js'
+import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
 import {
   BaseService,
   PaymentService,
   NotificationService,
   UserService,
-} from 'connectors'
+} from '#connectors/index.js'
 
 export interface CommentFilter {
   type: ValueOf<typeof COMMENT_TYPE>

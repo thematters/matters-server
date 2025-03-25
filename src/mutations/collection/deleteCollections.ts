@@ -1,11 +1,14 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
+import {
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
+  NODE_TYPES,
+} from '#common/enums/index.js'
+import { ForbiddenError, UserInputError } from '#common/errors.js'
+import { auditLog } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
-
-import { AUDIT_LOG_ACTION, AUDIT_LOG_STATUS, NODE_TYPES } from 'common/enums'
-import { ForbiddenError, UserInputError } from 'common/errors'
-import { auditLog } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['deleteCollections'] = async (
   _,

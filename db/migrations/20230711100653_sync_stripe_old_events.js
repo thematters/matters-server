@@ -1,4 +1,4 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const table = 'transaction'
 
@@ -280,7 +280,7 @@ const disputes = {
 
 const env = process.env.MATTERS_ENV
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // migrate payout reversals
   await knex(table)
     .whereIn('provider_tx_id', payouts[env] ?? [])
@@ -312,7 +312,7 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex(table)
     .whereIn('provider_tx_id', payouts[env] ?? [])
     .update({ state: 'succeeded' })

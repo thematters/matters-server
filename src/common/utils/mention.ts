@@ -1,8 +1,9 @@
+import type { GlobalId } from '#definitions/nominal.js'
 import type { BasicAcceptedElems } from 'cheerio'
 
 import * as cheerio from 'cheerio'
 
-import { fromGlobalId } from './globalId'
+import { fromGlobalId } from './globalId.js'
 
 export const extractMentionIds = (content: string): string[] => {
   const $ = cheerio.load(content)
@@ -15,7 +16,7 @@ export const extractMentionIds = (content: string): string[] => {
     })
     .get()
   return mentionIds.map((globalId) => {
-    const { id } = fromGlobalId(globalId)
+    const { id } = fromGlobalId(globalId as GlobalId)
     return id
   })
 }

@@ -1,13 +1,14 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
+  CAMPAIGN_STATE,
   NODE_TYPES,
-} from 'common/enums'
-import { toGlobalId } from 'common/utils'
+} from '#common/enums/index.js'
+import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 
 import {
   delay,
@@ -16,7 +17,8 @@ import {
   testClient,
   genConnections,
   closeConnections,
-} from '../utils'
+} from '../utils.js'
+import { CampaignService } from '#connectors/index.js'
 
 let connections: Connections
 
@@ -831,6 +833,81 @@ describe('circle CRUD', () => {
       },
     })
     expect(_get(errorData, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('articles in campaigns cannot be added to circles', async () => {
+    const server = await testClient({ ...userClient, connections })
+
+    // Create a new draft
+    const draft = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+      },
+      connections
+    )
+
+    // Publish the article
+    await publishArticle({ id: draft.id }, connections)
+    await delay(500)
+
+    // Get the circle and article
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+    const article = _get(data, 'viewer.articles.edges[0].node')
+
+    // Add the article to a campaign
+    const campaignData = {
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-02 11:30'),
+        new Date('2010-01-02 15:00'),
+      ] as const,
+      creatorId: '2',
+    }
+    const campaignService = new CampaignService(connections)
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+    ])
+    await connections.knex('campaign_article').insert({
+      article_id: fromGlobalId(article.id).id,
+      campaign_id: campaign.id,
+      campaign_stage_id: stages[0].id,
+    })
+
+    // Try to add article to circle
+    const publicInput = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.public,
+    }
+
+    const { errors } = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
+      variables: { input: publicInput },
+    })
+
+    // Should be forbidden
+    expect(errors).toBeDefined()
+    expect(errors?.[0].message).toContain(
+      'Articles in campaigns cannot be added to circles'
+    )
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
 })
 

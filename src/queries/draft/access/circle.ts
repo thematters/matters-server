@@ -1,4 +1,4 @@
-import type { GQLDraftAccessResolvers, Circle } from 'definitions'
+import type { GQLDraftAccessResolvers, Circle } from '#definitions/index.js'
 
 export const circle: GQLDraftAccessResolvers['circle'] = (
   { circleId },

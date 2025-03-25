@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, GlobalId } from '#definitions/index.js'
 
-import { NODE_TYPES, SKIPPED_LIST_ITEM_TYPES } from 'common/enums'
-import { EntityNotFoundError, UserInputError } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { NODE_TYPES, SKIPPED_LIST_ITEM_TYPES } from '#common/enums/index.js'
+import { EntityNotFoundError, UserInputError } from '#common/errors.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
   _,
@@ -26,7 +26,9 @@ const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
       { id: dbId },
       params
     )
-    const updatedItems = [{ ...updateItem, id }]
+    const updatedItems = [
+      { ...updateItem, id, uuid: updateItem.uuid as GlobalId },
+    ]
 
     if (item.type === SKIPPED_LIST_ITEM_TYPES.EMAIL) {
       const relatedItem = await systemService.updateSkippedItem(
@@ -40,6 +42,7 @@ const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
             type: NODE_TYPES.SkippedListItem,
             id: relatedItem.id,
           }),
+          uuid: relatedItem.uuid as GlobalId,
         })
       }
     }
@@ -63,6 +66,7 @@ const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
       {
         ...item,
         id: toGlobalId({ type: NODE_TYPES.SkippedListItem, id: item.id }),
+        uuid: item.uuid as GlobalId,
       },
     ]
   }

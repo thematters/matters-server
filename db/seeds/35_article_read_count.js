@@ -1,6 +1,6 @@
 const table = 'article_read_count'
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   await knex(table).del()
   await knex(table).insert([
     {

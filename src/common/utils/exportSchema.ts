@@ -1,9 +1,8 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import fs from 'fs'
 import { printSchema } from 'graphql'
-import 'module-alias/register'
 
-import { typeDefs } from '../../schema'
+import { typeDefs } from '../../schema.js'
 
 const schema = makeExecutableSchema({ typeDefs })
 const schemaString = printSchema(schema)

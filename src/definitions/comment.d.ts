@@ -1,6 +1,5 @@
+import type { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 import type { ValueOf } from './generic'
-
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 
 export interface Comment {
   id: string

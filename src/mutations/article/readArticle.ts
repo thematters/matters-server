@@ -1,9 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { ARTICLE_STATE } from 'common/enums'
-import { ArticleNotFoundError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+import { ARTICLE_STATE } from '#common/enums/index.js'
+import { ArticleNotFoundError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const logger = getLogger('mutation-read-article')
 

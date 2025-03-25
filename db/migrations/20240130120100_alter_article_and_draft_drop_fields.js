@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table('article', (t) => {
     t.dropColumn('uuid')
     t.dropColumn('title')
@@ -30,6 +30,6 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async () => {
+export const down = async () => {
   // do nothing
 }

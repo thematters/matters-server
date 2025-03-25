@@ -5,11 +5,11 @@ import type {
   User,
   Connections,
   DataSources,
-} from 'definitions'
+} from '#definitions/index.js'
 
 import { ApolloServer, GraphQLRequest, GraphQLResponse } from '@apollo/server'
 
-import { authModes, roleAccess } from 'common/utils'
+import { authModes, roleAccess } from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -28,7 +28,7 @@ import {
   CampaignService,
   TranslationService,
   ChannelService,
-} from 'connectors'
+} from '#connectors/index.js'
 import {
   PublicationQueue,
   RevisionQueue,
@@ -38,11 +38,11 @@ import {
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
-} from 'connectors/queue'
+} from '#connectors/queue/index.js'
 
-import { genConnections, closeConnections } from 'connectors/__test__/utils'
-import schema from '../../schema'
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import { genConnections, closeConnections } from '#connectors/__test__/utils.js'
+import schema from '../../schema.js'
+import { VERIFICATION_CODE_STATUS } from '#common/enums/index.js'
 
 export { genConnections, closeConnections }
 

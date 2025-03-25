@@ -1,29 +1,4 @@
-import type { Context } from 'definitions'
-
-import { ApolloServer } from '@apollo/server'
-import { expressMiddleware } from '@apollo/server/express4'
-import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
-import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
-import { ApolloServerPluginUsageReportingDisabled } from '@apollo/server/plugin/disabled'
-import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting'
-import { KeyvAdapter } from '@apollo/utils.keyvadapter'
-import {
-  ErrorsAreMissesCache,
-  type KeyValueCache,
-} from '@apollo/utils.keyvaluecache'
-import KeyvRedis from '@keyv/redis'
-import { responseCachePlugin } from '@matters/apollo-response-cache'
-import ApolloServerPluginQueryComplexity from 'apollo-server-plugin-query-complexity'
-import bodyParser from 'body-parser'
-import cors from 'cors'
-import { Express, RequestHandler, Request, Response } from 'express'
-import { applyMiddleware } from 'graphql-middleware'
-import expressPlayground from 'graphql-playground-middleware-express'
-import { directiveEstimator, simpleEstimator } from 'graphql-query-complexity'
-import { graphqlUploadExpress } from 'graphql-upload'
-import Keyv from 'keyv'
-import { omit } from 'lodash'
-import 'module-alias/register'
+import type { Context } from '#definitions/index.js'
 
 import {
   CACHE_TTL,
@@ -31,10 +6,10 @@ import {
   GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
-} from 'common/enums'
-import { isProd, isLocal, isTest } from 'common/environment'
-import { getLogger } from 'common/logger'
-import { getViewerFromReq } from 'common/utils'
+} from '#common/enums/index.js'
+import { isProd, isLocal, isTest } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { getViewerFromReq } from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -56,7 +31,7 @@ import {
   TranslationService,
   LikeCoin,
   ExchangeRate,
-} from 'connectors'
+} from '#connectors/index.js'
 import {
   PublicationQueue,
   RevisionQueue,
@@ -66,12 +41,40 @@ import {
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
-} from 'connectors/queue'
-import { loggerMiddleware } from 'middlewares/logger'
+} from '#connectors/queue/index.js'
+import { loggerMiddleware } from '#middlewares/logger.js'
+import { ApolloServer } from '@apollo/server'
+import { expressMiddleware } from '@apollo/server/express4'
+import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
+import { ApolloServerPluginUsageReportingDisabled } from '@apollo/server/plugin/disabled'
+import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting'
+import { KeyvAdapter } from '@apollo/utils.keyvadapter'
+import {
+  ErrorsAreMissesCache,
+  type KeyValueCache,
+} from '@apollo/utils.keyvaluecache'
+import KeyvRedis from '@keyv/redis'
+import { responseCachePlugin } from '@matters/apollo-response-cache'
+import ApolloServerPluginQueryComplexity from 'apollo-server-plugin-query-complexity'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import { Express, RequestHandler, Request, Response } from 'express'
+import { applyMiddleware } from 'graphql-middleware'
+import { directiveEstimator, simpleEstimator } from 'graphql-query-complexity'
+import { graphqlUploadExpress } from 'graphql-upload'
+import Keyv from 'keyv'
+import omit from 'lodash/omit.js'
+import { createRequire } from 'node:module'
 
-import schema from '../schema'
+import schema from '../schema.js'
 
-import { connections } from './connections'
+import { connections } from './connections.js'
+
+const require = createRequire(import.meta.url)
+const {
+  default: expressPlayground,
+} = require('graphql-playground-middleware-express')
 
 const logger = getLogger('graphql-server')
 
@@ -125,7 +128,7 @@ export const graphql = async (app: Express) => {
   }: {
     req: Request
     res: Response
-    connection?: any
+    connection?: { context: Context }
   }): Promise<Context> => {
     if (connection) {
       return connection.context

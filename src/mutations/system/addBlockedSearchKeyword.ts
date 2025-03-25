@@ -1,6 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { UserInputError } from 'common/errors'
+import { UserInputError } from '#common/errors.js'
 
 const resolver: GQLMutationResolvers['addBlockedSearchKeyword'] = async (
   _,
@@ -26,7 +26,8 @@ const resolver: GQLMutationResolvers['addBlockedSearchKeyword'] = async (
   const newAddedKeyword = {
     ...newItem,
   }
-  return newAddedKeyword
+  // TODO: figure out if globalId transform is needed then remove any
+  return newAddedKeyword as any
 }
 
 export default resolver

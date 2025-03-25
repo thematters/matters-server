@@ -1,1 +1,1 @@
-export * from './twitter'
+export * from './twitter.js'

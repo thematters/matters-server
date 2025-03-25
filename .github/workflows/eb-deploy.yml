@@ -1,0 +1,59 @@
+name: EB Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment (develop, production)'
+        required: true
+        type: string
+      app_name:
+        description: 'EB application name'
+        required: true
+        type: string
+      image_tag:
+        description: 'ECR image tag (develop, prod)'
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_EB_ENV_NAME:
+        required: true
+      AWS_REGION:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-package-${{ inputs.environment }}
+          path: .
+
+      # AWS Deployment
+      - name: Setup AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ inputs.app_name }}
+          environment_name: ${{ secrets.AWS_EB_ENV_NAME }}
+          version_label: ${{ secrets.AWS_EB_ENV_NAME }}-${{ hashFiles('deploy.zip') }}
+          version_description: ${{ github.SHA }}
+          region: ${{ secrets.AWS_REGION }}
+          deployment_package: deploy.zip
+          use_existing_version_if_available: true
+          wait_for_deployment: true

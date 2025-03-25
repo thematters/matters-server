@@ -1,4 +1,4 @@
-import { ASSET_TYPE } from 'common/enums'
+import type { ASSET_TYPE } from '#common/enums/index.js'
 
 export interface Asset {
   id: string

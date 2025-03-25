@@ -1,10 +1,9 @@
+import { AUTH_MODE, SCOPE_GROUP } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
+import { isScopeAllowed } from '#common/utils/scope.js'
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 import { responsePathAsArray } from 'graphql'
-
-import { AUTH_MODE, SCOPE_GROUP } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
-import { isScopeAllowed } from 'common/utils/scope'
 
 export const authDirective = (directiveName = 'auth') => ({
   typeDef: `directive @${directiveName}(mode: String!, group: String) on FIELD_DEFINITION`,

@@ -1,8 +1,8 @@
-import type { GQLReportResolvers } from 'definitions'
+import type { GQLReportResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { ServerError } from 'common/errors'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { ServerError } from '#common/errors.js'
+import { toGlobalId } from '#common/utils/index.js'
 
 const report: GQLReportResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Report, id }),

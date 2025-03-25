@@ -1,5 +1,5 @@
-exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `
+export const up = async (knex) => {
+  await knex.raw(/* sql*/ `
   UPDATE article SET state = 'error' WHERE id IN (
     SELECT article.id FROM draft 
     LEFT JOIN article ON article.draft_id = draft.id
@@ -8,8 +8,8 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
-  await knex.raw(/*sql*/ `
+export const down = async (knex) => {
+  await knex.raw(/* sql*/ `
   UPDATE article SET state = 'active' WHERE state = 'error'
   `)
 }

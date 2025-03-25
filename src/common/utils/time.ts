@@ -1,4 +1,4 @@
-import { HOUR } from 'common/enums'
+import { HOUR } from '#common/enums/index.js'
 
 export const timeout = <T>(ms: number, promise: Promise<T>) =>
   new Promise<T>((resolve, reject) => {

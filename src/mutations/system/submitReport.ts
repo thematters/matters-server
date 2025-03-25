@@ -1,8 +1,8 @@
-import type { GQLMutationResolvers, ReportType } from 'definitions'
+import type { GQLMutationResolvers, ReportType } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { UserInputError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['submitReport'] = async (
   _,

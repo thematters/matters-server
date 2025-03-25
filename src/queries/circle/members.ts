@@ -1,7 +1,7 @@
-import type { GQLCircleResolvers, CircleMember } from 'definitions'
+import type { GQLCircleResolvers, CircleMember } from '#definitions/index.js'
 
-import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { PRICE_STATE, SUBSCRIPTION_STATE } from '#common/enums/index.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
 const resolver: GQLCircleResolvers['members'] = async (
   { id },

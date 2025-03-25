@@ -1,4 +1,5 @@
-import type { GQLMutationResolvers, Circle } from 'definitions'
+import type { GQLMutationResolvers, Circle } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   CACHE_KEYWORD,
@@ -9,14 +10,14 @@ import {
   PRICE_STATE,
   SUBSCRIPTION_ITEM_REMARK,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   AuthenticationError,
   CircleNotFoundError,
   EntityNotFoundError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
   _,
@@ -45,7 +46,7 @@ const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
   }
 
   // check circle
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
   const [circle, price] = await Promise.all([
     atomService.findFirst({
       table: 'circle',

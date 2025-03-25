@@ -1,24 +1,29 @@
-import type { ItemData, GQLMutationResolvers } from 'definitions'
+import type { ItemData, GQLMutationResolvers } from '#definitions/index.js'
 
-import { has, isEmpty } from 'lodash'
-import { v4 } from 'uuid'
-
-import { ASSET_TYPE, AUDIT_LOG_ACTION, AUDIT_LOG_STATUS } from 'common/enums'
+import {
+  ASSET_TYPE,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
+} from '#common/enums/index.js'
 import {
   AssetNotFoundError,
   AuthenticationError,
   DisplayNameInvalidError,
   PasswordInvalidError,
   UserInputError,
-} from 'common/errors'
-import { getLogger, auditLog } from 'common/logger'
+} from '#common/errors.js'
+import { getLogger, auditLog } from '#common/logger.js'
 import {
   generatePasswordhash,
   isValidDisplayName,
   isValidPaymentPassword,
   setCookie,
-} from 'common/utils'
-import { cfsvc } from 'connectors'
+} from '#common/utils/index.js'
+import { cfsvc } from '#connectors/index.js'
+import pkg from 'lodash'
+import { v4 } from 'uuid'
+
+const { has, isEmpty } = pkg
 
 const logger = getLogger('mutation-update-user-info')
 

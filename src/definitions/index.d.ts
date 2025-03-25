@@ -1,85 +1,4 @@
 import type {
-  ActionArticle,
-  ActionCircle,
-  ActionComment,
-  ActionMoment,
-  ActionTag,
-  ActionUser,
-  ActionCollection,
-} from './action'
-import type { Announcement, AnnouncementTranslation } from './announcement'
-import type { Appreciation } from './appreciation'
-import type {
-  Article,
-  ArticleBoost,
-  ArticleCircle,
-  ArticleConnection,
-  ArticleContent,
-  ArticleCountView,
-  ArticleReadTimeMaterialized,
-  ArticleRecommendSetting,
-  ArticleTag,
-  ArticleTranslation,
-  ArticleVersion,
-  ArticleHottestView,
-  RecommendedArticlesFromReadTagsMaterialized,
-} from './article'
-import type { Asset, AssetMap } from './asset'
-import type { VerificationCode } from './auth'
-import type { EntityType } from './base'
-import type {
-  Campaign,
-  CampaignStage,
-  CampaignUser,
-  CampaignArticle,
-  CampaignBoost,
-} from './campaign'
-import type { Channel, ArticleChannel, ArticleChannelJob } from './channel'
-import type {
-  Circle,
-  CircleInvitation,
-  CirclePrice,
-  CircleSubscription,
-  CircleSubscriptionItem,
-} from './circle'
-import type { Collection, CollectionArticle } from './collection'
-import type { Comment, FeaturedCommentMaterialized } from './comment'
-import type { Draft } from './draft'
-import type {
-  BlockedSearchKeyword,
-  Blocklist,
-  FeatureFlag,
-  MattersChoice,
-  MattersChoiceTopic,
-  PunishRecord,
-  SearchHistory,
-} from './misc'
-import type { Moment, MomentAsset } from './moment'
-import type { Notice } from './notification'
-import type { UserOauthLikecoinDB } from './oauth'
-import type {
-  BlockchainSyncRecord,
-  BlockchainTransaction,
-  Customer,
-  PayoutAccount,
-  Transaction,
-} from './payment'
-import type { Report } from './report'
-import type { Tag, TagTranslation, UserTagsOrder } from './tag'
-import type { Translation } from './translation'
-import type {
-  SeedingUser,
-  User,
-  UserBadge,
-  UserIpnsKeys,
-  UserIpnsKeys,
-  UserRestriction,
-  UsernameEditHistory,
-  UserFeatureFlag,
-} from './user'
-import type { CryptoWallet, CryptoWalletSignature } from './wallet'
-import type { BasedContext } from '@apollo/server'
-import type {
   ArticleService,
   AtomService,
   CampaignService,
@@ -100,7 +19,7 @@ import type {
   UserWorkService,
   TranslationService,
   ChannelService,
-} from 'connectors'
+} from '#connectors/index.js'
 import type {
   PublicationQueue,
   RevisionQueue,
@@ -110,37 +29,121 @@ import type {
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
-} from 'connectors/queue'
+} from '#connectors/queue/index.js'
+import type {
+  ActionArticle,
+  ActionCircle,
+  ActionComment,
+  ActionMoment,
+  ActionTag,
+  ActionUser,
+  ActionCollection,
+} from './action.js'
+import type { Announcement, AnnouncementTranslation } from './announcement.js'
+import type { Appreciation } from './appreciation.js'
+import type {
+  Article,
+  ArticleBoost,
+  ArticleCircle,
+  ArticleConnection,
+  ArticleContent,
+  ArticleCountView,
+  ArticleReadTimeMaterialized,
+  ArticleRecommendSetting,
+  ArticleTag,
+  ArticleTranslation,
+  ArticleVersion,
+  ArticleHottestView,
+  RecommendedArticlesFromReadTagsMaterialized,
+} from './article.js'
+import type { Asset, AssetMap } from './asset.js'
+import type { VerificationCode } from './auth.js'
+import type { EntityType } from './base.js'
+import type {
+  Campaign,
+  CampaignStage,
+  CampaignUser,
+  CampaignArticle,
+  CampaignBoost,
+} from './campaign.js'
+import type { Channel, ArticleChannel, ArticleChannelJob } from './channel.js'
+import type {
+  Circle,
+  CircleInvitation,
+  CirclePrice,
+  CircleSubscription,
+  CircleSubscriptionItem,
+} from './circle.js'
+import type { Collection, CollectionArticle } from './collection.js'
+import type { Comment, FeaturedCommentMaterialized } from './comment.js'
+import type { Draft } from './draft.js'
+import type {
+  BlockedSearchKeyword,
+  Blocklist,
+  FeatureFlag,
+  MattersChoice,
+  MattersChoiceTopic,
+  PunishRecord,
+  SearchHistory,
+} from './misc.js'
+import type { Moment, MomentAsset } from './moment.js'
+import type { Notice } from './notification.js'
+import type { UserOauthLikecoinDB } from './oauth.js'
+import type {
+  BlockchainSyncRecord,
+  BlockchainTransaction,
+  Customer,
+  PayoutAccount,
+  Transaction,
+} from './payment.js'
+import type { Report } from './report.js'
+import type { Tag, TagTranslation, UserTagsOrder } from './tag.js'
+import type { Translation } from './translation.js'
+import type {
+  SeedingUser,
+  User,
+  UserBadge,
+  UserIpnsKeys,
+  UserRestriction,
+  UsernameEditHistory,
+  UserFeatureFlag,
+} from './user.js'
+import type { CryptoWallet, CryptoWalletSignature } from './wallet.js'
+import type { BasedContext } from '@apollo/server'
 import type { Request, Response } from 'express'
 import type { Redis } from 'ioredis'
 import type { Knex } from 'knex'
 
-export * from './base'
-export * from './announcement'
-export * from './auth'
-export * from './action'
-export * from './oauth'
-export * from './user'
-export * from './article'
-export * from './draft'
-export * from './tag'
-export * from './circle'
-export * from './collection'
-export * from './comment'
-export * from './language'
-export * from './notification'
-export * from './generic'
-export * from './payment'
-export * from './appreciation'
-export * from './asset'
-export * from './report'
-export * from './wallet'
-export * from './misc'
-export * from './schema'
-export * from './moment'
-export * from './campaign'
-export * from './translation'
-export * from './channel'
+// Add exports for the GraphQL generated types
+export * from './schema.js'
+
+export * from './base.js'
+export * from './announcement.js'
+export * from './auth.js'
+export * from './action.js'
+export * from './oauth.js'
+export * from './user.js'
+export * from './article.js'
+export * from './draft.js'
+export * from './tag.js'
+export * from './circle.js'
+export * from './collection.js'
+export * from './comment.js'
+export * from './language.js'
+export * from './notification.js'
+export * from './generic.js'
+export * from './payment.js'
+export * from './appreciation.js'
+export * from './asset.js'
+export * from './report.js'
+export * from './wallet.js'
+export * from './misc.js'
+export * from './schema.js'
+export * from './moment.js'
+export * from './campaign.js'
+export * from './translation.js'
+export * from './channel.js'
+export * from './nominal.js'
 
 export interface Context extends BasedContext {
   viewer: Viewer

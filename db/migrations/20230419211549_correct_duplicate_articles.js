@@ -5,7 +5,7 @@
  * [0] https://github.com/thematters/matters-server/issues/3254
  */
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`
     WITH duplicate_draft AS
       (
@@ -30,4 +30,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (_) => {}
+export const down = async (_) => {}

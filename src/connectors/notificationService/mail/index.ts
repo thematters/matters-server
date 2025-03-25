@@ -1,10 +1,10 @@
-import { sendCircleInvitation } from './sendCircleInvitation'
-import { sendEmailChange } from './sendEmailChange'
-import { sendMigrationSuccess } from './sendMigrationSuccess'
-import { sendPayment } from './sendPayment'
-import { sendRegisterSuccess } from './sendRegisterSuccess'
-import { sendUserDeletedByAdmin } from './sendUserDeletedByAdmin'
-import { sendVerificationCode } from './sendVerificationCode'
+import { sendCircleInvitation } from './sendCircleInvitation.js'
+import { sendEmailChange } from './sendEmailChange.js'
+import { sendMigrationSuccess } from './sendMigrationSuccess.js'
+import { sendPayment } from './sendPayment.js'
+import { sendRegisterSuccess } from './sendRegisterSuccess.js'
+import { sendUserDeletedByAdmin } from './sendUserDeletedByAdmin.js'
+import { sendVerificationCode } from './sendVerificationCode.js'
 
 export const mail = {
   sendCircleInvitation,

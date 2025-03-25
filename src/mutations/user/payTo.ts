@@ -1,7 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
-
-import { compare } from 'bcrypt'
-import { v4 } from 'uuid'
+import type { GQLMutationResolvers, GlobalId } from '#definitions/index.js'
 
 import {
   BLOCKCHAIN_CHAINID,
@@ -12,8 +9,8 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   EntityNotFoundError,
   ForbiddenByStateError,
@@ -25,8 +22,10 @@ import {
   PaymentReachMaximumLimitError,
   UserInputError,
   UserNotFoundError,
-} from 'common/errors'
-import { fromGlobalId, isValidTransactionHash } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId, isValidTransactionHash } from '#common/utils/index.js'
+import { compare } from 'bcrypt'
+import { v4 } from 'uuid'
 
 const resolver: GQLMutationResolvers['payTo'] = async (
   _,
@@ -49,7 +48,6 @@ const resolver: GQLMutationResolvers['payTo'] = async (
       atomService,
       articleService,
       paymentService,
-      userService,
       queues: { payToByMattersQueue, payToByBlockchainQueue },
     },
   }
@@ -71,8 +69,10 @@ const resolver: GQLMutationResolvers['payTo'] = async (
   }
 
   // check target and recipient
-  const { id: recipientDbId } = fromGlobalId(recipientId || '')
-  const { id: targetDbId, type: targetType } = fromGlobalId(targetId || '')
+  const { id: recipientDbId } = fromGlobalId(recipientId || ('' as GlobalId))
+  const { id: targetDbId, type: targetType } = fromGlobalId(
+    targetId || ('' as GlobalId)
+  )
 
   // only allow article target for now
   const isArticleTarget = targetType === 'Article'

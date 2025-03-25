@@ -1,9 +1,9 @@
-import {
+import type {
   NOTICE_TYPE,
   BUNDLED_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums/notification'
-import { TableName, User } from 'definitions'
+} from '#common/enums/notification.js'
+import type { TableName, User } from '#definitions/index.js'
 
 export type BaseNoticeType = keyof typeof NOTICE_TYPE
 

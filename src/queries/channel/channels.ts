@@ -1,6 +1,6 @@
-import type { GQLQueryResolvers } from 'definitions'
+import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { USER_ROLE } from 'common/enums'
+import { USER_ROLE } from '#common/enums/index.js'
 
 const resolver: GQLQueryResolvers['channels'] = async (
   _,

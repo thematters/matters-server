@@ -1,11 +1,10 @@
-import {
+import type {
   SOCIAL_LOGIN_TYPE,
   USER_STATE,
   USER_RESTRICTION_TYPE,
   USER_FEATURE_FLAG_TYPE,
-} from 'common/enums'
-
-import { LANGUAGES } from './language'
+} from '#common/enums/index.js'
+import type { LANGUAGES } from './language.js'
 
 export type User = UserNoUsername | UserHasUsername
 

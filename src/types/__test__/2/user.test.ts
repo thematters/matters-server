@@ -1,7 +1,7 @@
-import type { Connections, User } from 'definitions'
+import type { Connections, User, GlobalId } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
 import {
   MATERIALIZED_VIEW,
@@ -12,19 +12,19 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from '#common/enums/index.js'
+import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   UserService,
   ArticleService,
   PaymentService,
   MomentService,
-} from 'connectors'
+} from '#connectors/index.js'
 import {
   createDonationTx,
   createTx,
   refreshView,
-} from 'connectors/__test__/utils'
+} from '#connectors/__test__/utils.js'
 
 import {
   defaultTestUser,
@@ -34,7 +34,7 @@ import {
   genConnections,
   closeConnections,
   registerUser,
-} from '../utils'
+} from '../utils.js'
 
 let connections: Connections
 let userService: UserService
@@ -1068,7 +1068,7 @@ describe('user recommendations', () => {
             node: { author: { id: string } }
           }) => id
         )
-        .map((id: string) => fromGlobalId(id).id)
+        .map((id: GlobalId) => fromGlobalId(id).id)
 
     await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
     // before restricted
@@ -1108,7 +1108,7 @@ describe('user recommendations', () => {
             node: { author: { id: string } }
           }) => id
         )
-        .map((id: string) => fromGlobalId(id).id)
+        .map((id: GlobalId) => fromGlobalId(id).id)
 
     // before restricted
     const server = await testClient({

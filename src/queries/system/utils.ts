@@ -1,10 +1,10 @@
-import type { Context, Draft } from 'definitions'
+import type { Context, Draft, GlobalId } from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { EntityNotFoundError, ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { EntityNotFoundError, ForbiddenError } from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
-export const getNode = async (globalId: string, context: Context) => {
+export const getNode = async (globalId: GlobalId, context: Context) => {
   const {
     viewer,
     dataSources: { atomService },

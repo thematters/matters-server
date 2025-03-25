@@ -1,4 +1,4 @@
-import { isProd } from 'common/environment'
+import { isProd } from '#common/environment.js'
 
 export const CHANGE_EMAIL_TIMES_LIMIT_PER_DAY = 3
 export const CHANGE_EMAIL_COUNTER_KEY_PREFIX = 'change-email-counter'

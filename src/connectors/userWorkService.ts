@@ -1,7 +1,7 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import { ARTICLE_STATE, MOMENT_STATE, NODE_TYPES } from 'common/enums'
-import { InvalidCursorError } from 'common/errors'
+import { ARTICLE_STATE, MOMENT_STATE, NODE_TYPES } from '#common/enums/index.js'
+import { InvalidCursorError } from '#common/errors.js'
 
 interface Writing {
   type: NODE_TYPES.Article | NODE_TYPES.Moment

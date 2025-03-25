@@ -1,5 +1,5 @@
+import type { Connections } from '#definitions/index.js'
 import type { Queue, ProcessCallbackFunction } from 'bull'
-import type { Connections } from 'definitions'
 
 import {
   PAYMENT_CURRENCY,
@@ -8,19 +8,19 @@ import {
   QUEUE_PRIORITY,
   SLACK_MESSAGE_STATE,
   TRANSACTION_STATE,
-} from 'common/enums'
-import { PaymentQueueJobDataError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { numMinus, numRound, numTimes } from 'common/utils'
+} from '#common/enums/index.js'
+import { PaymentQueueJobDataError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { numMinus, numRound, numTimes } from '#common/utils/index.js'
 import {
   AtomService,
   ExchangeRate,
   PaymentService,
   NotificationService,
-} from 'connectors'
-import SlackService from 'connectors/slack'
+} from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
 
-import { getOrCreateQueue } from './utils'
+import { getOrCreateQueue } from './utils.js'
 
 const logger = getLogger('queue-payout')
 

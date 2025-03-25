@@ -1,11 +1,10 @@
-import type { Customer, Connections } from 'definitions'
+import type { Customer, Connections } from '#definitions/index.js'
 
+import { PAYMENT_PROVIDER } from '#common/enums/index.js'
+import { AtomService, PaymentService } from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
 import _ from 'lodash'
 import Stripe from 'stripe'
-
-import { PAYMENT_PROVIDER } from 'common/enums'
-import { AtomService, PaymentService } from 'connectors'
-import SlackService from 'connectors/slack'
 
 export const updateCustomerCard = async (
   {

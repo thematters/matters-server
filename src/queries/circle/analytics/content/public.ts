@@ -1,6 +1,6 @@
-import type { GQLCircleContentAnalyticsResolvers } from 'definitions'
+import type { GQLCircleContentAnalyticsResolvers } from '#definitions/index.js'
 
-import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE } from '#common/enums/index.js'
 
 const resolver: GQLCircleContentAnalyticsResolvers['public'] = async (
   { id },

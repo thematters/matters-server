@@ -1,4 +1,4 @@
-import type { GQLDraftResolvers } from 'definitions'
+import type { GQLDraftResolvers } from '#definitions/index.js'
 
 const resolver: GQLDraftResolvers['campaigns'] = (
   { campaigns },

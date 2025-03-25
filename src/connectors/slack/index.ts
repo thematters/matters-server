@@ -1,8 +1,7 @@
+import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
 import { WebClient } from '@slack/web-api'
-
-import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from 'common/enums'
-import { environment } from 'common/environment'
-import { getLogger } from 'common/logger'
 
 const logger = getLogger('service-slack')
 
@@ -177,6 +176,24 @@ class SlackService {
           },
         ],
         markdownn: true,
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  public sendExchangeAPIAlert = async ({ message }: { message: string }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackExchangeAPIChannel,
+        text: `[${environment.env}] - Alert`,
+        attachments: [
+          {
+            color: this.getMessageColor(SLACK_MESSAGE_STATE.failed),
+            text: '\n' + `\n- *Message*: ${message}`,
+          },
+        ],
+        markdown: true,
       })
     } catch (error) {
       logger.error(error)

@@ -3,7 +3,7 @@ const table = {
   report_asset: 'report_asset',
 }
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.dropTable(table.report_asset)
   await knex.table(table.report).delete()
   await knex.schema.table(table.report, function (t) {
@@ -19,7 +19,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table.report, function (t) {
     t.string('category').notNullable()
     t.dropColumn('reason')

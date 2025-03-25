@@ -19,62 +19,63 @@ import type {
   GQLWalletResolvers,
   GQLCollectionResolvers,
   GQLPinnableWorkResolvers,
-} from 'definitions'
+  GlobalId,
+} from '#definitions/index.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { toGlobalId } from '#common/utils/index.js'
 
-import UserAnalytics from './analytics'
-import { Appreciation } from './appreciation'
-import articleCount from './articleCount'
-import avatar from './avatar'
-import badges from './badges'
-import blockList from './blockList'
-import bookmarkedArticles from './bookmarkedArticles'
-import bookmarkedTags from './bookmarkedTags'
-import campaigns from './campaigns'
-import changeEmailTimesLeft from './changeEmailTimesLeft'
-import Collection from './collection'
-import collections from './collections'
-import commentCount from './commentCount'
-import cryptoWallet from './cryptoWallet'
-import donatedArticleCount from './donatedArticleCount'
-import featuredTags from './featuredTags'
-import followers from './followers'
-import Following from './following'
-import group from './group'
-import hasPaymentPassword from './hasPaymentPassword'
-import ipnsKey from './ipnsKey'
-import isBlocked from './isBlocked'
-import isBlocking from './isBlocking'
-import isFollowee from './isFollowee'
-import isFollower from './isFollower'
-import isWalletAuth from './isWalletAuth'
-import latestWorks from './latestWorks'
-import Liker from './liker'
-import likerId from './liker/likerId'
-import momentCount from './momentCount'
-import { hasNFTs, nfts } from './nfts'
-import notification from './notification'
-import { boost, featureFlags, restrictions, score } from './oss'
-import ownCircles from './ownCircles'
-import pinnedWorks from './pinnedWorks'
-import profileCover from './profileCover'
-import receivedDonationCount from './receivedDonationCount'
-import Recommendation from './recommendation'
-import rootUser from './rootUser'
-import socialAccounts from './socialAccounts'
-import StripeAccount from './stripeAccount'
-import subscribedCircles from './subscribedCircles'
-import tagsUsageRecommendation from './tags/tagsUsageRecommendation'
-import totalWordCount from './totalWordCount'
-import { Transaction, TransactionTarget } from './transaction'
-import unreadFollowing from './unreadFollowing'
-import unreadNoticeCount from './unreadNoticeCount'
-import UserActivity from './userActivity'
-import userNameEditable from './userNameEditable'
-import Wallet from './wallet'
-import writings from './writings'
+import UserAnalytics from './analytics/index.js'
+import { Appreciation } from './appreciation.js'
+import articleCount from './articleCount.js'
+import avatar from './avatar.js'
+import badges from './badges.js'
+import blockList from './blockList.js'
+import bookmarkedArticles from './bookmarkedArticles.js'
+import bookmarkedTags from './bookmarkedTags.js'
+import campaigns from './campaigns.js'
+import changeEmailTimesLeft from './changeEmailTimesLeft.js'
+import Collection from './collection/index.js'
+import collections from './collections.js'
+import commentCount from './commentCount.js'
+import cryptoWallet from './cryptoWallet.js'
+import donatedArticleCount from './donatedArticleCount.js'
+import featuredTags from './featuredTags.js'
+import followers from './followers.js'
+import Following from './following/index.js'
+import group from './group.js'
+import hasPaymentPassword from './hasPaymentPassword.js'
+import ipnsKey from './ipnsKey.js'
+import isBlocked from './isBlocked.js'
+import isBlocking from './isBlocking.js'
+import isFollowee from './isFollowee.js'
+import isFollower from './isFollower.js'
+import isWalletAuth from './isWalletAuth.js'
+import latestWorks from './latestWorks.js'
+import Liker from './liker/index.js'
+import likerId from './liker/likerId.js'
+import momentCount from './momentCount.js'
+import { hasNFTs, nfts } from './nfts.js'
+import notification from './notification.js'
+import { boost, featureFlags, restrictions, score } from './oss.js'
+import ownCircles from './ownCircles.js'
+import pinnedWorks from './pinnedWorks.js'
+import profileCover from './profileCover.js'
+import receivedDonationCount from './receivedDonationCount.js'
+import Recommendation from './recommendation/index.js'
+import rootUser from './rootUser.js'
+import socialAccounts from './socialAccounts.js'
+import StripeAccount from './stripeAccount/index.js'
+import subscribedCircles from './subscribedCircles.js'
+import tagsUsageRecommendation from './tags/tagsUsageRecommendation.js'
+import totalWordCount from './totalWordCount.js'
+import { Transaction, TransactionTarget } from './transaction.js'
+import unreadFollowing from './unreadFollowing.js'
+import unreadNoticeCount from './unreadNoticeCount.js'
+import UserActivity from './userActivity.js'
+import userNameEditable from './userNameEditable.js'
+import Wallet from './wallet/index.js'
+import writings from './writings.js'
 
 const user: {
   Query: GQLQueryResolvers
@@ -110,7 +111,8 @@ const user: {
     user: rootUser,
   },
   User: {
-    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.User, id }) : ''),
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.User, id }) : ('' as GlobalId),
     avatar,
     likerId,
     liker: (root) => root,
@@ -206,7 +208,7 @@ const user: {
 
   CryptoWallet: {
     id: ({ id }) =>
-      id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
+      id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : ('' as GlobalId),
     address: ({ address }) => address,
     // createdAt: ({ createdAt }) => createdAt,
 

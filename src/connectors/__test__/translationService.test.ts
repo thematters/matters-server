@@ -1,9 +1,9 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
-import { LANGUAGE } from 'common/enums'
-import { TranslationService } from 'connectors'
+import { LANGUAGE } from '#common/enums/index.js'
+import { TranslationService } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let translationService: TranslationService

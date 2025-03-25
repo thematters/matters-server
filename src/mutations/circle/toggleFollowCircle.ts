@@ -1,4 +1,5 @@
-import type { GQLMutationResolvers, Circle } from 'definitions'
+import type { GQLMutationResolvers, Circle } from '#definitions/index.js'
+import type { GlobalId } from '#definitions/nominal.js'
 
 import {
   CACHE_KEYWORD,
@@ -6,13 +7,13 @@ import {
   CIRCLE_STATE,
   NOTICE_TYPE,
   NODE_TYPES,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   CircleNotFoundError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from '#common/errors.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 // local enums
 enum ACTION {
@@ -43,7 +44,7 @@ const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
   }
 
   const action = enabled ? ACTION.follow : ACTION.unfollow
-  const { id: circleId } = fromGlobalId(id || '')
+  const { id: circleId } = fromGlobalId(id || ('' as GlobalId))
   const circle = await atomService.findFirst({
     table: 'circle',
     where: { id: circleId, state: CIRCLE_STATE.active },

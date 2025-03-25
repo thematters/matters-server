@@ -1,6 +1,7 @@
-import type { Connections } from 'definitions'
+import type { Connections } from '#definitions/index.js'
 
 import { v4 } from 'uuid'
+import { jest } from '@jest/globals'
 
 import {
   COMMENT_STATE,
@@ -9,16 +10,16 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   FEATURE_NAME,
   FEATURE_FLAG,
-} from 'common/enums'
+} from '#common/enums/index.js'
 import {
   ArticleService,
   UserWorkService,
   AtomService,
   SystemService,
   ChannelService,
-} from 'connectors'
+} from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let articleService: ArticleService
@@ -440,7 +441,7 @@ test('countReaders', async () => {
 
 describe('latestArticles', () => {
   test('base', async () => {
-    const articles = await articleService.latestArticles({
+    const [articles, totalCount] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -448,12 +449,33 @@ describe('latestArticles', () => {
       excludeSpam: false,
     })
     expect(articles.length).toBeGreaterThan(0)
+    expect(totalCount).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
+  test('should ignore `maxTake` limit when oss=true', async () => {
+    const [articles1, totalCount1] = await articleService.latestArticles({
+      maxTake: 1,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: false,
+    })
+    expect(articles1.length).toBe(1)
+    expect(totalCount1).toBe(1)
+    const [articles2, totalCount2] = await articleService.latestArticles({
+      maxTake: 1,
+      skip: 0,
+      take: 10,
+      oss: true,
+      excludeSpam: false,
+    })
+    expect(articles2.length).toBeGreaterThan(1)
+    expect(totalCount2).toBeGreaterThan(1)
+  })
   test('spam are excluded', async () => {
-    const articles = await articleService.latestArticles({
+    const [articles] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -467,7 +489,7 @@ describe('latestArticles', () => {
       value: spamThreshold,
     })
     // spam flag is on but no detected articles
-    const articles1 = await articleService.latestArticles({
+    const [articles1] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -482,7 +504,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const articles2 = await articleService.latestArticles({
+    const [articles2] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -497,7 +519,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { isSpam: false },
     })
-    const articles3 = await articleService.latestArticles({
+    const [articles3] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -512,7 +534,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { spamScore: spamThreshold - 0.1 },
     })
-    const articles4 = await articleService.latestArticles({
+    const [articles4] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -527,7 +549,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { isSpam: true },
     })
-    const articles5 = await articleService.latestArticles({
+    const [articles5] = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
       take: 10,
@@ -535,6 +557,111 @@ describe('latestArticles', () => {
       excludeSpam: true,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
+  })
+
+  test('channel articles are excluded', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // create articles
+    const [article1] = await articleService.createArticle({
+      title: 'test',
+      content: 'test content 1',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test2',
+      content: 'test content 2',
+      authorId: '1',
+    })
+    const [article3] = await articleService.createArticle({
+      title: 'test3',
+      content: 'test content 3',
+      authorId: '1',
+    })
+
+    // create channels
+    const channel1 = await channelService.updateOrCreateChannel({
+      name: 'test',
+      description: 'test',
+      providerId: 'test-latest',
+      enabled: true,
+    })
+    const channel2 = await channelService.updateOrCreateChannel({
+      name: 'test2',
+      description: 'test2',
+      providerId: 'test-latest2',
+      enabled: false,
+    })
+
+    // create article channels
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article1.id,
+        channelId: channel1.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article2.id,
+        channelId: channel2.id, // disabled channel
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article3.id,
+        channelId: channel2.id, // disabled channel
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'article_channel',
+      data: {
+        articleId: article3.id,
+        channelId: channel1.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: false, // disabled article channel
+      },
+    })
+
+    const [articles, totalCount1] = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+      excludeSpam: false,
+      excludeChannelArticles: false,
+    })
+    const [articlesExcludedChannel, totalCount2] =
+      await articleService.latestArticles({
+        maxTake: 500,
+        skip: 0,
+        take: 10,
+        oss: false,
+        excludeSpam: false,
+        excludeChannelArticles: true,
+      })
+    expect(articles.map(({ id }) => id)).toContain(article1.id)
+    expect(articles.map(({ id }) => id)).toContain(article2.id)
+    expect(articles.map(({ id }) => id)).toContain(article3.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article1.id
+    )
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
+    expect(totalCount1).toBe(totalCount2 + 1)
   })
 })
 

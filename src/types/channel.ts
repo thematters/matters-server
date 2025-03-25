@@ -1,4 +1,4 @@
-import { AUTH_MODE, NODE_TYPES } from 'common/enums'
+import { AUTH_MODE, NODE_TYPES } from '#common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -13,7 +13,7 @@ export default /* GraphQL */ `
 
     description(input: TranslationArgs): String
     providerId: String! @auth(mode: "${AUTH_MODE.admin}")
-    enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    enabled: Boolean!
 
     articles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
@@ -27,6 +27,7 @@ export default /* GraphQL */ `
   input ChannelInput {
     shortHash: String!
   }
+
 
   input PutChannelInput {
     id: ID

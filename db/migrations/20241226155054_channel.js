@@ -1,11 +1,11 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const channel_table = 'channel'
 const article_channel_table = 'article_channel'
 const article_channel_job_table = 'article_channel_job'
 const feature_flag_table = 'feature_flag'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // Create channel table
   await knex('entity_type').insert({ table: channel_table })
   await knex.schema.createTable(channel_table, (t) => {
@@ -69,7 +69,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await baseDown(article_channel_table)(knex)
   await baseDown(channel_table)(knex)
 }

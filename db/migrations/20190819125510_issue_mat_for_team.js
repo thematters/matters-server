@@ -1,12 +1,11 @@
-const compact = require('lodash/compact')
-
-const { v4: uuidv4 } = require('uuid')
+import compact from 'lodash/compact.js'
+import { v4 as uuidv4 } from 'uuid'
 
 const table = 'transaction'
 
 const purpose = 'system-subsidy'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const items = [
     {
       userName: 'lalaland',
@@ -81,4 +80,4 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = () => {}
+export const down = () => {}

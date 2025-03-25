@@ -1,11 +1,10 @@
 import type { Address, Hash, Hex } from 'viem'
 
+import { BLOCKCHAIN_CHAINNAME } from '#common/enums/index.js'
+import { contract } from '#common/environment.js'
 import { decodeEventLog, encodeEventTopics, parseAbiItem } from 'viem'
 
-import { BLOCKCHAIN_CHAINNAME } from 'common/enums'
-import { contract } from 'common/environment'
-
-import { BaseContract } from './baseContract'
+import { BaseContract } from './baseContract.js'
 
 // type
 export interface CurationEvent {

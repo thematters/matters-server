@@ -6,16 +6,8 @@ import type {
   ArticleVersion,
   ArticleBoost,
   Connections,
-} from 'definitions'
-
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { makeSummary } from '@matters/ipns-site-generator'
-import { html2md } from '@matters/matters-editor/transformers'
-import DataLoader from 'dataloader'
-import { Knex } from 'knex'
-import { difference, isEqual, uniq } from 'lodash'
-import { simplecc } from 'simplecc-wasm'
-import { v4 } from 'uuid'
+} from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   APPRECIATION_PURPOSE,
@@ -38,8 +30,8 @@ import {
   NODE_TYPES,
   USER_FEATURE_FLAG_TYPE,
   QUEUE_URL,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
@@ -48,15 +40,16 @@ import {
   InvalidCursorError,
   EntityNotFoundError,
   ArticleCollectionReachLimitError,
-} from 'common/errors'
-import { getLogger } from 'common/logger'
+} from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import {
   countWords,
   shortHash,
   normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
-} from 'common/utils'
+  selectWithTotalCount as selectWithTotalCountModifier,
+} from '#common/utils/index.js'
 import {
   BaseService,
   SystemService,
@@ -68,7 +61,20 @@ import {
   SpamDetector,
   ChannelService,
   aws,
-} from 'connectors'
+} from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import { makeSummary } from '@matters/ipns-site-generator'
+import DataLoader from 'dataloader'
+import _ from 'lodash'
+import fetch from 'node-fetch'
+import { createRequire } from 'node:module'
+import { simplecc } from 'simplecc-wasm'
+import { v4 } from 'uuid'
+
+const { difference, isEqual, uniq } = _
+
+const require = createRequire(import.meta.url)
+const { html2md } = require('@matters/matters-editor/transformers')
 
 const logger = getLogger('service-article')
 
@@ -339,7 +345,7 @@ export class ArticleService extends BaseService<Article> {
     oss: boolean
     excludeSpam: boolean
     excludeChannelArticles?: boolean
-  }): Promise<Article[]> => {
+  }): Promise<[Article[], number]> => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
     const query = this.knexRO
@@ -348,15 +354,24 @@ export class ArticleService extends BaseService<Article> {
         this.knexRO
           .select('article.*')
           .from('article')
-          .leftJoin(
-            'article_channel',
-            'article.id',
-            'article_channel.article_id'
-          )
           .where({ 'article.state': ARTICLE_STATE.active })
           .modify((builder) => {
             if (excludeChannelArticles) {
-              builder.whereNull('article_channel.article_id')
+              builder
+                .leftJoin(
+                  this.knexRO
+                    .select('article_id')
+                    .from('article_channel as ac')
+                    .join('channel as c', 'ac.channel_id', 'c.id')
+                    .where({
+                      'ac.enabled': true,
+                      'c.enabled': true,
+                    })
+                    .as('enabled_article_channels'),
+                  'article.id',
+                  'enabled_article_channels.article_id'
+                )
+                .whereNull('enabled_article_channels.article_id')
             }
           })
           .whereNotIn(
@@ -366,7 +381,11 @@ export class ArticleService extends BaseService<Article> {
               .where('type', 'articleNewest')
           )
           .orderBy('article.id', 'desc')
-          .limit(maxTake * 2) // add some extra to cover excluded ones in settings
+          .modify((builder) => {
+            if (!oss) {
+              builder.limit(maxTake * 2) // add some extra to cover excluded ones in settings
+            }
+          })
           .as('article_set')
       )
       .where((builder) => {
@@ -389,12 +408,15 @@ export class ArticleService extends BaseService<Article> {
       })
       .as('newest')
 
-    return this.knexRO
-      .select()
-      .from(query.limit(maxTake))
+    const records = await this.knexRO
+      .select('*')
+      .modify(selectWithTotalCountModifier)
+      .from(oss ? query : query.limit(maxTake))
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take)
+
+    return [records, parseInt(records[0]?.totalCount ?? '0', 10)]
   }
 
   public findChannelArticles = async ({
@@ -1043,8 +1065,12 @@ export class ArticleService extends BaseService<Article> {
     take: number
     skip: number
     viewerId?: string | null
-    filter?: GQLSearchFilter
-    exclude?: GQLSearchExclude
+    filter?: {
+      authorId?: string
+    }
+    exclude?: {
+      blocked?: boolean
+    }
     coefficients?: string
     quicksearch?: boolean
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
@@ -1067,7 +1093,11 @@ export class ArticleService extends BaseService<Article> {
         nodes: records,
         total: totalCount,
         query,
-      } = await fetch(u).then((res) => res.json())
+      } = (await fetch(u).then((res) => res.json())) as {
+        nodes: Array<{ id: string }>
+        total: number
+        query: string
+      }
       logger.info(
         `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}': sample: %j`,
         records[0]
@@ -1093,7 +1123,9 @@ export class ArticleService extends BaseService<Article> {
     key: string
     take?: number
     skip?: number
-    filter?: GQLSearchFilter
+    filter?: {
+      authorId?: string
+    }
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = simplecc(key, 't2s')
     const keyTraditional = simplecc(key, 's2t')

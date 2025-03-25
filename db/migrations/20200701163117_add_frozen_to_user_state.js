@@ -1,8 +1,8 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const table = 'user'
 
-exports.up = (knex) =>
+export const up = (knex) =>
   knex.raw(
     alterEnumString(table, 'state', [
       'onboarding',
@@ -13,7 +13,7 @@ exports.up = (knex) =>
     ])
   )
 
-exports.down = (knex) =>
+export const down = (knex) =>
   knex.raw(
     alterEnumString(table, 'state', [
       'onboarding',

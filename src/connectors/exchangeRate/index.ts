@@ -1,11 +1,12 @@
-import axios from 'axios'
-import Redis, { Cluster } from 'ioredis'
+import type { Redis, Cluster } from 'ioredis'
 
-import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
-import { NetworkError, UnknownError } from 'common/errors'
-import { getLogger } from 'common/logger'
-import { CacheService } from 'connectors'
+import { CACHE_TTL } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { NetworkError, UnknownError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import { CacheService } from '#connectors/index.js'
+import SlackService from '#connectors/slack/index.js'
+import axios from 'axios'
 
 const logger = getLogger('service-exchange-rate')
 
@@ -45,15 +46,17 @@ const EXCHANGE_RATES_DATA_API_URL =
 // MAIN
 
 export class ExchangeRate {
-  cache: CacheService
-  expire: number
+  public expire: number
+  private cache: CacheService
+  private slackService: SlackService
 
-  constructor(redis: Redis | Cluster) {
+  public constructor(redis: Redis | Cluster) {
     this.cache = new CacheService('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
+    this.slackService = new SlackService()
   }
 
-  getRates = async (
+  public getRates = async (
     from?: FromCurrency,
     to?: ToCurrency
   ): Promise<Rate[] | never> => {
@@ -69,7 +72,7 @@ export class ExchangeRate {
     return Promise.all(pairs.map((p) => this.getRate(p.from, p.to)))
   }
 
-  getRate = async (
+  public getRate = async (
     from: FromCurrency,
     to: ToCurrency
   ): Promise<Rate | never> => {
@@ -174,14 +177,23 @@ export class ExchangeRate {
         )
       }
       return reps.data
-    } catch (error: any) {
-      const path = error.request.path
-      const msg = error.response.data
-        ? JSON.stringify(error.response.data)
-        : error
-      throw new NetworkError(
-        `Failed to request Coingecko API( ${path} ): ${msg}`
-      )
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const path = error.request.path
+        const msg = error.response?.data
+          ? JSON.stringify(error.response.data)
+          : error
+        this.slackService.sendExchangeAPIAlert({
+          message: `Failed to request Coingecko API( ${path} ): ${msg}`,
+        })
+        throw new NetworkError(
+          `Failed to request Coingecko API( ${path} ): ${msg}`
+        )
+      }
+      this.slackService.sendExchangeAPIAlert({
+        message: `Unknown error: ${error}`,
+      })
+      throw new UnknownError('Unknown error')
     }
   }
 
@@ -200,19 +212,33 @@ export class ExchangeRate {
         headers,
       })
       if (!reps.data.success) {
+        this.slackService.sendExchangeAPIAlert({
+          message: `Unexpected Exchange Rates Data API response status: ${JSON.stringify(
+            reps.data
+          )}`,
+        })
         throw new UnknownError(
           `Unexpected Exchange Rates Data API response status`
         )
       }
       return reps.data
-    } catch (error: any) {
-      const path = error.request.path
-      const msg = error.response.data
-        ? JSON.stringify(error.response.data)
-        : error
-      throw new NetworkError(
-        `Failed to request Exchange Rates Data API( ${path} ): ${msg}`
-      )
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const path = error.request.path
+        const msg = error.response?.data
+          ? JSON.stringify(error.response.data)
+          : error
+        this.slackService.sendExchangeAPIAlert({
+          message: `Failed to request Exchange Rates Data API( ${path} ): ${msg}`,
+        })
+        throw new NetworkError(
+          `Failed to request Exchange Rates Data API( ${path} ): ${msg}`
+        )
+      }
+      this.slackService.sendExchangeAPIAlert({
+        message: `Unknown error: ${error}`,
+      })
+      throw new UnknownError('Unknown error')
     }
   }
 }

@@ -1,11 +1,11 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const table = 'transaction'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(
     `ALTER TABLE "${table}" DROP CONSTRAINT IF EXISTS "transaction_purpose_check1";`
   )
 }
 
-exports.down = () => {}
+export const down = () => {}
