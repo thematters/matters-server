@@ -24,12 +24,21 @@ export class SpamDetector {
       },
     }
 
-    try {
-      const response = await axios(config)
-      return response.data.score
-    } catch (error) {
-      logger.error(error)
-      return null
+    let retries = 0
+    while (retries < 3) {
+      try {
+        const response = await axios(config)
+        return response.data.score
+      } catch (error) {
+        retries++
+        if (retries >= 3) {
+          logger.error(error)
+        } else {
+          logger.warn(error)
+          await new Promise((resolve) => setTimeout(resolve, 1000 * retries))
+        }
+      }
     }
+    return null
   }
 }
