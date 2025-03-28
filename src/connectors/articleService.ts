@@ -381,11 +381,6 @@ export class ArticleService extends BaseService<Article> {
               .where('type', 'articleNewest')
           )
           .orderBy('article.id', 'desc')
-          .modify((builder) => {
-            if (!oss) {
-              builder.limit(maxTake * 2) // add some extra to cover excluded ones in settings
-            }
-          })
           .as('article_set')
       )
       .where((builder) => {
