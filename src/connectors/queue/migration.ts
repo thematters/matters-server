@@ -13,6 +13,7 @@ import {
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
+import { makeSummary } from '#common/utils/index.js'
 import {
   UserService,
   NotificationService,
@@ -21,7 +22,6 @@ import {
 } from '#connectors/index.js'
 import { medium } from '#connectors/medium/index.js'
 import { UserHasUsername } from '#definitions/index.js'
-import { makeSummary } from '@matters/ipns-site-generator'
 import { createRequire } from 'node:module'
 
 import { getOrCreateQueue } from './utils.js'

@@ -33,8 +33,11 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from '#common/errors.js'
-import { extractAssetDataFromHtml, fromGlobalId } from '#common/utils/index.js'
-import { stripHtml } from '@matters/ipns-site-generator'
+import {
+  extractAssetDataFromHtml,
+  fromGlobalId,
+  stripHtml,
+} from '#common/utils/index.js'
 import pkg from 'lodash'
 import { createRequire } from 'node:module'
 

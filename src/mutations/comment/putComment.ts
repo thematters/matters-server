@@ -31,9 +31,12 @@ import {
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
-import { fromGlobalId, extractMentionIds } from '#common/utils/index.js'
+import {
+  fromGlobalId,
+  extractMentionIds,
+  stripHtml,
+} from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { stripHtml } from '@matters/ipns-site-generator'
 import get from 'lodash/get.js'
 import { createRequire } from 'node:module'
 import { v4 } from 'uuid'
