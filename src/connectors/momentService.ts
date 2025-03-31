@@ -13,13 +13,12 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from '#common/errors.js'
-import { shortHash, extractMentionIds } from '#common/utils/index.js'
+import { shortHash, extractMentionIds, stripHtml } from '#common/utils/index.js'
 import {
   AtomService,
   UserService,
   NotificationService,
 } from '#connectors/index.js'
-import { stripHtml } from '@matters/ipns-site-generator'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
