@@ -14,7 +14,7 @@ export interface NewTableName {
   updatedAt: Date
 }
 
-// Add to TableTypeMap
+// Add to TableTypeMap in src/definitions/index.d.ts
 export interface TableTypeMap {
   // ... existing tables ...
   new_table_name: NewTableName
@@ -28,7 +28,7 @@ run `npm run db:migration:make create_new_table_name_table` to create migration 
 ```typescript
 import { baseDown } from '../utils.js'
 
-const table = 'campaign_channel'
+const table = 'new_table_name'
 
 export const up = async (knex) => {
   await knex('entity_type').insert({ table })
@@ -36,16 +36,18 @@ export const up = async (knex) => {
     
     // Add your table columns here
     // Example:
-    // table.string('name').notNullable()
-    // table.text('description')
-    // table.boolean('enabled').notNullable().defaultTo(false)
+    // t.string('name').notNullable()
+    // t.text('description')
+    // t.boolean('enabled').notNullable().defaultTo(false)
+    // t.specificType('writing_period', 'tstzrange').nullable()
+    // t.enu('state', ['pending', 'active', 'finished', 'archived']).notNullable()
     
     // Standard timestamp columns
-    table.timestamp('created_at').defaultTo(knex.fn.now())
-    table.timestamp('updated_at').defaultTo(knex.fn.now())
+    t.timestamp('created_at').defaultTo(knex.fn.now())
+    t.timestamp('updated_at').defaultTo(knex.fn.now())
     
     // Add any foreign keys
-    // table.uuid('user_id').references('id').inTable('user').onDelete('CASCADE')
+    // t.uuid('user_id').references('id').inTable('user')
   })
 }
 
