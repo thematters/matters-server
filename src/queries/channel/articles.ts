@@ -1,4 +1,4 @@
-import type { GQLChannelResolvers } from '#definitions/index.js'
+import type { GQLTopicChannelResolvers } from '#definitions/index.js'
 
 import { DEFAULT_TAKE_PER_PAGE } from '#common/enums/index.js'
 import {
@@ -6,7 +6,7 @@ import {
   fromConnectionArgs,
 } from '#common/utils/index.js'
 
-const resolver: GQLChannelResolvers['articles'] = async (
+const resolver: GQLTopicChannelResolvers['articles'] = async (
   { id },
   { input },
   { dataSources: { articleService } }

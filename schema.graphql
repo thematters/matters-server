@@ -35,7 +35,7 @@ type Query {
   oauthClient(input: OAuthClientInput!): OAuthClient
   moment(input: MomentInput!): Moment
   channel(input: ChannelInput!): Channel
-  channels: [Channel!]!
+  channels(input: ChannelsInput): [Channel!]!
 }
 
 type Mutation {
@@ -274,8 +274,14 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
-  putChannel(input: PutChannelInput!): Channel!
+  putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
+  putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
+
+  """
+  set article's channels, only accept topic channels and curation channels
+  """
   setArticleChannels(input: SetArticleChannelsInput!): Article!
+  reorderChannels(input: ReorderChannelsInput!): Boolean!
   classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean!
 }
 
@@ -807,6 +813,7 @@ input PutWritingChallengeInput {
   stages: [CampaignStageInput!]
   state: CampaignState
   featuredDescription: [TranslationInput!]
+  channelEnabled: Boolean
 }
 
 input ApplyCampaignInput {
@@ -862,7 +869,7 @@ enum CampaignState {
   archived
 }
 
-type WritingChallenge implements Node & Campaign {
+type WritingChallenge implements Node & Campaign & Channel {
   id: ID!
   shortHash: String!
   name(input: TranslationArgs): String!
@@ -873,6 +880,7 @@ type WritingChallenge implements Node & Campaign {
   applicationPeriod: DatetimeRange
   writingPeriod: DatetimeRange
   stages: [CampaignStage!]!
+  channelEnabled: Boolean!
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
@@ -2519,9 +2527,6 @@ type Recommendation {
   """'In case you missed it' topic."""
   icymiTopic: IcymiTopic
 
-  """Articles from a specific channel"""
-  channelArticles(input: ChannelArticlesInput!): ArticleConnection!
-
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
 
@@ -3835,13 +3840,32 @@ enum MomentState {
   archived
 }
 
-type Channel {
+interface Channel {
+  id: ID!
+  shortHash: String!
+}
+
+type TopicChannel implements Channel {
   id: ID!
   shortHash: String!
   name(input: TranslationArgs): String!
-  description(input: TranslationArgs): String
+  note(input: TranslationArgs): String
   providerId: String!
   enabled: Boolean!
+  articles(input: ConnectionArgs!): ArticleConnection!
+}
+
+type CurationChannel implements Channel {
+  id: ID!
+  shortHash: String!
+  name(input: TranslationArgs): String!
+  note(input: TranslationArgs): String
+  pinAmount: Int!
+  color: Color!
+
+  """both activePeriod and state determine if the channel is active"""
+  activePeriod: DatetimeRange
+  state: CurationChannelState!
   articles(input: ConnectionArgs!): ArticleConnection!
 }
 
@@ -3849,12 +3873,26 @@ input ChannelInput {
   shortHash: String!
 }
 
-input PutChannelInput {
-  id: ID
-  providerId: String!
+input ChannelsInput {
+  """return all channels if true, only active channels by default"""
+  oss: Boolean = false
+}
+
+input PutTopicChannelInput {
+  id: ID!
   name: [TranslationInput!]
-  description: [TranslationInput!]
+  note: [TranslationInput!]
   enabled: Boolean
+}
+
+input PutCurationChannelInput {
+  id: ID
+  name: [TranslationInput!]
+  note: [TranslationInput!]
+  pinAmount: Int
+  color: Color
+  activePeriod: DatetimeRangeInput
+  state: CurationChannelState
 }
 
 input SetArticleChannelsInput {
@@ -3862,6 +3900,27 @@ input SetArticleChannelsInput {
   channels: [ID!]!
 }
 
+input ReorderChannelsInput {
+  ids: [ID!]!
+}
+
 input ClassifyArticlesChannelsInput {
   ids: [ID!]!
+}
+
+enum CurationChannelState {
+  editing
+  published
+  archived
+}
+
+enum Color {
+  gray
+  brown
+  orange
+  yellow
+  green
+  purple
+  pink
+  red
 }

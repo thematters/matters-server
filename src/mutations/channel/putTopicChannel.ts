@@ -3,9 +3,9 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 import { UserInputError, AuthenticationError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-const resolver: GQLMutationResolvers['putChannel'] = async (
+const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   _,
-  { input: { id: globalId, providerId, name, description, enabled } },
+  { input: { id: globalId, name, note, enabled } },
   { viewer, dataSources: { translationService, channelService } }
 ) => {
   if (!viewer.id) {
@@ -16,9 +16,8 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
   if (!globalId) {
     // create new channel
     channel = await channelService.updateOrCreateChannel({
-      providerId,
       name: name ? name[0].text : '',
-      description: description ? description[0].text : '',
+      note: note ? note[0].text : '',
       ...(typeof enabled === 'boolean' ? { enabled } : {}),
     })
   } else {
@@ -29,9 +28,8 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
 
     channel = await channelService.updateOrCreateChannel({
       id,
-      providerId,
       name: name ? name[0].text : '',
-      description: description ? description[0].text : '',
+      note: note ? note[0].text : '',
       ...(typeof enabled === 'boolean' ? { enabled } : {}),
     })
   }
@@ -49,12 +47,12 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
     }
   }
 
-  // create or update description translations
-  if (description) {
-    for (const trans of description) {
+  // create or update note translations
+  if (note) {
+    for (const trans of note) {
       await translationService.updateOrCreateTranslation({
         table: 'channel',
-        field: 'description',
+        field: 'note',
         id: channel.id,
         language: trans.language,
         text: trans.text,

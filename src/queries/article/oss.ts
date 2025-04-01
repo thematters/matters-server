@@ -111,7 +111,7 @@ export const channels: GQLArticleOssResolvers['channels'] = async (
   })
 
   return articleChannels.map((ac, index) => ({
-    channel: _channels[index],
+    channel: { ..._channels[index], __type: 'TopicChannel' },
     score: ac.score,
     isLabeled: ac.isLabeled,
     enabled: ac.enabled,

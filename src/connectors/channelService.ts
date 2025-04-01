@@ -22,14 +22,14 @@ export class ChannelService {
   public updateOrCreateChannel = async ({
     id,
     name,
-    description,
+    note,
     providerId,
     enabled,
   }: {
     id?: string
     name: string
-    description?: string
-    providerId: string
+    note?: string
+    providerId?: string
     enabled?: boolean
   }) => {
     // update
@@ -37,13 +37,13 @@ export class ChannelService {
       return this.models.update({
         table: 'channel',
         where: { id },
-        data: { name, description, providerId, enabled, updatedAt: new Date() },
+        data: { name, note, enabled, updatedAt: new Date() },
       })
     }
 
     return this.models.create({
       table: 'channel',
-      data: { shortHash: shortHash(), name, description, providerId, enabled },
+      data: { shortHash: shortHash(), name, note, providerId, enabled },
     })
   }
 

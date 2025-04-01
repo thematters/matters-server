@@ -23,7 +23,7 @@ afterAll(async () => {
 describe('updateOrCreateChannel', () => {
   const channelData = {
     name: 'test-channel',
-    description: 'test description',
+    note: 'test description',
     providerId: '1',
     enabled: true,
   }
@@ -37,7 +37,7 @@ describe('updateOrCreateChannel', () => {
 
     expect(channel).toBeDefined()
     expect(channel.name).toBe(channelData.name)
-    expect(channel.description).toBe(channelData.description)
+    expect(channel.note).toBe(channelData.note)
     expect(channel.providerId).toBe(channelData.providerId)
     expect(channel.enabled).toBe(channelData.enabled)
   })
@@ -58,7 +58,7 @@ describe('updateOrCreateChannel', () => {
 
     expect(updatedChannel.id).toBe(channel.id)
     expect(updatedChannel.name).toBe(updatedData.name)
-    expect(updatedChannel.description).toBe(updatedData.description)
+    expect(updatedChannel.note).toBe(updatedData.note)
     expect(updatedChannel.enabled).toBe(updatedData.enabled)
     expect(updatedChannel.updatedAt).toBeDefined()
   })
@@ -76,7 +76,7 @@ describe('updateOrCreateChannel', () => {
 
     expect(channel).toBeDefined()
     expect(channel.name).toBe(dataWithoutDescription.name)
-    expect(channel.description).toBeNull()
+    expect(channel.note).toBeNull()
   })
 })
 
@@ -84,7 +84,7 @@ describe('setArticleChannels', () => {
   const articleId = '1'
   const channelData = {
     name: 'test-channel',
-    description: 'test description',
+    note: 'test description',
     providerId: '1',
     enabled: true,
   }

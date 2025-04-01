@@ -1,6 +1,6 @@
-import type { GQLChannelResolvers } from '#definitions/index.js'
+import type { GQLTopicChannelResolvers } from '#definitions/index.js'
 
-const resolver: GQLChannelResolvers['name'] = async (
+const resolver: GQLTopicChannelResolvers['name'] = async (
   { id, name },
   { input },
   { viewer, dataSources: { translationService } }

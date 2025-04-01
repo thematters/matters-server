@@ -1,18 +1,18 @@
-import type { GQLChannelResolvers } from '#definitions/index.js'
+import type { GQLTopicChannelResolvers } from '#definitions/index.js'
 
-const resolver: GQLChannelResolvers['description'] = async (
-  { id, description },
+const resolver: GQLTopicChannelResolvers['note'] = async (
+  { id, note },
   { input },
   { viewer, dataSources: { translationService } }
 ) => {
   const language = input?.language || viewer.language
   const translation = await translationService.findTranslation({
     table: 'channel',
-    field: 'description',
+    field: 'note',
     id,
     language,
   })
-  return translation ? translation.text : description || null
+  return translation ? translation.text : note || null
 }
 
 export default resolver

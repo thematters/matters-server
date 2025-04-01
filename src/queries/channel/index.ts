@@ -6,19 +6,22 @@ import { toGlobalId } from '#common/utils/index.js'
 import articles from './articles.js'
 import channel from './channel.js'
 import channels from './channels.js'
-import description from './description.js'
 import name from './name.js'
+import note from './note.js'
 
 const schema: GQLResolvers = {
   Query: {
     channel,
     channels,
   },
-  Channel: {
+  TopicChannel: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Channel, id }),
     name,
-    description,
+    note,
     articles,
+  },
+  Channel: {
+    __resolveType: ({ __type }: any) => __type,
   },
 }
 

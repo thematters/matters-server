@@ -1,17 +1,19 @@
 import type { Connections, User } from '#definitions/index.js'
 
 import { NODE_TYPES, LANGUAGE } from '#common/enums/index.js'
-import { AtomService } from '#connectors/index.js'
+import { AtomService, ChannelService } from '#connectors/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 
 import { genConnections, closeConnections, testClient } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService
+let channelService: ChannelService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  channelService = new ChannelService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -19,18 +21,17 @@ afterAll(async () => {
 })
 
 describe('manage channels', () => {
-  const PUT_CHANNEL = /* GraphQL */ `
-    mutation ($input: PutChannelInput!) {
-      putChannel(input: $input) {
+  const PUT_TOPIC_CHANNEL = /* GraphQL */ `
+    mutation ($input: PutTopicChannelInput!) {
+      putTopicChannel(input: $input) {
         id
         shortHash
-        providerId
         nameEn: name(input: { language: en })
         nameZhHant: name(input: { language: zh_hant })
         nameZhHans: name(input: { language: zh_hans })
-        descriptionEn: description(input: { language: en })
-        descriptionZhHant: description(input: { language: zh_hant })
-        descriptionZhHans: description(input: { language: zh_hans })
+        noteEn: note(input: { language: en })
+        noteZhHant: note(input: { language: zh_hant })
+        noteZhHans: note(input: { language: zh_hans })
         enabled
       }
     }
@@ -44,8 +45,10 @@ describe('manage channels', () => {
           channels {
             channel {
               id
-              providerId
-              enabled
+              ... on TopicChannel {
+                providerId
+                enabled
+              }
             }
             enabled
             isLabeled
@@ -68,7 +71,9 @@ describe('manage channels', () => {
     query ($input: ChannelInput!) {
       channel(input: $input) {
         id
-        enabled
+        ... on TopicChannel {
+          enabled
+        }
       }
     }
   `
@@ -76,7 +81,9 @@ describe('manage channels', () => {
     query {
       channels {
         id
-        name
+        ... on TopicChannel {
+          name
+        }
       }
     }
   `
@@ -85,10 +92,12 @@ describe('manage channels', () => {
     query {
       channels {
         id
-        providerId
-        name
-        description
-        enabled
+        ... on TopicChannel {
+          providerId
+          name
+          note
+          enabled
+        }
       }
     }
   `
@@ -105,50 +114,12 @@ describe('manage channels', () => {
       table: 'user',
       where: { role: 'user' },
     })
-  })
-
-  test('create channel successfully', async () => {
-    const server = await testClient({
-      connections,
-      isAuth: true,
-      context: { viewer: admin },
+    await channelService.updateOrCreateChannel({
+      name: 'test',
+      providerId: 'test-provider-1',
+      note: 'test',
+      enabled: true,
     })
-
-    const name = Object.keys(LANGUAGE).map((lang) => ({
-      text: 'test channel ' + lang,
-      language: lang,
-    }))
-    const description = Object.keys(LANGUAGE).map((lang) => ({
-      text: 'test description ' + lang,
-      language: lang,
-    }))
-
-    const { data, errors } = await server.executeOperation({
-      query: PUT_CHANNEL,
-      variables: {
-        input: {
-          providerId: 'test-provider',
-          name,
-          description,
-        },
-      },
-    })
-
-    expect(errors).toBeUndefined()
-    expect(data.putChannel.shortHash).toBeDefined()
-    expect(data.putChannel.providerId).toBe('test-provider')
-    expect(data.putChannel.nameEn).toBe('test channel en')
-    expect(data.putChannel.nameZhHans).toBe('test channel zh_hans')
-    expect(data.putChannel.descriptionEn).toBe('test description en')
-    expect(data.putChannel.descriptionZhHans).toBe('test description zh_hans')
-    expect(data.putChannel.descriptionZhHant).toBe('test description zh_hant')
-    expect(data.putChannel.enabled).toBe(true)
-
-    const channel = await atomService.findFirst({
-      table: 'channel',
-      where: { providerId: 'test-provider' },
-    })
-    expect(channel).toBeDefined()
   })
 
   test('update channel successfully', async () => {
@@ -173,29 +144,23 @@ describe('manage channels', () => {
     }))
 
     const { data, errors } = await server.executeOperation({
-      query: PUT_CHANNEL,
+      query: PUT_TOPIC_CHANNEL,
       variables: {
         input: {
           id: toGlobalId({ type: NODE_TYPES.Channel, id: channel.id }),
-          providerId: 'test-provider-updated',
           name: newName,
-          description: newDescription,
+          note: newDescription,
           enabled: false,
         },
       },
     })
 
     expect(errors).toBeUndefined()
-    expect(data.putChannel.providerId).toBe('test-provider-updated')
-    expect(data.putChannel.nameEn).toBe('updated channel en')
-    expect(data.putChannel.descriptionEn).toBe('updated description en')
-    expect(data.putChannel.descriptionZhHans).toBe(
-      'updated description zh_hans'
-    )
-    expect(data.putChannel.descriptionZhHant).toBe(
-      'updated description zh_hant'
-    )
-    expect(data.putChannel.enabled).toBe(false)
+    expect(data.putTopicChannel.nameEn).toBe('updated channel en')
+    expect(data.putTopicChannel.noteEn).toBe('updated description en')
+    expect(data.putTopicChannel.noteZhHans).toBe('updated description zh_hans')
+    expect(data.putTopicChannel.noteZhHant).toBe('updated description zh_hant')
+    expect(data.putTopicChannel.enabled).toBe(false)
   })
 
   test('set article channels', async () => {
@@ -256,16 +221,15 @@ describe('manage channels', () => {
       context: { viewer: normalUser },
     })
 
-    // add channel
-    const { data: channelData } = await adminServer.executeOperation({
-      query: PUT_CHANNEL,
-      variables: {
-        input: {
-          providerId: 'test-provider-2',
-          name: [{ text: 'test', language: 'en' }],
-          enabled: false,
-        },
-      },
+    const channel = await channelService.updateOrCreateChannel({
+      name: 'test',
+      providerId: 'test-provider-2',
+      note: 'test',
+      enabled: false,
+    })
+    const channelGlobalId = toGlobalId({
+      type: NODE_TYPES.Channel,
+      id: channel.id,
     })
 
     // Query by admin user
@@ -273,18 +237,18 @@ describe('manage channels', () => {
       await adminServer.executeOperation({
         query: QUERY_CHANNEL_BY_ADMIN,
         variables: {
-          input: { shortHash: channelData.putChannel.shortHash },
+          input: { shortHash: channel.shortHash },
         },
       })
     expect(adminErrors).toBeUndefined()
-    expect(adminQueryData.channel.id).toBe(channelData.putChannel.id)
+    expect(adminQueryData.channel.id).toBe(channelGlobalId)
     expect(adminQueryData.channel.enabled).toBe(false)
 
     // Query by normal user
     const { data: normalUserData } = await normalServer.executeOperation({
       query: QUERY_CHANNEL,
       variables: {
-        input: { shortHash: channelData.putChannel.shortHash },
+        input: { shortHash: channel.shortHash },
       },
     })
     expect(normalUserData.channel).toBeNull()
@@ -303,15 +267,13 @@ describe('manage channels', () => {
     })
 
     // add channel
-    await adminServer.executeOperation({
-      query: PUT_CHANNEL,
-      variables: {
-        input: {
-          providerId: 'test-provider-3',
-          name: [{ text: 'test', language: 'en' }],
-        },
-      },
+    await channelService.updateOrCreateChannel({
+      name: 'test',
+      providerId: 'test-provider-3',
+      note: 'test',
+      enabled: true,
     })
+
     const { data, errors } = await adminServer.executeOperation({
       query: QUERY_CHANNELS_BY_ADMIN,
     })
@@ -321,7 +283,7 @@ describe('manage channels', () => {
 
     // disable channel
     await adminServer.executeOperation({
-      query: PUT_CHANNEL,
+      query: PUT_TOPIC_CHANNEL,
       variables: {
         input: {
           id: toGlobalId({ type: NODE_TYPES.Channel, id: '1' }),
@@ -352,10 +314,10 @@ describe('manage channels', () => {
     const server = await testClient({ connections })
 
     const { errors } = await server.executeOperation({
-      query: PUT_CHANNEL,
+      query: PUT_TOPIC_CHANNEL,
       variables: {
         input: {
-          providerId: 'test',
+          id: toGlobalId({ type: NODE_TYPES.Channel, id: '1' }),
           name: [{ text: 'test', language: 'en' }],
         },
       },

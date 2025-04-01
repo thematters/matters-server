@@ -1,6 +1,6 @@
 import type { GQLQueryResolvers } from '#definitions/index.js'
 
-import { USER_ROLE } from '#common/enums/index.js'
+import { USER_ROLE, NODE_TYPES } from '#common/enums/index.js'
 
 const resolver: GQLQueryResolvers['channel'] = async (
   _,
@@ -19,7 +19,7 @@ const resolver: GQLQueryResolvers['channel'] = async (
     return null
   }
 
-  return channel
+  return { ...channel, __type: NODE_TYPES.TopicChannel }
 }
 
 export default resolver

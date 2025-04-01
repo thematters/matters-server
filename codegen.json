@@ -78,7 +78,8 @@
           "CampaignOSS": "./campaign.js#Campaign",
           "WritingChallenge": "./campaign.js#Campaign",
           "CampaignStage": "./campaign.js#CampaignStage",
-          "Channel": "./channel.js#Channel"
+          "TopicChannel": "./channel.js#Channel",
+          "CurationChannel": "./channel.js#Channel"
         },
         "scalars": {
           "ID": {

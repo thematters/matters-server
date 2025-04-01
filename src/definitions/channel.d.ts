@@ -4,8 +4,9 @@ export interface Channel {
   id: string
   shortHash: string
   name: string
-  description?: string
-  providerId: string
+  note?: string
+  type: 'topic' | 'curation'
+  providerId?: string
   enabled: boolean
   createdAt: Date
   updatedAt: Date

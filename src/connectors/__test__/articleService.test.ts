@@ -587,13 +587,13 @@ describe('latestArticles', () => {
     // create channels
     const channel1 = await channelService.updateOrCreateChannel({
       name: 'test',
-      description: 'test',
+      note: 'test',
       providerId: 'test-latest',
       enabled: true,
     })
     const channel2 = await channelService.updateOrCreateChannel({
       name: 'test2',
-      description: 'test2',
+      note: 'test2',
       providerId: 'test-latest2',
       enabled: false,
     })
@@ -677,7 +677,7 @@ describe('findChannelArticles', () => {
     // create channel
     const channel = await channelService.updateOrCreateChannel({
       name: 'test',
-      description: 'test',
+      note: 'test',
       providerId: '1',
       enabled: true,
     })

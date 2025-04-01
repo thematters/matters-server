@@ -168,8 +168,7 @@ export enum NODE_TYPES {
   Moment = 'Moment',
   Campaign = 'Campaign',
   CampaignStage = 'CampaignStage',
-
-  Channel = 'Channel',
+  TopicChannel = 'TopicChannel',
 
   IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
@@ -186,6 +185,7 @@ export enum NODE_TYPES {
   TransactionTarget = 'TransactionTarget',
   PinnableWork = 'PinnableWork',
   Writing = 'Writing',
+  Channel = 'Channel',
 }
 
 export const APPRECIATION_TYPES = {
