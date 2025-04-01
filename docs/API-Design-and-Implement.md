@@ -9,16 +9,10 @@
 
 https://www.apollographql.com/docs/apollo-server/data/resolvers
 
-- Validation
-- Authorization
-- Caching
 
 ### Unions and Interfaces
 
-1. return `__type` in resolvers
-2. implement `__resolveType` on Unions/Interfaces
-
-
+1. return `__type` in resolvers:
 ```typescript
 // Example from comment/node.ts
 const resolver = async ({ targetId, targetTypeId, type }, _, { dataSources: { atomService } }) => {
@@ -34,6 +28,7 @@ const resolver = async ({ targetId, targetTypeId, type }, _, { dataSources: { at
 }
 ```
 
+2. implement `__resolveType` on Unions/Interfaces
 ```typescript
 // Interface/Union need to add `__resolveType`
 const resolvers = {
@@ -42,3 +37,9 @@ const resolvers = {
   },
   }
 }
+
+### Checklist
+
+- Validation
+- Authorization
+- Caching

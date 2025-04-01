@@ -66,7 +66,12 @@ import type {
   CampaignArticle,
   CampaignBoost,
 } from './campaign.js'
-import type { Channel, ArticleChannel, ArticleChannelJob } from './channel.js'
+import type {
+  Channel,
+  ArticleChannel,
+  ArticleChannelJob,
+  CampaignChannel,
+} from './channel.js'
 import type {
   Circle,
   CircleInvitation,
@@ -231,6 +236,7 @@ export type TableTypeMap = {
   campaign_user: CampaignUser
   campaign_article: CampaignArticle
   campaign_boost: CampaignBoost
+  campaign_channel: CampaignChannel
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice

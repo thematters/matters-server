@@ -12,6 +12,15 @@ export interface Channel {
   updatedAt: Date
 }
 
+export interface CampaignChannel {
+  id: string
+  campaignId: string
+  order: number
+  enabled: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface ArticleChannel {
   id: string
   articleId: string

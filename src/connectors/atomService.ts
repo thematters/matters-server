@@ -461,7 +461,10 @@ export class AtomService {
 
     // create
     if (!record) {
-      return this.knex(table).insert(create).returning('*')
+      const [createdRecord] = await this.knex(table)
+        .insert(create)
+        .returning('*')
+      return createdRecord
     }
 
     // update
@@ -610,4 +613,5 @@ const UPATEABLE_TABLES = [
   'campaign_user',
   'article_channel',
   'article_channel_job',
+  'campaign_channel',
 ]

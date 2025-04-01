@@ -1,4 +1,8 @@
-import type { ArticleVersion, Connections } from '#definitions/index.js'
+import type {
+  ArticleVersion,
+  CampaignChannel,
+  Connections,
+} from '#definitions/index.js'
 
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
@@ -44,6 +48,25 @@ export class ChannelService {
     return this.models.create({
       table: 'channel',
       data: { shortHash: shortHash(), name, note, providerId, enabled },
+    })
+  }
+
+  public updateOrCreateCampaignChannel = async ({
+    campaignId,
+    enabled,
+  }: Pick<CampaignChannel, 'campaignId' | 'enabled'>) => {
+    if (enabled) {
+      await this.models.updateMany({
+        table: 'campaign_channel',
+        where: {},
+        data: { enabled: false },
+      })
+    }
+    return this.models.upsert({
+      table: 'campaign_channel',
+      where: { campaignId },
+      create: { campaignId, enabled },
+      update: { enabled },
     })
   }
 

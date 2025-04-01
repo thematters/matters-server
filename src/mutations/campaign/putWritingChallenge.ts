@@ -33,6 +33,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       state,
       stages,
       featuredDescription,
+      channelEnabled,
     },
   },
   {
@@ -41,6 +42,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       campaignService,
       atomService,
       translationService,
+      channelService,
       connections: { redis },
     },
   }
@@ -175,6 +177,14 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         })
       )
     )
+  }
+
+  // create or update campaign channel
+  if (channelEnabled) {
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: campaign.id,
+      enabled: channelEnabled,
+    })
   }
 
   // create or update translations

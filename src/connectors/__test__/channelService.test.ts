@@ -1,6 +1,10 @@
 import type { Connections } from '#definitions/index.js'
 
-import { ChannelService, AtomService } from '#connectors/index.js'
+import {
+  ChannelService,
+  AtomService,
+  CampaignService,
+} from '#connectors/index.js'
 import { genConnections, closeConnections } from './utils.js'
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 
@@ -9,11 +13,13 @@ import { jest } from '@jest/globals'
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
+let campaignService: CampaignService
 
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
+  campaignService = new CampaignService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -229,5 +235,154 @@ describe('channel classifier', () => {
 
     expect(result).toBeDefined()
     expect(result?.[0].state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
+  })
+})
+
+describe('updateOrCreateCampaignChannel', () => {
+  beforeAll(async () => {
+    // create campaigns
+    const campaignData = {
+      name: 'test',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-05 15:00'),
+      ] as const,
+      creatorId: '1',
+    }
+    await campaignService.createWritingChallenge(campaignData)
+    await campaignService.createWritingChallenge(campaignData)
+    await campaignService.createWritingChallenge(campaignData)
+  })
+
+  beforeEach(async () => {
+    // Clean up campaign_channel table before each test
+    await atomService.deleteMany({ table: 'campaign_channel' })
+  })
+
+  test('creates new campaign channel when it does not exist', async () => {
+    const campaignId = '1'
+    const enabled = true
+
+    const channel = await channelService.updateOrCreateCampaignChannel({
+      campaignId,
+      enabled,
+    })
+
+    expect(channel).toBeDefined()
+    expect(channel.campaignId).toBe(campaignId)
+    expect(channel.enabled).toBe(enabled)
+  })
+
+  test('updates existing campaign channel', async () => {
+    const campaignId = '1'
+
+    // First create a disabled channel
+    const initialChannel = await channelService.updateOrCreateCampaignChannel({
+      campaignId,
+      enabled: false,
+    })
+
+    // Then update it to enabled
+    const updatedChannel = await channelService.updateOrCreateCampaignChannel({
+      campaignId,
+      enabled: true,
+    })
+
+    expect(updatedChannel.id).toBe(initialChannel.id)
+    expect(updatedChannel.campaignId).toBe(campaignId)
+    expect(updatedChannel.enabled).toBe(true)
+  })
+
+  test('disables all other channels when enabling a channel', async () => {
+    // Create multiple campaign channels
+    const channel1 = await channelService.updateOrCreateCampaignChannel({
+      campaignId: '1',
+      enabled: true,
+    })
+
+    const channel2 = await channelService.updateOrCreateCampaignChannel({
+      campaignId: '2',
+      enabled: true,
+    })
+
+    // Verify channel1 was disabled when channel2 was enabled
+    const updatedChannel1 = await atomService.findFirst({
+      table: 'campaign_channel',
+      where: { campaignId: channel1.campaignId },
+    })
+
+    expect(updatedChannel1.enabled).toBe(false)
+    expect(channel2.enabled).toBe(true)
+  })
+
+  test('does not affect other channels when disabling a channel', async () => {
+    // Create an enabled channel
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: '1',
+      enabled: true,
+    })
+
+    // Create another channel as disabled
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: '2',
+      enabled: false,
+    })
+
+    // Verify the first channel remains enabled
+    const channel1 = await atomService.findFirst({
+      table: 'campaign_channel',
+      where: { campaignId: '1' },
+    })
+
+    expect(channel1.enabled).toBe(true)
+  })
+
+  test('handles multiple enable/disable operations correctly', async () => {
+    // Create three channels
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: '1',
+      enabled: true,
+    })
+
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: '2',
+      enabled: true,
+    })
+
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: '3',
+      enabled: true,
+    })
+
+    // Verify only the last enabled channel remains enabled
+    const allChannels = await atomService.findMany({
+      table: 'campaign_channel',
+      where: {},
+    })
+
+    expect(allChannels).toHaveLength(3)
+    expect(allChannels.filter((c) => c.enabled)).toHaveLength(1)
+    expect(allChannels.find((c) => c.campaignId === '3')?.enabled).toBe(true)
+  })
+
+  test('maintains disabled state when updating disabled channel', async () => {
+    // Create a disabled channel
+    const channel = await channelService.updateOrCreateCampaignChannel({
+      campaignId: '1',
+      enabled: false,
+    })
+
+    // Update it while keeping it disabled
+    const updatedChannel = await channelService.updateOrCreateCampaignChannel({
+      campaignId: '1',
+      enabled: false,
+    })
+
+    expect(updatedChannel.enabled).toBe(false)
+    expect(updatedChannel.id).toBe(channel.id)
   })
 })
