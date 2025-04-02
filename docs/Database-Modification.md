@@ -4,17 +4,35 @@ This guide outlines the steps required to add a new table to the Matters server 
 
 ## 1. Define Table Types
 
-First, add the table type definition in `src/definitions/index.ts`:
-
+First, add object as const in `src/enums/newTableName.ts` if having enum fields
 ```typescript
+export const STATE = {
+    // add key/value pairs with same value
+} as const
+
+```
+
+Second, add the table type definition in `src/definitions/newTableName.ts`:
+```typescript
+import type { STATE } from '#common/enums/newTableName.js'
+import type { ValueOf } from './generic.js'
+
+
 export interface NewTableName {
   id: string
   // Add all required columns
+  // Example:
+  // description: string | null
+  // state: ValueOf<typeof CURATION_CHANNEL_STATE>
   createdAt: Date
   updatedAt: Date
 }
+```
 
-// Add to TableTypeMap in src/definitions/index.d.ts
+Third, add to TableTypeMap in src/definitions/index.d.ts
+```typescript
+import type { NewTableName } from './newTableName.js'
+
 export interface TableTypeMap {
   // ... existing tables ...
   new_table_name: NewTableName
@@ -43,8 +61,8 @@ export const up = async (knex) => {
     // t.enu('state', ['pending', 'active', 'finished', 'archived']).notNullable()
     
     // Standard timestamp columns
-    t.timestamp('created_at').defaultTo(knex.fn.now())
-    t.timestamp('updated_at').defaultTo(knex.fn.now())
+    t.timestamp('created_at').notNullable().defaultTo(knex.fn.now())
+    t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
     
     // Add any foreign keys
     // t.uuid('user_id').references('id').inTable('user')
@@ -83,36 +101,7 @@ export class AtomService {
 }
 ```
 
-## 5. Add Tests
-
-Create tests for your table operations:
-
-```typescript
-// src/connectors/__test__/newTableService.test.ts
-describe('NewTableService', () => {
-  let connections: Connections
-  let newTableService: NewTableService
-  let atomService: AtomService
-
-  beforeAll(async () => {
-    connections = await genConnections()
-    newTableService = new NewTableService(connections)
-    atomService = new AtomService(connections)
-  })
-
-  afterAll(async () => {
-    await closeConnections(connections)
-  })
-
-  beforeEach(async () => {
-    await atomService.deleteMany({ table: 'new_table_name' })
-  })
-
-  // Add your test cases here
-})
-```
-
-## 6. Run Migrations
+## 5. Run Migrations
 
 Execute the following commands to run your migration:
 
