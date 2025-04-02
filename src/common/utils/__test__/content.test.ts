@@ -1,4 +1,4 @@
-import { countWords } from '#common/utils/index.js'
+import { countWords, extractAssetDataFromHtml } from '#common/utils/index.js'
 
 test('countWords', async () => {
   const contents = [
@@ -39,4 +39,25 @@ test('countWords', async () => {
   contents.forEach(({ data, count }) => {
     expect(countWords(data)).toBe(count)
   })
+})
+
+test('extractAssetDataFromHtml', async () => {
+  const html =
+    '<figure class="image"><img src="https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/non-prod/embed/1be12911-98ab-495e-9c73-1312427dde11.jpeg/public"><figcaption></figcaption></figure>\n\n<figure class="audio"><audio controls data-file-name="bell"><source src="https://assets-develop.matters.news/embedaudio/56cf6dec-43de-4f85-ac01-3cce5f538f49.mpga" type="audio/mp3"></audio><div class="player"><header><div class="meta"><h4 class="title">bell</h4><div class="time"><span class="current" data-time="00:00"></span><span class="duration" data-time="--:--"></span></div></div><span class="play"></span></header><footer><div class="progress-bar"><span></span></div></footer></div><figcaption></figcaption></figure>\n\n<figure class="image"><img src="https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/non-prod/embed/38a2e2e5-0d38-46ab-beff-7da62815bae3.gif/public"><figcaption></figcaption></figure>\n\n---\n\n<figure class="embed embed-video" data-provider="youtube"><div class="iframe-container"><iframe src="https://www.youtube.com/embed/xO73EUwSegU?rel=0" loading="lazy" allowfullscreen frameborder="0"></iframe></div><figcaption></figcaption></figure>\n\n<p><br class="smart"></p>\n\n<p><br class="smart"></p>\n\n<figure class="embed embed-code" data-provider="codepen"><div class="iframe-container"><iframe src="https://codepen.io/ivorjetski/embed/preview/ZEyyzXm" loading="lazy" frameborder="0"></iframe></div><figcaption></figcaption></figure>\n\n<figure class="image"><img src="https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/non-prod/embed/f58940c1-02e7-47bd-956d-4a27f7a67167.jpeg/public"><figcaption></figcaption></figure>\n'
+  const assets = extractAssetDataFromHtml(html)
+  expect(assets).toEqual([
+    '1be12911-98ab-495e-9c73-1312427dde11',
+    '56cf6dec-43de-4f85-ac01-3cce5f538f49',
+    '38a2e2e5-0d38-46ab-beff-7da62815bae3',
+    'f58940c1-02e7-47bd-956d-4a27f7a67167',
+  ])
+  const imageAssets = extractAssetDataFromHtml(html, 'image')
+  expect(imageAssets).toEqual([
+    '1be12911-98ab-495e-9c73-1312427dde11',
+    '38a2e2e5-0d38-46ab-beff-7da62815bae3',
+    'f58940c1-02e7-47bd-956d-4a27f7a67167',
+  ])
+
+  const audioAssets = extractAssetDataFromHtml(html, 'audio')
+  expect(audioAssets).toEqual(['56cf6dec-43de-4f85-ac01-3cce5f538f49'])
 })
