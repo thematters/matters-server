@@ -2,7 +2,42 @@
 
 This guide outlines the steps required to add a new table to the Matters server codebase.
 
-## 1. Define Table Types
+
+## 1. Create Migration File
+
+run `npm run db:migration:make create_new_table_name_table` to create migration files:
+
+```typescript
+import { baseDown } from '../utils.js'
+
+const table = 'new_table_name'
+
+export const up = async (knex) => {
+  await knex('entity_type').insert({ table })
+  await knex.schema.createTable(table, (t) => {
+    
+    // Add your table columns here
+    // Example:
+    // t.string('name').notNullable()
+    // t.text('description')
+    // t.boolean('enabled').notNullable().defaultTo(false)
+    // t.specificType('writing_period', 'tstzrange').nullable()
+    // t.enu('state', ['pending', 'active', 'finished', 'archived']).notNullable()
+    
+    // Standard timestamp columns
+    t.timestamp('created_at').notNullable().defaultTo(knex.fn.now())
+    t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
+    
+    // Add any foreign keys
+    // t.uuid('user_id').references('id').inTable('user')
+  })
+}
+
+export const down = baseDown(table)
+```
+
+
+## 2. Define Table Types
 
 First, add object as const in `src/enums/newTableName.ts` if having enum fields
 ```typescript
@@ -37,39 +72,6 @@ export interface TableTypeMap {
   // ... existing tables ...
   new_table_name: NewTableName
 }
-```
-
-## 2. Create Migration File
-
-run `npm run db:migration:make create_new_table_name_table` to create migration files:
-
-```typescript
-import { baseDown } from '../utils.js'
-
-const table = 'new_table_name'
-
-export const up = async (knex) => {
-  await knex('entity_type').insert({ table })
-  await knex.schema.createTable(table, (t) => {
-    
-    // Add your table columns here
-    // Example:
-    // t.string('name').notNullable()
-    // t.text('description')
-    // t.boolean('enabled').notNullable().defaultTo(false)
-    // t.specificType('writing_period', 'tstzrange').nullable()
-    // t.enu('state', ['pending', 'active', 'finished', 'archived']).notNullable()
-    
-    // Standard timestamp columns
-    t.timestamp('created_at').notNullable().defaultTo(knex.fn.now())
-    t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
-    
-    // Add any foreign keys
-    // t.uuid('user_id').references('id').inTable('user')
-  })
-}
-
-export const down = baseDown(table)
 ```
 
 ## 3. Update AtomService
