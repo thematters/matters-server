@@ -37,27 +37,29 @@ export const makeUserName = (email: string): string => {
   return matched.join('').substring(0, 12).toLowerCase()
 }
 
-// TOFIX: uuid extract logic is broken after editor upgrade
 export const extractAssetDataFromHtml = (
   html: string,
   type?: 'image' | 'audio'
 ) => {
   const $ = cheerio.load(html || '', { decodeEntities: false })
 
-  let selector = '[data-asset-id]'
+  let selector = 'figure.image img, figure.audio source'
 
   if (type === 'image') {
-    selector = 'figure.image [data-asset-id]'
+    selector = 'figure.image img'
   } else if (type === 'audio') {
-    selector = 'figure.audio [data-asset-id]'
+    selector = 'figure.audio source'
   }
 
   return $(selector)
     .map((index, element) => {
-      const uuid = $(element).attr('data-asset-id')
+      const src = $(element).attr('src')
+      if (!src) return
 
-      if (uuid) {
-        return uuid
+      // Extract UUID from the URL
+      const matches = src.match(/\/([0-9a-f-]{36})\.[a-zA-Z0-9]+/)
+      if (matches && matches[1]) {
+        return matches[1]
       }
     })
     .get()
