@@ -2828,6 +2828,8 @@ export type GQLPutDraftInput = {
   indentFirstLine?: InputMaybe<Scalars['Boolean']['input']>
   /** whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>
+  /** last known update timestamp for version conflict detection */
+  lastUpdatedAt?: InputMaybe<Scalars['DateTime']['input']>
   license?: InputMaybe<GQLArticleLicenseType>
   replyToDonator?: InputMaybe<Scalars['String']['input']>
   requestForDonation?: InputMaybe<Scalars['String']['input']>

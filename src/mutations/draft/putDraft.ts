@@ -28,6 +28,7 @@ import {
   AuthenticationError,
   CircleNotFoundError,
   DraftNotFoundError,
+  DraftVersionConflictError,
   ForbiddenByStateError,
   ForbiddenError,
   TooManyTagsForArticleError,
@@ -70,6 +71,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       canComment,
       indentFirstLine,
       campaigns,
+      lastUpdatedAt,
     },
   },
   { viewer, dataSources: { atomService, systemService, campaignService } }
@@ -201,6 +203,16 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     ) {
       throw new ForbiddenError(
         'current publishState is not allow to be updated'
+      )
+    }
+
+    // Check for version conflict
+    if (
+      lastUpdatedAt &&
+      new Date(lastUpdatedAt).getTime() !== new Date(draft.updatedAt).getTime()
+    ) {
+      throw new DraftVersionConflictError(
+        'Draft has been modified by another session'
       )
     }
 

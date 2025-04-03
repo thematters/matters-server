@@ -305,6 +305,7 @@ export const putDraft = async (
               name
            }
         }
+        updatedAt
       }
     }
   `
