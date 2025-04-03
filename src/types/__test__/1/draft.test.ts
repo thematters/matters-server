@@ -536,6 +536,123 @@ describe('put draft', () => {
     )
     expect(indentFirstLineUpdated).toBeTruthy()
   })
+
+  test('version conflict detection', async () => {
+    // Create a new draft
+    const { id } = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+      },
+      connections
+    )
+
+    // Get the current version of the draft
+    const currentDraft = await putDraft({ draft: { id } }, connections)
+    const currentUpdateTime = currentDraft.updatedAt
+
+    // Try to update with correct timestamp - should succeed
+    const updateResult = await putDraft(
+      {
+        draft: {
+          id,
+          title: 'Updated with correct timestamp',
+          lastUpdatedAt: currentUpdateTime,
+        },
+      },
+      connections
+    )
+    expect(updateResult.title).toBe('Updated with correct timestamp')
+    expect(updateResult.errors).toBeUndefined()
+
+    // Try to update with incorrect timestamp - should fail with version conflict error
+    const oldTimestamp = new Date(currentUpdateTime)
+    oldTimestamp.setMinutes(oldTimestamp.getMinutes() - 5) // 5 minutes earlier
+
+    const conflictResult = await putDraft(
+      {
+        draft: {
+          id,
+          title: 'This update should fail',
+          lastUpdatedAt: oldTimestamp,
+        },
+      },
+      connections
+    )
+
+    expect(conflictResult.errors).toBeDefined()
+    expect(conflictResult.errors[0].message).toBe(
+      'Draft has been modified by another session'
+    )
+
+    // Update without timestamp should still work (no version checking)
+    const noTimestampResult = await putDraft(
+      {
+        draft: {
+          id,
+          title: 'Update without timestamp check',
+        },
+      },
+      connections
+    )
+    expect(noTimestampResult.title).toBe('Update without timestamp check')
+    expect(noTimestampResult.errors).toBeUndefined()
+  })
+
+  test('version conflict with concurrent updates', async () => {
+    // Create a new draft
+    const { id } = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+      },
+      connections
+    )
+
+    // Get the current version
+    const currentDraft = await putDraft({ draft: { id } }, connections)
+    const initialTimestamp = currentDraft.updatedAt
+
+    // First update changes the draft and advances the version
+    const firstUpdate = await putDraft(
+      {
+        draft: {
+          id,
+          title: 'First concurrent update',
+        },
+      },
+      connections
+    )
+    expect(firstUpdate.title).toBe('First concurrent update')
+    expect(firstUpdate.updatedAt).not.toEqual(initialTimestamp)
+
+    // Second update tries to use the original timestamp, but should fail
+    // because the draft has already been modified
+    const secondUpdate = await putDraft(
+      {
+        draft: {
+          id,
+          title: 'Second update with outdated timestamp',
+          lastUpdatedAt: initialTimestamp,
+        },
+      },
+      connections
+    )
+
+    expect(secondUpdate.errors).toBeDefined()
+    expect(secondUpdate.errors[0].message).toBe(
+      'Draft has been modified by another session'
+    )
+
+    // Verify the title wasn't changed by the failed update
+    const finalDraft = await putDraft({ draft: { id } }, connections)
+    expect(finalDraft.title).toBe('First concurrent update')
+  })
+
   test('edit campaigns', async () => {
     const campaignData = {
       name: 'test',
