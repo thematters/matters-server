@@ -49,6 +49,7 @@ import {
   genMD5,
   excludeSpam as excludeSpamModifier,
   selectWithTotalCount as selectWithTotalCountModifier,
+  makeSummary,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -63,7 +64,6 @@ import {
   aws,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { makeSummary } from '@matters/ipns-site-generator'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import fetch from 'node-fetch'
@@ -381,11 +381,6 @@ export class ArticleService extends BaseService<Article> {
               .where('type', 'articleNewest')
           )
           .orderBy('article.id', 'desc')
-          .modify((builder) => {
-            if (!oss) {
-              builder.limit(maxTake * 2) // add some extra to cover excluded ones in settings
-            }
-          })
           .as('article_set')
       )
       .where((builder) => {

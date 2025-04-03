@@ -1,7 +1,7 @@
 import type { GQLArticleResolvers } from '#definitions/index.js'
 
 import { ARTICLE_ACCESS_TYPE } from '#common/enums/index.js'
-import { makeSummary } from '@matters/ipns-site-generator'
+import { makeSummary } from '#common/utils/index.js'
 
 const resolver: GQLArticleResolvers['summary'] = async (
   { id },

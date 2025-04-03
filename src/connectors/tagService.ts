@@ -535,6 +535,8 @@ export class TagService extends BaseService<Tag> {
           builder.where('all_users', '>=', minAuthors)
         }
       })
+      .orderBy('all_users', 'desc')
+      .orderBy('all_articles', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)

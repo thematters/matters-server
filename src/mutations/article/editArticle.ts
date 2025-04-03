@@ -28,9 +28,8 @@ import {
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
-import { fromGlobalId } from '#common/utils/index.js'
+import { fromGlobalId, stripHtml } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { stripHtml } from '@matters/ipns-site-generator'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)

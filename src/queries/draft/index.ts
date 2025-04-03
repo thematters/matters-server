@@ -1,8 +1,7 @@
 import type { GQLResolvers } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
-import { countWords, toGlobalId } from '#common/utils/index.js'
-import { makeSummary } from '@matters/ipns-site-generator'
+import { countWords, makeSummary, toGlobalId } from '#common/utils/index.js'
 import slugify from '@matters/slugify'
 
 import * as draftAccess from './access/index.js'

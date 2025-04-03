@@ -14,9 +14,15 @@ export const seed = async function (knex, Promise) {
         content: '<div>some html string</div>',
         hash: 'hash1',
       },
+      {
+        content:
+          '<figure class="image"><img src="https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/non-prod/embed/00000000-0000-0000-0000-000000000004.jpeg/public"><figcaption></figcaption></figure>',
+        hash: 'hash2',
+      },
     ])
     .returning('id')
   const contentId1 = rows1[0].id
+  const contentId2 = rows1[1].id
 
   const rows2 = await knex(articleTable)
     .insert([
@@ -144,7 +150,7 @@ export const seed = async function (knex, Promise) {
     },
     {
       article_id: articleIds[5],
-      content_id: contentId1,
+      content_id: contentId2,
       title: 'test article 6',
       summary: 'Some text',
       summary_customized: true,

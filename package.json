@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "5.10.0",
+  "version": "5.10.1",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "type": "module",
@@ -56,7 +56,6 @@
     "@graphql-tools/utils": "^10.0.0",
     "@keyv/redis": "^2.6.1",
     "@matters/apollo-response-cache": "^2.1.0",
-    "@matters/ipns-site-generator": "^0.1.7",
     "@matters/matters-editor": "^0.3.0-alpha.4",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",

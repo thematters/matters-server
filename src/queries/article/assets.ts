@@ -1,15 +1,23 @@
 import type { GQLArticleResolvers } from '#definitions/index.js'
 
+import { extractAssetDataFromHtml } from '#common/utils/index.js'
+
 const resolver: GQLArticleResolvers['assets'] = async (
   { id, authorId },
   _,
-  { viewer, dataSources: { systemService } }
+  { viewer, dataSources: { articleService, systemService } }
 ) => {
   // Check inside resolver instead of `@auth(mode: "${AUTH_MODE.oauth}")`
   // since `@auth` now only supports scope starting with `viewer`.
   const isAuthor = authorId === viewer.id
   if (!isAuthor) {
-    return []
+    const content = await articleService.loadLatestArticleContent(id)
+    const images = extractAssetDataFromHtml(content, 'image')
+    if (images.length > 0) {
+      return systemService.findAssetByUUIDs(images.slice(0, 1))
+    } else {
+      return []
+    }
   }
 
   // assets belonged to this article
