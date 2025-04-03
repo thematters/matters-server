@@ -3863,7 +3863,7 @@ type CurationChannel implements Channel {
   color: Color!
 
   """both activePeriod and state determine if the channel is active"""
-  activePeriod: DatetimeRange
+  activePeriod: DatetimeRange!
   state: CurationChannelState!
   articles(input: ConnectionArgs!): ChannelArticleConnection!
 }

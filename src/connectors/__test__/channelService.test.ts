@@ -1,4 +1,8 @@
 import type { Connections } from '#definitions/index.js'
+import {
+  CURATION_CHANNEL_COLOR,
+  CURATION_CHANNEL_STATE,
+} from '#common/enums/index.js'
 
 import {
   ChannelService,
@@ -384,5 +388,166 @@ describe('updateOrCreateCampaignChannel', () => {
 
     expect(updatedChannel.enabled).toBe(false)
     expect(updatedChannel.id).toBe(channel.id)
+  })
+})
+
+describe('createCurationChannel', () => {
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'curation_channel' })
+  })
+
+  test('creates channel with minimal required parameters', async () => {
+    const name = 'test-channel'
+
+    const channel = await channelService.createCurationChannel({ name })
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toBe(name)
+    expect(channel.pinAmount).toBe(3) // default value
+    expect(channel.color).toBe(CURATION_CHANNEL_COLOR.gray) // default value
+    expect(channel.state).toBe(CURATION_CHANNEL_STATE.editing) // default value
+    expect(channel.activePeriod).toBeDefined() // default value should be set
+  })
+
+  test('creates channel with all parameters', async () => {
+    const channelData = {
+      name: 'full-test-channel',
+      note: 'test note',
+      pinAmount: 5,
+      color: CURATION_CHANNEL_COLOR.pink,
+      activePeriod: [new Date('2024-01-01'), new Date('2024-12-31')] as const,
+      state: CURATION_CHANNEL_STATE.published,
+    }
+
+    const channel = await channelService.createCurationChannel(channelData)
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toBe(channelData.name)
+    expect(channel.note).toBe(channelData.note)
+    expect(channel.pinAmount).toBe(channelData.pinAmount)
+    expect(channel.color).toBe(channelData.color)
+    expect(channel.state).toBe(channelData.state)
+    // Check that activePeriod is properly formatted as a datetime range string
+    expect(channel.activePeriod).toContain('2024-01-01')
+    expect(channel.activePeriod).toContain('2024-12-31')
+  })
+
+  test('handles null note', async () => {
+    const channel = await channelService.createCurationChannel({
+      name: 'no-note-channel',
+    })
+
+    expect(channel.note).toBeNull()
+  })
+
+  test('creates channel with custom activePeriod', async () => {
+    const start = new Date()
+    const end = new Date(start.getTime() + 86400000) // +1 day
+
+    const channel = await channelService.createCurationChannel({
+      name: 'custom-period-channel',
+      activePeriod: [start, end],
+    })
+
+    expect(channel.activePeriod).toContain(start.toISOString().split('T')[0])
+    expect(channel.activePeriod).toContain(end.toISOString().split('T')[0])
+  })
+})
+
+describe('updateCurationChannel', () => {
+  let existingChannelId: string
+
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'curation_channel' })
+    // Create a channel to update
+    const channel = await channelService.createCurationChannel({
+      name: 'existing-channel',
+      note: 'original note',
+      pinAmount: 1,
+      color: CURATION_CHANNEL_COLOR.gray,
+      state: CURATION_CHANNEL_STATE.editing,
+    })
+    existingChannelId = channel.id
+  })
+
+  test('updates single field', async () => {
+    const updatedChannel = await channelService.updateCurationChannel({
+      id: existingChannelId,
+      name: 'updated-name',
+    })
+
+    expect(updatedChannel.name).toBe('updated-name')
+    // Other fields should remain unchanged
+    expect(updatedChannel.note).toBe('original note')
+    expect(updatedChannel.pinAmount).toBe(1)
+    expect(updatedChannel.color).toBe(CURATION_CHANNEL_COLOR.gray)
+    expect(updatedChannel.state).toBe(CURATION_CHANNEL_STATE.editing)
+  })
+
+  test('updates multiple fields', async () => {
+    const updates = {
+      id: existingChannelId,
+      name: 'new-name',
+      note: 'new note',
+      pinAmount: 10,
+      color: CURATION_CHANNEL_COLOR.pink,
+      state: CURATION_CHANNEL_STATE.published,
+    }
+
+    const updatedChannel = await channelService.updateCurationChannel(updates)
+
+    expect(updatedChannel.name).toBe(updates.name)
+    expect(updatedChannel.note).toBe(updates.note)
+    expect(updatedChannel.pinAmount).toBe(updates.pinAmount)
+    expect(updatedChannel.color).toBe(updates.color)
+    expect(updatedChannel.state).toBe(updates.state)
+  })
+
+  test('updates activePeriod', async () => {
+    const newPeriod = [new Date('2024-06-01'), new Date('2024-12-31')] as const
+
+    const updatedChannel = await channelService.updateCurationChannel({
+      id: existingChannelId,
+      activePeriod: newPeriod,
+    })
+
+    expect(updatedChannel.activePeriod).toContain('2024-06-01')
+    expect(updatedChannel.activePeriod).toContain('2024-12-31')
+  })
+
+  test('handles null note update', async () => {
+    const updatedChannel = await channelService.updateCurationChannel({
+      id: existingChannelId,
+      note: null,
+    })
+
+    expect(updatedChannel.note).toBeNull()
+  })
+
+  test('preserves unchanged fields', async () => {
+    const originalChannel = await atomService.findFirst({
+      table: 'curation_channel',
+      where: { id: existingChannelId },
+    })
+
+    const updatedChannel = await channelService.updateCurationChannel({
+      id: existingChannelId,
+      name: 'new-name',
+    })
+
+    expect(updatedChannel.note).toBe(originalChannel.note)
+    expect(updatedChannel.pinAmount).toBe(originalChannel.pinAmount)
+    expect(updatedChannel.color).toBe(originalChannel.color)
+    expect(updatedChannel.state).toBe(originalChannel.state)
+    expect(updatedChannel.activePeriod).toBe(originalChannel.activePeriod)
+  })
+
+  test('handles non-existent channel ID', async () => {
+    await expect(
+      channelService.updateCurationChannel({
+        id: 'non-existent-id',
+        name: 'new-name',
+      })
+    ).rejects.toThrow()
   })
 })

@@ -133,3 +133,14 @@ export const isValidTransactionHash = (hash: string): boolean => {
 
   return /^0x([a-fA-F0-9]{64})$/.test(hash)
 }
+
+/**
+ * Validate datetime range.
+ */
+export const isValidDatetimeRange = (range: { start: Date; end?: Date }) => {
+  if (range.end && range.end.getTime() - range.start.getTime() <= 0) {
+    return false
+    // throw new UserInputError('start date must be earlier than end date')
+  }
+  return true
+}

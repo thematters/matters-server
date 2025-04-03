@@ -15,6 +15,7 @@ import {
 import {
   fromGlobalId,
   toDatetimeRangeString,
+  isValidDatetimeRange,
   isUrl,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -66,10 +67,14 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     validateUrl(link)
   }
   if (applicationPeriod) {
-    validateRange(applicationPeriod)
+    if (!isValidDatetimeRange(applicationPeriod)) {
+      throw new UserInputError('invalid datetime range')
+    }
   }
   if (writingPeriod) {
-    validateRange(writingPeriod)
+    if (!isValidDatetimeRange(writingPeriod)) {
+      throw new UserInputError('invalid datetime range')
+    }
   }
   if (stages) {
     validateStages(stages)
@@ -255,19 +260,15 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   return campaign
 }
 
-const validateRange = (range: { start: Date; end?: Date }) => {
-  if (range.end && range.end.getTime() - range.start.getTime() <= 0) {
-    throw new UserInputError('start date must be earlier than end date')
-  }
-}
-
 const validateStages = (stages: GQLCampaignStageInput[]) => {
   for (const stage of stages) {
     if (!stage.name || !stage.name[0].text) {
       throw new UserInputError('stage name is required')
     }
     if (stage.period) {
-      validateRange(stage.period)
+      if (!isValidDatetimeRange(stage.period)) {
+        throw new UserInputError('invalid datetime range')
+      }
     }
   }
 }

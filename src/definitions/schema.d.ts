@@ -1358,7 +1358,7 @@ export type GQLCryptoWalletSignaturePurpose =
 export type GQLCurationChannel = GQLChannel & {
   __typename?: 'CurationChannel'
   /** both activePeriod and state determine if the channel is active */
-  activePeriod?: Maybe<GQLDatetimeRange>
+  activePeriod: GQLDatetimeRange
   articles: GQLChannelArticleConnection
   color: GQLColor
   id: Scalars['ID']['output']
@@ -7403,7 +7403,7 @@ export type GQLCurationChannelResolvers<
   ParentType extends GQLResolversParentTypes['CurationChannel'] = GQLResolversParentTypes['CurationChannel']
 > = ResolversObject<{
   activePeriod?: Resolver<
-    Maybe<GQLResolversTypes['DatetimeRange']>,
+    GQLResolversTypes['DatetimeRange'],
     ParentType,
     ContextType
   >

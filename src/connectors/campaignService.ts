@@ -163,7 +163,7 @@ export class CampaignService {
     }
 
     if (campaign.applicationPeriod) {
-      const [start] = fromDatetimeRangeString(campaign.applicationPeriod)
+      const { start } = fromDatetimeRangeString(campaign.applicationPeriod)
       const now = new Date()
       if (now.getTime() < start.getTime()) {
         throw new ForbiddenError('application period has not started yet')
@@ -404,7 +404,7 @@ export class CampaignService {
       throw new CampaignStageNotFoundError('stage not found')
     }
     const periodStart = stage.period
-      ? fromDatetimeRangeString(stage.period)[0].getTime()
+      ? fromDatetimeRangeString(stage.period).start.getTime()
       : null
     const now = new Date().getTime()
     if (periodStart && periodStart > now) {
@@ -436,7 +436,7 @@ export class CampaignService {
       where: { id: updated.campaignId },
     })
     const end =
-      fromDatetimeRangeString(campaign.applicationPeriod as string)[1] ??
+      fromDatetimeRangeString(campaign.applicationPeriod as string).end ??
       new Date()
 
     notificationService.trigger({

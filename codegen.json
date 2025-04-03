@@ -79,7 +79,7 @@
           "WritingChallenge": "./campaign.js#Campaign",
           "CampaignStage": "./campaign.js#CampaignStage",
           "TopicChannel": "./channel.js#Channel",
-          "CurationChannel": "./channel.js#Channel"
+          "CurationChannel": "./channel.js#CurationChannel"
         },
         "scalars": {
           "ID": {

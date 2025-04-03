@@ -33,7 +33,7 @@ export default /* GraphQL */ `
     pinAmount: Int!
     color: Color!
     "both activePeriod and state determine if the channel is active"
-    activePeriod: DatetimeRange
+    activePeriod: DatetimeRange!
     state: CurationChannelState!
     articles(input: ConnectionArgs!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
   }

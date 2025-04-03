@@ -71,6 +71,8 @@ import type {
   ArticleChannel,
   ArticleChannelJob,
   CampaignChannel,
+  CurationChannel,
+  CurationChannelArticle,
 } from './channel.js'
 import type {
   Circle,
@@ -276,6 +278,8 @@ export type TableTypeMap = {
   user_tags_order: UserTagsOrder
   username_edit_history: UsernameEditHistory
   verification_code: VerificationCode
+  curation_channel: CurationChannel
+  curation_channel_article: CurationChannelArticle
 }
 
 export type TableTypeMapKey = keyof TableTypeMap

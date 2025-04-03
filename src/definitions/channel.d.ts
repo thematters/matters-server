@@ -1,4 +1,9 @@
+import type {
+  CURATION_CHANNEL_COLOR,
+  CURATION_CHANNEL_STATE,
+} from '#common/enums/channel.js'
 import type { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import type { ValueOf } from './generic.js'
 
 export interface Channel {
   id: string
@@ -39,4 +44,28 @@ export interface ArticleChannelJob {
   createdAt: Date
   updatedAt: Date
   retriedAt?: Date
+}
+
+export interface CurationChannel {
+  id: string
+  shortHash: string
+  name: string
+  note: string | null
+  pinAmount: number
+  color: ValueOf<typeof CURATION_CHANNEL_COLOR>
+  activePeriod: string
+  order: number
+  state: ValueOf<typeof CURATION_CHANNEL_STATE>
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CurationChannelArticle {
+  id: string
+  channelId: string
+  articleId: string
+  pinned: boolean
+  pinnedAt: Date
+  createdAt: Date
+  updatedAt: Date
 }

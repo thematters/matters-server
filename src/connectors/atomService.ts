@@ -598,6 +598,8 @@ const UPATEABLE_TABLES = [
   'crypto_wallet_signature',
   'article_translation',
   'tag_translation',
+  'curation_channel',
+  'curation_channel_article',
   'user_ipns_keys',
   'user_tags_order',
   'announcement_translation',

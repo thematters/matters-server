@@ -2,11 +2,16 @@ import type {
   ArticleVersion,
   CampaignChannel,
   Connections,
+  ValueOf,
 } from '#definitions/index.js'
 
-import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import {
+  ARTICLE_CHANNEL_JOB_STATE,
+  CURATION_CHANNEL_COLOR,
+  CURATION_CHANNEL_STATE,
+} from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
-import { shortHash } from '#common/utils/nanoid.js'
+import { shortHash, toDatetimeRangeString } from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -67,6 +72,68 @@ export class ChannelService {
       where: { campaignId },
       create: { campaignId, enabled },
       update: { enabled },
+    })
+  }
+
+  public createCurationChannel = async ({
+    name,
+    note,
+    pinAmount = 3,
+    color = CURATION_CHANNEL_COLOR.gray,
+    activePeriod = [new Date(0), new Date(0)],
+    state = CURATION_CHANNEL_STATE.editing,
+  }: {
+    name: string
+    note?: string
+    pinAmount?: number
+    color?: ValueOf<typeof CURATION_CHANNEL_COLOR>
+    activePeriod?: readonly [Date, Date]
+    state?: ValueOf<typeof CURATION_CHANNEL_STATE>
+  }) => {
+    return this.models.create({
+      table: 'curation_channel',
+      data: {
+        shortHash: shortHash(),
+        name,
+        note,
+        pinAmount,
+        color,
+        activePeriod: toDatetimeRangeString(activePeriod[0], activePeriod[1]),
+        state,
+      },
+    })
+  }
+
+  public updateCurationChannel = async ({
+    id,
+    name,
+    note,
+    pinAmount,
+    color,
+    activePeriod,
+    state,
+  }: {
+    id: string
+    name?: string
+    note?: string | null
+    pinAmount?: number
+    color?: ValueOf<typeof CURATION_CHANNEL_COLOR>
+    activePeriod?: readonly [Date, Date]
+    state?: ValueOf<typeof CURATION_CHANNEL_STATE>
+  }) => {
+    return this.models.update({
+      table: 'curation_channel',
+      where: { id },
+      data: {
+        name,
+        note,
+        pinAmount,
+        color,
+        activePeriod: activePeriod
+          ? toDatetimeRangeString(activePeriod[0], activePeriod[1])
+          : undefined,
+        state,
+      },
     })
   }
 

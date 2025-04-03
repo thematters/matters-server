@@ -2,35 +2,49 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import { UserInputError, AuthenticationError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
+import { isValidDatetimeRange } from '#common/utils/validator.js'
 
-const resolver: GQLMutationResolvers['putTopicChannel'] = async (
+const resolver: GQLMutationResolvers['putCurationChannel'] = async (
   _,
-  { input: { id: globalId, name, note, enabled } },
+  {
+    input: { id: globalId, name, note, pinAmount, color, activePeriod, state },
+  },
   { viewer, dataSources: { translationService, channelService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
+  if (activePeriod) {
+    if (!isValidDatetimeRange(activePeriod)) {
+      throw new UserInputError('invalid datetime range')
+    }
+  }
+
   let channel
   if (!globalId) {
     // create new channel
-    channel = await channelService.updateOrCreateChannel({
+    channel = await channelService.createCurationChannel({
       name: name ? name[0].text : '',
       note: note ? note[0].text : '',
-      ...(typeof enabled === 'boolean' ? { enabled } : {}),
+      pinAmount,
+      color,
+      activePeriod: activePeriod && [activePeriod.start, activePeriod.end],
+      state,
     })
   } else {
     const { id, type } = fromGlobalId(globalId)
-    if (type !== 'TopicChannel') {
+    if (type !== 'CurationChannel') {
       throw new UserInputError('wrong channel global id')
     }
-
-    channel = await channelService.updateOrCreateChannel({
+    channel = await channelService.updateCurationChannel({
       id,
       name: name ? name[0].text : '',
       note: note ? note[0].text : '',
-      ...(typeof enabled === 'boolean' ? { enabled } : {}),
+      pinAmount,
+      color,
+      activePeriod: activePeriod && [activePeriod.start, activePeriod.end],
+      state,
     })
   }
 
@@ -38,7 +52,7 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   if (name) {
     for (const trans of name) {
       await translationService.updateOrCreateTranslation({
-        table: 'channel',
+        table: 'curation_channel',
         field: 'name',
         id: channel.id,
         language: trans.language,
@@ -51,7 +65,7 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   if (note) {
     for (const trans of note) {
       await translationService.updateOrCreateTranslation({
-        table: 'channel',
+        table: 'curation_channel',
         field: 'note',
         id: channel.id,
         language: trans.language,

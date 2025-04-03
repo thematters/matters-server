@@ -35,20 +35,12 @@ const schema: GQLResolvers = {
     cover: ({ cover }, _, { dataSources: { systemService } }) =>
       cover ? systemService.findAssetUrl(cover) : null,
     link: ({ link }) => link ?? '',
-    applicationPeriod: ({ applicationPeriod }) => {
-      if (!applicationPeriod) {
-        return null
-      }
-      const [start, end] = fromDatetimeRangeString(applicationPeriod as string)
-      return { start, end }
-    },
-    writingPeriod: ({ writingPeriod }) => {
-      if (!writingPeriod) {
-        return null
-      }
-      const [start, end] = fromDatetimeRangeString(writingPeriod as string)
-      return { start, end }
-    },
+    applicationPeriod: ({ applicationPeriod }) =>
+      applicationPeriod
+        ? fromDatetimeRangeString(applicationPeriod as string)
+        : null,
+    writingPeriod: ({ writingPeriod }) =>
+      writingPeriod ? fromDatetimeRangeString(writingPeriod as string) : null,
     stages,
     state: ({ state }) => state,
     application,
@@ -65,13 +57,7 @@ const schema: GQLResolvers = {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.CampaignStage, id }),
     name: stageName,
     description: stageDescription,
-    period: ({ period }) => {
-      if (!period) {
-        return null
-      }
-      const [start, end] = fromDatetimeRangeString(period)
-      return { start, end }
-    },
+    period: ({ period }) => (period ? fromDatetimeRangeString(period) : null),
   },
 }
 
