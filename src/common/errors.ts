@@ -150,6 +150,12 @@ export class DraftNotFoundError extends GraphQLError {
   }
 }
 
+export class DraftVersionConflictError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'DRAFT_VERSION_CONFLICT' } })
+  }
+}
+
 export class TagNotFoundError extends GraphQLError {
   public constructor(message: string) {
     super(message, { extensions: { code: 'TAG_NOT_FOUND' } })

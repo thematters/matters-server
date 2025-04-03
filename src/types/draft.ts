@@ -130,6 +130,9 @@ export default /* GraphQL */ `
 
     "which campaigns to attach"
     campaigns: [ArticleCampaignInput!]
+
+    "last known update timestamp for version conflict detection"
+    lastUpdatedAt: DateTime
   }
 
   input DeleteDraftInput {
