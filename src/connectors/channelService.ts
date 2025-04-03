@@ -70,7 +70,7 @@ export class ChannelService {
     })
   }
 
-  public setArticleChannels = async ({
+  public setArticleTopicChannels = async ({
     articleId,
     channelIds,
   }: {

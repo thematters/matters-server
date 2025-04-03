@@ -723,11 +723,11 @@ describe('findChannelArticles', () => {
     expect(articles.map(({ id }) => id)).toContain('2')
 
     // admin corrects article channel
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId: '1',
       channelIds: [],
     })
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId: '4',
       channelIds: [channel.id],
     })

@@ -38,7 +38,10 @@ import {
   Campaign as CampaignModel,
   CampaignStage as CampaignStageModel,
 } from './campaign.js'
-import { Channel as ChannelModel } from './channel.js'
+import {
+  Channel as ChannelModel,
+  CurationChannel as CurationChannelModel,
+} from './channel.js'
 import { GlobalId } from './nominal.js'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
@@ -89,6 +92,11 @@ export type GQLAddCreditResult = {
   /** The client secret of this PaymentIntent. */
   client_secret: Scalars['String']['output']
   transaction: GQLTransaction
+}
+
+export type GQLAddCurationChannelArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  channel: Scalars['ID']['input']
 }
 
 export type GQLAnnouncement = {
@@ -432,17 +440,6 @@ export type GQLArticleCampaignInput = {
   stage?: InputMaybe<Scalars['ID']['input']>
 }
 
-export type GQLArticleChannel = {
-  __typename?: 'ArticleChannel'
-  channel: GQLChannel
-  /** whether this article channel is enabled */
-  enabled: Scalars['Boolean']['output']
-  /** whether this article is labeled by human, null for not labeled yet.  */
-  isLabeled: Scalars['Boolean']['output']
-  /** confident score by machine */
-  score?: Maybe<Scalars['Float']['output']>
-}
-
 export type GQLArticleConnection = GQLConnection & {
   __typename?: 'ArticleConnection'
   edges?: Maybe<Array<GQLArticleEdge>>
@@ -521,13 +518,13 @@ export type GQLArticleNoticeType =
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'
   boost: Scalars['Float']['output']
-  channels: Array<GQLArticleChannel>
   inRecommendHottest: Scalars['Boolean']['output']
   inRecommendIcymi: Scalars['Boolean']['output']
   inRecommendNewest: Scalars['Boolean']['output']
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
   spamStatus: GQLSpamStatus
+  topicChannels: Array<GQLArticleTopicChannel>
 }
 
 export type GQLArticleRecommendationActivity = {
@@ -544,6 +541,17 @@ export type GQLArticleRecommendationActivitySource =
 
 /** Enums for an article state. */
 export type GQLArticleState = 'active' | 'archived' | 'banned'
+
+export type GQLArticleTopicChannel = {
+  __typename?: 'ArticleTopicChannel'
+  channel: GQLTopicChannel
+  /** whether this article channel is enabled */
+  enabled: Scalars['Boolean']['output']
+  /** whether this article is labeled by human, null for not labeled yet.  */
+  isLabeled: Scalars['Boolean']['output']
+  /** confident score by machine */
+  score?: Maybe<Scalars['Float']['output']>
+}
 
 export type GQLArticleTranslation = {
   __typename?: 'ArticleTranslation'
@@ -814,6 +822,20 @@ export type GQLChain = 'Optimism' | 'Polygon'
 export type GQLChannel = {
   id: Scalars['ID']['output']
   shortHash: Scalars['String']['output']
+}
+
+export type GQLChannelArticleConnection = GQLConnection & {
+  __typename?: 'ChannelArticleConnection'
+  edges?: Maybe<Array<GQLChannelArticleEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLChannelArticleEdge = {
+  __typename?: 'ChannelArticleEdge'
+  cursor: Scalars['String']['output']
+  node: GQLArticle
+  pinned: Scalars['Boolean']['output']
 }
 
 export type GQLChannelArticlesInput = {
@@ -1337,7 +1359,7 @@ export type GQLCurationChannel = GQLChannel & {
   __typename?: 'CurationChannel'
   /** both activePeriod and state determine if the channel is active */
   activePeriod?: Maybe<GQLDatetimeRange>
-  articles: GQLArticleConnection
+  articles: GQLChannelArticleConnection
   color: GQLColor
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
@@ -1387,6 +1409,11 @@ export type GQLDeleteCollectionsInput = {
 
 export type GQLDeleteCommentInput = {
   id: Scalars['ID']['input']
+}
+
+export type GQLDeleteCurationChannelArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  channel: Scalars['ID']['input']
 }
 
 export type GQLDeleteDraftInput = {
@@ -1863,6 +1890,7 @@ export type GQLMutation = {
   addCollectionsArticles: Array<GQLCollection>
   /** Add Credit to User Wallet */
   addCredit: GQLAddCreditResult
+  addCurationChannelArticles: GQLCurationChannel
   /** Add a social login to current user. */
   addSocialLogin: GQLUser
   /** Add a wallet login to current user. */
@@ -1889,6 +1917,7 @@ export type GQLMutation = {
   deleteCollections: Scalars['Boolean']['output']
   /** Remove a comment. */
   deleteComment: GQLComment
+  deleteCurationChannelArticles: GQLCurationChannel
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
   deleteMoment: GQLMoment
@@ -1962,8 +1991,7 @@ export type GQLMutation = {
   sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
-  /** set article's channels, only accept topic channels and curation channels */
-  setArticleChannels: GQLArticle
+  setArticleTopicChannels: GQLArticle
   setBoost: GQLNode
   /** Set user currency preference. */
   setCurrency: GQLUser
@@ -2000,6 +2028,7 @@ export type GQLMutation = {
   toggleFollowTag: GQLTag
   /** Follow or Unfollow current user. */
   toggleFollowUser: GQLUser
+  togglePinChannelArticles: GQLChannel
   /** Pin or Unpin a comment. */
   togglePinComment: GQLComment
   toggleSeedingUsers: Array<Maybe<GQLUser>>
@@ -2058,6 +2087,10 @@ export type GQLMutationAddCreditArgs = {
   input: GQLAddCreditInput
 }
 
+export type GQLMutationAddCurationChannelArticlesArgs = {
+  input: GQLAddCurationChannelArticlesInput
+}
+
 export type GQLMutationAddSocialLoginArgs = {
   input: GQLSocialLoginInput
 }
@@ -2112,6 +2145,10 @@ export type GQLMutationDeleteCollectionsArgs = {
 
 export type GQLMutationDeleteCommentArgs = {
   input: GQLDeleteCommentInput
+}
+
+export type GQLMutationDeleteCurationChannelArticlesArgs = {
+  input: GQLDeleteCurationChannelArticlesInput
 }
 
 export type GQLMutationDeleteDraftArgs = {
@@ -2286,8 +2323,8 @@ export type GQLMutationSendVerificationCodeArgs = {
   input: GQLSendVerificationCodeInput
 }
 
-export type GQLMutationSetArticleChannelsArgs = {
-  input: GQLSetArticleChannelsInput
+export type GQLMutationSetArticleTopicChannelsArgs = {
+  input: GQLSetArticleTopicChannelsInput
 }
 
 export type GQLMutationSetBoostArgs = {
@@ -2360,6 +2397,10 @@ export type GQLMutationToggleFollowTagArgs = {
 
 export type GQLMutationToggleFollowUserArgs = {
   input: GQLToggleItemInput
+}
+
+export type GQLMutationTogglePinChannelArticlesArgs = {
+  input: GQLTogglePinChannelArticlesInput
 }
 
 export type GQLMutationTogglePinCommentArgs = {
@@ -3169,6 +3210,7 @@ export type GQLRenameTagInput = {
 }
 
 export type GQLReorderChannelsInput = {
+  /** ids of TopicChannels, CurationChannels, and WritingChallenges */
   ids: Array<Scalars['ID']['input']>
 }
 
@@ -3321,7 +3363,7 @@ export type GQLSendVerificationCodeInput = {
   type: GQLVerificationCodeType
 }
 
-export type GQLSetArticleChannelsInput = {
+export type GQLSetArticleTopicChannelsInput = {
   channels: Array<Scalars['ID']['input']>
   id: Scalars['ID']['input']
 }
@@ -3598,6 +3640,13 @@ export type GQLToggleItemInput = {
   id: Scalars['ID']['input']
 }
 
+export type GQLTogglePinChannelArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  /** id of TopicChannel or CurationChannel */
+  channel: Scalars['ID']['input']
+  pin: Scalars['Boolean']['input']
+}
+
 export type GQLToggleRecommendInput = {
   enabled: Scalars['Boolean']['input']
   id: Scalars['ID']['input']
@@ -3648,7 +3697,7 @@ export type GQLTopDonatorInput = {
 
 export type GQLTopicChannel = GQLChannel & {
   __typename?: 'TopicChannel'
-  articles: GQLArticleConnection
+  articles: GQLChannelArticleConnection
   enabled: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
@@ -4538,7 +4587,7 @@ export type GQLResolversInterfaceTypes<
   _RefType extends Record<string, unknown>
 > = ResolversObject<{
   Campaign: CampaignModel
-  Channel: ChannelModel | ChannelModel | CampaignModel
+  Channel: CurationChannelModel | ChannelModel | CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['AppreciationEdge']>>
@@ -4557,6 +4606,9 @@ export type GQLResolversInterfaceTypes<
       })
     | (Omit<GQLCampaignParticipantConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['CampaignParticipantEdge']>>
+      })
+    | (Omit<GQLChannelArticleConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['ChannelArticleEdge']>>
       })
     | (Omit<GQLCircleConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['CircleEdge']>>
@@ -4654,6 +4706,7 @@ export type GQLResolversTypes = ResolversObject<{
       transaction: GQLResolversTypes['Transaction']
     }
   >
+  AddCurationChannelArticlesInput: GQLAddCurationChannelArticlesInput
   Announcement: ResolverTypeWrapper<GQLAnnouncement>
   AnnouncementType: GQLAnnouncementType
   AnnouncementsInput: GQLAnnouncementsInput
@@ -4683,11 +4736,6 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleCampaignInput: GQLArticleCampaignInput
-  ArticleChannel: ResolverTypeWrapper<
-    Omit<GQLArticleChannel, 'channel'> & {
-      channel: GQLResolversTypes['Channel']
-    }
-  >
   ArticleConnection: ResolverTypeWrapper<
     Omit<GQLArticleConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
@@ -4724,6 +4772,11 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ArticleRecommendationActivitySource: GQLArticleRecommendationActivitySource
   ArticleState: GQLArticleState
+  ArticleTopicChannel: ResolverTypeWrapper<
+    Omit<GQLArticleTopicChannel, 'channel'> & {
+      channel: GQLResolversTypes['TopicChannel']
+    }
+  >
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
   ArticleVersion: ResolverTypeWrapper<ArticleVersionModel>
   ArticleVersionEdge: ResolverTypeWrapper<
@@ -4799,6 +4852,14 @@ export type GQLResolversTypes = ResolversObject<{
   Chain: GQLChain
   Channel: ResolverTypeWrapper<
     GQLResolversInterfaceTypes<GQLResolversTypes>['Channel']
+  >
+  ChannelArticleConnection: ResolverTypeWrapper<
+    Omit<GQLChannelArticleConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['ChannelArticleEdge']>>
+    }
+  >
+  ChannelArticleEdge: ResolverTypeWrapper<
+    Omit<GQLChannelArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
   ChannelArticlesInput: GQLChannelArticlesInput
   ChannelInput: GQLChannelInput
@@ -4877,7 +4938,7 @@ export type GQLResolversTypes = ResolversObject<{
   ConnectionArgs: GQLConnectionArgs
   CryptoWallet: ResolverTypeWrapper<WalletModel>
   CryptoWalletSignaturePurpose: GQLCryptoWalletSignaturePurpose
-  CurationChannel: ResolverTypeWrapper<ChannelModel>
+  CurationChannel: ResolverTypeWrapper<CurationChannelModel>
   CurationChannelState: GQLCurationChannelState
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>
   DatetimeRange: ResolverTypeWrapper<GQLDatetimeRange>
@@ -4886,6 +4947,7 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteCollectionArticlesInput: GQLDeleteCollectionArticlesInput
   DeleteCollectionsInput: GQLDeleteCollectionsInput
   DeleteCommentInput: GQLDeleteCommentInput
+  DeleteCurationChannelArticlesInput: GQLDeleteCurationChannelArticlesInput
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
@@ -5152,7 +5214,7 @@ export type GQLResolversTypes = ResolversObject<{
   SearchTypes: GQLSearchTypes
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
-  SetArticleChannelsInput: GQLSetArticleChannelsInput
+  SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
   SetEmailInput: GQLSetEmailInput
@@ -5198,6 +5260,7 @@ export type GQLResolversTypes = ResolversObject<{
   TagsSort: GQLTagsSort
   ToggleCircleMemberInput: GQLToggleCircleMemberInput
   ToggleItemInput: GQLToggleItemInput
+  TogglePinChannelArticlesInput: GQLTogglePinChannelArticlesInput
   ToggleRecommendInput: GQLToggleRecommendInput
   ToggleSeedingUsersInput: GQLToggleSeedingUsersInput
   ToggleUsersBadgeInput: GQLToggleUsersBadgeInput
@@ -5355,6 +5418,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   AddCreditResult: Omit<GQLAddCreditResult, 'transaction'> & {
     transaction: GQLResolversParentTypes['Transaction']
   }
+  AddCurationChannelArticlesInput: GQLAddCurationChannelArticlesInput
   Announcement: GQLAnnouncement
   AnnouncementsInput: GQLAnnouncementsInput
   ApplyCampaignInput: GQLApplyCampaignInput
@@ -5374,9 +5438,6 @@ export type GQLResolversParentTypes = ResolversObject<{
     stage?: Maybe<GQLResolversParentTypes['CampaignStage']>
   }
   ArticleCampaignInput: GQLArticleCampaignInput
-  ArticleChannel: Omit<GQLArticleChannel, 'channel'> & {
-    channel: GQLResolversParentTypes['Channel']
-  }
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
@@ -5400,6 +5461,9 @@ export type GQLResolversParentTypes = ResolversObject<{
     GQLArticleRecommendationActivity,
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Article']>> }
+  ArticleTopicChannel: Omit<GQLArticleTopicChannel, 'channel'> & {
+    channel: GQLResolversParentTypes['TopicChannel']
+  }
   ArticleTranslation: GQLArticleTranslation
   ArticleVersion: ArticleVersionModel
   ArticleVersionEdge: Omit<GQLArticleVersionEdge, 'node'> & {
@@ -5456,6 +5520,12 @@ export type GQLResolversParentTypes = ResolversObject<{
   CampaignStageInput: GQLCampaignStageInput
   CampaignsInput: GQLCampaignsInput
   Channel: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Channel']
+  ChannelArticleConnection: Omit<GQLChannelArticleConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['ChannelArticleEdge']>>
+  }
+  ChannelArticleEdge: Omit<GQLChannelArticleEdge, 'node'> & {
+    node: GQLResolversParentTypes['Article']
+  }
   ChannelArticlesInput: GQLChannelArticlesInput
   ChannelInput: GQLChannelInput
   ChannelsInput: GQLChannelsInput
@@ -5512,7 +5582,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Connection: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Connection']
   ConnectionArgs: GQLConnectionArgs
   CryptoWallet: WalletModel
-  CurationChannel: ChannelModel
+  CurationChannel: CurationChannelModel
   DateTime: Scalars['DateTime']['output']
   DatetimeRange: GQLDatetimeRange
   DatetimeRangeInput: GQLDatetimeRangeInput
@@ -5520,6 +5590,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteCollectionArticlesInput: GQLDeleteCollectionArticlesInput
   DeleteCollectionsInput: GQLDeleteCollectionsInput
   DeleteCommentInput: GQLDeleteCommentInput
+  DeleteCurationChannelArticlesInput: GQLDeleteCurationChannelArticlesInput
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
@@ -5719,7 +5790,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
-  SetArticleChannelsInput: GQLSetArticleChannelsInput
+  SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
   SetEmailInput: GQLSetEmailInput
@@ -5753,6 +5824,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   TagsInput: GQLTagsInput
   ToggleCircleMemberInput: GQLToggleCircleMemberInput
   ToggleItemInput: GQLToggleItemInput
+  TogglePinChannelArticlesInput: GQLTogglePinChannelArticlesInput
   ToggleRecommendInput: GQLToggleRecommendInput
   ToggleSeedingUsersInput: GQLToggleSeedingUsersInput
   ToggleUsersBadgeInput: GQLToggleUsersBadgeInput
@@ -6334,17 +6406,6 @@ export type GQLArticleCampaignResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLArticleChannelResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['ArticleChannel'] = GQLResolversParentTypes['ArticleChannel']
-> = ResolversObject<{
-  channel?: Resolver<GQLResolversTypes['Channel'], ParentType, ContextType>
-  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
 export type GQLArticleConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleConnection'] = GQLResolversParentTypes['ArticleConnection']
@@ -6435,11 +6496,6 @@ export type GQLArticleOssResolvers<
   ParentType extends GQLResolversParentTypes['ArticleOSS'] = GQLResolversParentTypes['ArticleOSS']
 > = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
-  channels?: Resolver<
-    Array<GQLResolversTypes['ArticleChannel']>,
-    ParentType,
-    ContextType
-  >
   inRecommendHottest?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -6462,6 +6518,11 @@ export type GQLArticleOssResolvers<
     ParentType,
     ContextType
   >
+  topicChannels?: Resolver<
+    Array<GQLResolversTypes['ArticleTopicChannel']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6479,6 +6540,17 @@ export type GQLArticleRecommendationActivityResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleTopicChannelResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleTopicChannel'] = GQLResolversParentTypes['ArticleTopicChannel']
+> = ResolversObject<{
+  channel?: Resolver<GQLResolversTypes['TopicChannel'], ParentType, ContextType>
+  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6788,6 +6860,30 @@ export type GQLChannelResolvers<
     ParentType,
     ContextType
   >
+}>
+
+export type GQLChannelArticleConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ChannelArticleConnection'] = GQLResolversParentTypes['ChannelArticleConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['ChannelArticleEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLChannelArticleEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ChannelArticleEdge'] = GQLResolversParentTypes['ChannelArticleEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
 export type GQLCircleResolvers<
@@ -7260,6 +7356,7 @@ export type GQLConnectionResolvers<
     | 'CampaignArticleConnection'
     | 'CampaignConnection'
     | 'CampaignParticipantConnection'
+    | 'ChannelArticleConnection'
     | 'CircleConnection'
     | 'CollectionConnection'
     | 'CommentConnection'
@@ -7311,7 +7408,7 @@ export type GQLCurationChannelResolvers<
     ContextType
   >
   articles?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
+    GQLResolversTypes['ChannelArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLCurationChannelArticlesArgs, 'input'>
@@ -7829,6 +7926,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationAddCreditArgs, 'input'>
   >
+  addCurationChannelArticles?: Resolver<
+    GQLResolversTypes['CurationChannel'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationAddCurationChannelArticlesArgs, 'input'>
+  >
   addSocialLogin?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -7917,6 +8020,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationDeleteCommentArgs, 'input'>
+  >
+  deleteCurationChannelArticles?: Resolver<
+    GQLResolversTypes['CurationChannel'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationDeleteCurationChannelArticlesArgs, 'input'>
   >
   deleteDraft?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
@@ -8186,11 +8295,11 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSendVerificationCodeArgs, 'input'>
   >
-  setArticleChannels?: Resolver<
+  setArticleTopicChannels?: Resolver<
     GQLResolversTypes['Article'],
     ParentType,
     ContextType,
-    RequireFields<GQLMutationSetArticleChannelsArgs, 'input'>
+    RequireFields<GQLMutationSetArticleTopicChannelsArgs, 'input'>
   >
   setBoost?: Resolver<
     GQLResolversTypes['Node'],
@@ -8299,6 +8408,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationToggleFollowUserArgs, 'input'>
+  >
+  togglePinChannelArticles?: Resolver<
+    GQLResolversTypes['Channel'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationTogglePinChannelArticlesArgs, 'input'>
   >
   togglePinComment?: Resolver<
     GQLResolversTypes['Comment'],
@@ -9383,7 +9498,7 @@ export type GQLTopicChannelResolvers<
   ParentType extends GQLResolversParentTypes['TopicChannel'] = GQLResolversParentTypes['TopicChannel']
 > = ResolversObject<{
   articles?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
+    GQLResolversTypes['ChannelArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLTopicChannelArticlesArgs, 'input'>
@@ -10199,7 +10314,6 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleAccess?: GQLArticleAccessResolvers<ContextType>
   ArticleArticleNotice?: GQLArticleArticleNoticeResolvers<ContextType>
   ArticleCampaign?: GQLArticleCampaignResolvers<ContextType>
-  ArticleChannel?: GQLArticleChannelResolvers<ContextType>
   ArticleConnection?: GQLArticleConnectionResolvers<ContextType>
   ArticleContents?: GQLArticleContentsResolvers<ContextType>
   ArticleDonation?: GQLArticleDonationResolvers<ContextType>
@@ -10209,6 +10323,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityResolvers<ContextType>
+  ArticleTopicChannel?: GQLArticleTopicChannelResolvers<ContextType>
   ArticleTranslation?: GQLArticleTranslationResolvers<ContextType>
   ArticleVersion?: GQLArticleVersionResolvers<ContextType>
   ArticleVersionEdge?: GQLArticleVersionEdgeResolvers<ContextType>
@@ -10231,6 +10346,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CampaignParticipantEdge?: GQLCampaignParticipantEdgeResolvers<ContextType>
   CampaignStage?: GQLCampaignStageResolvers<ContextType>
   Channel?: GQLChannelResolvers<ContextType>
+  ChannelArticleConnection?: GQLChannelArticleConnectionResolvers<ContextType>
+  ChannelArticleEdge?: GQLChannelArticleEdgeResolvers<ContextType>
   Circle?: GQLCircleResolvers<ContextType>
   CircleAnalytics?: GQLCircleAnalyticsResolvers<ContextType>
   CircleConnection?: GQLCircleConnectionResolvers<ContextType>

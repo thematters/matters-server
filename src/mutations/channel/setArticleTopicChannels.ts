@@ -3,7 +3,7 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 import { UserInputError, AuthenticationError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-const resolver: GQLMutationResolvers['setArticleChannels'] = async (
+const resolver: GQLMutationResolvers['setArticleTopicChannels'] = async (
   _,
   { input: { id: globalId, channels: newChannelIds } },
   { viewer, dataSources: { atomService, channelService } }
@@ -23,7 +23,7 @@ const resolver: GQLMutationResolvers['setArticleChannels'] = async (
     throw new UserInputError('invalid article id')
   }
 
-  await channelService.setArticleChannels({
+  await channelService.setArticleTopicChannels({
     articleId,
     channelIds,
   })

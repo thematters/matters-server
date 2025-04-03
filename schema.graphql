@@ -276,11 +276,10 @@ type Mutation {
   unlikeMoment(input: UnlikeMomentInput!): Moment!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
-
-  """
-  set article's channels, only accept topic channels and curation channels
-  """
-  setArticleChannels(input: SetArticleChannelsInput!): Article!
+  setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article!
+  addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel!
+  deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel!
+  togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel!
   reorderChannels(input: ReorderChannelsInput!): Boolean!
   classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean!
 }
@@ -564,7 +563,7 @@ type ArticleOSS {
   inRecommendNewest: Boolean!
   inSearch: Boolean!
   spamStatus: SpamStatus!
-  channels: [ArticleChannel!]!
+  topicChannels: [ArticleTopicChannel!]!
 }
 
 type SpamStatus {
@@ -577,8 +576,8 @@ type SpamStatus {
   isSpam: Boolean
 }
 
-type ArticleChannel {
-  channel: Channel!
+type ArticleTopicChannel {
+  channel: TopicChannel!
 
   """confident score by machine"""
   score: Float
@@ -3852,7 +3851,7 @@ type TopicChannel implements Channel {
   note(input: TranslationArgs): String
   providerId: String!
   enabled: Boolean!
-  articles(input: ConnectionArgs!): ArticleConnection!
+  articles(input: ConnectionArgs!): ChannelArticleConnection!
 }
 
 type CurationChannel implements Channel {
@@ -3866,7 +3865,7 @@ type CurationChannel implements Channel {
   """both activePeriod and state determine if the channel is active"""
   activePeriod: DatetimeRange
   state: CurationChannelState!
-  articles(input: ConnectionArgs!): ArticleConnection!
+  articles(input: ConnectionArgs!): ChannelArticleConnection!
 }
 
 input ChannelInput {
@@ -3876,6 +3875,35 @@ input ChannelInput {
 input ChannelsInput {
   """return all channels if true, only active channels by default"""
   oss: Boolean = false
+}
+
+type ChannelArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ChannelArticleEdge!]
+}
+
+type ChannelArticleEdge {
+  cursor: String!
+  node: Article!
+  pinned: Boolean!
+}
+
+input AddCurationChannelArticlesInput {
+  channel: ID!
+  articles: [ID!]!
+}
+
+input DeleteCurationChannelArticlesInput {
+  channel: ID!
+  articles: [ID!]!
+}
+
+input TogglePinChannelArticlesInput {
+  """id of TopicChannel or CurationChannel"""
+  channel: ID!
+  articles: [ID!]!
+  pin: Boolean!
 }
 
 input PutTopicChannelInput {
@@ -3895,12 +3923,13 @@ input PutCurationChannelInput {
   state: CurationChannelState
 }
 
-input SetArticleChannelsInput {
+input SetArticleTopicChannelsInput {
   id: ID!
   channels: [ID!]!
 }
 
 input ReorderChannelsInput {
+  """ids of TopicChannels, CurationChannels, and WritingChallenges"""
   ids: [ID!]!
 }
 

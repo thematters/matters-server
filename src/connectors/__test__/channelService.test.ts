@@ -108,7 +108,7 @@ describe('setArticleChannels', () => {
     })
 
     const channelIds = [channel1.id, channel2.id]
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds,
     })
@@ -129,11 +129,11 @@ describe('setArticleChannels', () => {
 
   test('removes existing channels when setting empty array', async () => {
     const channel = await channelService.updateOrCreateChannel(channelData)
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [channel.id],
     })
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [],
     })
@@ -155,11 +155,11 @@ describe('setArticleChannels', () => {
       name: 'test-channel-2',
       providerId: '2',
     })
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [channel1.id],
     })
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [channel2.id],
     })
@@ -183,11 +183,11 @@ describe('setArticleChannels', () => {
     const channel = await channelService.updateOrCreateChannel(channelData)
 
     // First add and then remove the channel
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [channel.id],
     })
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [],
     })
@@ -200,7 +200,7 @@ describe('setArticleChannels', () => {
     expect(articleChannels[0].enabled).toBe(false)
 
     // Re-add the channel
-    await channelService.setArticleChannels({
+    await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [channel.id],
     })

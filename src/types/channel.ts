@@ -21,7 +21,7 @@ export default /* GraphQL */ `
 
     enabled: Boolean!
 
-    articles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: ConnectionArgs!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
   type CurationChannel implements Channel {
@@ -35,7 +35,7 @@ export default /* GraphQL */ `
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange
     state: CurationChannelState!
-    articles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: ConnectionArgs!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
   input ChannelInput {
@@ -47,13 +47,44 @@ export default /* GraphQL */ `
     oss: Boolean = false
   }
 
+  type ChannelArticleConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [ChannelArticleEdge!]
+  }
+
+  type ChannelArticleEdge {
+    cursor: String!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
+    pinned: Boolean!
+  }
+
   extend type Mutation {
-    putTopicChannel(input: PutTopicChannelInput!): TopicChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
-    putCurationChannel(input: PutCurationChannelInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
-    "set article's channels, only accept topic channels and curation channels"
-    setArticleChannels(input: SetArticleChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
+    putTopicChannel(input: PutTopicChannelInput!): TopicChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.TopicChannel}")
+    putCurationChannel(input: PutCurationChannelInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
+    setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
+    addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
+    deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
+    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
     reorderChannels(input: ReorderChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  input AddCurationChannelArticlesInput {
+    channel: ID!
+    articles: [ID!]!
+  }
+
+  input DeleteCurationChannelArticlesInput {
+    channel: ID!
+    articles: [ID!]!
+  }
+
+  input TogglePinChannelArticlesInput {
+    "id of TopicChannel or CurationChannel"
+    channel: ID!
+    articles: [ID!]!
+    pin: Boolean!
   }
 
   input PutTopicChannelInput {
@@ -73,12 +104,13 @@ export default /* GraphQL */ `
     state: CurationChannelState
   }
 
-  input SetArticleChannelsInput {
+  input SetArticleTopicChannelsInput {
     id: ID!
     channels: [ID!]!
   }
 
   input ReorderChannelsInput {
+    "ids of TopicChannels, CurationChannels, and WritingChallenges"
     ids: [ID!]!
   }
 

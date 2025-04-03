@@ -313,7 +313,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
-    channels: [ArticleChannel!]! @auth(mode: "${AUTH_MODE.admin}")
+    topicChannels: [ArticleTopicChannel!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type SpamStatus {
@@ -324,8 +324,8 @@ export default /* GraphQL */ `
     isSpam: Boolean
   }
 
-  type ArticleChannel {
-    channel: Channel!
+  type ArticleTopicChannel {
+    channel: TopicChannel!
 
     "confident score by machine"
     score: Float

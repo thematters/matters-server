@@ -95,7 +95,7 @@ export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
   return { score: spamScore, isSpam }
 }
 
-export const channels: GQLArticleOssResolvers['channels'] = async (
+export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
   { id: articleId },
   _,
   { dataSources: { atomService } }

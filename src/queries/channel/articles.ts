@@ -22,7 +22,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     maxTake: MAX_ITEM_COUNT,
   })
 
-  return connectionFromPromisedArray(articles, input, totalCount)
+  return connectionFromPromisedArray(articles, input, totalCount) as any
 }
 
 export default resolver
