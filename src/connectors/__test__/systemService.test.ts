@@ -37,6 +37,14 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
+test('findAssetByUUIDs', async () => {
+  const existUUID = '00000000-0000-0000-0000-000000000001'
+  const notExistUUID = v4()
+  const assets = await systemService.findAssetByUUIDs([existUUID, notExistUUID])
+  expect((assets[0] as any).uuid).toEqual(existUUID)
+  expect(assets[1]).toBeUndefined()
+})
+
 test('findAssetUrl', async () => {
   // image assets return cloudflare url
   const imageUrl = await systemService.findAssetUrl('1')
