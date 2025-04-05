@@ -1,17 +1,13 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { UserInputError, AuthenticationError } from '#common/errors.js'
+import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   _,
   { input: { id: globalId, name, note, enabled } },
-  { viewer, dataSources: { translationService, channelService } }
+  { dataSources: { translationService, channelService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   let channel
   if (!globalId) {
     // create new channel

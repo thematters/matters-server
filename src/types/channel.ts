@@ -2,8 +2,8 @@ import { AUTH_MODE, NODE_TYPES } from '#common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Query {
-    channel(input: ChannelInput!): Channel @privateCache @logCache(type: "${NODE_TYPES.Channel}")
-    channels(input: ChannelsInput): [Channel!]! @privateCache @logCache(type: "${NODE_TYPES.Channel}")
+    channel(input: ChannelInput!): Channel
+    channels(input: ChannelsInput): [Channel!]!
   }
 
   interface Channel {
@@ -65,7 +65,7 @@ export default /* GraphQL */ `
     setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
     addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
     deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
-    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
+    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel! @auth(mode: "${AUTH_MODE.admin}")
     reorderChannels(input: ReorderChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }

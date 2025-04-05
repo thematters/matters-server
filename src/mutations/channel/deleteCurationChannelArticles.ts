@@ -1,22 +1,14 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
-import {
-  ForbiddenError,
-  EntityNotFoundError,
-  UserInputError,
-} from '#common/errors.js'
+import { EntityNotFoundError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['deleteCurationChannelArticles'] = async (
   _,
   { input: { channel: globalId, articles } },
-  { dataSources: { atomService }, viewer }
+  { dataSources: { atomService } }
 ) => {
-  if (!viewer.id) {
-    throw new ForbiddenError('Unauthorized')
-  }
-
   // Validate channel ID
   const { id: channelId, type } = fromGlobalId(globalId)
   if (type !== NODE_TYPES.CurationChannel) {

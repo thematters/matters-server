@@ -1,6 +1,6 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { UserInputError, AuthenticationError } from '#common/errors.js'
+import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import { isValidDatetimeRange } from '#common/utils/validator.js'
 
@@ -9,12 +9,8 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
   {
     input: { id: globalId, name, note, pinAmount, color, activePeriod, state },
   },
-  { viewer, dataSources: { translationService, channelService } }
+  { dataSources: { translationService, channelService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   if (activePeriod) {
     if (!isValidDatetimeRange(activePeriod)) {
       throw new UserInputError('invalid datetime range')

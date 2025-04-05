@@ -3,7 +3,6 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import {
   UserInputError,
-  AuthenticationError,
   EntityNotFoundError,
   ArticleNotFoundError,
 } from '#common/errors.js'
@@ -13,13 +12,8 @@ import uniq from 'lodash/uniq.js'
 const resolver: GQLMutationResolvers['addCurationChannelArticles'] = async (
   _,
   { input: { channel: channelGlobalId, articles: articleGlobalIds } },
-  { viewer, dataSources: { channelService, atomService } }
+  { dataSources: { channelService, atomService } }
 ) => {
-  // Check authentication
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   // Validate and extract channel ID
   const { id: channelId, type: channelType } = fromGlobalId(channelGlobalId)
   if (channelType !== NODE_TYPES.CurationChannel) {

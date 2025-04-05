@@ -1,17 +1,13 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { UserInputError, AuthenticationError } from '#common/errors.js'
+import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['setArticleTopicChannels'] = async (
   _,
   { input: { id: globalId, channels: newChannelIds } },
-  { viewer, dataSources: { atomService, channelService } }
+  { dataSources: { atomService, channelService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   const articleId = fromGlobalId(globalId).id
   const channelIds = newChannelIds.map((id) => fromGlobalId(id).id)
 

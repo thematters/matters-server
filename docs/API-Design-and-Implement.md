@@ -25,7 +25,7 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
 4. Validate input
    - Check required fields are present
    - Validate field formats and constraints
-   - Throw UserInputError for invalid inputs
+   - Throw Errors defined in `src/common/errors.js` for invalid inputs
    - Handle special validations (e.g., datetime ranges)
 
 5. Implement business logic

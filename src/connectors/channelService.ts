@@ -9,6 +9,7 @@ import {
   ARTICLE_CHANNEL_JOB_STATE,
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
+  NODE_TYPES,
 } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
 import { shortHash, toDatetimeRangeString } from '#common/utils/index.js'
@@ -135,6 +136,40 @@ export class ChannelService {
         state,
       },
     })
+  }
+
+  public updateChannelOrder = async (
+    {
+      type,
+      id,
+    }: {
+      type: NODE_TYPES
+      id: string
+    },
+    order: number
+  ) => {
+    switch (type) {
+      case NODE_TYPES.TopicChannel:
+        return this.models.update({
+          table: 'topic_channel',
+          where: { id },
+          data: { order },
+        })
+      case NODE_TYPES.CurationChannel:
+        return this.models.update({
+          table: 'curation_channel',
+          where: { id },
+          data: { order },
+        })
+      case NODE_TYPES.Campaign:
+        return this.models.update({
+          table: 'campaign_channel',
+          where: { campaignId: id },
+          data: { order },
+        })
+      default:
+        throw new Error(`Unsupported node type: ${type}`)
+    }
   }
 
   public setArticleTopicChannels = async ({
