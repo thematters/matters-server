@@ -415,3 +415,247 @@ describe('addCurationChannelArticles', () => {
     expect(errors[0].message).toBe('invalid article id')
   })
 })
+
+describe('deleteCurationChannelArticles', () => {
+  const DELETE_CURATION_CHANNEL_ARTICLES = /* GraphQL */ `
+    mutation ($input: DeleteCurationChannelArticlesInput!) {
+      deleteCurationChannelArticles(input: $input) {
+        id
+        name
+        articles(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  `
+
+  let channel: CurationChannel
+  let articles: Article[]
+
+  beforeEach(async () => {
+    // Create test channel
+    channel = await channelService.createCurationChannel({
+      name: 'test-channel',
+      pinAmount: 3,
+    })
+
+    // Get some test articles
+    articles = await atomService.findMany({
+      table: 'article',
+      where: {},
+      take: 3,
+    })
+    expect(articles).toHaveLength(3)
+
+    // Add articles to channel
+    await channelService.addArticlesToCurationChannel({
+      channelId: channel.id,
+      articleIds: articles.map((a) => a.id),
+    })
+  })
+
+  test('deletes articles from channel successfully', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin } as Context,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: articles
+            .slice(0, 2)
+            .map((a) => toGlobalId({ type: NODE_TYPES.Article, id: a.id })),
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.deleteCurationChannelArticles.id).toBe(
+      toGlobalId({ type: NODE_TYPES.CurationChannel, id: channel.id })
+    )
+    expect(data.deleteCurationChannelArticles.articles.totalCount).toBe(1)
+    expect(data.deleteCurationChannelArticles.articles.edges).toHaveLength(1)
+    expect(data.deleteCurationChannelArticles.articles.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: articles[2].id })
+    )
+  })
+
+  test('requires authentication', async () => {
+    const server = await testClient({ connections })
+
+    const { errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: articles.map((a) =>
+            toGlobalId({ type: NODE_TYPES.Article, id: a.id })
+          ),
+        },
+      },
+    })
+
+    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
+
+  test('requires admin role', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: normalUser } as Context,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: articles.map((a) =>
+            toGlobalId({ type: NODE_TYPES.Article, id: a.id })
+          ),
+        },
+      },
+    })
+
+    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
+
+  test('validates channel ID', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin } as Context,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({ type: NODE_TYPES.Article, id: '1' }), // Wrong type
+          articles: articles.map((a) =>
+            toGlobalId({ type: NODE_TYPES.Article, id: a.id })
+          ),
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Invalid channel ID')
+  })
+
+  test('validates article IDs', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin } as Context,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: [toGlobalId({ type: NODE_TYPES.User, id: '1' })], // Wrong type
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Invalid article IDs')
+  })
+
+  test('handles non-existent channel', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin } as Context,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: '0',
+          }),
+          articles: articles.map((a) =>
+            toGlobalId({ type: NODE_TYPES.Article, id: a.id })
+          ),
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Channel not found')
+  })
+
+  test('handles empty article list', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin } as Context,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: [],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.deleteCurationChannelArticles.id).toBe(
+      toGlobalId({ type: NODE_TYPES.CurationChannel, id: channel.id })
+    )
+    expect(data.deleteCurationChannelArticles.articles.totalCount).toBe(3) // No changes
+  })
+
+  test('handles deleting non-existent articles', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin } as Context,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: DELETE_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '0' })],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.deleteCurationChannelArticles.articles.totalCount).toBe(3) // No changes
+  })
+})
