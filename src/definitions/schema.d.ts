@@ -39,7 +39,7 @@ import {
   CampaignStage as CampaignStageModel,
 } from './campaign.js'
 import {
-  Channel as ChannelModel,
+  TopicChannel as TopicChannelModel,
   CurationChannel as CurationChannelModel,
 } from './channel.js'
 import { GlobalId } from './nominal.js'
@@ -4587,7 +4587,7 @@ export type GQLResolversInterfaceTypes<
   _RefType extends Record<string, unknown>
 > = ResolversObject<{
   Campaign: CampaignModel
-  Channel: CurationChannelModel | ChannelModel | CampaignModel
+  Channel: CurationChannelModel | TopicChannelModel | CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['AppreciationEdge']>>
@@ -5275,7 +5275,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
-  TopicChannel: ResolverTypeWrapper<ChannelModel>
+  TopicChannel: ResolverTypeWrapper<TopicChannelModel>
   Transaction: ResolverTypeWrapper<TransactionModel>
   TransactionConnection: ResolverTypeWrapper<
     Omit<GQLTransactionConnection, 'edges'> & {
@@ -5837,7 +5837,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
-  TopicChannel: ChannelModel
+  TopicChannel: TopicChannelModel
   Transaction: TransactionModel
   TransactionConnection: Omit<GQLTransactionConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TransactionEdge']>>

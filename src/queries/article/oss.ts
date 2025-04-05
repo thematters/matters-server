@@ -101,12 +101,12 @@ export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
   { dataSources: { atomService } }
 ) => {
   const articleChannels = await atomService.findMany({
-    table: 'article_channel',
+    table: 'article_topic_channel',
     where: { articleId },
   })
 
   const _channels = await atomService.findMany({
-    table: 'channel',
+    table: 'topic_channel',
     whereIn: ['id', articleChannels.map((ac) => ac.channelId)],
   })
 

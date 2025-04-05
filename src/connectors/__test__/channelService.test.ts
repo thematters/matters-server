@@ -43,7 +43,7 @@ describe('updateOrCreateChannel', () => {
   }
 
   beforeEach(async () => {
-    await atomService.deleteMany({ table: 'channel' })
+    await atomService.deleteMany({ table: 'topic_channel' })
   })
 
   test('creates new channel', async () => {
@@ -104,8 +104,8 @@ describe('setArticleChannels', () => {
   }
 
   beforeEach(async () => {
-    await atomService.deleteMany({ table: 'article_channel' })
-    await atomService.deleteMany({ table: 'channel' })
+    await atomService.deleteMany({ table: 'article_topic_channel' })
+    await atomService.deleteMany({ table: 'topic_channel' })
   })
 
   test('sets article channels', async () => {
@@ -122,7 +122,7 @@ describe('setArticleChannels', () => {
     })
 
     const articleChannels = await atomService.findMany({
-      table: 'article_channel',
+      table: 'article_topic_channel',
       where: { articleId },
     })
     expect(articleChannels).toHaveLength(2)
@@ -147,7 +147,7 @@ describe('setArticleChannels', () => {
     })
 
     const articleChannels = await atomService.findMany({
-      table: 'article_channel',
+      table: 'article_topic_channel',
       where: { articleId },
     })
     expect(articleChannels).toHaveLength(1)
@@ -173,7 +173,7 @@ describe('setArticleChannels', () => {
     })
 
     const articleChannels = await atomService.findMany({
-      table: 'article_channel',
+      table: 'article_topic_channel',
       where: { articleId },
     })
     expect(articleChannels).toHaveLength(2)
@@ -202,7 +202,7 @@ describe('setArticleChannels', () => {
 
     // Verify channel is disabled
     let articleChannels = await atomService.findMany({
-      table: 'article_channel',
+      table: 'article_topic_channel',
       where: { articleId },
     })
     expect(articleChannels[0].enabled).toBe(false)
@@ -215,7 +215,7 @@ describe('setArticleChannels', () => {
 
     // Verify channel is re-enabled
     articleChannels = await atomService.findMany({
-      table: 'article_channel',
+      table: 'article_topic_channel',
       where: { articleId },
     })
     expect(articleChannels[0].enabled).toBe(true)

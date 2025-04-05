@@ -44,14 +44,14 @@ export class ChannelService {
     // update
     if (id) {
       return this.models.update({
-        table: 'channel',
+        table: 'topic_channel',
         where: { id },
         data: { name, note, enabled, updatedAt: new Date() },
       })
     }
 
     return this.models.create({
-      table: 'channel',
+      table: 'topic_channel',
       data: { shortHash: shortHash(), name, note, providerId, enabled },
     })
   }
@@ -146,7 +146,7 @@ export class ChannelService {
   }) => {
     // Get existing channels
     const existingChannels = await this.models.findMany({
-      table: 'article_channel',
+      table: 'article_topic_channel',
       where: { articleId },
     })
 
@@ -167,7 +167,7 @@ export class ChannelService {
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
       await this.models.upsertOnConflict({
-        table: 'article_channel',
+        table: 'article_topic_channel',
         data: toAdd.map((channelId) => ({
           articleId,
           channelId,
@@ -181,7 +181,7 @@ export class ChannelService {
     // Disable removed channels
     if (toRemove.length > 0) {
       await this.models.updateMany({
-        table: 'article_channel',
+        table: 'article_topic_channel',
         where: { articleId },
         whereIn: ['channelId', toRemove],
         data: { enabled: false, isLabeled: true, updatedAt: new Date() },

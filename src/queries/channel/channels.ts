@@ -1,4 +1,4 @@
-import type { GQLQueryResolvers, Channel } from '#definitions/index.js'
+import type { GQLQueryResolvers, TopicChannel } from '#definitions/index.js'
 
 import { USER_ROLE } from '#common/enums/index.js'
 
@@ -9,15 +9,15 @@ const resolver: GQLQueryResolvers['channels'] = async (
 ) => {
   const isAdmin = viewer.role === USER_ROLE.admin
 
-  let channels: Channel[] = []
+  let channels: TopicChannel[] = []
 
   if (isAdmin) {
     channels = await atomService.findMany({
-      table: 'channel',
+      table: 'topic_channel',
     })
   } else {
     channels = await atomService.findMany({
-      table: 'channel',
+      table: 'topic_channel',
       where: { enabled: true },
     })
   }

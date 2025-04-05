@@ -7,7 +7,7 @@ const resolver: GQLTopicChannelResolvers['note'] = async (
 ) => {
   const language = input?.language || viewer.language
   const translation = await translationService.findTranslation({
-    table: 'channel',
+    table: 'topic_channel',
     field: 'note',
     id,
     language,

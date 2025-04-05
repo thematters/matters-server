@@ -38,7 +38,7 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   if (name) {
     for (const trans of name) {
       await translationService.updateOrCreateTranslation({
-        table: 'channel',
+        table: 'topic_channel',
         field: 'name',
         id: channel.id,
         language: trans.language,
@@ -51,7 +51,7 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   if (note) {
     for (const trans of note) {
       await translationService.updateOrCreateTranslation({
-        table: 'channel',
+        table: 'topic_channel',
         field: 'note',
         id: channel.id,
         language: trans.language,

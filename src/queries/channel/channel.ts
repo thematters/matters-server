@@ -10,7 +10,7 @@ const resolver: GQLQueryResolvers['channel'] = async (
   const isAdmin = viewer.role === USER_ROLE.admin
 
   const channel = await atomService.findUnique({
-    table: 'channel',
+    table: 'topic_channel',
     where: { shortHash },
   })
 

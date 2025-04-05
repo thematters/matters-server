@@ -67,8 +67,8 @@ import type {
   CampaignBoost,
 } from './campaign.js'
 import type {
-  Channel,
-  ArticleChannel,
+  TopicChannel,
+  ArticleTopicChannel,
   ArticleChannelJob,
   CampaignChannel,
   CurationChannel,
@@ -224,9 +224,9 @@ export type TableTypeMap = {
   article_translation: ArticleTranslation
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
-  article_channel: ArticleChannel
+  article_topic_channel: ArticleTopicChannel
   article_channel_job: ArticleChannelJob
-  channel: Channel
+  topic_channel: TopicChannel
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord

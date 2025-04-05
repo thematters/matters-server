@@ -5,13 +5,14 @@ import type {
 import type { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 import type { ValueOf } from './generic.js'
 
-export interface Channel {
+export interface TopicChannel {
   id: string
   shortHash: string
   name: string
   note?: string
   providerId: string
   enabled: boolean
+  order: number
   createdAt: Date
   updatedAt: Date
 }
@@ -25,7 +26,7 @@ export interface CampaignChannel {
   updatedAt: Date
 }
 
-export interface ArticleChannel {
+export interface ArticleTopicChannel {
   id: string
   articleId: string
   channelId: string

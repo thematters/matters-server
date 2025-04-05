@@ -128,7 +128,7 @@ describe('manage topic channels', () => {
     })
 
     const channel = await atomService.findFirst({
-      table: 'channel',
+      table: 'topic_channel',
       where: {},
     })
 
@@ -169,7 +169,7 @@ describe('manage topic channels', () => {
     })
 
     const channel = await atomService.findFirst({
-      table: 'channel',
+      table: 'topic_channel',
       where: {},
     })
     const article = await atomService.findFirst({
