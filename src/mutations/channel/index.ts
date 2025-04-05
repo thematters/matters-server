@@ -1,3 +1,4 @@
+import addCurationChannelArticles from './addCurationChannelArticles.js'
 import classifyArticlesChannels from './classifyArticlesChannels.js'
 import putCurationChannel from './putCurationChannel.js'
 import putTopicChannel from './putTopicChannel.js'
@@ -9,5 +10,6 @@ export default {
     putCurationChannel,
     setArticleTopicChannels,
     classifyArticlesChannels,
+    addCurationChannelArticles,
   },
 }

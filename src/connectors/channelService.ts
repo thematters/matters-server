@@ -260,4 +260,74 @@ export class ChannelService {
     )
     return results
   }
+
+  public addArticlesToCurationChannel = async ({
+    channelId,
+    articleIds,
+  }: {
+    channelId: string
+    articleIds: string[]
+  }) => {
+    // Get existing articles in channel
+    const existingArticles = await this.models.findMany({
+      table: 'curation_channel_article',
+      where: { channelId },
+    })
+
+    // Filter out articles that are already in the channel
+    const existingArticleIds = existingArticles.map(
+      ({ articleId }) => articleId
+    )
+    const newArticleIds = articleIds.filter(
+      (id) => !existingArticleIds.includes(id)
+    )
+
+    // Add new articles
+    if (newArticleIds.length > 0) {
+      await this.models.upsertOnConflict({
+        table: 'curation_channel_article',
+        data: newArticleIds.map((articleId) => ({
+          channelId,
+          articleId,
+          pinned: false,
+        })),
+        onConflict: ['channelId', 'articleId'],
+      })
+    }
+  }
+
+  /**
+   * Find articles for a curation channel  with order column considering pinned flag
+   */
+  public findCurationChannelArticles = (channelId: string) => {
+    const knexRO = this.connections.knexRO
+    return knexRO('article')
+      .select(
+        'article.*',
+        knexRO.raw(
+          'RANK() OVER (ORDER BY curation_channel_article.pinned_at DESC) AS order'
+        )
+      )
+      .join(
+        'curation_channel_article',
+        'article.id',
+        'curation_channel_article.article_id'
+      )
+      .where({ channelId, 'curation_channel_article.pinned': true })
+      .union(
+        knexRO('article')
+          .select(
+            'article.*',
+            knexRO.raw(
+              'RANK() OVER (ORDER BY curation_channel_article.created_at DESC) + 100 AS order'
+            )
+          )
+          .join(
+            'curation_channel_article',
+            'article.id',
+            'curation_channel_article.article_id'
+          )
+          .where({ channelId, 'curation_channel_article.pinned': false })
+      )
+  }
 }

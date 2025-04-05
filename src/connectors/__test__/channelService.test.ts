@@ -1,4 +1,8 @@
-import type { Connections } from '#definitions/index.js'
+import type {
+  Connections,
+  CurationChannel,
+  Article,
+} from '#definitions/index.js'
 import {
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
@@ -549,5 +553,245 @@ describe('updateCurationChannel', () => {
         name: 'new-name',
       })
     ).rejects.toThrow()
+  })
+})
+
+describe('addArticlesToCurationChannel', () => {
+  let channel: CurationChannel
+  const articleIds = ['1', '2', '3']
+
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'curation_channel_article' })
+    await atomService.deleteMany({ table: 'curation_channel' })
+
+    // Create a test channel
+    channel = await channelService.createCurationChannel({
+      name: 'test-channel',
+      pinAmount: 3,
+    })
+  })
+
+  test('adds new articles to channel', async () => {
+    await channelService.addArticlesToCurationChannel({
+      channelId: channel.id,
+      articleIds,
+    })
+
+    const articles = await atomService.findMany({
+      table: 'curation_channel_article',
+      where: { channelId: channel.id },
+    })
+
+    expect(articles).toHaveLength(3)
+    expect(articles.map((a) => a.articleId)).toEqual(
+      expect.arrayContaining(articleIds)
+    )
+    expect(articles.every((a) => !a.pinned)).toBe(true)
+  })
+
+  test('ignores duplicate articles', async () => {
+    // First add some articles
+    await channelService.addArticlesToCurationChannel({
+      channelId: channel.id,
+      articleIds: [articleIds[0]],
+    })
+
+    // Try to add the same article again along with new ones
+    await channelService.addArticlesToCurationChannel({
+      channelId: channel.id,
+      articleIds,
+    })
+
+    const articles = await atomService.findMany({
+      table: 'curation_channel_article',
+      where: { channelId: channel.id },
+    })
+
+    expect(articles).toHaveLength(3)
+    expect(articles.map((a) => a.articleId)).toEqual(
+      expect.arrayContaining(articleIds)
+    )
+  })
+})
+
+describe('findCurationChannelArticles', () => {
+  let channel: CurationChannel
+  let articles: Article[]
+
+  beforeEach(async () => {
+    // Clean up tables
+    await atomService.deleteMany({ table: 'curation_channel_article' })
+    await atomService.deleteMany({ table: 'curation_channel' })
+
+    // Create test channel
+    channel = await channelService.createCurationChannel({
+      name: 'test-channel',
+      pinAmount: 3,
+    })
+
+    // Create test articles
+    articles = await atomService.findMany({
+      table: 'article',
+      where: {},
+    })
+  })
+
+  test('returns empty array when no articles in channel', async () => {
+    const results = await channelService
+      .findCurationChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+    expect(results).toHaveLength(0)
+  })
+
+  test('orders pinned articles before unpinned articles', async () => {
+    // Add articles to channel with different pinned states
+    const now = new Date()
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[0].id,
+        pinned: true,
+        pinnedAt: now,
+        createdAt: now,
+      },
+    })
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[1].id,
+        pinned: false,
+        createdAt: new Date(now.getTime() + 1000), // created later
+      },
+    })
+
+    const results = await channelService
+      .findCurationChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+    expect(results).toHaveLength(2)
+    expect(results[0].id).toBe(articles[0].id) // Pinned should be first
+    expect(results[1].id).toBe(articles[1].id) // Unpinned should be second
+  })
+
+  test('orders pinned articles by pinnedAt DESC', async () => {
+    const baseTime = new Date()
+    // Add multiple pinned articles with different pinnedAt times
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[0].id,
+        pinned: true,
+        pinnedAt: new Date(baseTime.getTime() + 1000), // Pinned last
+        createdAt: baseTime,
+      },
+    })
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[1].id,
+        pinned: true,
+        pinnedAt: baseTime, // Pinned first
+        createdAt: baseTime,
+      },
+    })
+
+    const results = await channelService
+      .findCurationChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+    expect(results).toHaveLength(2)
+    expect(results[0].id).toBe(articles[0].id) // Most recently pinned
+    expect(results[1].id).toBe(articles[1].id) // Pinned earlier
+  })
+
+  test('orders unpinned articles by createdAt DESC', async () => {
+    const baseTime = new Date()
+    // Add multiple unpinned articles with different createdAt times
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[0].id,
+        pinned: false,
+        createdAt: new Date(baseTime.getTime() + 1000), // Created last
+      },
+    })
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[1].id,
+        pinned: false,
+        createdAt: baseTime, // Created first
+      },
+    })
+
+    const results = await channelService
+      .findCurationChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+    expect(results).toHaveLength(2)
+    expect(results[0].id).toBe(articles[0].id) // Most recently created
+    expect(results[1].id).toBe(articles[1].id) // Created earlier
+  })
+
+  test('returns correct article data with mixed pinned and unpinned articles', async () => {
+    const baseTime = new Date()
+    // Add a mix of pinned and unpinned articles
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[0].id,
+        pinned: true,
+        pinnedAt: new Date(baseTime.getTime() + 1000),
+        createdAt: baseTime,
+      },
+    })
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[1].id,
+        pinned: true,
+        pinnedAt: baseTime,
+        createdAt: baseTime,
+      },
+    })
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[2].id,
+        pinned: false,
+        createdAt: new Date(baseTime.getTime() + 2000),
+      },
+    })
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: channel.id,
+        articleId: articles[3].id,
+        pinned: false,
+        createdAt: baseTime,
+      },
+    })
+
+    const results = await channelService
+      .findCurationChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+    expect(results).toHaveLength(4)
+
+    // Check order: pinned (by pinnedAt DESC) then unpinned (by createdAt DESC)
+    expect(results[0].id).toBe(articles[0].id) // Most recently pinned
+    expect(results[1].id).toBe(articles[1].id) // Pinned earlier
+    expect(results[2].id).toBe(articles[2].id) // Most recently created unpinned
+    expect(results[3].id).toBe(articles[3].id) // Created earlier unpinned
+  })
+
+  test('handles non-existent channel ID', async () => {
+    const results = await channelService.findCurationChannelArticles('0')
+    expect(results).toHaveLength(0)
   })
 })

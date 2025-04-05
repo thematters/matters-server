@@ -5,9 +5,10 @@ import { toGlobalId, fromDatetimeRangeString } from '#common/utils/index.js'
 
 import channel from './channel.js'
 import channels from './channels.js'
+import CurationChannelArticles from './curation/articles.js'
 import CurationChannelName from './curation/name.js'
 import CurationChannelNote from './curation/note.js'
-import articles from './topic/articles.js'
+import TopicChannelArticles from './topic/articles.js'
 import TopicChannelName from './topic/name.js'
 import TopicChannelNote from './topic/note.js'
 
@@ -20,7 +21,7 @@ const schema: GQLResolvers = {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.TopicChannel, id }),
     name: TopicChannelName,
     note: TopicChannelNote,
-    articles,
+    articles: TopicChannelArticles,
   },
   CurationChannel: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.CurationChannel, id }),
@@ -28,6 +29,7 @@ const schema: GQLResolvers = {
     note: CurationChannelNote,
     activePeriod: ({ activePeriod }) =>
       fromDatetimeRangeString(activePeriod as string),
+    articles: CurationChannelArticles,
   },
   Channel: {
     __resolveType: ({ __type }: any) => __type,
