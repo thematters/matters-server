@@ -331,6 +331,14 @@ export class ChannelService {
     }
   }
 
+  public findActiveCurationChannels = async () => {
+    const knexRO = this.connections.knexRO
+    return knexRO('curation_channel')
+      .select('*')
+      .where({ state: CURATION_CHANNEL_STATE.published })
+      .whereRaw('active_period @> NOW()')
+  }
+
   /**
    * Find articles for a curation channel  with order column considering pinned flag
    */

@@ -795,3 +795,101 @@ describe('findCurationChannelArticles', () => {
     expect(results).toHaveLength(0)
   })
 })
+
+describe('findActiveCurationChannels', () => {
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'curation_channel' })
+  })
+
+  test('returns only published channels with active periods', async () => {
+    const now = new Date()
+    const past = new Date(now.getTime() - 86400000) // 1 day ago
+    const future = new Date(now.getTime() + 86400000) // 1 day from now
+
+    // Create channels with different states and periods
+    await channelService.createCurationChannel({
+      name: 'active-published',
+      state: CURATION_CHANNEL_STATE.published,
+      activePeriod: [past, future],
+    })
+
+    await channelService.createCurationChannel({
+      name: 'inactive-published',
+      state: CURATION_CHANNEL_STATE.published,
+      activePeriod: [future, new Date(future.getTime() + 86400000)],
+    })
+
+    await channelService.createCurationChannel({
+      name: 'active-editing',
+      state: CURATION_CHANNEL_STATE.editing,
+      activePeriod: [past, future],
+    })
+
+    const activeChannels = await channelService.findActiveCurationChannels()
+    expect(activeChannels).toHaveLength(1)
+    expect(activeChannels[0].name).toBe('active-published')
+    expect(activeChannels[0].state).toBe(CURATION_CHANNEL_STATE.published)
+  })
+
+  test('returns empty array when no channels are active', async () => {
+    const now = new Date()
+    const future = new Date(now.getTime() + 86400000)
+
+    // Create only inactive channels
+    await channelService.createCurationChannel({
+      name: 'future-published',
+      state: CURATION_CHANNEL_STATE.published,
+      activePeriod: [future, new Date(future.getTime() + 86400000)],
+    })
+
+    await channelService.createCurationChannel({
+      name: 'editing-channel',
+      state: CURATION_CHANNEL_STATE.editing,
+      activePeriod: [now, future],
+    })
+
+    const activeChannels = await channelService.findActiveCurationChannels()
+    expect(activeChannels).toHaveLength(0)
+  })
+
+  test('handles channels with past active periods', async () => {
+    const now = new Date()
+    const past = new Date(now.getTime() - 86400000)
+    const olderPast = new Date(past.getTime() - 86400000)
+
+    // Create a channel with a past active period
+    await channelService.createCurationChannel({
+      name: 'past-published',
+      state: CURATION_CHANNEL_STATE.published,
+      activePeriod: [olderPast, past],
+    })
+
+    const activeChannels = await channelService.findActiveCurationChannels()
+    expect(activeChannels).toHaveLength(0)
+  })
+
+  test('returns multiple active channels', async () => {
+    const now = new Date()
+    const past = new Date(now.getTime() - 86400000)
+    const future = new Date(now.getTime() + 86400000)
+
+    // Create multiple active channels
+    await channelService.createCurationChannel({
+      name: 'active-1',
+      state: CURATION_CHANNEL_STATE.published,
+      activePeriod: [past, future],
+    })
+
+    await channelService.createCurationChannel({
+      name: 'active-2',
+      state: CURATION_CHANNEL_STATE.published,
+      activePeriod: [past, future],
+    })
+
+    const activeChannels = await channelService.findActiveCurationChannels()
+    expect(activeChannels).toHaveLength(2)
+    expect(activeChannels.map((c) => c.name)).toEqual(
+      expect.arrayContaining(['active-1', 'active-2'])
+    )
+  })
+})

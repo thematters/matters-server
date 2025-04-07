@@ -1,4 +1,4 @@
-import type { Connections, User } from '#definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import { NODE_TYPES, LANGUAGE } from '#common/enums/index.js'
 import { AtomService, ChannelService } from '#connectors/index.js'
@@ -88,7 +88,7 @@ describe('manage topic channels', () => {
 
   const QUERY_CHANNELS_BY_ADMIN = /* GraphQL */ `
     query {
-      channels {
+      channels(input: { oss: true }) {
         id
         ... on TopicChannel {
           providerId
@@ -100,18 +100,7 @@ describe('manage topic channels', () => {
     }
   `
 
-  let admin: User
-  let normalUser: User
-
   beforeAll(async () => {
-    admin = await atomService.findFirst({
-      table: 'user',
-      where: { role: 'admin' },
-    })
-    normalUser = await atomService.findFirst({
-      table: 'user',
-      where: { role: 'user' },
-    })
     await channelService.updateOrCreateChannel({
       name: 'test',
       providerId: 'test-provider-1',
@@ -124,7 +113,7 @@ describe('manage topic channels', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
 
     const channel = await atomService.findFirst({
@@ -165,7 +154,7 @@ describe('manage topic channels', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
 
     const channel = await atomService.findFirst({
@@ -213,12 +202,11 @@ describe('manage topic channels', () => {
     const adminServer = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
     const normalServer = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: normalUser },
     })
 
     const channel = await channelService.updateOrCreateChannel({
@@ -258,12 +246,11 @@ describe('manage topic channels', () => {
     const adminServer = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
     const normalServer = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: normalUser },
     })
 
     // add channel
@@ -273,6 +260,12 @@ describe('manage topic channels', () => {
       note: 'test',
       enabled: true,
     })
+
+    const channels = await atomService.findMany({
+      table: 'topic_channel',
+      where: {},
+    })
+    expect(channels.length).toBe(3)
 
     const { data, errors } = await adminServer.executeOperation({
       query: QUERY_CHANNELS_BY_ADMIN,
