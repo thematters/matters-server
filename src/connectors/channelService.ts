@@ -40,31 +40,38 @@ export class ChannelService {
     this.models = new AtomService(connections)
   }
 
-  public updateOrCreateChannel = async ({
-    id,
+  public createTopicChannel = async ({
     name,
     note,
     providerId,
     enabled,
   }: {
-    id?: string
     name: string
+    providerId: string
+    enabled: boolean
     note?: string
-    providerId?: string
-    enabled?: boolean
   }) => {
-    // update
-    if (id) {
-      return this.models.update({
-        table: 'topic_channel',
-        where: { id },
-        data: { name, note, enabled, updatedAt: new Date() },
-      })
-    }
-
     return this.models.create({
       table: 'topic_channel',
       data: { shortHash: shortHash(), name, note, providerId, enabled },
+    })
+  }
+
+  public updateTopicChannel = async ({
+    id,
+    name,
+    note,
+    enabled,
+  }: {
+    id: string
+    name?: string
+    note?: string
+    enabled?: boolean
+  }) => {
+    return this.models.update({
+      table: 'topic_channel',
+      where: { id },
+      data: { name, note, enabled },
     })
   }
 

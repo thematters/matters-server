@@ -58,7 +58,7 @@ describe('togglePinChannelArticles', () => {
   describe('Topic Channel', () => {
     test('pins articles within limit', async () => {
       // Create test channel and articles
-      const channel = await channelService.updateOrCreateChannel({
+      const channel = await channelService.createTopicChannel({
         name: 'test-topic',
         providerId: 'test-provider-id',
         enabled: true,

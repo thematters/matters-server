@@ -64,7 +64,7 @@ describe('channels query', () => {
     })
 
     // Create test channels
-    const topicChannel = await channelService.updateOrCreateChannel({
+    const topicChannel = await channelService.createTopicChannel({
       name: 'test-topic',
       providerId: '1',
       enabled: false,
@@ -128,12 +128,12 @@ describe('channels query', () => {
     })
 
     // Create enabled and disabled channels
-    const enabledTopicChannel = await channelService.updateOrCreateChannel({
+    const enabledTopicChannel = await channelService.createTopicChannel({
       name: 'enabled-topic',
       enabled: true,
       providerId: '1',
     })
-    await channelService.updateOrCreateChannel({
+    await channelService.createTopicChannel({
       name: 'disabled-topic',
       enabled: false,
       providerId: '2',
@@ -221,7 +221,7 @@ describe('channels query', () => {
     })
 
     // Create channels with different orders
-    const topicChannel = await channelService.updateOrCreateChannel({
+    const topicChannel = await channelService.createTopicChannel({
       name: 'topic',
       enabled: true,
       providerId: '1',

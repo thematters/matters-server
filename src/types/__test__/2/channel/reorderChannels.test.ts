@@ -34,7 +34,7 @@ describe('reorderChannels', () => {
 
   test('reorders channels successfully', async () => {
     // Create test channels
-    const topicChannel = await channelService.updateOrCreateChannel({
+    const topicChannel = await channelService.createTopicChannel({
       name: 'test-topic',
       providerId: '1',
       enabled: true,

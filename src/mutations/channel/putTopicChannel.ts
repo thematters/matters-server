@@ -8,27 +8,17 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   { input: { id: globalId, name, note, enabled } },
   { dataSources: { translationService, channelService } }
 ) => {
-  let channel
-  if (!globalId) {
-    // create new channel
-    channel = await channelService.updateOrCreateChannel({
-      name: name ? name[0].text : '',
-      note: note ? note[0].text : '',
-      ...(typeof enabled === 'boolean' ? { enabled } : {}),
-    })
-  } else {
-    const { id, type } = fromGlobalId(globalId)
-    if (type !== 'TopicChannel') {
-      throw new UserInputError('Wrong channel global id')
-    }
-
-    channel = await channelService.updateOrCreateChannel({
-      id,
-      name: name ? name[0].text : '',
-      note: note ? note[0].text : '',
-      ...(typeof enabled === 'boolean' ? { enabled } : {}),
-    })
+  const { id, type } = fromGlobalId(globalId)
+  if (type !== 'TopicChannel') {
+    throw new UserInputError('Wrong channel global ID')
   }
+
+  const channel = await channelService.updateTopicChannel({
+    id,
+    name: name ? name[0].text : undefined,
+    note: note ? note[0].text : undefined,
+    enabled,
+  })
 
   // create or update translations
   if (name) {

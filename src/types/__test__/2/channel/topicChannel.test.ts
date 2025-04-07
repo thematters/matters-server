@@ -101,7 +101,7 @@ describe('manage topic channels', () => {
   `
 
   beforeAll(async () => {
-    await channelService.updateOrCreateChannel({
+    await channelService.createTopicChannel({
       name: 'test',
       providerId: 'test-provider-1',
       note: 'test',
@@ -209,7 +209,7 @@ describe('manage topic channels', () => {
       isAuth: true,
     })
 
-    const channel = await channelService.updateOrCreateChannel({
+    const channel = await channelService.createTopicChannel({
       name: 'test',
       providerId: 'test-provider-2',
       note: 'test',
@@ -254,7 +254,7 @@ describe('manage topic channels', () => {
     })
 
     // add channel
-    await channelService.updateOrCreateChannel({
+    await channelService.createTopicChannel({
       name: 'test',
       providerId: 'test-provider-3',
       note: 'test',

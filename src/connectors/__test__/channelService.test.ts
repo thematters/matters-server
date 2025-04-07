@@ -51,7 +51,7 @@ describe('updateOrCreateChannel', () => {
   })
 
   test('creates new channel', async () => {
-    const channel = await channelService.updateOrCreateChannel(channelData)
+    const channel = await channelService.createTopicChannel(channelData)
 
     expect(channel).toBeDefined()
     expect(channel.name).toBe(channelData.name)
@@ -61,7 +61,7 @@ describe('updateOrCreateChannel', () => {
   })
 
   test('updates existing channel', async () => {
-    const channel = await channelService.updateOrCreateChannel(channelData)
+    const channel = await channelService.createTopicChannel(channelData)
     const updatedData = {
       ...channelData,
       id: channel.id,
@@ -70,9 +70,7 @@ describe('updateOrCreateChannel', () => {
       enabled: false,
     }
 
-    const updatedChannel = await channelService.updateOrCreateChannel(
-      updatedData
-    )
+    const updatedChannel = await channelService.updateTopicChannel(updatedData)
 
     expect(updatedChannel.id).toBe(channel.id)
     expect(updatedChannel.name).toBe(updatedData.name)
@@ -88,7 +86,7 @@ describe('updateOrCreateChannel', () => {
       enabled: true,
     }
 
-    const channel = await channelService.updateOrCreateChannel(
+    const channel = await channelService.createTopicChannel(
       dataWithoutDescription
     )
 
@@ -113,8 +111,8 @@ describe('setArticleChannels', () => {
   })
 
   test('sets article channels', async () => {
-    const channel1 = await channelService.updateOrCreateChannel(channelData)
-    const channel2 = await channelService.updateOrCreateChannel({
+    const channel1 = await channelService.createTopicChannel(channelData)
+    const channel2 = await channelService.createTopicChannel({
       ...channelData,
       providerId: '2',
     })
@@ -140,7 +138,7 @@ describe('setArticleChannels', () => {
   })
 
   test('removes existing channels when setting empty array', async () => {
-    const channel = await channelService.updateOrCreateChannel(channelData)
+    const channel = await channelService.createTopicChannel(channelData)
     await channelService.setArticleTopicChannels({
       articleId,
       channelIds: [channel.id],
@@ -161,8 +159,8 @@ describe('setArticleChannels', () => {
   })
 
   test('updates channels when called multiple times', async () => {
-    const channel1 = await channelService.updateOrCreateChannel(channelData)
-    const channel2 = await channelService.updateOrCreateChannel({
+    const channel1 = await channelService.createTopicChannel(channelData)
+    const channel2 = await channelService.createTopicChannel({
       ...channelData,
       name: 'test-channel-2',
       providerId: '2',
@@ -192,7 +190,7 @@ describe('setArticleChannels', () => {
   })
 
   test('re-enables disabled channels when added again', async () => {
-    const channel = await channelService.updateOrCreateChannel(channelData)
+    const channel = await channelService.createTopicChannel(channelData)
 
     // First add and then remove the channel
     await channelService.setArticleTopicChannels({
@@ -912,7 +910,7 @@ describe('togglePinChannelArticles', () => {
     await atomService.deleteMany({ table: 'curation_channel' })
 
     // Create test channels
-    topicChannel = await channelService.updateOrCreateChannel({
+    topicChannel = await channelService.createTopicChannel({
       name: 'test-topic-channel',
       providerId: 'test-provider-id',
       enabled: true,
@@ -1164,7 +1162,7 @@ describe('findTopicChannelArticles', () => {
     await atomService.deleteMany({ table: 'topic_channel' })
 
     // Create test channel
-    channel = await channelService.updateOrCreateChannel({
+    channel = await channelService.createTopicChannel({
       name: 'test-channel',
       providerId: 'test-provider-id',
       enabled: true,
@@ -1197,7 +1195,7 @@ describe('findTopicChannelArticles', () => {
   })
 
   test('returns empty array when no articles in channel', async () => {
-    const emptyChannel = await channelService.updateOrCreateChannel({
+    const emptyChannel = await channelService.createTopicChannel({
       providerId: 'test-provider-id-empty',
       name: 'empty-channel',
       enabled: true,

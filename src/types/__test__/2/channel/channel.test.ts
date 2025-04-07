@@ -53,7 +53,7 @@ describe('channel query', () => {
     })
 
     // Create test channel
-    const channel = await channelService.updateOrCreateChannel({
+    const channel = await channelService.createTopicChannel({
       name: 'test-topic',
       providerId: '1',
       enabled: false,
@@ -82,7 +82,7 @@ describe('channel query', () => {
     })
 
     // Create test channel
-    const channel = await channelService.updateOrCreateChannel({
+    const channel = await channelService.createTopicChannel({
       name: 'test-topic',
       providerId: '2',
       enabled: false,

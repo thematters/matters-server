@@ -585,13 +585,13 @@ describe('latestArticles', () => {
     })
 
     // create channels
-    const channel1 = await channelService.updateOrCreateChannel({
+    const channel1 = await channelService.createTopicChannel({
       name: 'test',
       note: 'test',
       providerId: 'test-latest',
       enabled: true,
     })
-    const channel2 = await channelService.updateOrCreateChannel({
+    const channel2 = await channelService.createTopicChannel({
       name: 'test2',
       note: 'test2',
       providerId: 'test-latest2',
