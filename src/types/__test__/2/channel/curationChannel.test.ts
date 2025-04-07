@@ -1,7 +1,5 @@
 import type {
-  Context,
   Connections,
-  User,
   CurationChannel,
   Article,
 } from '#definitions/index.js'
@@ -10,29 +8,26 @@ import {
   NODE_TYPES,
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
+  ARTICLE_STATE,
 } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
-import { AtomService, ChannelService } from '#connectors/index.js'
+import {
+  AtomService,
+  ChannelService,
+  ArticleService,
+} from '#connectors/index.js'
 import { testClient, genConnections, closeConnections } from '../../utils.js'
 
 let connections: Connections
 let atomService: AtomService
 let channelService: ChannelService
-let admin: User
-let normalUser: User
+let articleService: ArticleService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   channelService = new ChannelService(connections)
-  admin = await atomService.findFirst({
-    table: 'user',
-    where: { role: 'admin' },
-  })
-  normalUser = await atomService.findFirst({
-    table: 'user',
-    where: { role: 'user' },
-  })
+  articleService = new ArticleService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -76,7 +71,6 @@ describe('manage curation channels', () => {
     const nonAdminServer = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: normalUser },
     })
 
     const { errors: nonAdminErrors } = await nonAdminServer.executeOperation({
@@ -95,7 +89,7 @@ describe('manage curation channels', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
 
     const startDate = new Date()
@@ -145,7 +139,7 @@ describe('manage curation channels', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
 
     // First create a channel
@@ -189,7 +183,7 @@ describe('manage curation channels', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
 
     const endDate = new Date()
@@ -216,7 +210,7 @@ describe('manage curation channels', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin },
+      isAdmin: true,
     })
 
     // Create initial channel
@@ -298,7 +292,7 @@ describe('addCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -349,7 +343,6 @@ describe('addCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: normalUser } as Context,
     })
 
     const { errors } = await server.executeOperation({
@@ -374,7 +367,7 @@ describe('addCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { errors } = await server.executeOperation({
@@ -396,7 +389,7 @@ describe('addCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { errors } = await server.executeOperation({
@@ -413,6 +406,120 @@ describe('addCurationChannelArticles', () => {
     })
 
     expect(errors[0].message).toBe('Invalid article ID')
+  })
+
+  test('handles non-existent channel', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: ADD_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: '0',
+          }),
+          articles: articles.map((a) =>
+            toGlobalId({ type: NODE_TYPES.Article, id: a.id })
+          ),
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Channel not found')
+  })
+
+  test('handles non-existent articles', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: ADD_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '0' })],
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Some articles not found')
+  })
+
+  test('handles inactive articles', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // Create an inactive article
+    const [inactiveArticle] = await articleService.createArticle({
+      title: 'Inactive Article',
+      authorId: '1',
+      content: 'Inactive content',
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: inactiveArticle.id },
+      data: {
+        state: ARTICLE_STATE.archived,
+      },
+    })
+
+    const { errors } = await server.executeOperation({
+      query: ADD_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: [
+            toGlobalId({ type: NODE_TYPES.Article, id: inactiveArticle.id }),
+          ],
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Some articles not found')
+  })
+
+  test('handles duplicate article IDs', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: ADD_CURATION_CHANNEL_ARTICLES,
+      variables: {
+        input: {
+          channel: toGlobalId({
+            type: NODE_TYPES.CurationChannel,
+            id: channel.id,
+          }),
+          articles: [
+            toGlobalId({ type: NODE_TYPES.Article, id: articles[0].id }),
+            toGlobalId({ type: NODE_TYPES.Article, id: articles[0].id }), // Duplicate
+          ],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.addCurationChannelArticles.articles.totalCount).toBe(1) // Only one unique article added
   })
 })
 
@@ -463,7 +570,7 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -517,7 +624,6 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: normalUser } as Context,
     })
 
     const { errors } = await server.executeOperation({
@@ -542,7 +648,7 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { errors } = await server.executeOperation({
@@ -564,7 +670,7 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { errors } = await server.executeOperation({
@@ -587,7 +693,7 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { errors } = await server.executeOperation({
@@ -612,7 +718,7 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -639,7 +745,7 @@ describe('deleteCurationChannelArticles', () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: admin } as Context,
+      isAdmin: true,
     })
 
     const { data, errors } = await server.executeOperation({

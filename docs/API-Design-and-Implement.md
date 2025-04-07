@@ -103,6 +103,6 @@ const resolver = async ({ targetId, targetTypeId, type }, _, { dataSources: { at
 const resolvers = {
   Node: {
     __resolveType: ({ __type }) => __type
-  },
+    }
   }
-}
+```

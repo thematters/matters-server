@@ -1,6 +1,6 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
+import { NODE_TYPES, ARTICLE_STATE } from '#common/enums/index.js'
 import {
   UserInputError,
   EntityNotFoundError,
@@ -41,6 +41,7 @@ const resolver: GQLMutationResolvers['addCurationChannelArticles'] = async (
   // Verify articles exist
   const articles = await atomService.findMany({
     table: 'article',
+    where: { state: ARTICLE_STATE.active },
     whereIn: ['id', articleIds],
   })
   if (articles.length !== articleIds.length) {
