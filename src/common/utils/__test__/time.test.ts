@@ -212,9 +212,10 @@ describe('fromDatetimeRangeString', () => {
     expect(end?.getTime()).not.toBeNaN()
   })
 
-  test('should return null for empty range', () => {
+  test('should return start and end dates as 0', () => {
     const string = 'empty'
     const { start, end } = fromDatetimeRangeString(string)
-    expect(start.getTime()).toBe(end?.getTime())
+    expect(start.getTime()).toEqual(new Date(0).getTime())
+    expect(end?.getTime()).toEqual(new Date(0).getTime())
   })
 })
