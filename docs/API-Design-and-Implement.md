@@ -39,6 +39,17 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Include all required fields
    - Handle errors appropriately
    - Transform data if needed (e.g., ID to global ID)
+   - For mutations, invalidate related cache after database operations using `invalidateFQC` (cache of returned object is handled by `logCache` directive):
+     ```typescript
+     import { invalidateFQC } from '@matters/apollo-response-cache'
+     
+     // Invalidate cache for specific node type
+     await invalidateFQC({ 
+       node: { type: NODE_TYPES.Article, id }, 
+       redis 
+     })
+     return channel
+     ```
 
 7. Register resolver
    - Import resolver in index file
@@ -103,6 +114,20 @@ const resolver = async ({ targetId, targetTypeId, type }, _, { dataSources: { at
 const resolvers = {
   Node: {
     __resolveType: ({ __type }) => __type
-    }
   }
+}
+
+// Add Interface/Union to typeResolver in `src/schema.ts` for cache operation
+const typeResolver = (type: string, result: any) => {
+  const unionsAndInterfaces = [
+    ...
+    NODE_TYPES.Channel,
+  ]
+
+  if (unionsAndInterfaces.indexOf(type as NODE_TYPES) >= 0 && result?.__type) {
+    return result.__type
+  }
+
+  return type
+}
 ```

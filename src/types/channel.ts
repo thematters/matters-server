@@ -2,8 +2,8 @@ import { AUTH_MODE, NODE_TYPES } from '#common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Query {
-    channel(input: ChannelInput!): Channel
-    channels(input: ChannelsInput): [Channel!]!
+    channel(input: ChannelInput!): Channel @logCache(type: "${NODE_TYPES.Channel}")
+    channels(input: ChannelsInput): [Channel!]! @logCache(type: "${NODE_TYPES.Channel}")
   }
 
   interface Channel {
@@ -17,11 +17,11 @@ export default /* GraphQL */ `
 
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
-    providerId: String! @auth(mode: "${AUTH_MODE.admin}")
+    providerId: String! @auth(mode: "${AUTH_MODE.admin}") @privateCache
 
     enabled: Boolean!
 
-    articles(input: ConnectionArgs!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: ConnectionArgs!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
   type CurationChannel implements Channel {
@@ -35,7 +35,7 @@ export default /* GraphQL */ `
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange!
     state: CurationChannelState!
-    articles(input: ConnectionArgs!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: ConnectionArgs!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
   input ChannelInput {
@@ -62,10 +62,10 @@ export default /* GraphQL */ `
   extend type Mutation {
     putTopicChannel(input: PutTopicChannelInput!): TopicChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.TopicChannel}")
     putCurationChannel(input: PutCurationChannelInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
-    setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
+    setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
     deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
-    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel! @auth(mode: "${AUTH_MODE.admin}")
+    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
     reorderChannels(input: ReorderChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }

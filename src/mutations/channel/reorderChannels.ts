@@ -7,7 +7,7 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['reorderChannels'] = async (
   _,
-  { input: { ids } },
+  { input: { ids: globalIds } },
   {
     dataSources: {
       channelService,
@@ -15,21 +15,23 @@ const resolver: GQLMutationResolvers['reorderChannels'] = async (
     },
   }
 ) => {
+  const _globalIds = globalIds.map((globalId) => {
+    const { type, id } = fromGlobalId(globalId)
+    if (
+      ![
+        NODE_TYPES.TopicChannel,
+        NODE_TYPES.CurationChannel,
+        NODE_TYPES.Campaign,
+      ].includes(type)
+    ) {
+      throw new UserInputError(`Invalid channel type: ${type}`)
+    }
+    return { type, id }
+  })
   // Update order for each channel
   await Promise.all(
-    ids.map(async (globalId, index) => {
-      const { type, id } = fromGlobalId(globalId)
-
-      // Validate type is one of the allowed channel types
-      if (
-        ![
-          NODE_TYPES.TopicChannel,
-          NODE_TYPES.CurationChannel,
-          NODE_TYPES.Campaign,
-        ].includes(type)
-      ) {
-        throw new UserInputError(`Invalid channel type: ${type}`)
-      }
+    _globalIds.map(async ({ type, id }, index) => {
+      await channelService.updateChannelOrder({ type, id }, index)
 
       switch (type) {
         case NODE_TYPES.TopicChannel:
@@ -45,8 +47,6 @@ const resolver: GQLMutationResolvers['reorderChannels'] = async (
           invalidateFQC({ node: { type: NODE_TYPES.Campaign, id }, redis })
           break
       }
-
-      await channelService.updateChannelOrder({ type, id }, index)
     })
   )
 

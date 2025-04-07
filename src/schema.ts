@@ -29,6 +29,7 @@ const typeResolver = (type: string, result: any) => {
     NODE_TYPES.TransactionTarget,
     NODE_TYPES.PinnableWork,
     NODE_TYPES.Writing,
+    NODE_TYPES.Channel,
   ]
 
   if (unionsAndInterfaces.indexOf(type as NODE_TYPES) >= 0 && result?.__type) {
