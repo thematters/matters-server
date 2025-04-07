@@ -37,7 +37,6 @@ import {
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
-  PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
@@ -104,7 +103,6 @@ const publicationQueue = new PublicationQueue(connections)
 const revisionQueue = new RevisionQueue(connections)
 const assetQueue = new AssetQueue(connections)
 const migrationQueue = new MigrationQueue(connections)
-const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
 const payToByMattersQueue = new PayToByMattersQueue(connections)
 const payoutQueue = new PayoutQueue(connections)
 const userQueue = new UserQueue(connections)
@@ -114,7 +112,6 @@ const queues = {
   revisionQueue,
   assetQueue,
   migrationQueue,
-  payToByBlockchainQueue,
   payToByMattersQueue,
   payoutQueue,
   userQueue,

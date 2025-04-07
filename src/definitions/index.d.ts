@@ -25,7 +25,6 @@ import type {
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
-  PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
@@ -194,7 +193,6 @@ export interface DataSources {
     revisionQueue: RevisionQueue
     assetQueue: AssetQueue
     migrationQueue: MigrationQueue
-    payToByBlockchainQueue: PayToByBlockchainQueue
     payToByMattersQueue: PayToByMattersQueue
     payoutQueue: PayoutQueue
     userQueue: UserQueue

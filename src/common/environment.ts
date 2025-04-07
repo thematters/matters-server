@@ -36,6 +36,8 @@ export const environment = {
     process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
   awsIpfsPublicationQueueUrl:
     process.env.MATTERS_AWS_IPFS_PUBLICATION_QUEUE_URL || '',
+  awsBlockchainPaymentQueueUrl:
+    process.env.MATTERS_AWS_BLOCKCHAIN_PAYMENT_QUEUE_URL || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
