@@ -360,11 +360,11 @@ export class ArticleService extends BaseService<Article> {
                 .leftJoin(
                   this.knexRO
                     .select('article_id')
-                    .from('article_channel as ac')
-                    .join('channel as c', 'ac.channel_id', 'c.id')
+                    .from('topic_channel_article as tca')
+                    .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
                     .where({
-                      'ac.enabled': true,
-                      'c.enabled': true,
+                      'tca.enabled': true,
+                      'tc.enabled': true,
                     })
                     .as('enabled_article_channels'),
                   'article.id',

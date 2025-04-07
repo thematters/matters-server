@@ -764,8 +764,8 @@ export class TagService extends BaseService<Tag> {
   }) => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
-    const results = await this.knexRO
-      .select('article_id')
+    const query = this.knexRO
+      .select('article.id as articleId')
       .from('article')
       .leftJoin('article_tag', 'article_tag.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
@@ -793,7 +793,9 @@ export class TagService extends BaseService<Tag> {
         }
       })
 
-    return results.map(({ articleId }: { articleId: string }) => articleId)
+    return (await query).map(
+      ({ articleId }: { articleId: string }) => articleId
+    )
   }
 
   /**

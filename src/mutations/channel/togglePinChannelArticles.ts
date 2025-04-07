@@ -14,14 +14,14 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
   if (
     ![NODE_TYPES.TopicChannel, NODE_TYPES.CurationChannel].includes(channelType)
   ) {
-    throw new UserInputError('Invalid channel id')
+    throw new UserInputError('Invalid channel ID')
   }
 
   // Validate and extract article IDs
   const articleIds = articleGlobalIds.map((globalId) => {
     const { id, type } = fromGlobalId(globalId)
     if (type !== NODE_TYPES.Article) {
-      throw new UserInputError('Invalid article id')
+      throw new UserInputError('Invalid article ID')
     }
     return id
   })

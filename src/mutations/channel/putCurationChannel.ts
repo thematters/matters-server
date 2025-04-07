@@ -13,7 +13,7 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
 ) => {
   if (activePeriod) {
     if (!isValidDatetimeRange(activePeriod)) {
-      throw new UserInputError('invalid datetime range')
+      throw new UserInputError('Invalid datetime range')
     }
   }
 
@@ -31,7 +31,7 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
   } else {
     const { id, type } = fromGlobalId(globalId)
     if (type !== 'CurationChannel') {
-      throw new UserInputError('wrong channel global id')
+      throw new UserInputError('Wrong channel global ID')
     }
     channel = await channelService.updateCurationChannel({
       id,

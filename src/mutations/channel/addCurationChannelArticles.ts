@@ -17,7 +17,7 @@ const resolver: GQLMutationResolvers['addCurationChannelArticles'] = async (
   // Validate and extract channel ID
   const { id: channelId, type: channelType } = fromGlobalId(channelGlobalId)
   if (channelType !== NODE_TYPES.CurationChannel) {
-    throw new UserInputError('Invalid channel id')
+    throw new UserInputError('Invalid channel ID')
   }
 
   // Check if channel exists
@@ -33,7 +33,7 @@ const resolver: GQLMutationResolvers['addCurationChannelArticles'] = async (
   const articleIds = uniq(articleGlobalIds).map((globalId) => {
     const { id, type } = fromGlobalId(globalId)
     if (type !== NODE_TYPES.Article) {
-      throw new ArticleNotFoundError('Invalid article id')
+      throw new ArticleNotFoundError('Invalid article ID')
     }
     return id
   })

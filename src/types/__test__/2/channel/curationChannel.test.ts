@@ -209,7 +209,7 @@ describe('manage curation channels', () => {
       },
     })
 
-    expect(errors[0].message).toBe('invalid datetime range')
+    expect(errors[0].message).toBe('Invalid datetime range')
   })
 
   test('handles partial updates', async () => {
@@ -389,7 +389,7 @@ describe('addCurationChannelArticles', () => {
       },
     })
 
-    expect(errors[0].message).toBe('invalid channel id')
+    expect(errors[0].message).toBe('Invalid channel ID')
   })
 
   test('validates article IDs', async () => {
@@ -412,7 +412,7 @@ describe('addCurationChannelArticles', () => {
       },
     })
 
-    expect(errors[0].message).toBe('invalid article id')
+    expect(errors[0].message).toBe('Invalid article ID')
   })
 })
 

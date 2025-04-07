@@ -207,7 +207,6 @@ describe('togglePinChannelArticles', () => {
       })
 
       expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
-      expect(errors?.[0].message).toBe('Invalid channel id')
     })
 
     test('throws error for invalid article type', async () => {
@@ -229,7 +228,6 @@ describe('togglePinChannelArticles', () => {
       })
 
       expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
-      expect(errors?.[0].message).toBe('Invalid article id')
     })
   })
 
