@@ -3644,7 +3644,7 @@ export type GQLTogglePinChannelArticlesInput = {
   articles: Array<Scalars['ID']['input']>
   /** id of TopicChannel or CurationChannel */
   channel: Scalars['ID']['input']
-  pin: Scalars['Boolean']['input']
+  pinned: Scalars['Boolean']['input']
 }
 
 export type GQLToggleRecommendInput = {

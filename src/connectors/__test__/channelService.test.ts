@@ -6,12 +6,14 @@ import type {
 import {
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
+  NODE_TYPES,
 } from '#common/enums/index.js'
 
 import {
   ChannelService,
   AtomService,
   CampaignService,
+  ArticleService,
 } from '#connectors/index.js'
 import { genConnections, closeConnections } from './utils.js'
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
@@ -22,12 +24,13 @@ let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
 let campaignService: CampaignService
-
+let articleService: ArticleService
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   campaignService = new CampaignService(connections)
+  articleService = new ArticleService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -104,7 +107,7 @@ describe('setArticleChannels', () => {
   }
 
   beforeEach(async () => {
-    await atomService.deleteMany({ table: 'article_topic_channel' })
+    await atomService.deleteMany({ table: 'topic_channel_article' })
     await atomService.deleteMany({ table: 'topic_channel' })
   })
 
@@ -122,7 +125,7 @@ describe('setArticleChannels', () => {
     })
 
     const articleChannels = await atomService.findMany({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       where: { articleId },
     })
     expect(articleChannels).toHaveLength(2)
@@ -147,7 +150,7 @@ describe('setArticleChannels', () => {
     })
 
     const articleChannels = await atomService.findMany({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       where: { articleId },
     })
     expect(articleChannels).toHaveLength(1)
@@ -173,7 +176,7 @@ describe('setArticleChannels', () => {
     })
 
     const articleChannels = await atomService.findMany({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       where: { articleId },
     })
     expect(articleChannels).toHaveLength(2)
@@ -202,7 +205,7 @@ describe('setArticleChannels', () => {
 
     // Verify channel is disabled
     let articleChannels = await atomService.findMany({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       where: { articleId },
     })
     expect(articleChannels[0].enabled).toBe(false)
@@ -215,7 +218,7 @@ describe('setArticleChannels', () => {
 
     // Verify channel is re-enabled
     articleChannels = await atomService.findMany({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       where: { articleId },
     })
     expect(articleChannels[0].enabled).toBe(true)
@@ -891,5 +894,261 @@ describe('findActiveCurationChannels', () => {
     expect(activeChannels.map((c) => c.name)).toEqual(
       expect.arrayContaining(['active-1', 'active-2'])
     )
+  })
+})
+
+describe('togglePinChannelArticles', () => {
+  let topicChannel: any
+  let curationChannel: any
+  let articles: Article[]
+  const articleIds = ['1', '2', '3', '4', '5', '6', '7']
+
+  beforeEach(async () => {
+    // Clean up tables
+    await atomService.deleteMany({ table: 'topic_channel_article' })
+    await atomService.deleteMany({ table: 'curation_channel_article' })
+    await atomService.deleteMany({ table: 'topic_channel' })
+    await atomService.deleteMany({ table: 'curation_channel' })
+
+    // Create test channels
+    topicChannel = await channelService.updateOrCreateChannel({
+      name: 'test-topic-channel',
+      providerId: 'test-provider-id',
+      enabled: true,
+    })
+
+    curationChannel = await channelService.createCurationChannel({
+      name: 'test-curation-channel',
+      pinAmount: 3,
+    })
+
+    // create more articles
+    await articleService.createArticle({
+      title: `Test Article 1`,
+      content: `Content for Test Article 1`,
+      authorId: '1',
+    })
+
+    // Get test articles
+    articles = await atomService.findMany({
+      table: 'article',
+      where: {},
+      take: 7,
+    })
+
+    expect(articles).toHaveLength(7)
+
+    // Add articles to both channels
+    for (const articleId of articleIds) {
+      await channelService.setArticleTopicChannels({
+        articleId,
+        channelIds: [topicChannel.id],
+      })
+    }
+
+    await channelService.addArticlesToCurationChannel({
+      channelId: curationChannel.id,
+      articleIds: articleIds,
+    })
+  })
+
+  describe('Topic Channel', () => {
+    test('pins articles within limit', async () => {
+      const result = await channelService.togglePinChannelArticles({
+        channelId: topicChannel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: [articles[0].id],
+        pinned: true,
+      })
+
+      const pinnedArticles = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { channelId: topicChannel.id, pinned: true },
+      })
+
+      expect(result.id).toBe(topicChannel.id)
+      expect(pinnedArticles).toHaveLength(1)
+      expect(pinnedArticles[0].pinnedAt).toBeDefined()
+    })
+
+    test('unpins articles', async () => {
+      // First pin an article
+      await channelService.togglePinChannelArticles({
+        channelId: topicChannel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: [articles[0].id],
+        pinned: true,
+      })
+
+      // Then unpin it
+      await channelService.togglePinChannelArticles({
+        channelId: topicChannel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: [articles[0].id],
+        pinned: false,
+      })
+
+      const pinnedArticles = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { channelId: topicChannel.id, pinned: true },
+      })
+
+      expect(pinnedArticles).toHaveLength(0)
+    })
+
+    test('throws error when exceeding topic channel pin limit', async () => {
+      // Try to pin 7 articles (limit is 6)
+      await expect(
+        channelService.togglePinChannelArticles({
+          channelId: topicChannel.id,
+          channelType: NODE_TYPES.TopicChannel,
+          articleIds: articleIds,
+          pinned: true,
+        })
+      ).rejects.toThrow('Cannot pin more than 6 articles in this channel')
+    })
+  })
+
+  describe('Curation Channel', () => {
+    test('pins articles within limit', async () => {
+      const result = await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [articles[0].id, articles[1].id],
+        pinned: true,
+      })
+
+      const pinnedArticles = await atomService.findMany({
+        table: 'curation_channel_article',
+        where: { channelId: curationChannel.id, pinned: true },
+      })
+
+      expect(result.id).toBe(curationChannel.id)
+      expect(pinnedArticles).toHaveLength(2)
+      expect(pinnedArticles[0].pinnedAt).toBeDefined()
+      expect(pinnedArticles[1].pinnedAt).toBeDefined()
+    })
+
+    test('unpins articles', async () => {
+      // First pin some articles
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [articles[0].id, articles[1].id],
+        pinned: true,
+      })
+
+      // Then unpin one
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [articles[0].id],
+        pinned: false,
+      })
+
+      const pinnedArticles = await atomService.findMany({
+        table: 'curation_channel_article',
+        where: { channelId: curationChannel.id, pinned: true },
+      })
+
+      expect(pinnedArticles).toHaveLength(1)
+      expect(pinnedArticles[0].articleId).toBe(articles[1].id)
+    })
+
+    test('throws error when exceeding curation channel pin limit', async () => {
+      // Try to pin 4 articles (limit is 3)
+      await expect(
+        channelService.togglePinChannelArticles({
+          channelId: curationChannel.id,
+          channelType: NODE_TYPES.CurationChannel,
+          articleIds: [
+            articles[0].id,
+            articles[1].id,
+            articles[2].id,
+            articles[3].id,
+          ],
+          pinned: true,
+        })
+      ).rejects.toThrow('Cannot pin more than 3 articles in this channel')
+    })
+
+    test('respects custom pin amount', async () => {
+      // Create channel with custom pin amount
+      const customChannel = await channelService.createCurationChannel({
+        name: 'custom-pin-amount',
+        pinAmount: 2,
+      })
+
+      await channelService.addArticlesToCurationChannel({
+        channelId: customChannel.id,
+        articleIds: [articles[0].id, articles[1].id, articles[2].id],
+      })
+
+      // Try to pin 3 articles (limit is 2)
+      await expect(
+        channelService.togglePinChannelArticles({
+          channelId: customChannel.id,
+          channelType: NODE_TYPES.CurationChannel,
+          articleIds: [articles[0].id, articles[1].id, articles[2].id],
+          pinned: true,
+        })
+      ).rejects.toThrow('Cannot pin more than 2 articles in this channel')
+    })
+  })
+
+  describe('Error Cases', () => {
+    test('throws error for non-existent channel', async () => {
+      await expect(
+        channelService.togglePinChannelArticles({
+          channelId: '999',
+          channelType: NODE_TYPES.TopicChannel,
+          articleIds: [articles[0].id],
+          pinned: true,
+        })
+      ).rejects.toThrow('channel not found')
+    })
+
+    test('handles empty article ids array', async () => {
+      const result = await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [],
+        pinned: true,
+      })
+
+      expect(result.id).toBe(curationChannel.id)
+    })
+
+    test('allows unpinning even when over limit', async () => {
+      // First pin some articles
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [articles[0].id, articles[1].id],
+        pinned: true,
+      })
+
+      // Change pin limit to 1
+      await channelService.updateCurationChannel({
+        id: curationChannel.id,
+        pinAmount: 1,
+      })
+
+      // Should still be able to unpin
+      await expect(
+        channelService.togglePinChannelArticles({
+          channelId: curationChannel.id,
+          channelType: NODE_TYPES.CurationChannel,
+          articleIds: [articles[0].id, articles[1].id],
+          pinned: false,
+        })
+      ).resolves.toBeDefined()
+
+      const pinnedArticles = await atomService.findMany({
+        table: 'curation_channel_article',
+        where: { channelId: curationChannel.id, pinned: true },
+      })
+      expect(pinnedArticles).toHaveLength(0)
+    })
   })
 })

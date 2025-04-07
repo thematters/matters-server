@@ -2,7 +2,7 @@ import { baseDown } from '../utils.js'
 
 const newName1 = 'topic_channel'
 const oldName1 = 'channel'
-const newName2 = 'article_topic_channel'
+const newName2 = 'topic_channel_article'
 const oldName2 = 'article_channel'
 
 export const up = async (knex) => {
@@ -18,12 +18,20 @@ export const up = async (knex) => {
     .update({ table: newName2 })
     .where({ table: oldName2 })
   await knex.schema.renameTable(oldName2, newName2)
+  await knex.schema.alterTable(newName2, (t) => {
+    t.boolean('pinned').notNullable().defaultTo(false)
+    t.dateTime('pinned_at').nullable()
+  })
 }
 
 export const down = async (knex) => {
   await knex.schema.alterTable(newName1, (t) => {
     t.dropColumn('note')
     t.dropColumn('order')
+  })
+  await knex.schema.alterTable(newName2, (t) => {
+    t.dropColumn('pinned')
+    t.dropColumn('pinned_at')
   })
   await knex('entity_type')
     .update({ table: oldName1 })

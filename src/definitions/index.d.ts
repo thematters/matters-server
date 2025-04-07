@@ -68,11 +68,11 @@ import type {
 } from './campaign.js'
 import type {
   TopicChannel,
-  ArticleTopicChannel,
-  ArticleChannelJob,
+  TopicChannelArticle,
   CampaignChannel,
   CurationChannel,
   CurationChannelArticle,
+  ArticleChannelJob,
 } from './channel.js'
 import type {
   Circle,
@@ -224,9 +224,9 @@ export type TableTypeMap = {
   article_translation: ArticleTranslation
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
-  article_topic_channel: ArticleTopicChannel
   article_channel_job: ArticleChannelJob
   topic_channel: TopicChannel
+  topic_channel_article: TopicChannelArticle
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord

@@ -16,7 +16,7 @@ const resolver: GQLMutationResolvers['setArticleTopicChannels'] = async (
     where: { id: articleId },
   })
   if (!article) {
-    throw new UserInputError('invalid article id')
+    throw new UserInputError('Invalid article id')
   }
 
   await channelService.setArticleTopicChannels({

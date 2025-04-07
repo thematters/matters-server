@@ -600,7 +600,7 @@ describe('latestArticles', () => {
 
     // create article channels
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article1.id,
         channelId: channel1.id,
@@ -609,7 +609,7 @@ describe('latestArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article2.id,
         channelId: channel2.id, // disabled channel
@@ -618,7 +618,7 @@ describe('latestArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article3.id,
         channelId: channel2.id, // disabled channel
@@ -627,7 +627,7 @@ describe('latestArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article3.id,
         channelId: channel1.id,
@@ -684,7 +684,7 @@ describe('findChannelArticles', () => {
 
     // create article channel
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: '1',
         channelId: channel.id,
@@ -693,7 +693,7 @@ describe('findChannelArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: '2',
         channelId: channel.id,
@@ -702,7 +702,7 @@ describe('findChannelArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: '3',
         channelId: channel.id,

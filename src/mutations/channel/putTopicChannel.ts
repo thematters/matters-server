@@ -19,7 +19,7 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   } else {
     const { id, type } = fromGlobalId(globalId)
     if (type !== 'TopicChannel') {
-      throw new UserInputError('wrong channel global id')
+      throw new UserInputError('Wrong channel global id')
     }
 
     channel = await channelService.updateOrCreateChannel({

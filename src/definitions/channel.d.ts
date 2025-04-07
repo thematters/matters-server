@@ -26,13 +26,15 @@ export interface CampaignChannel {
   updatedAt: Date
 }
 
-export interface ArticleTopicChannel {
+export interface TopicChannelArticle {
   id: string
   articleId: string
   channelId: string
   score?: number
   isLabeled: boolean
   enabled: boolean
+  pinned: boolean
+  pinnedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -66,7 +68,7 @@ export interface CurationChannelArticle {
   channelId: string
   articleId: string
   pinned: boolean
-  pinnedAt: Date
+  pinnedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

@@ -14,3 +14,5 @@ export const CURATION_CHANNEL_COLOR = {
   pink: 'pink',
   red: 'red',
 } as const
+
+export const TOPIC_CHANNEL_PIN_LIMIT = 6

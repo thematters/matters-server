@@ -1,6 +1,7 @@
 import type {
   ArticleVersion,
   CampaignChannel,
+  CurationChannel,
   Connections,
   ValueOf,
 } from '#definitions/index.js'
@@ -10,7 +11,12 @@ import {
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
+  TOPIC_CHANNEL_PIN_LIMIT,
 } from '#common/enums/index.js'
+import {
+  EntityNotFoundError,
+  ActionLimitExceededError,
+} from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { shortHash, toDatetimeRangeString } from '#common/utils/index.js'
 import {
@@ -181,7 +187,7 @@ export class ChannelService {
   }) => {
     // Get existing channels
     const existingChannels = await this.models.findMany({
-      table: 'article_topic_channel',
+      table: 'topic_channel_article',
       where: { articleId },
     })
 
@@ -202,7 +208,7 @@ export class ChannelService {
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
       await this.models.upsertOnConflict({
-        table: 'article_topic_channel',
+        table: 'topic_channel_article',
         data: toAdd.map((channelId) => ({
           articleId,
           channelId,
@@ -216,7 +222,7 @@ export class ChannelService {
     // Disable removed channels
     if (toRemove.length > 0) {
       await this.models.updateMany({
-        table: 'article_topic_channel',
+        table: 'topic_channel_article',
         where: { articleId },
         whereIn: ['channelId', toRemove],
         data: { enabled: false, isLabeled: true, updatedAt: new Date() },
@@ -372,5 +378,84 @@ export class ChannelService {
           )
           .where({ channelId, 'curation_channel_article.pinned': false })
       )
+  }
+
+  public togglePinChannelArticles = async ({
+    channelId,
+    channelType,
+    articleIds,
+    pinned,
+  }: {
+    channelId: string
+    channelType: NODE_TYPES.TopicChannel | NODE_TYPES.CurationChannel
+    articleIds: string[]
+    pinned: boolean
+  }) => {
+    // Get channel to check pin limit
+    const channel = await this.models.findUnique({
+      table:
+        channelType === NODE_TYPES.TopicChannel
+          ? 'topic_channel'
+          : 'curation_channel',
+      where: { id: channelId },
+    })
+
+    if (!channel) {
+      throw new EntityNotFoundError('channel not found')
+    }
+
+    if (articleIds.length === 0) {
+      return channel
+    }
+
+    const maxPinAmount =
+      channelType === NODE_TYPES.TopicChannel
+        ? TOPIC_CHANNEL_PIN_LIMIT
+        : (channel as CurationChannel).pinAmount
+
+    // If pinning, check if it would exceed the limit
+    if (pinned) {
+      const currentPinnedCount = await this.models.count({
+        table:
+          channelType === NODE_TYPES.TopicChannel
+            ? 'topic_channel_article'
+            : 'curation_channel_article',
+        where: {
+          channelId,
+          pinned: true,
+        },
+      })
+      const unpinnedArticleCount = await this.models.count({
+        table:
+          channelType === NODE_TYPES.TopicChannel
+            ? 'topic_channel_article'
+            : 'curation_channel_article',
+        where: { channelId, pinned: false },
+        whereIn: ['articleId', articleIds],
+      })
+
+      if (currentPinnedCount + unpinnedArticleCount > maxPinAmount) {
+        throw new ActionLimitExceededError(
+          `Cannot pin more than ${maxPinAmount} articles in this channel`
+        )
+      }
+    }
+
+    // Update pin status for articles
+    const now = new Date()
+    await this.models.updateMany({
+      table:
+        channelType === NODE_TYPES.TopicChannel
+          ? 'topic_channel_article'
+          : 'curation_channel_article',
+      where: { channelId },
+      whereIn: ['articleId', articleIds],
+      data: {
+        pinned,
+        pinnedAt: pinned ? now : null,
+      },
+    })
+
+    return channel
   }
 }

@@ -84,7 +84,7 @@ export default /* GraphQL */ `
     "id of TopicChannel or CurationChannel"
     channel: ID!
     articles: [ID!]!
-    pin: Boolean!
+    pinned: Boolean!
   }
 
   input PutTopicChannelInput {

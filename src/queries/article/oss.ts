@@ -101,7 +101,7 @@ export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
   { dataSources: { atomService } }
 ) => {
   const articleChannels = await atomService.findMany({
-    table: 'article_topic_channel',
+    table: 'topic_channel_article',
     where: { articleId },
   })
 
