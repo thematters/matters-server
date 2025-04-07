@@ -4,6 +4,7 @@ import type {
   Article,
 } from '#definitions/index.js'
 import {
+  USER_FEATURE_FLAG_TYPE,
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
@@ -1149,6 +1150,313 @@ describe('togglePinChannelArticles', () => {
         where: { channelId: curationChannel.id, pinned: true },
       })
       expect(pinnedArticles).toHaveLength(0)
+    })
+  })
+})
+
+describe('findTopicChannelArticles', () => {
+  let channel: any
+  let articles: Article[]
+
+  beforeEach(async () => {
+    // Clean up tables
+    await atomService.deleteMany({ table: 'topic_channel_article' })
+    await atomService.deleteMany({ table: 'topic_channel' })
+
+    // Create test channel
+    channel = await channelService.updateOrCreateChannel({
+      name: 'test-channel',
+      providerId: 'test-provider-id',
+      enabled: true,
+    })
+
+    // Get test articles
+    articles = await atomService.findMany({
+      table: 'article',
+      where: {},
+      take: 4,
+    })
+
+    // Add articles to channel
+    await channelService.setArticleTopicChannels({
+      articleId: articles[0].id,
+      channelIds: [channel.id],
+    })
+    await channelService.setArticleTopicChannels({
+      articleId: articles[1].id,
+      channelIds: [channel.id],
+    })
+    await channelService.setArticleTopicChannels({
+      articleId: articles[2].id,
+      channelIds: [channel.id],
+    })
+    await channelService.setArticleTopicChannels({
+      articleId: articles[3].id,
+      channelIds: [channel.id],
+    })
+  })
+
+  test('returns empty array when no articles in channel', async () => {
+    const emptyChannel = await channelService.updateOrCreateChannel({
+      providerId: 'test-provider-id-empty',
+      name: 'empty-channel',
+      enabled: true,
+    })
+
+    const results = await channelService
+      .findTopicChannelArticles(emptyChannel.id)
+      .orderBy('order', 'asc')
+    expect(results).toHaveLength(0)
+  })
+
+  test('orders pinned articles before unpinned articles', async () => {
+    // Pin first article
+    await channelService.togglePinChannelArticles({
+      channelId: channel.id,
+      channelType: NODE_TYPES.TopicChannel,
+      articleIds: [articles[0].id],
+      pinned: true,
+    })
+
+    const results = await channelService
+      .findTopicChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+
+    expect(results).toHaveLength(4)
+    expect(results[0].id).toBe(articles[0].id) // Pinned should be first
+    expect(results[1].id).not.toBe(articles[0].id) // Rest should be unpinned
+  })
+
+  test('orders pinned articles by pinnedAt DESC', async () => {
+    // Pin two articles at different times
+    await channelService.togglePinChannelArticles({
+      channelId: channel.id,
+      channelType: NODE_TYPES.TopicChannel,
+      articleIds: [articles[1].id],
+      pinned: true,
+    })
+
+    await channelService.togglePinChannelArticles({
+      channelId: channel.id,
+      channelType: NODE_TYPES.TopicChannel,
+      articleIds: [articles[0].id],
+      pinned: true,
+    })
+
+    const results = await channelService
+      .findTopicChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+
+    expect(results).toHaveLength(4)
+    expect(results[0].id).toBe(articles[0].id) // Most recently pinned
+    expect(results[1].id).toBe(articles[1].id) // Pinned earlier
+  })
+
+  test('orders unpinned articles by created_at DESC', async () => {
+    // Update created_at for articles to ensure specific ordering
+    const baseTime = new Date()
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: { createdAt: new Date(baseTime.getTime() + 1000) },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[3].id },
+      data: { createdAt: baseTime },
+    })
+
+    const results = await channelService
+      .findTopicChannelArticles(channel.id)
+      .orderBy('order', 'asc')
+
+    // Find the positions of our test articles in unpinned section
+    const article2Index = results.findIndex((a) => a.id === articles[2].id)
+    const article3Index = results.findIndex((a) => a.id === articles[3].id)
+
+    expect(article2Index).toBeLessThan(article3Index) // More recent article should come first
+  })
+
+  test('applies channel threshold filter correctly', async () => {
+    // Set different scores for articles
+    await atomService.update({
+      table: 'topic_channel_article',
+      where: { articleId: articles[0].id, channelId: channel.id },
+      data: { score: 0.9, isLabeled: false },
+    })
+    await atomService.update({
+      table: 'topic_channel_article',
+      where: { articleId: articles[1].id, channelId: channel.id },
+      data: { score: 0.1, isLabeled: false },
+    })
+
+    await atomService.update({
+      table: 'topic_channel_article',
+      where: { articleId: articles[2].id, channelId: channel.id },
+      data: { score: 0.9, isLabeled: true },
+    })
+
+    await atomService.update({
+      table: 'topic_channel_article',
+      where: { articleId: articles[3].id, channelId: channel.id },
+      data: { score: 0.1, isLabeled: true },
+    })
+
+    const results = await channelService
+      .findTopicChannelArticles(channel.id, { channelThreshold: 0.5 })
+      .orderBy('order', 'asc')
+
+    expect(results).toHaveLength(3)
+    const resultIds = results.map((a) => a.id)
+    for (const id of [articles[0].id, articles[2].id, articles[3].id]) {
+      expect(resultIds).toContain(id)
+    }
+  })
+
+  describe('spam filtering', () => {
+    beforeEach(async () => {
+      // Set up base spam scores and flags
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[0].id },
+        data: {
+          spamScore: 0.9,
+          isSpam: true,
+        },
+      })
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[1].id },
+        data: {
+          spamScore: 0.5,
+          isSpam: false,
+        },
+      })
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[2].id },
+        data: {
+          spamScore: null,
+          isSpam: null,
+        },
+      })
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[3].id },
+        data: {
+          spamScore: 0.8,
+          isSpam: null,
+        },
+      })
+
+      await atomService.deleteMany({ table: 'user_feature_flag' })
+    })
+
+    test('excludes articles marked as spam regardless of score', async () => {
+      const results = await channelService
+        .findTopicChannelArticles(channel.id, { spamThreshold: 0.95 })
+        .orderBy('order', 'asc')
+
+      expect(results.find((a) => a.id === articles[0].id)).toBeUndefined()
+      expect(results.map((a) => a.id)).toContain(articles[1].id)
+    })
+
+    test('includes articles explicitly marked as not spam regardless of score', async () => {
+      // Update article[1] to have high spam score but marked as not spam
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[1].id },
+        data: {
+          spamScore: 0.99,
+          isSpam: false,
+        },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
+        .orderBy('order', 'asc')
+
+      expect(results.map((a) => a.id)).toContain(articles[1].id)
+    })
+
+    test('includes articles with null spam score when isSpam is null', async () => {
+      const results = await channelService
+        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
+        .orderBy('order', 'asc')
+
+      expect(results.map((a) => a.id)).toContain(articles[2].id)
+    })
+
+    test('filters articles by spam score when isSpam is null', async () => {
+      const results = await channelService
+        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
+        .orderBy('order', 'asc')
+
+      // article[3] has spam_score 0.8 > threshold 0.7 and isSpam is null
+      expect(results.find((a) => a.id === articles[3].id)).toBeUndefined()
+    })
+
+    test('includes whitelisted authors regardless of spam score', async () => {
+      // Create a whitelisted author
+      const whitelistedAuthorId = '1'
+      await atomService.create({
+        table: 'user_feature_flag',
+        data: {
+          userId: whitelistedAuthorId,
+          type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+        },
+      })
+
+      // Update an article to have high spam score and whitelisted author
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[0].id },
+        data: {
+          authorId: whitelistedAuthorId,
+          spamScore: 0.99,
+          isSpam: true,
+        },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
+        .orderBy('order', 'asc')
+
+      expect(results.map((a) => a.id)).toContain(articles[0].id)
+    })
+
+    test('applies spam threshold with other filters', async () => {
+      // Set up article with both spam and channel score conditions
+      await atomService.update({
+        table: 'topic_channel_article',
+        where: { articleId: articles[1].id, channelId: channel.id },
+        data: { score: 0.9, isLabeled: false },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id, {
+          spamThreshold: 0.7,
+          channelThreshold: 0.8,
+        })
+        .orderBy('order', 'asc')
+
+      // Should include article[1] as it passes both filters
+      expect(results.map((a) => a.id)).toContain(articles[1].id)
+      // Should exclude article[0] due to spam
+      expect(results.find((a) => a.id === articles[0].id)).toBeUndefined()
+      // Should exclude article[3] due to spam score > threshold
+      expect(results.find((a) => a.id === articles[3].id)).toBeUndefined()
+    })
+
+    test('ignores spam threshold when not provided', async () => {
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      expect(results).toHaveLength(4)
+      expect(results.map((a) => a.id)).toEqual(
+        expect.arrayContaining(articles.map((a) => a.id))
+      )
     })
   })
 })

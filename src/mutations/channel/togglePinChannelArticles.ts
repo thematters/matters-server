@@ -27,7 +27,7 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
   })
 
   // Use channel service to handle pin/unpin logic
-  return await channelService.togglePinChannelArticles({
+  const result = await channelService.togglePinChannelArticles({
     channelId,
     channelType: channelType as
       | NODE_TYPES.TopicChannel
@@ -35,6 +35,8 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
     articleIds,
     pinned,
   })
+
+  return { ...result, __type: channelType }
 }
 
 export default resolver

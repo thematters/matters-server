@@ -179,12 +179,14 @@ export const connectionFromQuery = async <T extends { id: string }>({
   args,
   orderBy,
   cursorColumn,
+  maxTake,
 }: {
   query: Knex.QueryBuilder<T>
   orderBy: { column: keyof T; order: 'asc' | 'desc' }
 
   cursorColumn: keyof T
   args: ConnectionArguments
+  maxTake?: number
 }): Promise<Connection<T>> => {
   const { after, before, includeBefore, includeAfter } = args
 
@@ -207,7 +209,7 @@ export const connectionFromQuery = async <T extends { id: string }>({
     baseTableName,
     query.client
       .queryBuilder()
-      .from(query.as('base'))
+      .from(maxTake ? query.limit(maxTake).as('base') : query.as('base'))
       .select('*')
       .orderBy(orderBy.column as string, orderBy.order)
       .modify(selectWithTotalCount)

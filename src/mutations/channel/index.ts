@@ -5,6 +5,7 @@ import putCurationChannel from './putCurationChannel.js'
 import putTopicChannel from './putTopicChannel.js'
 import reorderChannels from './reorderChannels.js'
 import setArticleTopicChannels from './setArticleTopicChannels.js'
+import togglePinChannelArticles from './togglePinChannelArticles.js'
 
 export default {
   Mutation: {
@@ -15,5 +16,6 @@ export default {
     addCurationChannelArticles,
     deleteCurationChannelArticles,
     reorderChannels,
+    togglePinChannelArticles,
   },
 }

@@ -8,6 +8,7 @@ import type {
 
 import {
   ARTICLE_CHANNEL_JOB_STATE,
+  ARTICLE_STATE,
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
@@ -18,7 +19,11 @@ import {
   ActionLimitExceededError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { shortHash, toDatetimeRangeString } from '#common/utils/index.js'
+import {
+  shortHash,
+  toDatetimeRangeString,
+  excludeSpam as excludeSpamModifier,
+} from '#common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -230,6 +235,76 @@ export class ChannelService {
     }
   }
 
+  /**
+   * Find articles for a topic channel with order column considering pinned flag
+   */
+  public findTopicChannelArticles = (
+    channelId: string,
+    {
+      channelThreshold,
+      spamThreshold,
+    }: {
+      channelThreshold?: number
+      spamThreshold?: number
+    } = {}
+  ) => {
+    const knexRO = this.connections.knexRO
+    const pinnedQuery = knexRO
+      .select(
+        'article.*',
+        knexRO.raw('topic_channel_article.score AS channel_score'),
+        knexRO.raw('topic_channel_article.is_labeled AS channel_is_labeled'),
+        knexRO.raw(
+          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
+        )
+      )
+      .from('topic_channel_article')
+      .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
+      .where({
+        'topic_channel_article.channel_id': channelId,
+        'topic_channel_article.enabled': true,
+        'topic_channel_article.pinned': true,
+        'article.state': ARTICLE_STATE.active,
+      })
+
+    const unpinnedQuery = knexRO
+      .select(
+        'article.*',
+        knexRO.raw('topic_channel_article.score AS channel_score'),
+        knexRO.raw('topic_channel_article.is_labeled AS channel_is_labeled'),
+        knexRO.raw(
+          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
+        )
+      )
+      .from('topic_channel_article')
+      .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
+      .where({
+        'topic_channel_article.channel_id': channelId,
+        'topic_channel_article.enabled': true,
+        'topic_channel_article.pinned': false,
+        'article.state': ARTICLE_STATE.active,
+      })
+
+    const base = pinnedQuery.union(unpinnedQuery).as('base')
+
+    return knexRO(base)
+      .where((builder) => {
+        if (channelThreshold) {
+          builder.where((qb) => {
+            qb.where('channel_score', '>=', channelThreshold).orWhere(
+              'channel_is_labeled',
+              true
+            )
+          })
+        }
+      })
+      .where((builder) => {
+        if (spamThreshold) {
+          builder.modify(excludeSpamModifier, spamThreshold, 'base')
+        }
+      })
+  }
+
   public classifyArticlesChannels = async ({
     ids,
     classifier,
@@ -362,7 +437,11 @@ export class ChannelService {
         'article.id',
         'curation_channel_article.article_id'
       )
-      .where({ channelId, 'curation_channel_article.pinned': true })
+      .where({
+        channelId,
+        'curation_channel_article.pinned': true,
+        'article.state': ARTICLE_STATE.active,
+      })
       .union(
         knexRO('article')
           .select(
@@ -376,7 +455,11 @@ export class ChannelService {
             'article.id',
             'curation_channel_article.article_id'
           )
-          .where({ channelId, 'curation_channel_article.pinned': false })
+          .where({
+            channelId,
+            'curation_channel_article.pinned': false,
+            'article.state': ARTICLE_STATE.active,
+          })
       )
   }
 

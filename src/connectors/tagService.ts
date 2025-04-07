@@ -12,7 +12,6 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   TAG_ACTION,
   MATERIALIZED_VIEW,
-  USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { TooManyTagsForArticleError, ForbiddenError } from '#common/errors.js'
@@ -781,20 +780,7 @@ export class TagService extends BaseService<Tag> {
           )
         }
         if (excludeSpam) {
-          const whitelistedAuthors = this.knexRO
-            .select('user_id')
-            .from('user_feature_flag')
-            .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-
-          builder.andWhere((andWhereBuilder) => {
-            andWhereBuilder
-              .whereIn('article.author_id', whitelistedAuthors)
-              .orWhere((orWhereBuilder) => {
-                orWhereBuilder
-                  .whereNotIn('article.author_id', whitelistedAuthors)
-                  .modify(excludeSpamModifier, spamThreshold)
-              })
-          })
+          builder.modify(excludeSpamModifier, spamThreshold, 'article')
         }
 
         builder.orderBy('article.id', 'desc')
