@@ -42,6 +42,20 @@ export const excludeSpam = (
   }
 }
 
+export const excludeRestricted = (
+  builder: Knex.QueryBuilder,
+  table = 'article'
+) => {
+  builder.whereNotIn(
+    `${table}.author_id`,
+    builder.client
+      .queryBuilder()
+      .select('user_id')
+      .from('user_restriction')
+      .where('type', 'articleNewest')
+  )
+}
+
 export const selectWithTotalCount = (builder: Knex.QueryBuilder) =>
   builder.select(builder.client.raw('count(1) OVER() ::integer AS total_count'))
 

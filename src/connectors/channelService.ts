@@ -23,6 +23,7 @@ import {
   shortHash,
   toDatetimeRangeString,
   excludeSpam as excludeSpamModifier,
+  excludeRestricted as excludeRestrictedModifier,
 } from '#common/utils/index.js'
 import {
   ArticleService,
@@ -259,8 +260,6 @@ export class ChannelService {
     const pinnedQuery = knexRO
       .select(
         'article.*',
-        knexRO.raw('topic_channel_article.score AS channel_score'),
-        knexRO.raw('topic_channel_article.is_labeled AS channel_is_labeled'),
         knexRO.raw(
           'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
         )
@@ -277,8 +276,6 @@ export class ChannelService {
     const unpinnedQuery = knexRO
       .select(
         'article.*',
-        knexRO.raw('topic_channel_article.score AS channel_score'),
-        knexRO.raw('topic_channel_article.is_labeled AS channel_is_labeled'),
         knexRO.raw(
           'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
         )
@@ -291,25 +288,24 @@ export class ChannelService {
         'topic_channel_article.pinned': false,
         'article.state': ARTICLE_STATE.active,
       })
-
-    const base = pinnedQuery.union(unpinnedQuery).as('base')
-
-    return knexRO(base)
+      .modify(excludeRestrictedModifier)
       .where((builder) => {
         if (channelThreshold) {
           builder.where((qb) => {
-            qb.where('channel_score', '>=', channelThreshold).orWhere(
-              'channel_is_labeled',
-              true
-            )
+            qb.where(
+              'topic_channel_article.score',
+              '>=',
+              channelThreshold
+            ).orWhere('topic_channel_article.is_labeled', true)
           })
         }
       })
       .where((builder) => {
         if (spamThreshold) {
-          builder.modify(excludeSpamModifier, spamThreshold, 'base')
+          builder.modify(excludeSpamModifier, spamThreshold)
         }
       })
+    return pinnedQuery.union(unpinnedQuery)
   }
 
   public classifyArticlesChannels = async ({
@@ -503,14 +499,13 @@ export class ChannelService {
         ? TOPIC_CHANNEL_PIN_LIMIT
         : (channel as CurationChannel).pinAmount
 
-    if (pinned && articleIds.length > maxPinAmount) {
-      throw new ActionLimitExceededError(
-        `Cannot pin more than ${maxPinAmount} articles in this channel`
-      )
-    }
-
     // If pinning, check if it would exceed the limit
     if (pinned) {
+      if (articleIds.length > maxPinAmount) {
+        throw new ActionLimitExceededError(
+          `Cannot pin more than ${maxPinAmount} articles in this channel`
+        )
+      }
       const currentPinnedCount = await this.models.count({
         table:
           channelType === NODE_TYPES.TopicChannel

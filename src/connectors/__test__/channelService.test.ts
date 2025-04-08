@@ -1530,4 +1530,72 @@ describe('findTopicChannelArticles', () => {
       )
     })
   })
+
+  describe('restricted authors', () => {
+    beforeEach(async () => {
+      await atomService.deleteMany({ table: 'user_restriction' })
+    })
+
+    test('excludes articles from restricted authors', async () => {
+      // Restrict an author
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: articles[0].authorId,
+          type: 'articleNewest',
+        },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+    })
+
+    test('includes articles from non-restricted authors', async () => {
+      const excludedAuthorId = '2'
+      expect(articles[0].authorId).not.toBe(excludedAuthorId)
+      // Restrict an author
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: excludedAuthorId,
+          type: 'articleNewest',
+        },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      expect(results.length).toBeGreaterThan(0)
+    })
+
+    test('pinned articles are not excluded', async () => {
+      // Restrict an author
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: articles[0].authorId,
+          type: 'articleNewest',
+        },
+      })
+
+      // Pin an article from a restricted author
+      await channelService.togglePinChannelArticles({
+        channelId: channel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: [articles[0].id],
+        pinned: true,
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      // Should still include the pinned article from restricted author
+      expect(results.map((a) => a.id)).toContain(articles[0].id)
+    })
+  })
 })
