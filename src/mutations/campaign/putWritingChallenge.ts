@@ -8,7 +8,6 @@ import { CAMPAIGN_STATE, NODE_TYPES } from '#common/enums/index.js'
 import {
   UserInputError,
   CampaignNotFoundError,
-  AuthenticationError,
   ActionFailedError,
   ArticleNotFoundError,
 } from '#common/errors.js'
@@ -49,10 +48,6 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     },
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   let _cover: { id: string; type: string } | undefined = undefined
   if (cover) {
     _cover = await atomService.assetUUIDLoader.load(cover)

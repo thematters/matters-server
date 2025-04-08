@@ -40,12 +40,12 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-const userId = '1'
+const creatorId = '1'
 const campaignData = {
   name: 'test',
   applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')] as const,
   writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
-  creatorId: '1',
+  creatorId,
 }
 
 describe('create or update wrting challenges', () => {
@@ -525,12 +525,12 @@ describe('query campaigns', () => {
     const asset = await systemService.findAssetOrCreateByPath(
       {
         uuid: v4(),
-        authorId: userId,
+        authorId: creatorId,
         type: IMAGE_ASSET_TYPE.campaignCover,
         path: 'test.jpg',
       },
       '1',
-      userId
+      creatorId
     )
     const pendingCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
@@ -765,6 +765,152 @@ describe('application', () => {
     expect(
       updatedData2.toggleWritingChallengeFeaturedArticles.articles.totalCount
     ).toBe(0)
+  })
+  test('toggle featured articles authorization', async () => {
+    // Setup campaign and article
+    const normalUser = await atomService.findFirst({
+      table: 'user',
+      where: { role: 'user' },
+    })
+    const adminUser = await atomService.findFirst({
+      table: 'user',
+      where: { role: 'admin' },
+    })
+
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+    ])
+
+    const participant = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
+    await campaignService.apply(campaign, participant)
+
+    const articles = await atomService.findMany({
+      table: 'article',
+      where: { authorId: participant.id },
+    })
+    await campaignService.submitArticleToCampaign(
+      articles[0],
+      campaign.id,
+      stages[0].id
+    )
+
+    const campaignGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaign.id,
+    })
+    const articleGlobalId = toGlobalId({
+      type: NODE_TYPES.Article,
+      id: articles[0].id,
+    })
+
+    // Test 1: Unauthorized user (no viewer)
+    const unauthorizedServer = await testClient({
+      connections,
+    })
+    const { errors: unauthorizedErrors } =
+      await unauthorizedServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            articles: [articleGlobalId],
+            enabled: true,
+          },
+        },
+      })
+    expect(unauthorizedErrors[0].extensions.code).toBe('UNAUTHENTICATED')
+
+    // Test 2: Normal user (not admin or campaign admin)
+    const normalUserServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: normalUser },
+    })
+    const { errors: normalUserErrors } =
+      await normalUserServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            articles: [articleGlobalId],
+            enabled: true,
+          },
+        },
+      })
+    expect(normalUserErrors[0].extensions.code).toBe('FORBIDDEN')
+
+    // Test 3: Campaign admin user
+    // First create campaign with admin user
+    const campaignWithAdmin = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+      adminUserIds: [normalUser.id], // Make normalUser a campaign admin
+    })
+    const campaignWithAdminGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaignWithAdmin.id,
+    })
+
+    const campaignAdminServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: normalUser }, // normalUser is now a campaign admin
+    })
+    const { errors: campaignAdminErrors } =
+      await campaignAdminServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: campaignWithAdminGlobalId,
+            articles: [articleGlobalId],
+            enabled: true,
+          },
+        },
+      })
+    expect(campaignAdminErrors).toBeUndefined()
+
+    // Test 4: System admin user
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: adminUser },
+    })
+    const { errors: adminErrors } = await adminServer.executeOperation({
+      query: TOGGLE_FEATURED_ARTICLES,
+      variables: {
+        input: {
+          campaign: campaignGlobalId,
+          articles: [articleGlobalId],
+          enabled: true,
+        },
+      },
+    })
+    expect(adminErrors).toBeUndefined()
+
+    // Test 5: Invalid campaign ID
+    const invalidCampaignId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: '99999',
+    })
+    const { errors: invalidCampaignErrors } =
+      await adminServer.executeOperation({
+        query: TOGGLE_FEATURED_ARTICLES,
+        variables: {
+          input: {
+            campaign: invalidCampaignId,
+            articles: [articleGlobalId],
+            enabled: true,
+          },
+        },
+      })
+    expect(invalidCampaignErrors[0].extensions.code).toBe('CAMPAIGN_NOT_FOUND')
   })
 })
 
