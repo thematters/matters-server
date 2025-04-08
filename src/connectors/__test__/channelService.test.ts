@@ -995,16 +995,38 @@ describe('togglePinChannelArticles', () => {
       expect(pinnedArticles).toHaveLength(0)
     })
 
-    test('throws error when exceeding topic channel pin limit', async () => {
-      // Try to pin 7 articles (limit is 6)
-      await expect(
-        channelService.togglePinChannelArticles({
-          channelId: topicChannel.id,
-          channelType: NODE_TYPES.TopicChannel,
-          articleIds: articleIds,
-          pinned: true,
-        })
-      ).rejects.toThrow('Cannot pin more than 6 articles in this channel')
+    test('automatically unpins oldest articles when exceeding pin limit', async () => {
+      // First pin 6 articles (max limit)
+      await channelService.togglePinChannelArticles({
+        channelId: topicChannel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: articleIds.slice(0, 6),
+        pinned: true,
+      })
+
+      // Get initial pinned articles
+      const initialPinned = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { channelId: topicChannel.id, pinned: true },
+      })
+      expect(initialPinned).toHaveLength(6)
+
+      // Try to pin one more article
+      await channelService.togglePinChannelArticles({
+        channelId: topicChannel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: [articles[6].id],
+        pinned: true,
+      })
+
+      // Verify oldest article was unpinned
+      const finalPinned = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { channelId: topicChannel.id, pinned: true },
+      })
+      expect(finalPinned).toHaveLength(6)
+      expect(finalPinned.map((a) => a.articleId)).toContain(articles[6].id)
+      expect(finalPinned.map((a) => a.articleId)).not.toContain(articles[0].id)
     })
   })
 
@@ -1054,23 +1076,6 @@ describe('togglePinChannelArticles', () => {
       expect(pinnedArticles[0].articleId).toBe(articles[1].id)
     })
 
-    test('throws error when exceeding curation channel pin limit', async () => {
-      // Try to pin 4 articles (limit is 3)
-      await expect(
-        channelService.togglePinChannelArticles({
-          channelId: curationChannel.id,
-          channelType: NODE_TYPES.CurationChannel,
-          articleIds: [
-            articles[0].id,
-            articles[1].id,
-            articles[2].id,
-            articles[3].id,
-          ],
-          pinned: true,
-        })
-      ).rejects.toThrow('Cannot pin more than 3 articles in this channel')
-    })
-
     test('respects custom pin amount', async () => {
       // Create channel with custom pin amount
       const customChannel = await channelService.createCurationChannel({
@@ -1092,6 +1097,74 @@ describe('togglePinChannelArticles', () => {
           pinned: true,
         })
       ).rejects.toThrow('Cannot pin more than 2 articles in this channel')
+    })
+
+    test('automatically unpins oldest articles when exceeding pin limit', async () => {
+      // First pin 3 articles (max limit)
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: articleIds.slice(0, 1),
+        pinned: true,
+      })
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: articleIds.slice(1, 3),
+        pinned: true,
+      })
+
+      // Get initial pinned articles
+      const initialPinned = await atomService.findMany({
+        table: 'curation_channel_article',
+        where: { channelId: curationChannel.id, pinned: true },
+      })
+      expect(initialPinned).toHaveLength(3)
+
+      // Try to pin one more article
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [articles[3].id],
+        pinned: true,
+      })
+
+      // Verify oldest article was unpinned
+      const finalPinned = await atomService.findMany({
+        table: 'curation_channel_article',
+        where: { channelId: curationChannel.id, pinned: true },
+      })
+      expect(finalPinned).toHaveLength(3)
+      expect(finalPinned.map((a) => a.articleId)).toContain(articles[3].id)
+      expect(finalPinned.map((a) => a.articleId)).not.toContain(articles[0].id)
+    })
+
+    test('handles multiple new pins when exceeding limit', async () => {
+      // First pin 2 articles
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: articleIds.slice(0, 2),
+        pinned: true,
+      })
+
+      // Try to pin 2 more articles (exceeding limit by 1)
+      await channelService.togglePinChannelArticles({
+        channelId: curationChannel.id,
+        channelType: NODE_TYPES.CurationChannel,
+        articleIds: [articles[2].id, articles[3].id],
+        pinned: true,
+      })
+
+      // Verify oldest article was unpinned
+      const finalPinned = await atomService.findMany({
+        table: 'curation_channel_article',
+        where: { channelId: curationChannel.id, pinned: true },
+      })
+      expect(finalPinned).toHaveLength(3)
+      expect(finalPinned.map((a) => a.articleId)).toContain(articles[2].id)
+      expect(finalPinned.map((a) => a.articleId)).toContain(articles[3].id)
+      expect(finalPinned.map((a) => a.articleId)).not.toContain(articles[0].id)
     })
   })
 
@@ -1455,6 +1528,74 @@ describe('findTopicChannelArticles', () => {
       expect(results.map((a) => a.id)).toEqual(
         expect.arrayContaining(articles.map((a) => a.id))
       )
+    })
+  })
+
+  describe('restricted authors', () => {
+    beforeEach(async () => {
+      await atomService.deleteMany({ table: 'user_restriction' })
+    })
+
+    test('excludes articles from restricted authors', async () => {
+      // Restrict an author
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: articles[0].authorId,
+          type: 'articleNewest',
+        },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+    })
+
+    test('includes articles from non-restricted authors', async () => {
+      const excludedAuthorId = '2'
+      expect(articles[0].authorId).not.toBe(excludedAuthorId)
+      // Restrict an author
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: excludedAuthorId,
+          type: 'articleNewest',
+        },
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      expect(results.length).toBeGreaterThan(0)
+    })
+
+    test('pinned articles are not excluded', async () => {
+      // Restrict an author
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: articles[0].authorId,
+          type: 'articleNewest',
+        },
+      })
+
+      // Pin an article from a restricted author
+      await channelService.togglePinChannelArticles({
+        channelId: channel.id,
+        channelType: NODE_TYPES.TopicChannel,
+        articleIds: [articles[0].id],
+        pinned: true,
+      })
+
+      const results = await channelService
+        .findTopicChannelArticles(channel.id)
+        .orderBy('order', 'asc')
+
+      // Should still include the pinned article from restricted author
+      expect(results.map((a) => a.id)).toContain(articles[0].id)
     })
   })
 })

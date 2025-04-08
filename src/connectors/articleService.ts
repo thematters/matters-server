@@ -47,6 +47,7 @@ import {
   normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
+  excludeRestricted as excludeRestrictedModifier,
   selectWithTotalCount as selectWithTotalCountModifier,
   makeSummary,
 } from '#common/utils/index.js'
@@ -354,6 +355,7 @@ export class ArticleService extends BaseService<Article> {
           .select('article.*')
           .from('article')
           .where({ 'article.state': ARTICLE_STATE.active })
+          .modify(excludeRestrictedModifier)
           .modify((builder) => {
             if (excludeChannelArticles) {
               builder
@@ -373,12 +375,6 @@ export class ArticleService extends BaseService<Article> {
                 .whereNull('enabled_article_channels.article_id')
             }
           })
-          .whereNotIn(
-            'article.author_id',
-            this.knexRO('user_restriction')
-              .select('user_id')
-              .where('type', 'articleNewest')
-          )
           .orderBy('article.id', 'desc')
           .as('article_set')
       )
