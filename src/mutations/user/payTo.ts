@@ -5,6 +5,7 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_MAXIMUM_PAYTO_AMOUNT,
   PAYMENT_PROVIDER,
+  QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -24,6 +25,7 @@ import {
   UserNotFoundError,
 } from '#common/errors.js'
 import { fromGlobalId, isValidTransactionHash } from '#common/utils/index.js'
+import { aws } from '#connectors/aws/index.js'
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
 
@@ -48,7 +50,7 @@ const resolver: GQLMutationResolvers['payTo'] = async (
       atomService,
       articleService,
       paymentService,
-      queues: { payToByMattersQueue, payToByBlockchainQueue },
+      queues: { payToByMattersQueue },
     },
   }
 ) => {
@@ -272,7 +274,10 @@ const resolver: GQLMutationResolvers['payTo'] = async (
           purpose,
         })
 
-      payToByBlockchainQueue.payTo({ txId: transaction.id })
+      aws.sqsSendMessage({
+        messageBody: { txId: transaction.id },
+        queueUrl: QUEUE_URL.blockchainPayment,
+      })
     }
   }
 
