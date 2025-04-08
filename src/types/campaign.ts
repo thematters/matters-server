@@ -11,6 +11,7 @@ export default /* GraphQL */ `
     applyCampaign(input: ApplyCampaignInput!): Campaign! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
+    removeCampaignArticles(input: RemoveCampaignArticlesInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -37,6 +38,7 @@ export default /* GraphQL */ `
     state: CampaignState
     featuredDescription: [TranslationInput!]
     channelEnabled: Boolean
+    adminUsers: [ID!]
   }
 
   input ApplyCampaignInput {
@@ -53,6 +55,11 @@ export default /* GraphQL */ `
     campaign: ID!
     articles: [ID!]!
     enabled: Boolean!
+  }
+
+  input RemoveCampaignArticlesInput {
+    campaign: ID!
+    articles: [ID!]!
   }
 
   input SendCampaignAnnouncementInput {
@@ -118,6 +125,7 @@ export default /* GraphQL */ `
   }
 
   type CampaignOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+    adminUsers: [User!]!
     boost: Float!
   }
 

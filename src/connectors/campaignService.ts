@@ -60,6 +60,7 @@ export class CampaignService {
     writingPeriod,
     state,
     creatorId,
+    adminUserIds,
     featuredDescription,
   }: {
     name: string
@@ -70,6 +71,7 @@ export class CampaignService {
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
     featuredDescription?: string
+    adminUserIds?: string[]
   }) =>
     this.models.create({
       table: 'campaign',
@@ -87,6 +89,7 @@ export class CampaignService {
           : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
+        adminUserIds,
         featuredDescription,
       },
     })

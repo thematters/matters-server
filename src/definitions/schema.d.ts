@@ -762,6 +762,7 @@ export type GQLCampaignInput = {
 
 export type GQLCampaignOss = {
   __typename?: 'CampaignOSS'
+  adminUsers: Array<GQLUser>
   boost: Scalars['Float']['output']
 }
 
@@ -1976,6 +1977,7 @@ export type GQLMutation = {
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
+  removeCampaignArticles: GQLCampaign
   /** Remove a social login from current user. */
   removeSocialLogin: GQLUser
   /** Remove a wallet login from current user. */
@@ -2289,6 +2291,10 @@ export type GQLMutationPutWritingChallengeArgs = {
 
 export type GQLMutationReadArticleArgs = {
   input: GQLReadArticleInput
+}
+
+export type GQLMutationRemoveCampaignArticlesArgs = {
+  input: GQLRemoveCampaignArticlesInput
 }
 
 export type GQLMutationRemoveSocialLoginArgs = {
@@ -2977,6 +2983,7 @@ export type GQLPutUserFeatureFlagsInput = {
 }
 
 export type GQLPutWritingChallengeInput = {
+  adminUsers?: InputMaybe<Array<Scalars['ID']['input']>>
   announcements?: InputMaybe<Array<Scalars['ID']['input']>>
   applicationPeriod?: InputMaybe<GQLDatetimeRangeInput>
   channelEnabled?: InputMaybe<Scalars['Boolean']['input']>
@@ -3200,6 +3207,11 @@ export type GQLRemarkTypes =
   | 'Report'
   | 'Tag'
   | 'User'
+
+export type GQLRemoveCampaignArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  campaign: Scalars['ID']['input']
+}
 
 export type GQLRemoveSocialLoginInput = {
   type: GQLSocialAccountType
@@ -5168,6 +5180,7 @@ export type GQLResolversTypes = ResolversObject<{
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
+  RemoveCampaignArticlesInput: GQLRemoveCampaignArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
   RenameTagInput: GQLRenameTagInput
   ReorderChannelsInput: GQLReorderChannelsInput
@@ -5759,6 +5772,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecommendationNewestInput: GQLRecommendationNewestInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
+  RemoveCampaignArticlesInput: GQLRemoveCampaignArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
   RenameTagInput: GQLRenameTagInput
   ReorderChannelsInput: GQLReorderChannelsInput
@@ -6795,6 +6809,11 @@ export type GQLCampaignOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignOSS'] = GQLResolversParentTypes['CampaignOSS']
 > = ResolversObject<{
+  adminUsers?: Resolver<
+    Array<GQLResolversTypes['User']>,
+    ParentType,
+    ContextType
+  >
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -8242,6 +8261,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationReadArticleArgs, 'input'>
+  >
+  removeCampaignArticles?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationRemoveCampaignArticlesArgs, 'input'>
   >
   removeSocialLogin?: Resolver<
     GQLResolversTypes['User'],

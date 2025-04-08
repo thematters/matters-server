@@ -613,6 +613,7 @@ const UPATEABLE_TABLES = [
   'translation',
   'campaign_boost',
   'campaign_user',
+  'campaign_article',
   'article_channel_job',
   'campaign_channel',
   'topic_channel_article',

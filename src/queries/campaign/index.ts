@@ -3,6 +3,7 @@ import type { GQLResolvers } from '#definitions/index.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import { toGlobalId, fromDatetimeRangeString } from '#common/utils/index.js'
 
+import adminUsers from './adminUsers.js'
 import announcements from './announcements.js'
 import application from './application.js'
 import articles from './articles.js'
@@ -50,6 +51,7 @@ const schema: GQLResolvers = {
   },
 
   CampaignOSS: {
+    adminUsers,
     boost,
   },
 

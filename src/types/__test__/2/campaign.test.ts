@@ -80,6 +80,12 @@ describe('create or update wrting challenges', () => {
             end
           }
         }
+        oss {
+          adminUsers {
+            id
+            userName
+          }
+        }
         state
       }
     }
@@ -362,6 +368,84 @@ describe('create or update wrting challenges', () => {
       },
     })
     expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('admin users management', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // Create a campaign with admin users
+    const adminUser1GlobalId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: '1',
+    })
+    const adminUser2GlobalId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: '2',
+    })
+
+    // First create a campaign with admin users
+    const { data: createData, errors: createErrors } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            name,
+            adminUsers: [adminUser1GlobalId, adminUser2GlobalId],
+          },
+        },
+      })
+    expect(createErrors).toBeUndefined()
+    expect(createData.putWritingChallenge.oss.adminUsers.length).toBe(2)
+
+    // Update campaign to modify admin users
+    const { data: updateData, errors: updateErrors } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            id: createData.putWritingChallenge.id,
+            adminUsers: [adminUser1GlobalId], // Remove adminUser2
+          },
+        },
+      })
+    expect(updateErrors).toBeUndefined()
+    expect(updateData.putWritingChallenge.oss.adminUsers.length).toBe(1)
+    expect(updateData.putWritingChallenge.oss.adminUsers[0].id).toBe(
+      adminUser1GlobalId
+    )
+
+    // Clear all admin users
+    const { data: clearData, errors: clearErrors } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            id: createData.putWritingChallenge.id,
+            adminUsers: [], // Remove all admin users
+          },
+        },
+      })
+    expect(clearErrors).toBeUndefined()
+    expect(clearData.putWritingChallenge.oss.adminUsers.length).toBe(0)
+
+    // Test with invalid user ID
+    const invalidUserGlobalId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: '99999', // Non-existent user ID
+    })
+    const { errors: invalidErrors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          adminUsers: [invalidUserGlobalId],
+        },
+      },
+    })
+    expect(invalidErrors[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })
 
