@@ -503,6 +503,12 @@ export class ChannelService {
         ? TOPIC_CHANNEL_PIN_LIMIT
         : (channel as CurationChannel).pinAmount
 
+    if (pinned && articleIds.length > maxPinAmount) {
+      throw new ActionLimitExceededError(
+        `Cannot pin more than ${maxPinAmount} articles in this channel`
+      )
+    }
+
     // If pinning, check if it would exceed the limit
     if (pinned) {
       const currentPinnedCount = await this.models.count({
@@ -525,9 +531,30 @@ export class ChannelService {
       })
 
       if (currentPinnedCount + unpinnedArticleCount > maxPinAmount) {
-        throw new ActionLimitExceededError(
-          `Cannot pin more than ${maxPinAmount} articles in this channel`
-        )
+        // Find oldest pinned articles to unpin
+        const oldestPinnedArticles = await this.models.findMany({
+          table:
+            channelType === NODE_TYPES.TopicChannel
+              ? 'topic_channel_article'
+              : 'curation_channel_article',
+          where: { channelId, pinned: true },
+          orderBy: [{ column: 'pinned_at', order: 'asc' }],
+          take: unpinnedArticleCount - (maxPinAmount - currentPinnedCount),
+        })
+
+        // Unpin oldest articles to make room
+        await this.models.updateMany({
+          table:
+            channelType === NODE_TYPES.TopicChannel
+              ? 'topic_channel_article'
+              : 'curation_channel_article',
+          where: { channelId },
+          whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
+          data: {
+            pinned: false,
+            pinnedAt: null,
+          },
+        })
       }
     }
 
