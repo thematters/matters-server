@@ -288,7 +288,7 @@ export class CampaignService {
     const query = knexRO('campaign_article')
       .select('article.*', knexRO.raw('MIN(campaign_article.id) AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
-      .where({ campaignId, state: ARTICLE_STATE.active })
+      .where({ campaignId, state: ARTICLE_STATE.active, enabled: true })
       .groupBy('article.id')
 
     if (filterStageId) {

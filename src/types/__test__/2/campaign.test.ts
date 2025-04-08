@@ -967,6 +967,171 @@ describe('query users campaigns', () => {
   })
 })
 
+test('remove campaign articles', async () => {
+  const REMOVE_CAMPAIGN_ARTICLES = /* GraphQL */ `
+    mutation ($input: RemoveCampaignArticlesInput!) {
+      removeCampaignArticles(input: $input) {
+        ... on WritingChallenge {
+          articles(input: { first: 10 }) {
+            totalCount
+          }
+        }
+      }
+    }
+  `
+  const normalUser = await atomService.findFirst({
+    table: 'user',
+    where: { role: 'user' },
+  })
+  // Setup campaign and articles
+  const campaign = await campaignService.createWritingChallenge({
+    ...campaignData,
+    state: CAMPAIGN_STATE.active,
+  })
+  const stages = await campaignService.updateStages(campaign.id, [
+    { name: 'stage1' },
+  ])
+
+  const participiant = await atomService.findUnique({
+    table: 'user',
+    where: { id: '1' },
+  })
+  await campaignService.apply(campaign, participiant)
+
+  const articles = await atomService.findMany({
+    table: 'article',
+    where: { authorId: participiant.id },
+  })
+  await campaignService.submitArticleToCampaign(
+    articles[0],
+    campaign.id,
+    stages[0].id
+  )
+  await campaignService.submitArticleToCampaign(
+    articles[1],
+    campaign.id,
+    stages[0].id
+  )
+
+  const campaignGlobalId = toGlobalId({
+    type: NODE_TYPES.Campaign,
+    id: campaign.id,
+  })
+  const articleGlobalIds = articles.map((article) =>
+    toGlobalId({
+      type: NODE_TYPES.Article,
+      id: article.id,
+    })
+  )
+
+  // Test 1: Unauthorized user
+  const unauthorizedServer = await testClient({ connections })
+  const { errors: unauthorizedErrors } =
+    await unauthorizedServer.executeOperation({
+      query: REMOVE_CAMPAIGN_ARTICLES,
+      variables: {
+        input: {
+          campaign: campaignGlobalId,
+          articles: articleGlobalIds,
+        },
+      },
+    })
+  expect(unauthorizedErrors[0].extensions.code).toBe('UNAUTHENTICATED')
+
+  // Test 2: Normal user (not admin)
+  const normalUserServer = await testClient({
+    connections,
+    isAuth: true,
+    context: { viewer: normalUser },
+  })
+  const { errors: normalUserErrors } = await normalUserServer.executeOperation({
+    query: REMOVE_CAMPAIGN_ARTICLES,
+    variables: {
+      input: {
+        campaign: campaignGlobalId,
+        articles: articleGlobalIds,
+      },
+    },
+  })
+  expect(normalUserErrors[0].extensions.code).toBe('FORBIDDEN')
+
+  // Test 3: Campaign admin
+  const campaignWithAdmin = await campaignService.createWritingChallenge({
+    ...campaignData,
+    state: CAMPAIGN_STATE.active,
+    adminUserIds: [normalUser.id],
+  })
+  await campaignService.apply(campaignWithAdmin, participiant)
+  await campaignService.submitArticleToCampaign(
+    articles[0],
+    campaignWithAdmin.id,
+    stages[0].id
+  )
+
+  const campaignWithAdminGlobalId = toGlobalId({
+    type: NODE_TYPES.Campaign,
+    id: campaignWithAdmin.id,
+  })
+
+  const campaignAdminServer = await testClient({
+    connections,
+    isAuth: true,
+    context: { viewer: normalUser },
+  })
+  const { data: campaignAdminData, errors: campaignAdminErrors } =
+    await campaignAdminServer.executeOperation({
+      query: REMOVE_CAMPAIGN_ARTICLES,
+      variables: {
+        input: {
+          campaign: campaignWithAdminGlobalId,
+          articles: [articleGlobalIds[0]],
+        },
+      },
+    })
+  expect(campaignAdminErrors).toBeUndefined()
+  expect(campaignAdminData.removeCampaignArticles.articles.totalCount).toBe(0)
+
+  // Test 4: System admin
+  await campaignService.submitArticleToCampaign(
+    articles[1],
+    campaignWithAdmin.id,
+    stages[0].id
+  )
+  const adminServer = await testClient({
+    connections,
+    isAuth: true,
+    isAdmin: true,
+  })
+  const { data: adminData, errors: adminErrors } =
+    await adminServer.executeOperation({
+      query: REMOVE_CAMPAIGN_ARTICLES,
+      variables: {
+        input: {
+          campaign: campaignWithAdminGlobalId,
+          articles: [articleGlobalIds[1]],
+        },
+      },
+    })
+  expect(adminErrors).toBeUndefined()
+  expect(adminData.removeCampaignArticles.articles.totalCount).toBe(0)
+
+  // Test 5: Invalid article ID
+  const invalidArticleId = toGlobalId({
+    type: NODE_TYPES.Article,
+    id: '99999',
+  })
+  const { errors: invalidArticleErrors } = await adminServer.executeOperation({
+    query: REMOVE_CAMPAIGN_ARTICLES,
+    variables: {
+      input: {
+        campaign: campaignGlobalId,
+        articles: [invalidArticleId],
+      },
+    },
+  })
+  expect(invalidArticleErrors[0].extensions.code).toBe('BAD_USER_INPUT')
+})
+
 describe('query campaign articles', () => {
   const QUERY_CAMPAIGN_ARTICLES = /* GraphQL */ `
     query (
