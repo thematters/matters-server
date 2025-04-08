@@ -1,24 +1,40 @@
-import type { GQLMutationResolvers } from '#definitions/index.js'
+import type { GQLMutationResolvers, TopicChannel } from '#definitions/index.js'
 
 import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   _,
-  { input: { id: globalId, name, note, enabled } },
+  { input: { id: globalId, providerId, name, note, enabled } },
   { dataSources: { translationService, channelService } }
 ) => {
-  const { id, type } = fromGlobalId(globalId)
-  if (type !== 'TopicChannel') {
-    throw new UserInputError('Wrong channel global ID')
-  }
+  let channel: TopicChannel
 
-  const channel = await channelService.updateTopicChannel({
-    id,
-    name: name ? name[0].text : undefined,
-    note: note ? note[0].text : undefined,
-    enabled,
-  })
+  if (!globalId) {
+    if (!providerId) {
+      throw new UserInputError(
+        'Provider ID is required for creating topic channel'
+      )
+    }
+    channel = await channelService.createTopicChannel({
+      providerId,
+      name: name ? name[0].text : '',
+      note: note ? note[0].text : '',
+      enabled: enabled ?? true,
+    })
+  } else {
+    const { id, type } = fromGlobalId(globalId)
+    if (type !== 'TopicChannel') {
+      throw new UserInputError('Wrong channel global ID')
+    }
+
+    channel = await channelService.updateTopicChannel({
+      id,
+      name: name ? name[0].text : undefined,
+      note: note ? note[0].text : undefined,
+      enabled,
+    })
+  }
 
   // create or update translations
   if (name) {

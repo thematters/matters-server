@@ -2,7 +2,7 @@ import type { Connections } from '#definitions/index.js'
 
 import { NODE_TYPES, LANGUAGE } from '#common/enums/index.js'
 import { AtomService, ChannelService } from '#connectors/index.js'
-import { toGlobalId } from '#common/utils/index.js'
+import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 
 import { genConnections, closeConnections, testClient } from '../../utils.js'
 
@@ -107,6 +107,131 @@ describe('manage topic channels', () => {
       note: 'test',
       enabled: true,
     })
+  })
+
+  test('create channel with providerId', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const providerId = 'test-provider-' + Date.now()
+    const name = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'new channel ' + lang,
+      language: lang,
+    }))
+    const note = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'new description ' + lang,
+      language: lang,
+    }))
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId,
+          name,
+          note,
+          enabled: true,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putTopicChannel.nameEn).toBe('new channel en')
+    expect(data.putTopicChannel.nameZhHans).toBe('new channel zh_hans')
+    expect(data.putTopicChannel.nameZhHant).toBe('new channel zh_hant')
+    expect(data.putTopicChannel.noteEn).toBe('new description en')
+    expect(data.putTopicChannel.noteZhHans).toBe('new description zh_hans')
+    expect(data.putTopicChannel.noteZhHant).toBe('new description zh_hant')
+    expect(data.putTopicChannel.enabled).toBe(true)
+
+    // Verify channel was created with correct providerId
+    const createdChannel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: fromGlobalId(data.putTopicChannel.id).id },
+    })
+    expect(createdChannel.providerId).toBe(providerId)
+  })
+
+  test('requires providerId for new channel', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          name: [{ text: 'test', language: 'en' }],
+          enabled: true,
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe(
+      'Provider ID is required for creating topic channel'
+    )
+  })
+
+  test('validates channel type when updating', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: '1' }), // Wrong type
+          name: [{ text: 'test', language: 'en' }],
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Wrong channel global ID')
+  })
+
+  test('handles partial updates', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // First create a channel
+    const { data: createData } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId: 'test-provider-' + Date.now(),
+          name: [{ text: 'Initial Name', language: 'en' }],
+          note: [{ text: 'Initial Note', language: 'en' }],
+          enabled: true,
+        },
+      },
+    })
+
+    // Then update only some fields
+    const { data: updateData, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          id: createData.putTopicChannel.id,
+          enabled: false,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(updateData.putTopicChannel.nameEn).toBe('Initial Name')
+    expect(updateData.putTopicChannel.noteEn).toBe('Initial Note')
+    expect(updateData.putTopicChannel.enabled).toBe(false)
   })
 
   test('update channel successfully', async () => {
@@ -265,21 +390,26 @@ describe('manage topic channels', () => {
       table: 'topic_channel',
       where: {},
     })
-    expect(channels.length).toBe(3)
+    expect(channels.length).toBe(5)
 
     const { data, errors } = await adminServer.executeOperation({
       query: QUERY_CHANNELS_BY_ADMIN,
     })
     expect(errors).toBeUndefined()
     expect(data.channels).toBeDefined()
-    expect(data.channels.length).toBe(3)
+    expect(data.channels.length).toBe(5)
 
     // disable channel
+
+    const globalId = toGlobalId({
+      type: NODE_TYPES.TopicChannel,
+      id: channels[0].id,
+    })
     await adminServer.executeOperation({
       query: PUT_TOPIC_CHANNEL,
       variables: {
         input: {
-          id: toGlobalId({ type: NODE_TYPES.Channel, id: '1' }),
+          id: globalId,
           enabled: false,
         },
       },
@@ -291,8 +421,13 @@ describe('manage topic channels', () => {
       }
     )
     expect(errors2).toBeUndefined()
-    expect(data2.channels.length).toBe(3)
-    expect(data2.channels[0].enabled).toBe(false)
+    expect(data2.channels.length).toBe(5)
+
+    for (const channel of data2.channels) {
+      if (channel.id === globalId) {
+        expect(channel.enabled).toBe(false)
+      }
+    }
 
     // query by normal user
     const { data: data3, errors: errors3 } =

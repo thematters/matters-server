@@ -2965,9 +2965,10 @@ export type GQLPutSkippedListItemInput = {
 
 export type GQLPutTopicChannelInput = {
   enabled?: InputMaybe<Scalars['Boolean']['input']>
-  id: Scalars['ID']['input']
+  id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
+  providerId?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLPutUserFeatureFlagsInput = {

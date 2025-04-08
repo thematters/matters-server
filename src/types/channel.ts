@@ -88,7 +88,8 @@ export default /* GraphQL */ `
   }
 
   input PutTopicChannelInput {
-    id: ID!
+    id: ID
+    providerId: String
     name: [TranslationInput!]
     note: [TranslationInput!]
     enabled: Boolean
