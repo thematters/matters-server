@@ -36,6 +36,7 @@ export default /* GraphQL */ `
     stages: [CampaignStageInput!]
     state: CampaignState
     featuredDescription: [TranslationInput!]
+    channelEnabled: Boolean
   }
 
   input ApplyCampaignInput {
@@ -91,7 +92,7 @@ export default /* GraphQL */ `
     archived
   }
 
-  type WritingChallenge implements Node & Campaign {
+  type WritingChallenge implements Node & Campaign & Channel {
     id: ID!
     shortHash: String!
     name(input: TranslationArgs): String!
@@ -104,6 +105,7 @@ export default /* GraphQL */ `
     writingPeriod: DatetimeRange
     stages: [CampaignStage!]!
 
+    channelEnabled: Boolean!
     state: CampaignState!
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!

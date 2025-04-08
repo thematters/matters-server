@@ -95,23 +95,23 @@ export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
   return { score: spamScore, isSpam }
 }
 
-export const channels: GQLArticleOssResolvers['channels'] = async (
+export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
   { id: articleId },
   _,
   { dataSources: { atomService } }
 ) => {
   const articleChannels = await atomService.findMany({
-    table: 'article_channel',
+    table: 'topic_channel_article',
     where: { articleId },
   })
 
   const _channels = await atomService.findMany({
-    table: 'channel',
+    table: 'topic_channel',
     whereIn: ['id', articleChannels.map((ac) => ac.channelId)],
   })
 
   return articleChannels.map((ac, index) => ({
-    channel: _channels[index],
+    channel: { ..._channels[index], __type: 'TopicChannel' },
     score: ac.score,
     isLabeled: ac.isLabeled,
     enabled: ac.enabled,

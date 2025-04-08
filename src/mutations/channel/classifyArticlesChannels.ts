@@ -1,18 +1,13 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
-import { AuthenticationError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['classifyArticlesChannels'] = async (
   _,
   { input: { ids } },
-  { viewer, dataSources: { systemService, atomService, channelService } }
+  { dataSources: { systemService, atomService, channelService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   const articleIds = ids.map((id) => fromGlobalId(id).id)
 
   // filter spam articles

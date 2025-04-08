@@ -204,9 +204,18 @@ test('getUTCNextMonthDayOne', async () => {
   })
 })
 
-test('fromDatetimeRangeString', async () => {
-  const string = '["2024-01-01 00:00:00+00","2024-01-02 00:00:00+00")'
-  const [start, end] = fromDatetimeRangeString(string)
-  expect(start.getTime()).not.toBeNaN()
-  expect(end?.getTime()).not.toBeNaN()
+describe('fromDatetimeRangeString', () => {
+  test('should return start and end dates', () => {
+    const string = '["2024-01-01 00:00:00+00","2024-01-02 00:00:00+00")'
+    const { start, end } = fromDatetimeRangeString(string)
+    expect(start.getTime()).not.toBeNaN()
+    expect(end?.getTime()).not.toBeNaN()
+  })
+
+  test('should return start and end dates as 0', () => {
+    const string = 'empty'
+    const { start, end } = fromDatetimeRangeString(string)
+    expect(start.getTime()).toEqual(new Date(0).getTime())
+    expect(end?.getTime()).toEqual(new Date(0).getTime())
+  })
 })

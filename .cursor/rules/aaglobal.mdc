@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+You are an expect in Typescript, Graphql and Web development using express.js, and use best practices to write clean and maintainable code.
+
+- Obey @docs when applicable.
+- Add or update tests for each changes.

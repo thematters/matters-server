@@ -30,6 +30,7 @@ export * from './metrics.js'
 export * from './badges.js'
 export * from './moment.js'
 export * from './campaign.js'
+export * from './channel.js'
 
 export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
@@ -168,8 +169,8 @@ export enum NODE_TYPES {
   Moment = 'Moment',
   Campaign = 'Campaign',
   CampaignStage = 'CampaignStage',
-
-  Channel = 'Channel',
+  TopicChannel = 'TopicChannel',
+  CurationChannel = 'CurationChannel',
 
   IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
@@ -186,6 +187,7 @@ export enum NODE_TYPES {
   TransactionTarget = 'TransactionTarget',
   PinnableWork = 'PinnableWork',
   Writing = 'Writing',
+  Channel = 'Channel',
 }
 
 export const APPRECIATION_TYPES = {

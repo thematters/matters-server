@@ -45,7 +45,7 @@ Please refer to the repo [matters-email](https://github.com/thematters/matters-e
 
 To make the login flow testing easier, the login-related mutations have hardcoded input values with respective behaviors in the non-production environment.
 
-see [test_mode.md](./docs/test_mode.md) for detail
+see [test_mode.md](./docs/Test-Mode.md) for detail
 
 ## NOTE
 

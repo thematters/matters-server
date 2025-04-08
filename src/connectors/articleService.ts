@@ -28,7 +28,6 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
-  USER_FEATURE_FLAG_TYPE,
   QUEUE_URL,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
@@ -361,11 +360,11 @@ export class ArticleService extends BaseService<Article> {
                 .leftJoin(
                   this.knexRO
                     .select('article_id')
-                    .from('article_channel as ac')
-                    .join('channel as c', 'ac.channel_id', 'c.id')
+                    .from('topic_channel_article as tca')
+                    .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
                     .where({
-                      'ac.enabled': true,
-                      'c.enabled': true,
+                      'tca.enabled': true,
+                      'tc.enabled': true,
                     })
                     .as('enabled_article_channels'),
                   'article.id',
@@ -385,20 +384,7 @@ export class ArticleService extends BaseService<Article> {
       )
       .where((builder) => {
         if (!oss && excludeSpam) {
-          const whitelistedAuthors = this.knexRO
-            .select('user_id')
-            .from('user_feature_flag')
-            .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-
-          builder
-            .whereIn('article_set.author_id', whitelistedAuthors)
-            .orWhere((qb) => {
-              qb.whereNotIn('article_set.author_id', whitelistedAuthors).modify(
-                excludeSpamModifier,
-                spamThreshold,
-                'article_set'
-              )
-            })
+          builder.modify(excludeSpamModifier, spamThreshold, 'article_set')
         }
       })
       .as('newest')
@@ -412,82 +398,6 @@ export class ArticleService extends BaseService<Article> {
       .limit(take)
 
     return [records, parseInt(records[0]?.totalCount ?? '0', 10)]
-  }
-
-  public findChannelArticles = async ({
-    channelId,
-    skip,
-    take,
-    maxTake,
-  }: {
-    channelId: string
-    skip: number
-    take: number
-    maxTake: number
-  }): Promise<[Article[], number]> => {
-    const systemService = new SystemService(this.connections)
-    const articleChannelThreshold =
-      await systemService.getArticleChannelThreshold()
-    const spamThreshold = await systemService.getSpamThreshold()
-
-    if (articleChannelThreshold === null) {
-      return [[], 0]
-    }
-
-    const query = this.knexRO
-      .select('article.*', this.knexRO.raw('count(1) OVER() AS total_count'))
-      .from('article_channel')
-      .leftJoin('article', 'article_channel.article_id', 'article.id')
-      .where({
-        'article_channel.channel_id': channelId,
-        'article_channel.enabled': true,
-        'article.state': ARTICLE_STATE.active,
-      })
-      .whereNotIn(
-        'article.author_id',
-        this.knexRO('user_restriction')
-          .select('user_id')
-          .where('type', 'articleNewest')
-      )
-      .where((builder) => {
-        builder.where((qb) => {
-          qb.where(
-            'article_channel.score',
-            '>=',
-            articleChannelThreshold
-          ).orWhere('article_channel.is_labeled', true)
-        })
-      })
-      .where((builder) => {
-        builder
-          .whereIn(
-            'article.author_id',
-            this.knexRO
-              .select('user_id')
-              .from('user_feature_flag')
-              .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-          )
-          .orWhere((qb) => {
-            qb.whereNotIn(
-              'article.author_id',
-              this.knexRO
-                .select('user_id')
-                .from('user_feature_flag')
-                .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-            ).modify(excludeSpamModifier, spamThreshold, 'article')
-          })
-      })
-      .orderBy('article.id', 'desc')
-      .limit(maxTake)
-      .as('filtered_articles')
-
-    const articles = await this.knexRO
-      .select()
-      .from(query)
-      .offset(skip)
-      .limit(take)
-
-    return [articles, parseInt(articles[0]?.totalCount ?? '0', 10)]
   }
 
   /**

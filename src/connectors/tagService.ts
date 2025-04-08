@@ -12,7 +12,6 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   TAG_ACTION,
   MATERIALIZED_VIEW,
-  USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { TooManyTagsForArticleError, ForbiddenError } from '#common/errors.js'
@@ -765,8 +764,8 @@ export class TagService extends BaseService<Tag> {
   }) => {
     const systemService = new SystemService(this.connections)
     const spamThreshold = await systemService.getSpamThreshold()
-    const results = await this.knexRO
-      .select('article_id')
+    const query = this.knexRO
+      .select('article.id as articleId')
       .from('article')
       .leftJoin('article_tag', 'article_tag.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
@@ -781,20 +780,7 @@ export class TagService extends BaseService<Tag> {
           )
         }
         if (excludeSpam) {
-          const whitelistedAuthors = this.knexRO
-            .select('user_id')
-            .from('user_feature_flag')
-            .where({ type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
-
-          builder.andWhere((andWhereBuilder) => {
-            andWhereBuilder
-              .whereIn('article.author_id', whitelistedAuthors)
-              .orWhere((orWhereBuilder) => {
-                orWhereBuilder
-                  .whereNotIn('article.author_id', whitelistedAuthors)
-                  .modify(excludeSpamModifier, spamThreshold)
-              })
-          })
+          builder.modify(excludeSpamModifier, spamThreshold, 'article')
         }
 
         builder.orderBy('article.id', 'desc')
@@ -807,7 +793,9 @@ export class TagService extends BaseService<Tag> {
         }
       })
 
-    return results.map(({ articleId }: { articleId: string }) => articleId)
+    return (await query).map(
+      ({ articleId }: { articleId: string }) => articleId
+    )
   }
 
   /**
