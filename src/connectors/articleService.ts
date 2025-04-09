@@ -66,7 +66,6 @@ import {
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
-import fetch from 'node-fetch'
 import { createRequire } from 'node:module'
 import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'

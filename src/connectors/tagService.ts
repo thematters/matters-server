@@ -24,7 +24,6 @@ import {
 } from '#common/utils/index.js'
 import { BaseService, SystemService } from '#connectors/index.js'
 import _ from 'lodash'
-import fetch from 'node-fetch'
 
 const logger = getLogger('service-tag')
 
