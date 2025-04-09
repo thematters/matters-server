@@ -7,7 +7,7 @@ const resolver: GQLArticleResolvers['campaigns'] = async (
 ) => {
   const campaignArticles = await atomService.findMany({
     table: 'campaign_article',
-    where: { articleId: id, enabled: true },
+    where: { articleId: id, enabled: true, deleted: false },
     orderBy: [{ column: 'id', order: 'desc' }],
   })
   if (!campaignArticles) {
