@@ -8,7 +8,7 @@ import {
 } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-const resolver: GQLMutationResolvers['removeCampaignArticles'] = async (
+const resolver: GQLMutationResolvers['banCampaignArticles'] = async (
   _,
   { input: { campaign: campaignGlobalId, articles: articleGlobalIds } },
   { viewer, dataSources: { atomService } }

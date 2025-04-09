@@ -33,10 +33,10 @@ const campaignData = {
   creatorId: '1',
 }
 
-describe('remove campaign articles', () => {
-  const REMOVE_CAMPAIGN_ARTICLES = /* GraphQL */ `
-    mutation ($input: RemoveCampaignArticlesInput!) {
-      removeCampaignArticles(input: $input) {
+describe('ban campaign articles', () => {
+  const BAN_CAMPAIGN_ARTICLES = /* GraphQL */ `
+    mutation ($input: BanCampaignArticlesInput!) {
+      banCampaignArticles(input: $input) {
         id
         ... on WritingChallenge {
           articles(input: { first: null }) {
@@ -103,9 +103,17 @@ describe('remove campaign articles', () => {
       isAdmin: true,
     })
 
+    // Verify article exists and is not deleted
+    const campaignArticle = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { campaignId: campaign.id, articleId: articles[0].id },
+    })
+    expect(campaignArticle).toBeDefined()
+    expect(campaignArticle.deleted).toBe(false)
+
     const { data: updatedData, errors: updatedErrors } =
       await adminServer.executeOperation({
-        query: REMOVE_CAMPAIGN_ARTICLES,
+        query: BAN_CAMPAIGN_ARTICLES,
         variables: {
           input: {
             campaign: campaignGlobalId,
@@ -114,7 +122,15 @@ describe('remove campaign articles', () => {
         },
       })
     expect(updatedErrors).toBeUndefined()
-    expect(updatedData.removeCampaignArticles.articles.totalCount).toBe(0)
+    expect(updatedData.banCampaignArticles.articles.totalCount).toBe(0)
+
+    // Verify article is marked as deleted but still exists
+    const deletedCampaignArticle = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { campaignId: campaign.id, articleId: articles[0].id },
+    })
+    expect(deletedCampaignArticle).toBeDefined()
+    expect(deletedCampaignArticle.deleted).toBe(true)
   })
 
   test('should reject unauthorized user', async () => {
@@ -124,7 +140,7 @@ describe('remove campaign articles', () => {
 
     const { errors: unauthorizedErrors } =
       await unauthorizedServer.executeOperation({
-        query: REMOVE_CAMPAIGN_ARTICLES,
+        query: BAN_CAMPAIGN_ARTICLES,
         variables: {
           input: {
             campaign: campaignGlobalId,
@@ -144,7 +160,7 @@ describe('remove campaign articles', () => {
 
     const { errors: normalUserErrors } =
       await normalUserServer.executeOperation({
-        query: REMOVE_CAMPAIGN_ARTICLES,
+        query: BAN_CAMPAIGN_ARTICLES,
         variables: {
           input: {
             campaign: campaignGlobalId,
@@ -173,6 +189,14 @@ describe('remove campaign articles', () => {
       stages[0].id
     )
 
+    // Verify article exists and is not deleted
+    const campaignArticle = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { campaignId: campaignWithManagers.id, articleId: articles[0].id },
+    })
+    expect(campaignArticle).toBeDefined()
+    expect(campaignArticle.deleted).toBe(false)
+
     const campaignWithManagersGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,
       id: campaignWithManagers.id,
@@ -186,7 +210,7 @@ describe('remove campaign articles', () => {
 
     const { errors: campaignManagerErrors } =
       await campaignManagerServer.executeOperation({
-        query: REMOVE_CAMPAIGN_ARTICLES,
+        query: BAN_CAMPAIGN_ARTICLES,
         variables: {
           input: {
             campaign: campaignWithManagersGlobalId,
@@ -195,6 +219,14 @@ describe('remove campaign articles', () => {
         },
       })
     expect(campaignManagerErrors).toBeUndefined()
+
+    // Verify article is marked as deleted but still exists
+    const deletedCampaignArticle = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { campaignId: campaignWithManagers.id, articleId: articles[0].id },
+    })
+    expect(deletedCampaignArticle).toBeDefined()
+    expect(deletedCampaignArticle.deleted).toBe(true)
   })
 
   test('should allow system admin to remove articles', async () => {
@@ -205,7 +237,7 @@ describe('remove campaign articles', () => {
     })
 
     const { errors: adminErrors } = await adminServer.executeOperation({
-      query: REMOVE_CAMPAIGN_ARTICLES,
+      query: BAN_CAMPAIGN_ARTICLES,
       variables: {
         input: {
           campaign: campaignGlobalId,
@@ -230,7 +262,7 @@ describe('remove campaign articles', () => {
 
     const { errors: invalidCampaignErrors } =
       await adminServer.executeOperation({
-        query: REMOVE_CAMPAIGN_ARTICLES,
+        query: BAN_CAMPAIGN_ARTICLES,
         variables: {
           input: {
             campaign: invalidCampaignId,
@@ -255,7 +287,7 @@ describe('remove campaign articles', () => {
 
     const { errors: invalidArticleErrors } = await adminServer.executeOperation(
       {
-        query: REMOVE_CAMPAIGN_ARTICLES,
+        query: BAN_CAMPAIGN_ARTICLES,
         variables: {
           input: {
             campaign: campaignGlobalId,

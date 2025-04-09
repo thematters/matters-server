@@ -11,7 +11,7 @@ export default /* GraphQL */ `
     applyCampaign(input: ApplyCampaignInput!): Campaign! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign! @purgeCache(type: "${NODE_TYPES.Campaign}")
-    removeCampaignArticles(input: RemoveCampaignArticlesInput!): Campaign! @purgeCache(type: "${NODE_TYPES.Campaign}")
+    banCampaignArticles(input: BanCampaignArticlesInput!): Campaign! @purgeCache(type: "${NODE_TYPES.Campaign}")
     sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -57,7 +57,7 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
-  input RemoveCampaignArticlesInput {
+  input BanCampaignArticlesInput {
     campaign: ID!
     articles: [ID!]!
   }

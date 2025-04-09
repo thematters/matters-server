@@ -665,6 +665,11 @@ export type GQLBalance = {
   HKD: Scalars['Float']['output']
 }
 
+export type GQLBanCampaignArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  campaign: Scalars['ID']['input']
+}
+
 export type GQLBlockchainTransaction = {
   __typename?: 'BlockchainTransaction'
   chain: GQLChain
@@ -1899,6 +1904,7 @@ export type GQLMutation = {
   applyCampaign: GQLCampaign
   /** Appreciate an article. */
   appreciateArticle: GQLArticle
+  banCampaignArticles: GQLCampaign
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
   classifyArticlesChannels: Scalars['Boolean']['output']
@@ -1977,7 +1983,6 @@ export type GQLMutation = {
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
-  removeCampaignArticles: GQLCampaign
   /** Remove a social login from current user. */
   removeSocialLogin: GQLUser
   /** Remove a wallet login from current user. */
@@ -2107,6 +2112,10 @@ export type GQLMutationApplyCampaignArgs = {
 
 export type GQLMutationAppreciateArticleArgs = {
   input: GQLAppreciateArticleInput
+}
+
+export type GQLMutationBanCampaignArticlesArgs = {
+  input: GQLBanCampaignArticlesInput
 }
 
 export type GQLMutationClaimLogbooksArgs = {
@@ -2291,10 +2300,6 @@ export type GQLMutationPutWritingChallengeArgs = {
 
 export type GQLMutationReadArticleArgs = {
   input: GQLReadArticleInput
-}
-
-export type GQLMutationRemoveCampaignArticlesArgs = {
-  input: GQLRemoveCampaignArticlesInput
 }
 
 export type GQLMutationRemoveSocialLoginArgs = {
@@ -3207,11 +3212,6 @@ export type GQLRemarkTypes =
   | 'Report'
   | 'Tag'
   | 'User'
-
-export type GQLRemoveCampaignArticlesInput = {
-  articles: Array<Scalars['ID']['input']>
-  campaign: Scalars['ID']['input']
-}
 
 export type GQLRemoveSocialLoginInput = {
   type: GQLSocialAccountType
@@ -4814,6 +4814,7 @@ export type GQLResolversTypes = ResolversObject<{
   BadgeType: GQLBadgeType
   BadgedUsersInput: GQLBadgedUsersInput
   Balance: ResolverTypeWrapper<GQLBalance>
+  BanCampaignArticlesInput: GQLBanCampaignArticlesInput
   BlockchainTransaction: ResolverTypeWrapper<GQLBlockchainTransaction>
   BlockedSearchKeyword: ResolverTypeWrapper<GQLBlockedSearchKeyword>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>
@@ -5180,7 +5181,6 @@ export type GQLResolversTypes = ResolversObject<{
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
-  RemoveCampaignArticlesInput: GQLRemoveCampaignArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
   RenameTagInput: GQLRenameTagInput
   ReorderChannelsInput: GQLReorderChannelsInput
@@ -5494,6 +5494,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Badge: GQLBadge
   BadgedUsersInput: GQLBadgedUsersInput
   Balance: GQLBalance
+  BanCampaignArticlesInput: GQLBanCampaignArticlesInput
   BlockchainTransaction: GQLBlockchainTransaction
   BlockedSearchKeyword: GQLBlockedSearchKeyword
   Boolean: Scalars['Boolean']['output']
@@ -5772,7 +5773,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecommendationNewestInput: GQLRecommendationNewestInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
-  RemoveCampaignArticlesInput: GQLRemoveCampaignArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
   RenameTagInput: GQLRenameTagInput
   ReorderChannelsInput: GQLReorderChannelsInput
@@ -7972,6 +7972,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationAppreciateArticleArgs, 'input'>
   >
+  banCampaignArticles?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationBanCampaignArticlesArgs, 'input'>
+  >
   claimLogbooks?: Resolver<
     GQLResolversTypes['ClaimLogbooksResult'],
     ParentType,
@@ -8257,12 +8263,6 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationReadArticleArgs, 'input'>
-  >
-  removeCampaignArticles?: Resolver<
-    GQLResolversTypes['Campaign'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationRemoveCampaignArticlesArgs, 'input'>
   >
   removeSocialLogin?: Resolver<
     GQLResolversTypes['User'],

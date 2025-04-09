@@ -68,7 +68,7 @@ type Mutation {
   applyCampaign(input: ApplyCampaignInput!): Campaign!
   updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
   toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign!
-  removeCampaignArticles(input: RemoveCampaignArticlesInput!): Campaign!
+  banCampaignArticles(input: BanCampaignArticlesInput!): Campaign!
   sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean
 
   """Create or update a Circle."""
@@ -833,7 +833,7 @@ input ToggleWritingChallengeFeaturedArticlesInput {
   enabled: Boolean!
 }
 
-input RemoveCampaignArticlesInput {
+input BanCampaignArticlesInput {
   campaign: ID!
   articles: [ID!]!
 }
