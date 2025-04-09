@@ -51,6 +51,7 @@ export interface CampaignArticle {
   featured: boolean
   announcement: boolean
   enabled: boolean
+  deleted: boolean
   createdAt: Date
   updatedAt: Date
 }

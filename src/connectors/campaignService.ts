@@ -311,7 +311,11 @@ export class CampaignService {
     const originalCampaigns = await knexRO('campaign_article')
       .select('campaign_id', 'campaign_stage_id')
       .join('campaign', 'campaign.id', 'campaign_article.campaign_id')
-      .where({ articleId: article.id, state: CAMPAIGN_STATE.active })
+      .where({
+        articleId: article.id,
+        state: CAMPAIGN_STATE.active,
+        deleted: false,
+      })
 
     const originalCampaignIds = originalCampaigns.map(
       ({ campaignId }) => campaignId
@@ -347,10 +351,11 @@ export class CampaignService {
     const toRemove = originalCampaignIds.filter(
       (campaignId) => !newCampaignIds.includes(campaignId)
     )
-    await this.models.deleteMany({
+    await this.models.updateMany({
       table: 'campaign_article',
       where: { articleId: article.id },
       whereIn: ['campaignId', toRemove],
+      data: { deleted: true },
     })
     mutatedCampaignIds.push(...toRemove)
     return mutatedCampaignIds
@@ -366,9 +371,21 @@ export class CampaignService {
       campaignId,
       campaignStageId,
     })
-    return this.models.create({
+    return this.models.upsert({
       table: 'campaign_article',
-      data: { articleId: article.id, campaignId, campaignStageId },
+      create: {
+        articleId: article.id,
+        campaignId,
+        campaignStageId,
+        deleted: false,
+      },
+      update: {
+        articleId: article.id,
+        campaignId,
+        campaignStageId,
+        deleted: false,
+      },
+      where: { articleId: article.id, campaignId },
     })
   }
 
