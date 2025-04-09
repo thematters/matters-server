@@ -35,7 +35,7 @@ const resolver: GQLMutationResolvers['removeCampaignArticles'] = async (
   }
 
   // Authorization check - only system admin or campaign admin can remove articles
-  if (!campaign.adminUserIds?.includes(viewer.id) && !viewer.hasRole('admin')) {
+  if (!campaign.managerIds?.includes(viewer.id) && !viewer.hasRole('admin')) {
     throw new ForbiddenError('User is not a campaign admin')
   }
 

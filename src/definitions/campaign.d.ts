@@ -18,7 +18,7 @@ export interface Campaign {
   writingPeriod: string | null
   state: ValueOf<typeof CAMPAIGN_STATE>
   creatorId: string
-  adminUserIds: string[] | null
+  managerIds: string[] | null
   createdAt: Date
   updatedAt: Date
 }

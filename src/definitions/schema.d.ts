@@ -762,8 +762,8 @@ export type GQLCampaignInput = {
 
 export type GQLCampaignOss = {
   __typename?: 'CampaignOSS'
-  adminUsers: Array<GQLUser>
   boost: Scalars['Float']['output']
+  managers: Array<GQLUser>
 }
 
 export type GQLCampaignParticipantConnection = GQLConnection & {
@@ -2983,7 +2983,6 @@ export type GQLPutUserFeatureFlagsInput = {
 }
 
 export type GQLPutWritingChallengeInput = {
-  adminUsers?: InputMaybe<Array<Scalars['ID']['input']>>
   announcements?: InputMaybe<Array<Scalars['ID']['input']>>
   applicationPeriod?: InputMaybe<GQLDatetimeRangeInput>
   channelEnabled?: InputMaybe<Scalars['Boolean']['input']>
@@ -2991,6 +2990,7 @@ export type GQLPutWritingChallengeInput = {
   featuredDescription?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>
+  managers?: InputMaybe<Array<Scalars['ID']['input']>>
   name?: InputMaybe<Array<GQLTranslationInput>>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
@@ -6809,12 +6809,8 @@ export type GQLCampaignOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignOSS'] = GQLResolversParentTypes['CampaignOSS']
 > = ResolversObject<{
-  adminUsers?: Resolver<
-    Array<GQLResolversTypes['User']>,
-    ParentType,
-    ContextType
-  >
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  managers?: Resolver<Array<GQLResolversTypes['User']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

@@ -197,33 +197,33 @@ describe('featured articles management', () => {
 
     // Test 3: Campaign admin user
     // First create campaign with admin user
-    const campaignWithAdmin = await campaignService.createWritingChallenge({
+    const campaignWithManagers = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,
-      adminUserIds: [normalUser.id], // Make normalUser a campaign admin
+      managerIds: [normalUser.id], // Make normalUser a campaign admin
     })
-    const campaignWithAdminGlobalId = toGlobalId({
+    const campaignWithManagersGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,
-      id: campaignWithAdmin.id,
+      id: campaignWithManagers.id,
     })
 
-    const campaignAdminServer = await testClient({
+    const campaignManagerServer = await testClient({
       connections,
       isAuth: true,
       context: { viewer: normalUser }, // normalUser is now a campaign admin
     })
-    const { errors: campaignAdminErrors } =
-      await campaignAdminServer.executeOperation({
+    const { errors: campaignManagerErrors } =
+      await campaignManagerServer.executeOperation({
         query: TOGGLE_FEATURED_ARTICLES,
         variables: {
           input: {
-            campaign: campaignWithAdminGlobalId,
+            campaign: campaignWithManagersGlobalId,
             articles: [articleGlobalId],
             enabled: true,
           },
         },
       })
-    expect(campaignAdminErrors).toBeUndefined()
+    expect(campaignManagerErrors).toBeUndefined()
 
     // Test 4: System admin user
     const adminServer = await testClient({

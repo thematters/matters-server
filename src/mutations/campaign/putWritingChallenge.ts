@@ -34,7 +34,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       stages,
       featuredDescription,
       channelEnabled,
-      adminUsers: adminUserGlobalIds,
+      managers: managerGlobalIds,
     },
   },
   {
@@ -89,11 +89,11 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
   }
 
-  let adminUserIds: string[] = []
-  if (adminUserGlobalIds && adminUserGlobalIds.length > 0) {
-    adminUserIds = adminUserGlobalIds.map((id) => fromGlobalId(id).id)
+  let managerIds: string[] = []
+  if (managerGlobalIds && managerGlobalIds.length > 0) {
+    managerIds = managerGlobalIds.map((id) => fromGlobalId(id).id)
 
-    for (const userId of adminUserIds) {
+    for (const userId of managerIds) {
       const user = await atomService.userIdLoader.load(userId)
       if (!user) {
         throw new UserInputError(`User with ID ${userId} not found`)
@@ -115,7 +115,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       writingPeriod: writingPeriod && [writingPeriod.start, writingPeriod.end],
       state,
       creatorId: viewer.id,
-      adminUserIds,
+      managerIds,
       featuredDescription: featuredDescription
         ? featuredDescription[0].text
         : '',
@@ -169,7 +169,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         toDatetimeRangeString(writingPeriod.start, writingPeriod.end),
       state,
       featuredDescription: featuredDescription && featuredDescription[0].text,
-      adminUserIds,
+      managerIds,
     }
 
     campaign = await atomService.update({

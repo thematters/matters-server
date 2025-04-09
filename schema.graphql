@@ -814,7 +814,7 @@ input PutWritingChallengeInput {
   state: CampaignState
   featuredDescription: [TranslationInput!]
   channelEnabled: Boolean
-  adminUsers: [ID!]
+  managers: [ID!]
 }
 
 input ApplyCampaignInput {
@@ -896,7 +896,7 @@ type WritingChallenge implements Node & Campaign & Channel {
 }
 
 type CampaignOSS {
-  adminUsers: [User!]!
+  managers: [User!]!
   boost: Float!
 }
 

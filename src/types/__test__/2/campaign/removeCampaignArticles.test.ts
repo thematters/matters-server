@@ -139,6 +139,7 @@ describe('remove campaign articles', () => {
     const normalUserServer = await testClient({
       connections,
       isAuth: true,
+      context: { viewer: normalUser },
     })
 
     const { errors: normalUserErrors } =
@@ -160,21 +161,21 @@ describe('remove campaign articles', () => {
       table: 'user',
       where: { id: '3' },
     })
-    const campaignWithAdmin = await campaignService.createWritingChallenge({
+    const campaignWithManagers = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,
-      adminUserIds: [campaignAdmin.id],
+      managerIds: [campaignAdmin.id],
     })
-    await campaignService.apply(campaignWithAdmin, normalUser)
+    await campaignService.apply(campaignWithManagers, normalUser)
     await campaignService.submitArticleToCampaign(
       articles[0],
-      campaignWithAdmin.id,
+      campaignWithManagers.id,
       stages[0].id
     )
 
-    const campaignWithAdminGlobalId = toGlobalId({
+    const campaignWithManagersGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,
-      id: campaignWithAdmin.id,
+      id: campaignWithManagers.id,
     })
 
     const campaignAdminServer = await testClient({
@@ -188,7 +189,7 @@ describe('remove campaign articles', () => {
         query: REMOVE_CAMPAIGN_ARTICLES,
         variables: {
           input: {
-            campaign: campaignWithAdminGlobalId,
+            campaign: campaignWithManagersGlobalId,
             articles: [articleGlobalId],
           },
         },

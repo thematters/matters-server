@@ -38,7 +38,7 @@ export default /* GraphQL */ `
     state: CampaignState
     featuredDescription: [TranslationInput!]
     channelEnabled: Boolean
-    adminUsers: [ID!]
+    managers: [ID!]
   }
 
   input ApplyCampaignInput {
@@ -125,7 +125,7 @@ export default /* GraphQL */ `
   }
 
   type CampaignOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    adminUsers: [User!]!
+    managers: [User!]!
     boost: Float!
   }
 

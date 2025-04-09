@@ -59,7 +59,7 @@ describe('create or update writing challenges', () => {
           }
         }
         oss {
-          adminUsers {
+          managers {
             id
             userName
           }
@@ -367,11 +367,11 @@ describe('create or update writing challenges', () => {
     })
 
     // Create a campaign with admin users
-    const adminUser1GlobalId = toGlobalId({
+    const manager1GlobalId = toGlobalId({
       type: NODE_TYPES.User,
       id: '1',
     })
-    const adminUser2GlobalId = toGlobalId({
+    const manager2GlobalId = toGlobalId({
       type: NODE_TYPES.User,
       id: '2',
     })
@@ -383,12 +383,12 @@ describe('create or update writing challenges', () => {
         variables: {
           input: {
             name,
-            adminUsers: [adminUser1GlobalId, adminUser2GlobalId],
+            managers: [manager1GlobalId, manager2GlobalId],
           },
         },
       })
     expect(createErrors).toBeUndefined()
-    expect(createData.putWritingChallenge.oss.adminUsers.length).toBe(2)
+    expect(createData.putWritingChallenge.oss.managers.length).toBe(2)
 
     // Update campaign to modify admin users
     const { data: updateData, errors: updateErrors } =
@@ -397,14 +397,14 @@ describe('create or update writing challenges', () => {
         variables: {
           input: {
             id: createData.putWritingChallenge.id,
-            adminUsers: [adminUser1GlobalId], // Remove adminUser2
+            managers: [manager1GlobalId], // Remove manager2
           },
         },
       })
     expect(updateErrors).toBeUndefined()
-    expect(updateData.putWritingChallenge.oss.adminUsers.length).toBe(1)
-    expect(updateData.putWritingChallenge.oss.adminUsers[0].id).toBe(
-      adminUser1GlobalId
+    expect(updateData.putWritingChallenge.oss.managers.length).toBe(1)
+    expect(updateData.putWritingChallenge.oss.managers[0].id).toBe(
+      manager1GlobalId
     )
 
     // Clear all admin users
@@ -414,12 +414,12 @@ describe('create or update writing challenges', () => {
         variables: {
           input: {
             id: createData.putWritingChallenge.id,
-            adminUsers: [], // Remove all admin users
+            managers: [], // Remove all managers
           },
         },
       })
     expect(clearErrors).toBeUndefined()
-    expect(clearData.putWritingChallenge.oss.adminUsers.length).toBe(0)
+    expect(clearData.putWritingChallenge.oss.managers.length).toBe(0)
 
     // Test with invalid user ID
     const invalidUserGlobalId = toGlobalId({
@@ -431,7 +431,7 @@ describe('create or update writing challenges', () => {
       variables: {
         input: {
           name,
-          adminUsers: [invalidUserGlobalId],
+          managers: [invalidUserGlobalId],
         },
       },
     })
