@@ -124,13 +124,14 @@ describe('ban campaign articles', () => {
     expect(updatedErrors).toBeUndefined()
     expect(updatedData.banCampaignArticles.articles.totalCount).toBe(0)
 
-    // Verify article is marked as deleted but still exists
+    // Verify article is marked as diabled but still exists
     const deletedCampaignArticle = await atomService.findFirst({
       table: 'campaign_article',
       where: { campaignId: campaign.id, articleId: articles[0].id },
     })
     expect(deletedCampaignArticle).toBeDefined()
-    expect(deletedCampaignArticle.deleted).toBe(true)
+    expect(deletedCampaignArticle.enabled).toBe(false)
+    expect(deletedCampaignArticle.deleted).toBe(false)
   })
 
   test('should reject unauthorized user', async () => {
@@ -226,7 +227,8 @@ describe('ban campaign articles', () => {
       where: { campaignId: campaignWithManagers.id, articleId: articles[0].id },
     })
     expect(deletedCampaignArticle).toBeDefined()
-    expect(deletedCampaignArticle.deleted).toBe(true)
+    expect(deletedCampaignArticle.enabled).toBe(false)
+    expect(deletedCampaignArticle.deleted).toBe(false)
   })
 
   test('should allow system admin to remove articles', async () => {
