@@ -157,14 +157,14 @@ describe('remove campaign articles', () => {
 
   test('should allow campaign admin to remove articles', async () => {
     // Create campaign with admin user
-    const campaignAdmin = await atomService.findUnique({
+    const campaignManager = await atomService.findUnique({
       table: 'user',
       where: { id: '3' },
     })
     const campaignWithManagers = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,
-      managerIds: [campaignAdmin.id],
+      managerIds: [campaignManager.id],
     })
     await campaignService.apply(campaignWithManagers, normalUser)
     await campaignService.submitArticleToCampaign(
@@ -178,14 +178,14 @@ describe('remove campaign articles', () => {
       id: campaignWithManagers.id,
     })
 
-    const campaignAdminServer = await testClient({
+    const campaignManagerServer = await testClient({
       connections,
       isAuth: true,
-      context: { viewer: campaignAdmin },
+      context: { viewer: campaignManager },
     })
 
-    const { errors: campaignAdminErrors } =
-      await campaignAdminServer.executeOperation({
+    const { errors: campaignManagerErrors } =
+      await campaignManagerServer.executeOperation({
         query: REMOVE_CAMPAIGN_ARTICLES,
         variables: {
           input: {
@@ -194,7 +194,7 @@ describe('remove campaign articles', () => {
           },
         },
       })
-    expect(campaignAdminErrors).toBeUndefined()
+    expect(campaignManagerErrors).toBeUndefined()
   })
 
   test('should allow system admin to remove articles', async () => {
