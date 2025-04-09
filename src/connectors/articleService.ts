@@ -49,7 +49,6 @@ import {
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
   selectWithTotalCount as selectWithTotalCountModifier,
-  makeSummary,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -423,7 +422,6 @@ export class ArticleService extends BaseService<Article> {
     content: string
   }): Promise<[Article, ArticleVersion]> => {
     const wordCount = countWords(content)
-    const _summary = summary || makeSummary(content)
     const summaryCustomized = !!summary
 
     // get contentId and contentMdId
@@ -456,7 +454,7 @@ export class ArticleService extends BaseService<Article> {
         .insert({
           articleId: article.id,
           title,
-          summary: _summary,
+          summary: summary || '',
           summaryCustomized,
           contentId,
           contentMdId,
@@ -481,7 +479,7 @@ export class ArticleService extends BaseService<Article> {
         articleVersionId: articleVersion.id,
         title,
         content,
-        summary: summaryCustomized ? _summary : undefined,
+        summary: summaryCustomized ? summary : undefined,
       })
 
       // copy asset_map from draft to article if there is a draft
