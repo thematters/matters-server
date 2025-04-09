@@ -1,3 +1,5 @@
+import './fetch-polyfill.js'
+
 import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from '#common/enums/index.js'
 import { contextStorage, LoggingContextKey } from '#common/logger.js'
 import cors from 'cors'
