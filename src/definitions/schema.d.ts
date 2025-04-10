@@ -2992,6 +2992,7 @@ export type GQLPutWritingChallengeInput = {
   applicationPeriod?: InputMaybe<GQLDatetimeRangeInput>
   channelEnabled?: InputMaybe<Scalars['Boolean']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
+  description?: InputMaybe<Array<GQLTranslationInput>>
   featuredDescription?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>

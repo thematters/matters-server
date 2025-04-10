@@ -54,6 +54,7 @@ export class CampaignService {
 
   public createWritingChallenge = async ({
     name,
+    description,
     coverId,
     link,
     applicationPeriod,
@@ -64,6 +65,7 @@ export class CampaignService {
     featuredDescription,
   }: {
     name: string
+    description?: string
     coverId?: string
     link?: string
     applicationPeriod?: readonly [Date, Date]
@@ -79,6 +81,7 @@ export class CampaignService {
         shortHash: shortHash(),
         type: CAMPAIGN_TYPE.writingChallenge,
         name,
+        description,
         link,
         cover: coverId,
         applicationPeriod: applicationPeriod

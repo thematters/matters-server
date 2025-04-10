@@ -26,6 +26,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       id: globalId,
       name,
       cover,
+      description,
       link,
       announcements: announcementGlobalIds,
       applicationPeriod,
@@ -106,6 +107,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     // create new campaign
     campaign = await campaignService.createWritingChallenge({
       name: name ? name[0].text : '',
+      description: description ? description[0].text : '',
       coverId: _cover?.id,
       link,
       applicationPeriod: applicationPeriod && [
@@ -209,6 +211,18 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       await translationService.updateOrCreateTranslation({
         table: 'campaign',
         field: 'name',
+        id: campaign.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  if (description) {
+    for (const trans of description) {
+      await translationService.updateOrCreateTranslation({
+        table: 'campaign',
+        field: 'description',
         id: campaign.id,
         language: trans.language,
         text: trans.text,
