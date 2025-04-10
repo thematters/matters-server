@@ -148,10 +148,14 @@ const countUnits = (text: string): number => {
   }, 0)
 }
 
-export const makeSummary = (html: string, maxUnits: number = 140) => {
+export const makeSummary = (
+  html: string,
+  maxUnits: number = 140,
+  lineReplacement?: string
+) => {
   // Clean the HTML content first
   const plainText = stripHtml(html, {
-    lineReplacement: ' ',
+    lineReplacement: lineReplacement || ' ',
     ensureMentionTrailingSpace: true,
   })
     .replace(/&[^;]+;/g, ' ') // remove html entities
@@ -161,7 +165,7 @@ export const makeSummary = (html: string, maxUnits: number = 140) => {
   // Split the content into matchable tokens
   const matches =
     plainText.match(
-      new RegExp(`(@[^\\s]+|[${REGEXP_LATIN}]+|[^${REGEXP_LATIN} ]+)`, 'g')
+      new RegExp(`(@[^\\s]+|[${REGEXP_LATIN}]+|[^${REGEXP_LATIN}])`, 'g')
     ) || []
 
   let summary = ''
