@@ -665,6 +665,11 @@ export type GQLBalance = {
   HKD: Scalars['Float']['output']
 }
 
+export type GQLBanCampaignArticlesInput = {
+  articles: Array<Scalars['ID']['input']>
+  campaign: Scalars['ID']['input']
+}
+
 export type GQLBlockchainTransaction = {
   __typename?: 'BlockchainTransaction'
   chain: GQLChain
@@ -763,6 +768,7 @@ export type GQLCampaignInput = {
 export type GQLCampaignOss = {
   __typename?: 'CampaignOSS'
   boost: Scalars['Float']['output']
+  managers: Array<GQLUser>
 }
 
 export type GQLCampaignParticipantConnection = GQLConnection & {
@@ -1898,6 +1904,7 @@ export type GQLMutation = {
   applyCampaign: GQLCampaign
   /** Appreciate an article. */
   appreciateArticle: GQLArticle
+  banCampaignArticles: GQLCampaign
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
   classifyArticlesChannels: Scalars['Boolean']['output']
@@ -2105,6 +2112,10 @@ export type GQLMutationApplyCampaignArgs = {
 
 export type GQLMutationAppreciateArticleArgs = {
   input: GQLAppreciateArticleInput
+}
+
+export type GQLMutationBanCampaignArticlesArgs = {
+  input: GQLBanCampaignArticlesInput
 }
 
 export type GQLMutationClaimLogbooksArgs = {
@@ -2984,6 +2995,7 @@ export type GQLPutWritingChallengeInput = {
   featuredDescription?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>
+  managers?: InputMaybe<Array<Scalars['ID']['input']>>
   name?: InputMaybe<Array<GQLTranslationInput>>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
@@ -4802,6 +4814,7 @@ export type GQLResolversTypes = ResolversObject<{
   BadgeType: GQLBadgeType
   BadgedUsersInput: GQLBadgedUsersInput
   Balance: ResolverTypeWrapper<GQLBalance>
+  BanCampaignArticlesInput: GQLBanCampaignArticlesInput
   BlockchainTransaction: ResolverTypeWrapper<GQLBlockchainTransaction>
   BlockedSearchKeyword: ResolverTypeWrapper<GQLBlockedSearchKeyword>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>
@@ -5481,6 +5494,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Badge: GQLBadge
   BadgedUsersInput: GQLBadgedUsersInput
   Balance: GQLBalance
+  BanCampaignArticlesInput: GQLBanCampaignArticlesInput
   BlockchainTransaction: GQLBlockchainTransaction
   BlockedSearchKeyword: GQLBlockedSearchKeyword
   Boolean: Scalars['Boolean']['output']
@@ -6796,6 +6810,7 @@ export type GQLCampaignOssResolvers<
   ParentType extends GQLResolversParentTypes['CampaignOSS'] = GQLResolversParentTypes['CampaignOSS']
 > = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  managers?: Resolver<Array<GQLResolversTypes['User']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7956,6 +7971,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationAppreciateArticleArgs, 'input'>
+  >
+  banCampaignArticles?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationBanCampaignArticlesArgs, 'input'>
   >
   claimLogbooks?: Resolver<
     GQLResolversTypes['ClaimLogbooksResult'],

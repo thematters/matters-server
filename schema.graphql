@@ -68,6 +68,7 @@ type Mutation {
   applyCampaign(input: ApplyCampaignInput!): Campaign!
   updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
   toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign!
+  banCampaignArticles(input: BanCampaignArticlesInput!): Campaign!
   sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean
 
   """Create or update a Circle."""
@@ -813,6 +814,7 @@ input PutWritingChallengeInput {
   state: CampaignState
   featuredDescription: [TranslationInput!]
   channelEnabled: Boolean
+  managers: [ID!]
 }
 
 input ApplyCampaignInput {
@@ -829,6 +831,11 @@ input ToggleWritingChallengeFeaturedArticlesInput {
   campaign: ID!
   articles: [ID!]!
   enabled: Boolean!
+}
+
+input BanCampaignArticlesInput {
+  campaign: ID!
+  articles: [ID!]!
 }
 
 input SendCampaignAnnouncementInput {
@@ -889,6 +896,7 @@ type WritingChallenge implements Node & Campaign & Channel {
 }
 
 type CampaignOSS {
+  managers: [User!]!
   boost: Float!
 }
 

@@ -1,4 +1,5 @@
 import applyCampaign from './applyCampaign.js'
+import banCampaignArticles from './banCampaignArticles.js'
 import putWritingChallenge from './putWritingChallenge.js'
 import sendCampaignAnnouncement from './sendCampaignAnnouncement.js'
 import toggleWritingChallengeFeaturedArticles from './toggleWritingChallengeFeaturedArticles.js'
@@ -10,6 +11,7 @@ export default {
     putWritingChallenge,
     updateCampaignApplicationState,
     toggleWritingChallengeFeaturedArticles,
+    banCampaignArticles,
     sendCampaignAnnouncement,
   },
 }

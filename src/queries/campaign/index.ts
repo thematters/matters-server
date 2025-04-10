@@ -11,6 +11,7 @@ import campaign from './campaign.js'
 import campaigns from './campaigns.js'
 import description from './description.js'
 import featuredDescription from './featuredDescription.js'
+import managers from './managers.js'
 import name from './name.js'
 import participants from './participants.js'
 import stageDescription from './stage/description.js'
@@ -50,6 +51,7 @@ const schema: GQLResolvers = {
   },
 
   CampaignOSS: {
+    managers,
     boost,
   },
 

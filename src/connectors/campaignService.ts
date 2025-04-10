@@ -60,6 +60,7 @@ export class CampaignService {
     writingPeriod,
     state,
     creatorId,
+    managerIds,
     featuredDescription,
   }: {
     name: string
@@ -70,6 +71,7 @@ export class CampaignService {
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
     featuredDescription?: string
+    managerIds?: string[]
   }) =>
     this.models.create({
       table: 'campaign',
@@ -87,6 +89,7 @@ export class CampaignService {
           : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
+        managerIds,
         featuredDescription,
       },
     })
@@ -285,7 +288,12 @@ export class CampaignService {
     const query = knexRO('campaign_article')
       .select('article.*', knexRO.raw('MIN(campaign_article.id) AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
-      .where({ campaignId, state: ARTICLE_STATE.active })
+      .where({
+        campaignId,
+        state: ARTICLE_STATE.active,
+        enabled: true,
+        deleted: false,
+      })
       .groupBy('article.id')
 
     if (filterStageId) {
@@ -308,7 +316,11 @@ export class CampaignService {
     const originalCampaigns = await knexRO('campaign_article')
       .select('campaign_id', 'campaign_stage_id')
       .join('campaign', 'campaign.id', 'campaign_article.campaign_id')
-      .where({ articleId: article.id, state: CAMPAIGN_STATE.active })
+      .where({
+        articleId: article.id,
+        state: CAMPAIGN_STATE.active,
+        deleted: false,
+      })
 
     const originalCampaignIds = originalCampaigns.map(
       ({ campaignId }) => campaignId
@@ -344,10 +356,11 @@ export class CampaignService {
     const toRemove = originalCampaignIds.filter(
       (campaignId) => !newCampaignIds.includes(campaignId)
     )
-    await this.models.deleteMany({
+    await this.models.updateMany({
       table: 'campaign_article',
       where: { articleId: article.id },
       whereIn: ['campaignId', toRemove],
+      data: { deleted: true },
     })
     mutatedCampaignIds.push(...toRemove)
     return mutatedCampaignIds
@@ -363,9 +376,21 @@ export class CampaignService {
       campaignId,
       campaignStageId,
     })
-    return this.models.create({
+    return this.models.upsert({
       table: 'campaign_article',
-      data: { articleId: article.id, campaignId, campaignStageId },
+      create: {
+        articleId: article.id,
+        campaignId,
+        campaignStageId,
+        deleted: false,
+      },
+      update: {
+        articleId: article.id,
+        campaignId,
+        campaignStageId,
+        deleted: false,
+      },
+      where: { articleId: article.id, campaignId },
     })
   }
 

@@ -18,6 +18,7 @@ export interface Campaign {
   writingPeriod: string | null
   state: ValueOf<typeof CAMPAIGN_STATE>
   creatorId: string
+  managerIds: string[] | null
   createdAt: Date
   updatedAt: Date
 }
@@ -47,9 +48,12 @@ export interface CampaignArticle {
   campaignId: string
   campaignStageId?: string | null
   articleId: string
-  createdAt: Date
   featured: boolean
   announcement: boolean
+  enabled: boolean
+  deleted: boolean
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface CampaignBoost {
