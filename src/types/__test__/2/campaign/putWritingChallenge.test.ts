@@ -90,6 +90,18 @@ describe('create or update writing challenges', () => {
     { text: 'test featured description ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
 
+  const translationsDescription = [
+    {
+      text: 'test description ' + LANGUAGE.zh_hant,
+      language: LANGUAGE.zh_hant,
+    },
+    {
+      text: 'test description ' + LANGUAGE.zh_hans,
+      language: LANGUAGE.zh_hans,
+    },
+    { text: 'test description ' + LANGUAGE.en, language: LANGUAGE.en },
+  ]
+
   const translationsStageName1 = [
     {
       text: 'test stage 1 ' + LANGUAGE.zh_hant,
@@ -213,6 +225,7 @@ describe('create or update writing challenges', () => {
         input: {
           name,
           cover,
+          description: translationsDescription,
           announcements: [announcementGlobalId],
           writingPeriod,
           stages,
@@ -225,6 +238,7 @@ describe('create or update writing challenges', () => {
     expect(data.putWritingChallenge.announcements[0].id).toBe(
       announcementGlobalId
     )
+    expect(data.putWritingChallenge.description).toContain('test description')
     expect(data.putWritingChallenge.featuredDescription).toContain(
       'test featured description'
     )
@@ -288,6 +302,7 @@ describe('create or update writing challenges', () => {
         input: {
           name,
           cover,
+          description: translationsDescription,
           applicationPeriod,
           writingPeriod,
           stages,
@@ -298,6 +313,10 @@ describe('create or update writing challenges', () => {
     // update campaign
     const newName = Object.keys(LANGUAGE).map((lang) => ({
       text: 'updated ' + lang,
+      language: lang,
+    }))
+    const newDescription = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'updated description ' + lang,
       language: lang,
     }))
     const newStages = [
@@ -315,6 +334,7 @@ describe('create or update writing challenges', () => {
         input: {
           id: data.putWritingChallenge.id,
           name: newName,
+          description: newDescription,
           stages: newStages,
           state: CAMPAIGN_STATE.active,
         },
@@ -322,6 +342,9 @@ describe('create or update writing challenges', () => {
     })
     expect(errors).toBeUndefined()
     expect(updatedData.putWritingChallenge.name).toContain('updated')
+    expect(updatedData.putWritingChallenge.description).toContain(
+      'updated description'
+    )
     expect(updatedData.putWritingChallenge.stages[0].name).toContain('updated')
     expect(updatedData.putWritingChallenge.state).toBe(CAMPAIGN_STATE.active)
 
