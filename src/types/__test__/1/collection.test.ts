@@ -1,6 +1,9 @@
 import type { Connections } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
+import {
+  MAX_ARTICLES_PER_COLLECTION_LIMIT,
+  NODE_TYPES,
+} from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { CollectionService, ArticleService } from '#connectors/index.js'
 
@@ -438,7 +441,9 @@ describe('add articles to collections', () => {
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
-          collections: Array(201).fill(collectionId1),
+          collections: Array(MAX_ARTICLES_PER_COLLECTION_LIMIT + 1).fill(
+            collectionId1
+          ),
           articles: [articleGlobalId1],
         },
       },
