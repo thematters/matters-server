@@ -199,7 +199,7 @@ export const makeSummary = (html: string, maxUnits: number = 140) => {
     }
 
     // Add the token and count its units
-    summary += trimSpacesAndPunctuations(token)
+    summary += token
     units += tokenUnits
   }
 
