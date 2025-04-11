@@ -893,6 +893,7 @@ type WritingChallenge implements Node & Campaign & Channel {
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
   application: CampaignApplication
   featuredDescription(input: TranslationArgs): String!
+  isManager: Boolean!
   oss: CampaignOSS!
 }
 
