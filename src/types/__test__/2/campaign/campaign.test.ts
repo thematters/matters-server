@@ -40,6 +40,7 @@ afterAll(async () => {
 })
 
 const creatorId = '1'
+const managerId = '2'
 const campaignData = {
   name: 'test',
   applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')] as const,
@@ -78,6 +79,7 @@ describe('query campaigns', () => {
               end
             }
           }
+          isManager
         }
       }
     }
@@ -110,6 +112,7 @@ describe('query campaigns', () => {
                   end
                 }
               }
+              isManager
             }
           }
         }
@@ -139,11 +142,12 @@ describe('query campaigns', () => {
       ...campaignData,
       coverId: asset.id,
       state: CAMPAIGN_STATE.active,
+      managerIds: [managerId],
     })
     pendingCampaignShortHash = pendingCampaign.shortHash
     activeCampaignShortHash = activeCampaign.shortHash
   })
-  test('query campain successfully', async () => {
+  test('query campaign successfully', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: QUERY_CAMPAIGN,
@@ -153,6 +157,62 @@ describe('query campaigns', () => {
     expect(data.campaign).toBeDefined()
     expect(data.campaign.nameEn).toBeDefined()
     expect(data.campaign.descriptionEn).toBeDefined()
+    expect(data.campaign.isManager).toBe(false)
+  })
+  test('query campaign as admin', async () => {
+    const admin = await atomService.findFirst({
+      table: 'user',
+      where: { role: 'admin' },
+    })
+    expect(admin.id).not.toBe(managerId)
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN,
+      variables: { input: { shortHash: activeCampaignShortHash } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign).toBeDefined()
+    expect(data.campaign.isManager).toBe(false)
+  })
+  test('query campaign as manager', async () => {
+    const manager = await atomService.findUnique({
+      table: 'user',
+      where: { id: managerId },
+    })
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: manager },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN,
+      variables: { input: { shortHash: activeCampaignShortHash } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign).toBeDefined()
+    expect(data.campaign.isManager).toBe(true)
+  })
+  test('query campaign as normal user', async () => {
+    const user = await atomService.findFirst({
+      table: 'user',
+      where: { role: 'user' },
+    })
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: user },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN,
+      variables: { input: { shortHash: activeCampaignShortHash } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign).toBeDefined()
+    expect(data.campaign.isManager).toBe(false)
   })
   test('query campains successfully', async () => {
     const server = await testClient({ connections })

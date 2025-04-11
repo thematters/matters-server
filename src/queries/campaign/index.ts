@@ -45,6 +45,8 @@ const schema: GQLResolvers = {
     stages,
     state: ({ state }) => state,
     application,
+    isManager: ({ managerIds }, _, { viewer }) =>
+      managerIds?.includes(viewer.id) ?? false,
     participants,
     articles,
     oss: (root) => root,

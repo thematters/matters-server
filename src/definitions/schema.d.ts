@@ -4398,6 +4398,7 @@ export type GQLWritingChallenge = GQLCampaign &
     description?: Maybe<Scalars['String']['output']>
     featuredDescription: Scalars['String']['output']
     id: Scalars['ID']['output']
+    isManager: Scalars['Boolean']['output']
     link: Scalars['String']['output']
     name: Scalars['String']['output']
     oss: GQLCampaignOss
@@ -10275,6 +10276,7 @@ export type GQLWritingChallengeResolvers<
     Partial<GQLWritingChallengeFeaturedDescriptionArgs>
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  isManager?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   link?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<
     GQLResolversTypes['String'],

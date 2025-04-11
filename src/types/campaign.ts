@@ -122,6 +122,8 @@ export default /* GraphQL */ `
 
     featuredDescription(input: TranslationArgs): String!
 
+    isManager: Boolean! @privateCache
+
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }
 
