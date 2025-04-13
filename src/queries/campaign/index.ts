@@ -9,6 +9,7 @@ import articles from './articles.js'
 import boost from './boost.js'
 import campaign from './campaign.js'
 import campaigns from './campaigns.js'
+import channelEnabled from './channelEnabled.js'
 import description from './description.js'
 import featuredDescription from './featuredDescription.js'
 import managers from './managers.js'
@@ -49,6 +50,7 @@ const schema: GQLResolvers = {
       managerIds?.includes(viewer.id) ?? false,
     participants,
     articles,
+    channelEnabled,
     oss: (root) => root,
   },
 

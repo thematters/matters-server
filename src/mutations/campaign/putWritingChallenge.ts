@@ -198,7 +198,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   }
 
   // create or update campaign channel
-  if (channelEnabled) {
+  if (channelEnabled !== undefined) {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: channelEnabled,
