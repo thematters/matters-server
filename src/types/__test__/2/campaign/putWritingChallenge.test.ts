@@ -65,6 +65,7 @@ describe('create or update writing challenges', () => {
           }
         }
         state
+        channelEnabled
       }
     }
   `
@@ -230,6 +231,7 @@ describe('create or update writing challenges', () => {
           writingPeriod,
           stages,
           featuredDescription: translationsFeaturedDescription,
+          channelEnabled: true,
         },
       },
     })
@@ -246,6 +248,7 @@ describe('create or update writing challenges', () => {
     expect(data.putWritingChallenge.stages[1].description).toContain(
       'test stage description'
     )
+    expect(data.putWritingChallenge.channelEnabled).toBe(true)
 
     // create with only name
     const { data: data2, errors: errors2 } = await server.executeOperation({
@@ -258,6 +261,7 @@ describe('create or update writing challenges', () => {
     })
     expect(errors2).toBeUndefined()
     expect(data2.putWritingChallenge.shortHash).toBeDefined()
+    expect(data2.putWritingChallenge.channelEnabled).toBe(false)
   })
 
   test('stage period can be unbounded', async () => {
@@ -359,6 +363,57 @@ describe('create or update writing challenges', () => {
       },
     })
     expect(updateErrors[0].extensions.code).toBe('ACTION_FAILED')
+  })
+
+  test('update channel enabled', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+          channelEnabled: false,
+        },
+      },
+    })
+
+    expect(data.putWritingChallenge.channelEnabled).toBe(false)
+
+    // update channel enabled
+    const { data: updatedData, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: data.putWritingChallenge.id,
+          channelEnabled: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(updatedData.putWritingChallenge.channelEnabled).toBe(true)
+
+    // update channel disabled
+    const { data: updatedData2, errors: errors2 } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            id: data.putWritingChallenge.id,
+            channelEnabled: false,
+          },
+        },
+      })
+    expect(errors2).toBeUndefined()
+    expect(updatedData2.putWritingChallenge.channelEnabled).toBe(false)
   })
 
   test('user without admin role can not create', async () => {
