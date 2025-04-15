@@ -1,18 +1,22 @@
 import type { GQLOssResolvers } from '#definitions/index.js'
 
-import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
+import { connectionFromQuery } from '#common/utils/connections.js'
 
 export const articles: GQLOssResolvers['articles'] = async (
   _,
   { input },
-  { dataSources: { articleService } }
+  { dataSources: { articleService, systemService } }
 ) => {
-  const { take, skip } = fromConnectionArgs(input)
-
-  const [items, totalCount] = await articleService.findAndCountArticles({
-    take,
-    skip,
-    filter: { isSpam: input?.filter?.isSpam },
+  const spamThreshold = await systemService.getSpamThreshold()
+  return connectionFromQuery({
+    query: articleService.findArticles({
+      filter: {
+        isSpam: input?.filter?.isSpam ?? false,
+        spamThreshold: spamThreshold ?? 0.5,
+      },
+    }),
+    args: input,
+    orderBy: { column: 'id', order: 'desc' },
+    cursorColumn: 'id',
   })
-  return connectionFromArray(items, input, totalCount)
 }

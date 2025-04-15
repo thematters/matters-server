@@ -112,34 +112,23 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public findAndCountArticles = async ({
-    skip,
-    take,
+  public findArticles = ({
     filter,
   }: {
-    skip: number
-    take: number
-    filter?: { isSpam?: boolean }
-  }): Promise<[Article[], number]> => {
-    const query = this.knexRO('article')
-      .select('*', this.knexRO.raw('count(1) OVER() AS total_count'))
-      .orderBy('id', 'desc')
-      .offset(skip)
-      .limit(take)
+    filter?: { isSpam: boolean; spamThreshold: number }
+  }) => {
+    const query = this.knexRO('article').select('*')
 
     if (filter?.isSpam) {
-      const systemService = new SystemService(this.connections)
-      const threshold = await systemService.getSpamThreshold()
       query.where((builder) => {
         builder.where('is_spam', '=', true).orWhere((orWhereBuilder) => {
           orWhereBuilder
-            .where('spam_score', '>=', threshold ?? 1)
+            .where('spam_score', '>=', filter.spamThreshold)
             .whereNull('is_spam')
         })
       })
     }
-    const articles = await query
-    return [articles, parseInt(articles[0]?.totalCount ?? '0', 10)]
+    return query
   }
 
   public findArticleByShortHash = async (hash: string) =>
