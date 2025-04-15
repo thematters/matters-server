@@ -2709,6 +2709,7 @@ export type GQLOssUsersArgs = {
 }
 
 export type GQLOssArticlesFilterInput = {
+  channel?: InputMaybe<Scalars['ID']['input']>
   isSpam?: InputMaybe<Scalars['Boolean']['input']>
 }
 

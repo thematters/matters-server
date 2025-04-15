@@ -854,7 +854,8 @@ describe('spam detection', () => {
   })
   test('find spam articles', async () => {
     const articles = await articleService.findArticles({
-      filter: { isSpam: true, spamThreshold: 0.5 },
+      isSpam: true,
+      spamThreshold: 0.5,
     })
     expect(articles.length).toBeGreaterThan(0)
   })

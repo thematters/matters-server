@@ -580,6 +580,7 @@ export default /* GraphQL */ `
 
   input OSSArticlesFilterInput {
     isSpam: Boolean
+    channel: ID
   }
 
   ####################

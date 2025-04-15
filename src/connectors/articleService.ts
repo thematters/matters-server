@@ -112,10 +112,9 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public findArticles = ({
-    filter,
-  }: {
-    filter?: { isSpam: boolean; spamThreshold: number }
+  public findArticles = (filter?: {
+    isSpam: boolean
+    spamThreshold: number
   }) => {
     const query = this.knexRO('article').select('*')
 
