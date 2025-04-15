@@ -852,12 +852,11 @@ describe('spam detection', () => {
     })
     expect(article?.spamScore).toBe(score)
   })
-  test('find and count spam articles', async () => {
-    const [_, count] = await articleService.findAndCountArticles({
-      take: 10,
-      skip: 0,
-      filter: { isSpam: true },
+  test('find spam articles', async () => {
+    const articles = await articleService.findArticles({
+      isSpam: true,
+      spamThreshold: 0.5,
     })
-    expect(count).toBeGreaterThan(0)
+    expect(articles.length).toBeGreaterThan(0)
   })
 })
