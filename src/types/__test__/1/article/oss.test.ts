@@ -1,19 +1,15 @@
 import type { Connections } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
-import { toGlobalId } from '#common/utils/index.js'
-import { ChannelService, AtomService } from '#connectors/index.js'
+import { AtomService } from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../../utils.js'
 
 let connections: Connections
 let atomService: AtomService
-let channelService: ChannelService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
-  channelService = new ChannelService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -34,59 +30,6 @@ describe('query oss articles', () => {
       }
     }
   `
-  test('query oss articles with channel filter', async () => {
-    // Create a topic channel
-    const channel = await channelService.createTopicChannel({
-      name: 'test-channel',
-      enabled: true,
-      providerId: 'test-provider',
-    })
-
-    // Add article to channel
-    await atomService.create({
-      table: 'topic_channel_article',
-      data: {
-        channelId: channel.id,
-        articleId: '1',
-        enabled: true,
-      },
-    })
-
-    const adminServer = await testClient({ connections, isAdmin: true })
-    const { errors, data } = await adminServer.executeOperation({
-      query: GET_OSS_ARTICLES,
-      variables: {
-        input: {
-          filter: {
-            channel: toGlobalId({
-              type: NODE_TYPES.TopicChannel,
-              id: channel.id,
-            }),
-          },
-        },
-      },
-    })
-
-    expect(errors).toBeUndefined()
-    expect(data.oss.articles.edges.length).toBe(1)
-  })
-
-  test('query oss articles with invalid channel type', async () => {
-    const adminServer = await testClient({ connections, isAdmin: true })
-    const { errors, data } = await adminServer.executeOperation({
-      query: GET_OSS_ARTICLES,
-      variables: {
-        input: {
-          filter: {
-            channel: toGlobalId({ type: NODE_TYPES.Article, id: '1' }),
-          },
-        },
-      },
-    })
-
-    expect(errors).toBeUndefined()
-    expect(data.oss.articles.edges.length).toBe(0)
-  })
   test('query spams', async () => {
     const server = await testClient({
       isAuth: true,

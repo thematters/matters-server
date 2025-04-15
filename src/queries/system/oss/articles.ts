@@ -1,35 +1,13 @@
 import type { GQLOssResolvers } from '#definitions/index.js'
 
-import {
-  connectionFromQuery,
-  connectionFromArray,
-} from '#common/utils/connections.js'
-import { fromGlobalId } from '#common/utils/index.js'
+import { connectionFromQuery } from '#common/utils/connections.js'
 
 export const articles: GQLOssResolvers['articles'] = async (
   _,
   { input },
-  { dataSources: { articleService, systemService, channelService } }
+  { dataSources: { articleService, systemService } }
 ) => {
   const spamThreshold = await systemService.getSpamThreshold()
-
-  // return channel articles
-  if (input?.filter?.channel) {
-    const { type, id } = fromGlobalId(input.filter.channel)
-    if (type === 'TopicChannel') {
-      const channelQuery = channelService.findTopicChannelArticles(id, {
-        spamThreshold: spamThreshold ?? undefined,
-      })
-      return connectionFromQuery({
-        query: channelQuery,
-        args: input,
-        orderBy: { column: 'order', order: 'asc' },
-        cursorColumn: 'id',
-      })
-    }
-    // return empty array for invalid channel type
-    return connectionFromArray([], input)
-  }
 
   // return spam articles
   if (input?.filter?.isSpam) {

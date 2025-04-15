@@ -2513,7 +2513,6 @@ input OSSArticlesInput {
 
 input OSSArticlesFilterInput {
   isSpam: Boolean
-  channel: ID
 }
 
 enum CacheControlScope {
