@@ -10,12 +10,14 @@ import { genConnections, closeConnections, testClient } from '../../utils.js'
 import {
   ChannelService,
   AtomService,
+  ArticleService,
   CampaignService,
 } from '#connectors/index.js'
 
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
+let articleService: ArticleService
 let campaignService: CampaignService
 
 beforeAll(async () => {
@@ -23,6 +25,7 @@ beforeAll(async () => {
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   campaignService = new CampaignService(connections)
+  articleService = new ArticleService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -291,5 +294,138 @@ describe('channels query', () => {
 
     expect(errors).toBeUndefined()
     expect(data.channels).toHaveLength(0)
+  })
+
+  describe('article topic channels', () => {
+    const QUERY_ARTICLE_TOPIC_CHANNELS = /* GraphQL */ `
+      query ArticleTopicChannels($input: ArticleInput!) {
+        article(input: $input) {
+          id
+          oss {
+            topicChannels {
+              channel {
+                id
+                name
+              }
+              score
+              isLabeled
+              enabled
+            }
+          }
+        }
+      }
+    `
+
+    test('returns empty array when article has no channels', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      // Create an article with no channels
+      const [article] = await articleService.createArticle({
+        authorId: '1',
+        title: 'test',
+        content: 'test',
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: QUERY_ARTICLE_TOPIC_CHANNELS,
+        variables: {
+          input: {
+            shortHash: article.shortHash,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data.article.oss.topicChannels).toHaveLength(0)
+    })
+
+    test('returns article channels with correct mapping', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      // Create channels
+      const channel1 = await channelService.createTopicChannel({
+        name: 'channel-1',
+        enabled: true,
+        providerId: '1',
+      })
+      const channel2 = await channelService.createTopicChannel({
+        name: 'channel-2',
+        enabled: true,
+        providerId: '2',
+      })
+
+      // Create article
+      const [article] = await articleService.createArticle({
+        authorId: '1',
+        title: 'test',
+        content: 'test',
+      })
+
+      // Add article to channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: article.id,
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: true,
+          score: 0.8,
+        },
+      })
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: article.id,
+          channelId: channel2.id,
+          enabled: true,
+          isLabeled: false,
+          score: 0.6,
+        },
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: QUERY_ARTICLE_TOPIC_CHANNELS,
+        variables: {
+          input: {
+            shortHash: article.shortHash,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data.article.oss.topicChannels).toHaveLength(2)
+
+      // Verify channel 1
+      const channel1Result = data.article.oss.topicChannels.find(
+        (c: any) =>
+          c.channel.id ===
+          toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel1.id })
+      )
+      expect(channel1Result).toBeDefined()
+      expect(channel1Result.channel.name).toBe('channel-1')
+      expect(channel1Result.score).toBe(0.8)
+      expect(channel1Result.isLabeled).toBe(true)
+      expect(channel1Result.enabled).toBe(true)
+
+      // Verify channel 2
+      const channel2Result = data.article.oss.topicChannels.find(
+        (c: any) =>
+          c.channel.id ===
+          toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel2.id })
+      )
+      expect(channel2Result).toBeDefined()
+      expect(channel2Result.channel.name).toBe('channel-2')
+      expect(channel2Result.score).toBe(0.6)
+      expect(channel2Result.isLabeled).toBe(false)
+      expect(channel2Result.enabled).toBe(true)
+    })
   })
 })
