@@ -7,6 +7,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_FEATURE_FLAG_TYPE,
+  CACHE_PREFIX,
+  CACHE_TTL,
 } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
@@ -14,6 +16,7 @@ import {
   excludeSpam,
   fromConnectionArgs,
 } from '#common/utils/index.js'
+import { CacheService } from '#connectors/index.js'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,
@@ -22,7 +25,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
     viewer,
     dataSources: {
       systemService,
-      connections: { knexRO },
+      connections: { knexRO, objectCacheRedis },
     },
   }
 ) => {
@@ -101,7 +104,15 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
       .limit(take)
   }
 
-  const articles = await makeHottestQuery()
+  const cacheService = new CacheService(
+    CACHE_PREFIX.HOTTEST_ARTICLES,
+    objectCacheRedis
+  )
+  const articles = await cacheService.getObject({
+    keys: { type: 'hottestArticles', args: { input } },
+    getter: makeHottestQuery,
+    expire: CACHE_TTL.PUBLIC_FEED_ARTICLE,
+  })
 
   const totalCount = articles.length === 0 ? 0 : +articles[0].totalCount
 
