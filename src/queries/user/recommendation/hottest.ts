@@ -12,7 +12,8 @@ import {
 import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromPromisedArray,
-  excludeSpam as excludeSpamModifier,
+  excludeSpam,
+  selectWithTotalCount,
   fromConnectionArgs,
 } from '#common/utils/index.js'
 import { CacheService } from '#connectors/index.js'
@@ -48,19 +49,22 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
     const query = knexRO
-      .select('article.*', knexRO.raw('count(1) OVER() AS total_count'))
+      .select('article.*')
+      .modify(selectWithTotalCount)
       .from(
         knexRO
-          .select()
+          .select('article.*')
           .from(MATERIALIZED_VIEW.article_hottest_materialized)
+          .join('article', function () {
+            this.using('id')
+          })
           .orderByRaw('score desc nulls last')
           .limit(MAX_ITEM_COUNT)
-          .as('view')
+          .as('article')
       )
-      .leftJoin('article', 'view.id', 'article.id')
       .leftJoin(
         'article_recommend_setting AS setting',
-        'view.id',
+        'article.id',
         'setting.article_id'
       )
       .where((builder: Knex.QueryBuilder) => {
@@ -74,16 +78,12 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .where('type', 'articleHottest')
             )
             .whereIn('article.id', donatedArticles)
-            .modify(excludeSpamModifier, spamThreshold, 'article')
+            .modify(excludeSpam, spamThreshold, 'article')
         }
       })
       .as('hottest')
 
-    return query
-      .orderByRaw('score DESC NULLS LAST')
-      .orderBy([{ column: 'view.id', order: 'desc' }])
-      .offset(skip)
-      .limit(take)
+    return query.offset(skip).limit(take)
   }
 
   const cacheService = new CacheService(
