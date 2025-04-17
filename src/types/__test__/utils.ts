@@ -34,7 +34,6 @@ import {
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
-  PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
@@ -163,7 +162,6 @@ export const testClient = async ({
   const revisionQueue = new RevisionQueue(connections)
   const assetQueue = new AssetQueue(connections)
   const migrationQueue = new MigrationQueue(connections)
-  const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
   const payToByMattersQueue = new PayToByMattersQueue(connections)
   const payoutQueue = new PayoutQueue(connections)
   const userQueue = new UserQueue(connections)
@@ -172,7 +170,6 @@ export const testClient = async ({
     revisionQueue,
     assetQueue,
     migrationQueue,
-    payToByBlockchainQueue,
     payToByMattersQueue,
     payoutQueue,
     userQueue,
@@ -305,6 +302,7 @@ export const putDraft = async (
               name
            }
         }
+        updatedAt
       }
     }
   `

@@ -10,7 +10,8 @@ export default /* GraphQL */ `
     putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     applyCampaign(input: ApplyCampaignInput!): Campaign! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Campaign}")
     updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
-    toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Campaign}")
+    toggleWritingChallengeFeaturedArticles(input: ToggleWritingChallengeFeaturedArticlesInput!): Campaign! @purgeCache(type: "${NODE_TYPES.Campaign}")
+    banCampaignArticles(input: BanCampaignArticlesInput!): Campaign! @purgeCache(type: "${NODE_TYPES.Campaign}")
     sendCampaignAnnouncement(input: SendCampaignAnnouncementInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -29,6 +30,7 @@ export default /* GraphQL */ `
     id: ID
     name: [TranslationInput!]
     cover: ID
+    description: [TranslationInput!]
     link: String
     announcements: [ID!]
     applicationPeriod: DatetimeRangeInput
@@ -36,6 +38,8 @@ export default /* GraphQL */ `
     stages: [CampaignStageInput!]
     state: CampaignState
     featuredDescription: [TranslationInput!]
+    channelEnabled: Boolean
+    managers: [ID!]
   }
 
   input ApplyCampaignInput {
@@ -52,6 +56,11 @@ export default /* GraphQL */ `
     campaign: ID!
     articles: [ID!]!
     enabled: Boolean!
+  }
+
+  input BanCampaignArticlesInput {
+    campaign: ID!
+    articles: [ID!]!
   }
 
   input SendCampaignAnnouncementInput {
@@ -91,7 +100,7 @@ export default /* GraphQL */ `
     archived
   }
 
-  type WritingChallenge implements Node & Campaign {
+  type WritingChallenge implements Node & Campaign & Channel {
     id: ID!
     shortHash: String!
     name(input: TranslationArgs): String!
@@ -104,6 +113,7 @@ export default /* GraphQL */ `
     writingPeriod: DatetimeRange
     stages: [CampaignStage!]!
 
+    channelEnabled: Boolean!
     state: CampaignState!
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!
@@ -112,10 +122,13 @@ export default /* GraphQL */ `
 
     featuredDescription(input: TranslationArgs): String!
 
+    isManager: Boolean! @privateCache
+
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type CampaignOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+    managers: [User!]!
     boost: Float!
   }
 

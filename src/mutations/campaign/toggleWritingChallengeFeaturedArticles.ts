@@ -5,6 +5,7 @@ import {
   AuthenticationError,
   UserInputError,
   CampaignNotFoundError,
+  ForbiddenError,
 } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
@@ -39,6 +40,10 @@ const resolver: GQLMutationResolvers['toggleWritingChallengeFeaturedArticles'] =
 
     if (!campaign) {
       throw new CampaignNotFoundError('campaign not found')
+    }
+
+    if (!campaign.managerIds?.includes(viewer.id) && !viewer.hasRole('admin')) {
+      throw new ForbiddenError('User is not a campaign admin')
     }
 
     // validate articles

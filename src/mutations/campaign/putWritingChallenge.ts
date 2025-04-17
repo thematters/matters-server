@@ -8,13 +8,13 @@ import { CAMPAIGN_STATE, NODE_TYPES } from '#common/enums/index.js'
 import {
   UserInputError,
   CampaignNotFoundError,
-  AuthenticationError,
   ActionFailedError,
   ArticleNotFoundError,
 } from '#common/errors.js'
 import {
   fromGlobalId,
   toDatetimeRangeString,
+  isValidDatetimeRange,
   isUrl,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -26,6 +26,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       id: globalId,
       name,
       cover,
+      description,
       link,
       announcements: announcementGlobalIds,
       applicationPeriod,
@@ -33,6 +34,8 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       state,
       stages,
       featuredDescription,
+      channelEnabled,
+      managers: managerGlobalIds,
     },
   },
   {
@@ -41,14 +44,11 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       campaignService,
       atomService,
       translationService,
+      channelService,
       connections: { redis },
     },
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   let _cover: { id: string; type: string } | undefined = undefined
   if (cover) {
     _cover = await atomService.assetUUIDLoader.load(cover)
@@ -64,10 +64,14 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     validateUrl(link)
   }
   if (applicationPeriod) {
-    validateRange(applicationPeriod)
+    if (!isValidDatetimeRange(applicationPeriod)) {
+      throw new UserInputError('invalid datetime range')
+    }
   }
   if (writingPeriod) {
-    validateRange(writingPeriod)
+    if (!isValidDatetimeRange(writingPeriod)) {
+      throw new UserInputError('invalid datetime range')
+    }
   }
   if (stages) {
     validateStages(stages)
@@ -86,11 +90,24 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
   }
 
+  let managerIds: string[] = []
+  if (managerGlobalIds && managerGlobalIds.length > 0) {
+    managerIds = managerGlobalIds.map((id) => fromGlobalId(id).id)
+
+    for (const userId of managerIds) {
+      const user = await atomService.userIdLoader.load(userId)
+      if (!user) {
+        throw new UserInputError(`User with ID ${userId} not found`)
+      }
+    }
+  }
+
   let campaign: Campaign
   if (!globalId) {
     // create new campaign
     campaign = await campaignService.createWritingChallenge({
       name: name ? name[0].text : '',
+      description: description ? description[0].text : '',
       coverId: _cover?.id,
       link,
       applicationPeriod: applicationPeriod && [
@@ -100,10 +117,12 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       writingPeriod: writingPeriod && [writingPeriod.start, writingPeriod.end],
       state,
       creatorId: viewer.id,
+      managerIds,
       featuredDescription: featuredDescription
         ? featuredDescription[0].text
         : '',
     })
+
     // invalidate campaign list cache
     if (+campaign.id > 1) {
       invalidateFQC({
@@ -152,6 +171,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         toDatetimeRangeString(writingPeriod.start, writingPeriod.end),
       state,
       featuredDescription: featuredDescription && featuredDescription[0].text,
+      managerIds,
     }
 
     campaign = await atomService.update({
@@ -177,12 +197,32 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     )
   }
 
+  // create or update campaign channel
+  if (channelEnabled !== undefined) {
+    await channelService.updateOrCreateCampaignChannel({
+      campaignId: campaign.id,
+      enabled: channelEnabled,
+    })
+  }
+
   // create or update translations
   if (name) {
     for (const trans of name) {
       await translationService.updateOrCreateTranslation({
         table: 'campaign',
         field: 'name',
+        id: campaign.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  if (description) {
+    for (const trans of description) {
+      await translationService.updateOrCreateTranslation({
+        table: 'campaign',
+        field: 'description',
         id: campaign.id,
         language: trans.language,
         text: trans.text,
@@ -245,19 +285,15 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   return campaign
 }
 
-const validateRange = (range: { start: Date; end?: Date }) => {
-  if (range.end && range.end.getTime() - range.start.getTime() <= 0) {
-    throw new UserInputError('start date must be earlier than end date')
-  }
-}
-
 const validateStages = (stages: GQLCampaignStageInput[]) => {
   for (const stage of stages) {
     if (!stage.name || !stage.name[0].text) {
       throw new UserInputError('stage name is required')
     }
     if (stage.period) {
-      validateRange(stage.period)
+      if (!isValidDatetimeRange(stage.period)) {
+        throw new UserInputError('invalid datetime range')
+      }
     }
   }
 }

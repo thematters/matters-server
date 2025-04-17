@@ -372,9 +372,10 @@ describe('article submission', () => {
     ])
     const campaignArticle1 = await atomService.findFirst({
       table: 'campaign_article',
-      where: { articleId: article.id },
+      where: { campaignId: campaign.id, articleId: article.id },
     })
     expect(campaignArticle1).toBeDefined()
+    expect(campaignArticle1.deleted).toBe(false)
 
     // change stage
     await campaignService.updateArticleCampaigns(article, [
@@ -382,17 +383,29 @@ describe('article submission', () => {
     ])
     const campaignArticle2 = await atomService.findFirst({
       table: 'campaign_article',
-      where: { articleId: article.id },
+      where: { campaignId: campaign.id, articleId: article.id },
     })
     expect(campaignArticle2.campaignStageId).toBe(stages[1].id)
+    expect(campaignArticle2.deleted).toBe(false)
 
     // detach
     await campaignService.updateArticleCampaigns(article, [])
     const campaignArticle3 = await atomService.findFirst({
       table: 'campaign_article',
-      where: { articleId: article.id },
+      where: { campaignId: campaign.id, articleId: article.id },
     })
-    expect(campaignArticle3).toBeUndefined()
+    expect(campaignArticle3.deleted).toBe(true)
+
+    // resubmit
+    await campaignService.updateArticleCampaigns(article, [
+      { campaignId: campaign.id, campaignStageId: stages[0].id },
+    ])
+    const campaignArticle4 = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { campaignId: campaign.id, articleId: article.id },
+    })
+    expect(campaignArticle4.deleted).toBe(false)
+    expect(campaignArticle4.campaignStageId).toBe(stages[0].id)
   })
 })
 

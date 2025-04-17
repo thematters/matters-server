@@ -1,6 +1,10 @@
 import type { GQLArticleResolvers } from '#definitions/index.js'
 
+import { getLogger } from '#common/logger.js'
 import { extractAssetDataFromHtml } from '#common/utils/index.js'
+import compact from 'lodash/compact.js'
+
+const logger = getLogger('resolver-article-assets')
 
 const resolver: GQLArticleResolvers['assets'] = async (
   { id, authorId },
@@ -14,7 +18,11 @@ const resolver: GQLArticleResolvers['assets'] = async (
     const content = await articleService.loadLatestArticleContent(id)
     const images = extractAssetDataFromHtml(content, 'image')
     if (images.length > 0) {
-      return systemService.findAssetByUUIDs(images.slice(0, 1))
+      const res = compact(await systemService.findAssetByUUIDs(images))
+      if (res.length === 0) {
+        logger.warn(`No assets ${images[0]} not found in database`)
+      }
+      return res
     } else {
       return []
     }

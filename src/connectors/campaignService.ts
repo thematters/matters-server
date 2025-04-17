@@ -54,15 +54,18 @@ export class CampaignService {
 
   public createWritingChallenge = async ({
     name,
+    description,
     coverId,
     link,
     applicationPeriod,
     writingPeriod,
     state,
     creatorId,
+    managerIds,
     featuredDescription,
   }: {
     name: string
+    description?: string
     coverId?: string
     link?: string
     applicationPeriod?: readonly [Date, Date]
@@ -70,6 +73,7 @@ export class CampaignService {
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
     featuredDescription?: string
+    managerIds?: string[]
   }) =>
     this.models.create({
       table: 'campaign',
@@ -77,6 +81,7 @@ export class CampaignService {
         shortHash: shortHash(),
         type: CAMPAIGN_TYPE.writingChallenge,
         name,
+        description,
         link,
         cover: coverId,
         applicationPeriod: applicationPeriod
@@ -87,6 +92,7 @@ export class CampaignService {
           : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
+        managerIds,
         featuredDescription,
       },
     })
@@ -163,7 +169,7 @@ export class CampaignService {
     }
 
     if (campaign.applicationPeriod) {
-      const [start] = fromDatetimeRangeString(campaign.applicationPeriod)
+      const { start } = fromDatetimeRangeString(campaign.applicationPeriod)
       const now = new Date()
       if (now.getTime() < start.getTime()) {
         throw new ForbiddenError('application period has not started yet')
@@ -285,7 +291,12 @@ export class CampaignService {
     const query = knexRO('campaign_article')
       .select('article.*', knexRO.raw('MIN(campaign_article.id) AS order'))
       .join('article', 'article.id', 'campaign_article.article_id')
-      .where({ campaignId, state: ARTICLE_STATE.active })
+      .where({
+        campaignId,
+        state: ARTICLE_STATE.active,
+        enabled: true,
+        deleted: false,
+      })
       .groupBy('article.id')
 
     if (filterStageId) {
@@ -308,7 +319,11 @@ export class CampaignService {
     const originalCampaigns = await knexRO('campaign_article')
       .select('campaign_id', 'campaign_stage_id')
       .join('campaign', 'campaign.id', 'campaign_article.campaign_id')
-      .where({ articleId: article.id, state: CAMPAIGN_STATE.active })
+      .where({
+        articleId: article.id,
+        state: CAMPAIGN_STATE.active,
+        deleted: false,
+      })
 
     const originalCampaignIds = originalCampaigns.map(
       ({ campaignId }) => campaignId
@@ -344,10 +359,11 @@ export class CampaignService {
     const toRemove = originalCampaignIds.filter(
       (campaignId) => !newCampaignIds.includes(campaignId)
     )
-    await this.models.deleteMany({
+    await this.models.updateMany({
       table: 'campaign_article',
       where: { articleId: article.id },
       whereIn: ['campaignId', toRemove],
+      data: { deleted: true },
     })
     mutatedCampaignIds.push(...toRemove)
     return mutatedCampaignIds
@@ -363,9 +379,21 @@ export class CampaignService {
       campaignId,
       campaignStageId,
     })
-    return this.models.create({
+    return this.models.upsert({
       table: 'campaign_article',
-      data: { articleId: article.id, campaignId, campaignStageId },
+      create: {
+        articleId: article.id,
+        campaignId,
+        campaignStageId,
+        deleted: false,
+      },
+      update: {
+        articleId: article.id,
+        campaignId,
+        campaignStageId,
+        deleted: false,
+      },
+      where: { articleId: article.id, campaignId },
     })
   }
 
@@ -404,7 +432,7 @@ export class CampaignService {
       throw new CampaignStageNotFoundError('stage not found')
     }
     const periodStart = stage.period
-      ? fromDatetimeRangeString(stage.period)[0].getTime()
+      ? fromDatetimeRangeString(stage.period).start.getTime()
       : null
     const now = new Date().getTime()
     if (periodStart && periodStart > now) {
@@ -436,7 +464,7 @@ export class CampaignService {
       where: { id: updated.campaignId },
     })
     const end =
-      fromDatetimeRangeString(campaign.applicationPeriod as string)[1] ??
+      fromDatetimeRangeString(campaign.applicationPeriod as string).end ??
       new Date()
 
     notificationService.trigger({

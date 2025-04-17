@@ -25,7 +25,6 @@ import type {
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
-  PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
@@ -66,7 +65,14 @@ import type {
   CampaignArticle,
   CampaignBoost,
 } from './campaign.js'
-import type { Channel, ArticleChannel, ArticleChannelJob } from './channel.js'
+import type {
+  TopicChannel,
+  TopicChannelArticle,
+  CampaignChannel,
+  CurationChannel,
+  CurationChannelArticle,
+  ArticleChannelJob,
+} from './channel.js'
 import type {
   Circle,
   CircleInvitation,
@@ -187,7 +193,6 @@ export interface DataSources {
     revisionQueue: RevisionQueue
     assetQueue: AssetQueue
     migrationQueue: MigrationQueue
-    payToByBlockchainQueue: PayToByBlockchainQueue
     payToByMattersQueue: PayToByMattersQueue
     payoutQueue: PayoutQueue
     userQueue: UserQueue
@@ -217,9 +222,9 @@ export type TableTypeMap = {
   article_translation: ArticleTranslation
   article_version: ArticleVersion
   article_hottest_view: ArticleHottestView
-  article_channel: ArticleChannel
   article_channel_job: ArticleChannelJob
-  channel: Channel
+  topic_channel: TopicChannel
+  topic_channel_article: TopicChannelArticle
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord
@@ -231,6 +236,7 @@ export type TableTypeMap = {
   campaign_user: CampaignUser
   campaign_article: CampaignArticle
   campaign_boost: CampaignBoost
+  campaign_channel: CampaignChannel
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice
@@ -270,6 +276,8 @@ export type TableTypeMap = {
   user_tags_order: UserTagsOrder
   username_edit_history: UsernameEditHistory
   verification_code: VerificationCode
+  curation_channel: CurationChannel
+  curation_channel_article: CurationChannelArticle
 }
 
 export type TableTypeMapKey = keyof TableTypeMap

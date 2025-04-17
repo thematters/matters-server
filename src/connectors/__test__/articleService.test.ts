@@ -585,22 +585,22 @@ describe('latestArticles', () => {
     })
 
     // create channels
-    const channel1 = await channelService.updateOrCreateChannel({
+    const channel1 = await channelService.createTopicChannel({
       name: 'test',
-      description: 'test',
+      note: 'test',
       providerId: 'test-latest',
       enabled: true,
     })
-    const channel2 = await channelService.updateOrCreateChannel({
+    const channel2 = await channelService.createTopicChannel({
       name: 'test2',
-      description: 'test2',
+      note: 'test2',
       providerId: 'test-latest2',
       enabled: false,
     })
 
     // create article channels
     await atomService.create({
-      table: 'article_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article1.id,
         channelId: channel1.id,
@@ -609,7 +609,7 @@ describe('latestArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article2.id,
         channelId: channel2.id, // disabled channel
@@ -618,7 +618,7 @@ describe('latestArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article3.id,
         channelId: channel2.id, // disabled channel
@@ -627,7 +627,7 @@ describe('latestArticles', () => {
       },
     })
     await atomService.create({
-      table: 'article_channel',
+      table: 'topic_channel_article',
       data: {
         articleId: article3.id,
         channelId: channel1.id,
@@ -662,85 +662,6 @@ describe('latestArticles', () => {
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
     expect(totalCount1).toBe(totalCount2 + 1)
-  })
-})
-
-describe('findChannelArticles', () => {
-  test('should return articles from channel', async () => {
-    const articleChannelThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.article_channel,
-      flag: FEATURE_FLAG.on,
-      value: articleChannelThreshold,
-    })
-
-    // create channel
-    const channel = await channelService.updateOrCreateChannel({
-      name: 'test',
-      description: 'test',
-      providerId: '1',
-      enabled: true,
-    })
-
-    // create article channel
-    await atomService.create({
-      table: 'article_channel',
-      data: {
-        articleId: '1',
-        channelId: channel.id,
-        score: articleChannelThreshold + 0.1,
-        enabled: true,
-      },
-    })
-    await atomService.create({
-      table: 'article_channel',
-      data: {
-        articleId: '2',
-        channelId: channel.id,
-        score: articleChannelThreshold + 0.1,
-        enabled: true,
-      },
-    })
-    await atomService.create({
-      table: 'article_channel',
-      data: {
-        articleId: '3',
-        channelId: channel.id,
-        score: articleChannelThreshold - 0.1,
-        enabled: true,
-      },
-    })
-
-    const [articles] = await articleService.findChannelArticles({
-      channelId: channel.id,
-      skip: 0,
-      take: 10,
-      maxTake: 10,
-    })
-    expect(articles).toBeDefined()
-    expect(articles.length).toBe(2)
-    expect(articles.map(({ id }) => id)).toContain('1')
-    expect(articles.map(({ id }) => id)).toContain('2')
-
-    // admin corrects article channel
-    await channelService.setArticleChannels({
-      articleId: '1',
-      channelIds: [],
-    })
-    await channelService.setArticleChannels({
-      articleId: '4',
-      channelIds: [channel.id],
-    })
-
-    const [articles2] = await articleService.findChannelArticles({
-      channelId: channel.id,
-      skip: 0,
-      take: 10,
-      maxTake: 10,
-    })
-    expect(articles2.length).toBe(2)
-    expect(articles2.map(({ id }) => id)).toContain('4')
-    expect(articles2.map(({ id }) => id)).not.toContain('1')
   })
 })
 
@@ -931,12 +852,11 @@ describe('spam detection', () => {
     })
     expect(article?.spamScore).toBe(score)
   })
-  test('find and count spam articles', async () => {
-    const [_, count] = await articleService.findAndCountArticles({
-      take: 10,
-      skip: 0,
-      filter: { isSpam: true },
+  test('find spam articles', async () => {
+    const articles = await articleService.findArticles({
+      isSpam: true,
+      spamThreshold: 0.5,
     })
-    expect(count).toBeGreaterThan(0)
+    expect(articles.length).toBeGreaterThan(0)
   })
 })

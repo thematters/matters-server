@@ -9,8 +9,10 @@ import articles from './articles.js'
 import boost from './boost.js'
 import campaign from './campaign.js'
 import campaigns from './campaigns.js'
+import channelEnabled from './channelEnabled.js'
 import description from './description.js'
 import featuredDescription from './featuredDescription.js'
+import managers from './managers.js'
 import name from './name.js'
 import participants from './participants.js'
 import stageDescription from './stage/description.js'
@@ -35,29 +37,25 @@ const schema: GQLResolvers = {
     cover: ({ cover }, _, { dataSources: { systemService } }) =>
       cover ? systemService.findAssetUrl(cover) : null,
     link: ({ link }) => link ?? '',
-    applicationPeriod: ({ applicationPeriod }) => {
-      if (!applicationPeriod) {
-        return null
-      }
-      const [start, end] = fromDatetimeRangeString(applicationPeriod as string)
-      return { start, end }
-    },
-    writingPeriod: ({ writingPeriod }) => {
-      if (!writingPeriod) {
-        return null
-      }
-      const [start, end] = fromDatetimeRangeString(writingPeriod as string)
-      return { start, end }
-    },
+    applicationPeriod: ({ applicationPeriod }) =>
+      applicationPeriod
+        ? fromDatetimeRangeString(applicationPeriod as string)
+        : null,
+    writingPeriod: ({ writingPeriod }) =>
+      writingPeriod ? fromDatetimeRangeString(writingPeriod as string) : null,
     stages,
     state: ({ state }) => state,
     application,
+    isManager: ({ managerIds }, _, { viewer }) =>
+      managerIds?.includes(viewer.id) ?? false,
     participants,
     articles,
+    channelEnabled,
     oss: (root) => root,
   },
 
   CampaignOSS: {
+    managers,
     boost,
   },
 
@@ -65,13 +63,7 @@ const schema: GQLResolvers = {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.CampaignStage, id }),
     name: stageName,
     description: stageDescription,
-    period: ({ period }) => {
-      if (!period) {
-        return null
-      }
-      const [start, end] = fromDatetimeRangeString(period)
-      return { start, end }
-    },
+    period: ({ period }) => (period ? fromDatetimeRangeString(period) : null),
   },
 }
 

@@ -17,4 +17,7 @@ export const QUEUE_URL = {
 
   // ipfs
   ipfsPublication: environment?.awsIpfsPublicationQueueUrl,
+
+  // blockchain payment
+  blockchainPayment: environment?.awsBlockchainPaymentQueueUrl,
 } as const
