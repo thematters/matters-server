@@ -756,6 +756,7 @@ describe('hottest articles', () => {
         _.clamp(campaignBoostEff, 0.5, 2)
     ).toBe(score)
   })
+  // TODO: move hottest query to service and test spam filter logic there
   test('spam are excluded', async () => {
     const spamThreshold = 0.5
     await systemService.setFeatureFlag({
@@ -768,7 +769,7 @@ describe('hottest articles', () => {
     const server = await testClient({ connections })
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
+      variables: { input: { first: 1 } },
     })
     expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
 
@@ -780,7 +781,7 @@ describe('hottest articles', () => {
     })
     const { data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
+      variables: { input: { first: 2 } },
     })
     expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
 
@@ -792,8 +793,42 @@ describe('hottest articles', () => {
     })
     const { data: data3 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
+      variables: { input: { first: 3 } },
     })
     expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
+  })
+
+  test('caching works correctly', async () => {
+    const server = await testClient({ connections })
+
+    // First query - should hit database
+    const { errors: errors1, data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors1).toBeUndefined()
+    expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
+
+    // Update article to change its state
+    await atomService.create({
+      table: 'article_recommend_setting',
+      data: { articleId: article.id, inHottest: false },
+    })
+
+    // Second query - should still return cached results
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.viewer.recommendation.hottest.totalCount).toBe(1)
+
+    // cache key includes input parameters
+    const { errors: errors3, data: data3 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 5 } },
+    })
+    expect(errors3).toBeUndefined()
+    expect(data3.viewer.recommendation.hottest.totalCount).toBe(0)
   })
 })
