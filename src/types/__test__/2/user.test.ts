@@ -1078,7 +1078,7 @@ describe('user recommendations', () => {
     })
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('hottest'),
-      variables: { input: { first: 10 } },
+      variables: { first: 10 },
     })
     const authorIdsBefore = getAuthorIds(data1)
 
@@ -1090,7 +1090,7 @@ describe('user recommendations', () => {
 
     const { data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('hottest'),
-      variables: { input: { first: 10 } },
+      variables: { first: 11 },
     })
     const authorIdsAfter = getAuthorIds(data2)
     expect(authorIdsAfter).not.toContain(restrictedUserId)
@@ -1117,7 +1117,7 @@ describe('user recommendations', () => {
     })
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('newest'),
-      variables: { input: { first: 10 } },
+      variables: { first: 10 },
     })
     const authorIdsBefore = getAuthorIds(data1)
 
@@ -1129,7 +1129,7 @@ describe('user recommendations', () => {
 
     const { data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('newest'),
-      variables: { input: { first: 10 } },
+      variables: { first: 10 },
     })
     const authorIdsAfter = getAuthorIds(data2)
     expect(authorIdsAfter).not.toContain(restrictedUserId)
