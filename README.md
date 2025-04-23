@@ -35,17 +35,14 @@
 - Create a new seed file: `npm run db:seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
 - Rollback a migration: `npm run db:rollback`
 
-## Email Template
+## Documentation
 
-We use [MJML](https://mjml.io) to develop our SendGrid email template.
-
-Please refer to the repo [matters-email](https://github.com/thematters/matters-email) for details.
-
-## Test Mode
-
-To make the login flow testing easier, the login-related mutations have hardcoded input values with respective behaviors in the non-production environment.
-
-see [test_mode.md](./docs/Test-Mode.md) for detail
+- [Project Structure](docs/Project-Structure.md) - Overview of the codebase organization, directory layout, key components, and development workflow
+- [API Design and Implementation](docs/API-Design-and-Implement.md) - Guidelines for designing and implementing GraphQL APIs, including resolver implementation steps and best practices
+- [Database Modification](docs/Database-Modification.md) - Step-by-step guide for adding new tables, including migration creation, type definitions, and testing requirements
+- [Audit Logging](docs/Audit-Logging.md) - Documentation for implementing audit logging, including purpose, usage patterns, and integration with analytics
+- [Unit Testing Guidelines](docs/Unittest.md) - Comprehensive guide for writing unit tests, including test structure, patterns, and best practices
+- [Test Mode](docs/Test-Mode.md) - Information about test mode configurations, E2E testing patterns, and hardcoded test values
 
 ## NOTE
 
