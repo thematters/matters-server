@@ -1207,4 +1207,30 @@ export class PaymentService extends BaseService<Transaction> {
     }
     return parseInt(`${result[0].count}` || '0', 10)
   }
+
+  public addDonationCountColumn = async (articlesQuery: Knex.QueryBuilder) => {
+    const column = 'donation_count'
+    const knex = articlesQuery.client.queryBuilder()
+    const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
+    return {
+      query: articlesQuery.as('t1').leftJoin(
+        knex
+          .from('transaction')
+          .where({
+            purpose: TRANSACTION_PURPOSE.donation,
+            state: TRANSACTION_STATE.succeeded,
+            targetType: targetTypeId,
+          })
+          .groupBy('target_id')
+          .select(
+            'target_id',
+            knex.client.raw('COUNT(DISTINCT sender_id) as ??', [column])
+          )
+          .as('t2'),
+        't1.id',
+        't2.target_id'
+      ),
+      column,
+    }
+  }
 }

@@ -8,6 +8,7 @@ import type {
   User,
   ValueOf,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
@@ -435,5 +436,28 @@ export class CommentService extends BaseService<Comment> {
       activeOnly: true,
     })
     return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)
+  }
+
+  public addCommentCountColumn = async (articlesQuery: Knex.QueryBuilder) => {
+    const column = 'comment_count'
+    const knex = articlesQuery.client.queryBuilder()
+    const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
+    return {
+      query: articlesQuery.as('t1').leftJoin(
+        knex
+          .from('comment')
+          .where({
+            type: COMMENT_TYPE.article,
+            state: COMMENT_STATE.active,
+            targetTypeId,
+          })
+          .groupBy('target_id')
+          .select('target_id', knex.client.raw('COUNT(1) as ??', [column]))
+          .as('t2'),
+        't1.id',
+        't2.target_id'
+      ),
+      column,
+    }
   }
 }

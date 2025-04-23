@@ -1,28 +1,91 @@
 import type { GQLTopicChannelResolvers } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import { DEFAULT_TAKE_PER_PAGE } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
 import { connectionFromQuery } from '#common/utils/connections.js'
 
 const resolver: GQLTopicChannelResolvers['articles'] = async (
   { id },
   { input },
-  { dataSources: { channelService, atomService, systemService } }
+  {
+    viewer,
+    dataSources: {
+      channelService,
+      atomService,
+      articleService,
+      commentService,
+      paymentService,
+      systemService,
+      userService,
+    },
+  }
 ) => {
+  if (input.sort && input.sort !== 'newest' && !viewer.hasRole('admin')) {
+    throw new ForbiddenError('Only admins can sort articles')
+  }
+
   const channelThreshold = await systemService.getArticleChannelThreshold()
   const spamThreshold = await systemService.getSpamThreshold()
-
-  const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
-
   const baseQuery = channelService.findTopicChannelArticles(id, {
     channelThreshold: channelThreshold ?? undefined,
     spamThreshold: spamThreshold ?? undefined,
     datetimeRange: input.filter?.dateTimeRange,
+    addOrderColumn: input.sort === 'newest' ? true : false,
   })
 
+  let query: Knex.QueryBuilder = baseQuery
+  let orderBy: { column: string; order: 'asc' | 'desc' } = {
+    column: 'order',
+    order: 'asc',
+  }
+  switch (input.sort) {
+    case 'newest':
+      break
+    case 'mostAppreciations': {
+      const { query: appreciationAmountQuery, column } =
+        userService.addAppreciationAmountColumn(baseQuery)
+      query = appreciationAmountQuery
+      orderBy = { column, order: 'desc' }
+      break
+    }
+    case 'mostBookmarks': {
+      const { query: bookmarkCountQuery, column } =
+        userService.addBookmarkCountColumn(baseQuery)
+      query = bookmarkCountQuery
+      orderBy = { column, order: 'desc' }
+      break
+    }
+    case 'mostComments': {
+      const { query: commentCountQuery, column } =
+        await commentService.addCommentCountColumn(baseQuery)
+      query = commentCountQuery
+      orderBy = { column, order: 'desc' }
+      break
+    }
+    case 'mostDonations': {
+      const { query: donationCountQuery, column } =
+        await paymentService.addDonationCountColumn(baseQuery)
+      query = donationCountQuery
+      orderBy = { column, order: 'desc' }
+      break
+    }
+    case 'mostReadTime': {
+      const { query: readTimeQuery, column } =
+        articleService.addReadTimeColumn(baseQuery)
+      query = readTimeQuery
+      orderBy = { column, order: 'desc' }
+      break
+    }
+    default:
+      break
+  }
+
+  const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const connection = await connectionFromQuery({
-    query: baseQuery,
+    query,
     args: input,
-    orderBy: { column: 'order', order: 'asc' },
+    orderBy,
     cursorColumn: 'id',
     maxTake: MAX_ITEM_COUNT,
   })

@@ -63,9 +63,9 @@ describe('findTopicChannelArticles', () => {
       enabled: true,
     })
 
-    const results = await channelService
-      .findTopicChannelArticles(emptyChannel.id)
-      .orderBy('order', 'asc')
+    const results = await channelService.findTopicChannelArticles(
+      emptyChannel.id
+    )
     expect(results).toHaveLength(0)
   })
 
@@ -79,7 +79,7 @@ describe('findTopicChannelArticles', () => {
     })
 
     const results = await channelService
-      .findTopicChannelArticles(channel.id)
+      .findTopicChannelArticles(channel.id, { addOrderColumn: true })
       .orderBy('order', 'asc')
 
     expect(results).toHaveLength(4)
@@ -104,7 +104,7 @@ describe('findTopicChannelArticles', () => {
     })
 
     const results = await channelService
-      .findTopicChannelArticles(channel.id)
+      .findTopicChannelArticles(channel.id, { addOrderColumn: true })
       .orderBy('order', 'asc')
 
     expect(results).toHaveLength(4)
@@ -127,7 +127,7 @@ describe('findTopicChannelArticles', () => {
     })
 
     const results = await channelService
-      .findTopicChannelArticles(channel.id)
+      .findTopicChannelArticles(channel.id, { addOrderColumn: true })
       .orderBy('order', 'asc')
 
     // Find the positions of our test articles in unpinned section
@@ -162,9 +162,9 @@ describe('findTopicChannelArticles', () => {
       data: { score: 0.1, isLabeled: true },
     })
 
-    const results = await channelService
-      .findTopicChannelArticles(channel.id, { channelThreshold: 0.5 })
-      .orderBy('order', 'asc')
+    const results = await channelService.findTopicChannelArticles(channel.id, {
+      channelThreshold: 0.5,
+    })
 
     expect(results).toHaveLength(3)
     const resultIds = results.map((a) => a.id)
@@ -206,11 +206,12 @@ describe('findTopicChannelArticles', () => {
       const start = baseTime
       const end = oneDayAfter
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, {
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        {
           datetimeRange: { start, end },
-        })
-        .orderBy('order', 'asc')
+        }
+      )
 
       expect(results).toHaveLength(2)
       expect(results.map((a) => a.id)).toEqual(
@@ -222,11 +223,12 @@ describe('findTopicChannelArticles', () => {
       const start = baseTime
       const end = twoDaysAfter
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, {
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        {
           datetimeRange: { start, end },
-        })
-        .orderBy('order', 'asc')
+        }
+      )
 
       expect(results).toHaveLength(3)
       expect(results.map((a) => a.id)).toEqual(
@@ -238,11 +240,12 @@ describe('findTopicChannelArticles', () => {
       const start = new Date(twoDaysAfter.getTime() + 86400000) // 3 day after
       const end = new Date(twoDaysAfter.getTime() + 172800000) // 4 day after
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, {
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        {
           datetimeRange: { start, end },
-        })
-        .orderBy('order', 'asc')
+        }
+      )
 
       expect(results).toHaveLength(0)
     })
@@ -288,9 +291,10 @@ describe('findTopicChannelArticles', () => {
     })
 
     test('excludes articles marked as spam regardless of score', async () => {
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, { spamThreshold: 0.95 })
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        { spamThreshold: 0.95 }
+      )
 
       expect(results.find((a) => a.id === articles[0].id)).toBeUndefined()
       expect(results.map((a) => a.id)).toContain(articles[1].id)
@@ -307,25 +311,28 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        { spamThreshold: 0.7 }
+      )
 
       expect(results.map((a) => a.id)).toContain(articles[1].id)
     })
 
     test('includes articles with null spam score when isSpam is null', async () => {
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        { spamThreshold: 0.7 }
+      )
 
       expect(results.map((a) => a.id)).toContain(articles[2].id)
     })
 
     test('filters articles by spam score when isSpam is null', async () => {
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        { spamThreshold: 0.7 }
+      )
 
       // article[3] has spam_score 0.8 > threshold 0.7 and isSpam is null
       expect(results.find((a) => a.id === articles[3].id)).toBeUndefined()
@@ -353,9 +360,10 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, { spamThreshold: 0.7 })
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        { spamThreshold: 0.7 }
+      )
 
       expect(results.map((a) => a.id)).toContain(articles[0].id)
     })
@@ -368,12 +376,13 @@ describe('findTopicChannelArticles', () => {
         data: { score: 0.9, isLabeled: false },
       })
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id, {
+      const results = await channelService.findTopicChannelArticles(
+        channel.id,
+        {
           spamThreshold: 0.7,
           channelThreshold: 0.8,
-        })
-        .orderBy('order', 'asc')
+        }
+      )
 
       // Should include article[1] as it passes both filters
       expect(results.map((a) => a.id)).toContain(articles[1].id)
@@ -384,9 +393,7 @@ describe('findTopicChannelArticles', () => {
     })
 
     test('ignores spam threshold when not provided', async () => {
-      const results = await channelService
-        .findTopicChannelArticles(channel.id)
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(channel.id)
 
       expect(results).toHaveLength(4)
       expect(results.map((a) => a.id)).toEqual(
@@ -410,9 +417,7 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id)
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(channel.id)
 
       expect(results.map((a) => a.id)).not.toContain(articles[0].id)
     })
@@ -429,9 +434,7 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id)
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(channel.id)
 
       expect(results.length).toBeGreaterThan(0)
     })
@@ -454,9 +457,7 @@ describe('findTopicChannelArticles', () => {
         pinned: true,
       })
 
-      const results = await channelService
-        .findTopicChannelArticles(channel.id)
-        .orderBy('order', 'asc')
+      const results = await channelService.findTopicChannelArticles(channel.id)
 
       // Should still include the pinned article from restricted author
       expect(results.map((a) => a.id)).toContain(articles[0].id)

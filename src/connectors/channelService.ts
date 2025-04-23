@@ -30,6 +30,7 @@ import {
   AtomService,
   ChannelClassifier,
 } from '#connectors/index.js'
+
 const logger = getLogger('service-channel')
 
 export class ChannelService {
@@ -252,20 +253,19 @@ export class ChannelService {
       channelThreshold,
       spamThreshold,
       datetimeRange,
+      addOrderColumn = false,
     }: {
       channelThreshold?: number
       spamThreshold?: number
       datetimeRange?: { start: Date; end?: Date }
-    } = {}
+      addOrderColumn?: boolean
+    } = {
+      addOrderColumn: false,
+    }
   ) => {
     const knexRO = this.connections.knexRO
     const pinnedQuery = knexRO
-      .select(
-        'article.*',
-        knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
-        )
-      )
+      .select('article.*')
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -276,12 +276,7 @@ export class ChannelService {
       })
 
     const unpinnedQuery = knexRO
-      .select(
-        'article.*',
-        knexRO.raw(
-          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
-        )
-      )
+      .select('article.*')
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -323,6 +318,19 @@ export class ChannelService {
           }
         }
       })
+    if (addOrderColumn) {
+      pinnedQuery.select(
+        knexRO.raw(
+          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
+        )
+      )
+      unpinnedQuery.select(
+        knexRO.raw(
+          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
+        )
+      )
+    }
+
     return pinnedQuery.union(unpinnedQuery)
   }
 

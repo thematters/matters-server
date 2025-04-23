@@ -986,6 +986,30 @@ export class UserService extends BaseService<User> {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
+  public addAppreciationAmountColumn = (articlesQuery: Knex.QueryBuilder) => {
+    const column = 'appreciation_amount'
+    const knex = articlesQuery.client.queryBuilder()
+    return {
+      query: articlesQuery.as('t1').leftJoin(
+        knex
+          .from('appreciation')
+          .whereIn('purpose', [
+            APPRECIATION_PURPOSE.appreciate,
+            APPRECIATION_PURPOSE.appreciateSubsidy,
+          ])
+          .groupBy('reference_id')
+          .select(
+            'reference_id',
+            knex.client.raw('SUM(amount) as ??', [column])
+          )
+          .as('t2'),
+        't1.id',
+        't2.reference_id'
+      ),
+      column,
+    }
+  }
+
   public findAppreciationBySender = async ({
     senderId,
     take,
@@ -1404,6 +1428,26 @@ export class UserService extends BaseService<User> {
     }
 
     return query
+  }
+
+  public addBookmarkCountColumn = (articlesQuery: Knex.QueryBuilder) => {
+    const column = 'bookmark_count'
+    const knex = articlesQuery.client.queryBuilder()
+    return {
+      query: articlesQuery.as('t1').leftJoin(
+        knex
+          .from('action_article')
+          .where({
+            type: USER_ACTION.subscribe,
+          })
+          .groupBy('target_id')
+          .select('target_id', knex.client.raw('count(*) as ??', [column]))
+          .as('t'),
+        'article.id',
+        't.target_id'
+      ),
+      column,
+    }
   }
 
   /*********************************
