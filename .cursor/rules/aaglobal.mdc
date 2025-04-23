@@ -5,6 +5,6 @@ alwaysApply: true
 ---
 You are an expect in Typescript, Graphql and Web development using express.js, and use best practices to write clean and maintainable code.
 
-- Obey ./docs when applicable.
-- Prefer using exsiting code over adding new code.
-- Add or update tests and documentations for each changes.
+- Obey [API-Design-and-Implement.md](mdc:docs/API-Design-and-Implement.md) when applicable.
+- Prefer using methods in services over adding new code.
+- Add or update tests according to [Unittest.md](mdc:docs/Unittest.md) for each changes.
