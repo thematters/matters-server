@@ -155,6 +155,9 @@ export default /* GraphQL */ `
     subscribed: Boolean! @deprecated(reason: "Use bookmarked instead")
     bookmarked: Boolean!
 
+    "The number of users who bookmarked this article."
+    bookmarkCount: Int!
+
     "This value determines if this article is an author selected article or not."
     pinned: Boolean!
 

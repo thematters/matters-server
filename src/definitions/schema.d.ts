@@ -194,6 +194,8 @@ export type GQLArticle = GQLNode &
     author: GQLUser
     /** Available translation languages. */
     availableTranslations?: Maybe<Array<GQLUserLanguage>>
+    /** The number of users who bookmarked this article. */
+    bookmarkCount: Scalars['Int']['output']
     bookmarked: Scalars['Boolean']['output']
     /** associated campaigns */
     campaigns: Array<GQLArticleCampaign>
@@ -6205,6 +6207,7 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType
   >
+  bookmarkCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   bookmarked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   campaigns?: Resolver<
     Array<GQLResolversTypes['ArticleCampaign']>,
