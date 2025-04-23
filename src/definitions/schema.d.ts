@@ -846,12 +846,26 @@ export type GQLChannelArticleEdge = {
   pinned: Scalars['Boolean']['output']
 }
 
+export type GQLChannelArticlesFilter = {
+  dateTimeRange?: InputMaybe<GQLDatetimeRangeInput>
+}
+
 export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   channelId?: InputMaybe<Scalars['ID']['input']>
+  filter?: InputMaybe<GQLChannelArticlesFilter>
   first?: InputMaybe<Scalars['Int']['input']>
   shortHash?: InputMaybe<Scalars['String']['input']>
+  sort?: InputMaybe<GQLChannelArticlesSort>
 }
+
+export type GQLChannelArticlesSort =
+  | 'mostAppreciations'
+  | 'mostBookmarks'
+  | 'mostComments'
+  | 'mostDonations'
+  | 'mostReadTime'
+  | 'newest'
 
 export type GQLChannelInput = {
   shortHash: Scalars['String']['input']
@@ -1378,7 +1392,7 @@ export type GQLCurationChannel = GQLChannel & {
 }
 
 export type GQLCurationChannelArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLChannelArticlesInput
 }
 
 export type GQLCurationChannelNameArgs = {
@@ -3723,7 +3737,7 @@ export type GQLTopicChannel = GQLChannel & {
 }
 
 export type GQLTopicChannelArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLChannelArticlesInput
 }
 
 export type GQLTopicChannelNameArgs = {
@@ -4879,7 +4893,9 @@ export type GQLResolversTypes = ResolversObject<{
   ChannelArticleEdge: ResolverTypeWrapper<
     Omit<GQLChannelArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
+  ChannelArticlesFilter: GQLChannelArticlesFilter
   ChannelArticlesInput: GQLChannelArticlesInput
+  ChannelArticlesSort: GQLChannelArticlesSort
   ChannelInput: GQLChannelInput
   ChannelsInput: GQLChannelsInput
   Circle: ResolverTypeWrapper<CircleModel>
@@ -5545,6 +5561,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ChannelArticleEdge: Omit<GQLChannelArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
+  ChannelArticlesFilter: GQLChannelArticlesFilter
   ChannelArticlesInput: GQLChannelArticlesInput
   ChannelInput: GQLChannelInput
   ChannelsInput: GQLChannelsInput

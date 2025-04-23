@@ -251,9 +251,11 @@ export class ChannelService {
     {
       channelThreshold,
       spamThreshold,
+      datetimeRange,
     }: {
       channelThreshold?: number
       spamThreshold?: number
+      datetimeRange?: { start: Date; end?: Date }
     } = {}
   ) => {
     const knexRO = this.connections.knexRO
@@ -303,6 +305,22 @@ export class ChannelService {
       .where((builder) => {
         if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold)
+        }
+      })
+      .where((builder) => {
+        if (datetimeRange) {
+          builder.where(
+            'topic_channel_article.created_at',
+            '>=',
+            datetimeRange.start
+          )
+          if (datetimeRange.end) {
+            builder.where(
+              'topic_channel_article.created_at',
+              '<=',
+              datetimeRange.end
+            )
+          }
         }
       })
     return pinnedQuery.union(unpinnedQuery)

@@ -13,11 +13,14 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
 
+  const baseQuery = channelService.findTopicChannelArticles(id, {
+    channelThreshold: channelThreshold ?? undefined,
+    spamThreshold: spamThreshold ?? undefined,
+    datetimeRange: input.filter?.dateTimeRange,
+  })
+
   const connection = await connectionFromQuery({
-    query: channelService.findTopicChannelArticles(id, {
-      channelThreshold: channelThreshold ?? undefined,
-      spamThreshold: spamThreshold ?? undefined,
-    }),
+    query: baseQuery,
     args: input,
     orderBy: { column: 'order', order: 'asc' },
     cursorColumn: 'id',

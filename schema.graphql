@@ -2551,6 +2551,8 @@ input ChannelArticlesInput {
   shortHash: String
   after: String
   first: Int
+  sort: ChannelArticlesSort = newest
+  filter: ChannelArticlesFilter
 }
 
 input RecommendInput {
@@ -3864,7 +3866,7 @@ type TopicChannel implements Channel {
   note(input: TranslationArgs): String
   providerId: String!
   enabled: Boolean!
-  articles(input: ConnectionArgs!): ChannelArticleConnection!
+  articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }
 
 type CurationChannel implements Channel {
@@ -3878,7 +3880,20 @@ type CurationChannel implements Channel {
   """both activePeriod and state determine if the channel is active"""
   activePeriod: DatetimeRange!
   state: CurationChannelState!
-  articles(input: ConnectionArgs!): ChannelArticleConnection!
+  articles(input: ChannelArticlesInput!): ChannelArticleConnection!
+}
+
+enum ChannelArticlesSort {
+  newest
+  mostAppreciations
+  mostBookmarks
+  mostComments
+  mostDonations
+  mostReadTime
+}
+
+input ChannelArticlesFilter {
+  dateTimeRange: DatetimeRangeInput
 }
 
 input ChannelInput {
