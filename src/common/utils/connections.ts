@@ -205,13 +205,13 @@ export const connectionFromQuery = async <T extends { id: string }>({
 
   const knex = query.client.queryBuilder()
   const baseTableName = 'connection_base'
+  const sorted = query.orderBy(orderBy.column as string, orderBy.order)
   knex.with(
     baseTableName,
     query.client
       .queryBuilder()
-      .from(maxTake ? query.limit(maxTake).as('base') : query.as('base'))
+      .from(maxTake ? sorted.limit(maxTake).as('base') : sorted.as('base'))
       .select('*')
-      .orderBy(orderBy.column as string, orderBy.order)
       .modify(selectWithTotalCount)
       .modify(selectWithRowNumber, orderBy)
   )

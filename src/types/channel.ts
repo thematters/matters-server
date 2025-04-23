@@ -1,4 +1,4 @@
-import { AUTH_MODE, NODE_TYPES } from '#common/enums/index.js'
+import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from '#common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -34,7 +34,7 @@ export default /* GraphQL */ `
     color: Color!
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange!
-    state: CurationChannelState!
+    state: CurationChannelState! @auth(mode: "${AUTH_MODE.admin}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     articles(input: ConnectionArgs!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
