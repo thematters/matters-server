@@ -173,6 +173,7 @@ export const connectionFromArrayWithKeys = <
 
 /**
  * Construct a GQL connection from knex query using cursor based pagination.
+ * Note: This implementation does not support nulls last ordering.
  */
 export const connectionFromQuery = async <T extends { id: string }>({
   query,
@@ -182,7 +183,7 @@ export const connectionFromQuery = async <T extends { id: string }>({
   maxTake,
 }: {
   query: Knex.QueryBuilder<T>
-  orderBy: { column: keyof T; order: 'asc' | 'desc'; nulls?: 'first' | 'last' }
+  orderBy: { column: keyof T; order: 'asc' | 'desc' }
 
   cursorColumn: keyof T
   args: ConnectionArguments
