@@ -16,8 +16,8 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
       articleService,
       commentService,
       paymentService,
-      systemService,
       userService,
+      systemService,
     },
   }
 ) => {
