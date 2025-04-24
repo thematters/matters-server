@@ -127,12 +127,17 @@ beforeEach(async () => {
 
 ### Error Handling
 - Test both success and error cases
-- Verify error messages and codes
+- Verify error codes using `errors?.[0].extensions.code`, do not verify error messages
 - Handle async errors appropriately
 - Example:
    ```typescript
+   // Success case
    expect(errors).toBeUndefined()
    expect(data).toBeDefined()
+
+   // Error case
+   expect(errors).toBeDefined()
+   expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
    ```
 
 ### Performance

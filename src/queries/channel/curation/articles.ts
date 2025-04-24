@@ -19,11 +19,14 @@ const resolver: GQLCurationChannelResolvers['articles'] = async (
     },
   }
 ) => {
-  if (input.sort && input.sort !== 'newest' && !viewer.hasRole('admin')) {
+  const sort = input.sort ?? 'newest'
+
+  if (sort !== 'newest' && !viewer.hasRole('admin')) {
     throw new ForbiddenError('Only admins can sort articles')
   }
+
   const baseQuery = channelService.findCurationChannelArticles(id, {
-    addOrderColumn: input.sort === 'newest' ? true : false,
+    addOrderColumn: sort === 'newest' ? true : false,
   })
 
   let query: Knex.QueryBuilder = baseQuery
@@ -34,7 +37,7 @@ const resolver: GQLCurationChannelResolvers['articles'] = async (
     column: 'order',
     order: 'asc',
   }
-  switch (input.sort) {
+  switch (sort) {
     case 'newest':
       break
     case 'mostAppreciations': {

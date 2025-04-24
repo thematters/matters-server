@@ -21,17 +21,17 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     },
   }
 ) => {
-  if (input.sort && input.sort !== 'newest' && !viewer.hasRole('admin')) {
+  const sort = input.sort ?? 'newest'
+  if (sort !== 'newest' && !viewer.hasRole('admin')) {
     throw new ForbiddenError('Only admins can sort articles')
   }
-
   const channelThreshold = await systemService.getArticleChannelThreshold()
   const spamThreshold = await systemService.getSpamThreshold()
   const baseQuery = channelService.findTopicChannelArticles(id, {
     channelThreshold: channelThreshold ?? undefined,
     spamThreshold: spamThreshold ?? undefined,
     datetimeRange: input.filter?.dateTimeRange,
-    addOrderColumn: input.sort === 'newest' ? true : false,
+    addOrderColumn: sort === 'newest' ? true : false,
   })
 
   let query: Knex.QueryBuilder = baseQuery
@@ -42,7 +42,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     column: 'order',
     order: 'asc',
   }
-  switch (input.sort) {
+  switch (sort) {
     case 'newest':
       break
     case 'mostAppreciations': {
