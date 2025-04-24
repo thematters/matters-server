@@ -990,22 +990,30 @@ export class UserService extends BaseService<User> {
     const column = 'appreciation_amount'
     const knex = articlesQuery.client.queryBuilder()
     return {
-      query: articlesQuery.as('t1').leftJoin(
-        knex
-          .from('appreciation')
-          .whereIn('purpose', [
-            APPRECIATION_PURPOSE.appreciate,
-            APPRECIATION_PURPOSE.appreciateSubsidy,
-          ])
-          .groupBy('reference_id')
-          .select(
-            'reference_id',
-            knex.client.raw('SUM(amount) as ??', [column])
-          )
-          .as('t2'),
-        't1.id',
-        't2.reference_id'
-      ),
+      query: knex
+        .clone()
+        .from(articlesQuery.as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('appreciation')
+            .whereIn('purpose', [
+              APPRECIATION_PURPOSE.appreciate,
+              APPRECIATION_PURPOSE.appreciateSubsidy,
+            ])
+            .groupBy('reference_id')
+            .select(
+              'reference_id',
+              knex.client.raw('SUM(amount) as ??', [column])
+            )
+            .as('t2'),
+          't1.id',
+          't2.reference_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
       column,
     }
   }
@@ -1434,18 +1442,26 @@ export class UserService extends BaseService<User> {
     const column = 'bookmark_count'
     const knex = articlesQuery.client.queryBuilder()
     return {
-      query: articlesQuery.as('t1').leftJoin(
-        knex
-          .from('action_article')
-          .where({
-            type: USER_ACTION.subscribe,
-          })
-          .groupBy('target_id')
-          .select('target_id', knex.client.raw('count(*) as ??', [column]))
-          .as('t'),
-        'article.id',
-        't.target_id'
-      ),
+      query: knex
+        .clone()
+        .from(articlesQuery.as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('action_article')
+            .where({
+              action: USER_ACTION.subscribe,
+            })
+            .groupBy('target_id')
+            .select('target_id', knex.client.raw('count(*) as ??', [column]))
+            .as('t2'),
+          't1.id',
+          't2.target_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
       column,
     }
   }

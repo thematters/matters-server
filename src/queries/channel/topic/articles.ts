@@ -38,11 +38,9 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
   let orderBy: {
     column: string
     order: 'asc' | 'desc'
-    nulls?: 'first' | 'last'
   } = {
     column: 'order',
     order: 'asc',
-    nulls: 'last',
   }
   switch (input.sort) {
     case 'newest':
@@ -51,35 +49,35 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
       const { query: appreciationAmountQuery, column } =
         userService.addAppreciationAmountColumn(baseQuery)
       query = appreciationAmountQuery
-      orderBy = { column, order: 'desc', nulls: 'last' }
+      orderBy = { column, order: 'desc' }
       break
     }
     case 'mostBookmarks': {
       const { query: bookmarkCountQuery, column } =
         userService.addBookmarkCountColumn(baseQuery)
       query = bookmarkCountQuery
-      orderBy = { column, order: 'desc', nulls: 'last' }
+      orderBy = { column, order: 'desc' }
       break
     }
     case 'mostComments': {
       const { query: commentCountQuery, column } =
         await commentService.addCommentCountColumn(baseQuery)
       query = commentCountQuery
-      orderBy = { column, order: 'desc', nulls: 'last' }
+      orderBy = { column, order: 'desc' }
       break
     }
     case 'mostDonations': {
       const { query: donationCountQuery, column } =
         await paymentService.addDonationCountColumn(baseQuery)
       query = donationCountQuery
-      orderBy = { column, order: 'desc', nulls: 'last' }
+      orderBy = { column, order: 'desc' }
       break
     }
     case 'mostReadTime': {
       const { query: readTimeQuery, column } =
         articleService.addReadTimeColumn(baseQuery)
       query = readTimeQuery
-      orderBy = { column, order: 'desc', nulls: 'last' }
+      orderBy = { column, order: 'desc' }
       break
     }
     default:

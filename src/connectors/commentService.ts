@@ -443,20 +443,28 @@ export class CommentService extends BaseService<Comment> {
     const knex = articlesQuery.client.queryBuilder()
     const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
     return {
-      query: articlesQuery.as('t1').leftJoin(
-        knex
-          .from('comment')
-          .where({
-            type: COMMENT_TYPE.article,
-            state: COMMENT_STATE.active,
-            targetTypeId,
-          })
-          .groupBy('target_id')
-          .select('target_id', knex.client.raw('COUNT(1) as ??', [column]))
-          .as('t2'),
-        't1.id',
-        't2.target_id'
-      ),
+      query: knex
+        .clone()
+        .from(articlesQuery.as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('comment')
+            .where({
+              type: COMMENT_TYPE.article,
+              state: COMMENT_STATE.active,
+              targetTypeId,
+            })
+            .groupBy('target_id')
+            .select('target_id', knex.client.raw('COUNT(1) as ??', [column]))
+            .as('t2'),
+          't1.id',
+          't2.target_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
       column,
     }
   }

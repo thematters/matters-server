@@ -372,3 +372,83 @@ describe('calculateBalance', () => {
     expect(next).toBe(prev - amount)
   })
 })
+
+describe('addDonationCountColumn', () => {
+  test('correctly counts unique donors per article', async () => {
+    // Create test articles
+    const articleService = new ArticleService(connections)
+    const [article1] = await articleService.createArticle({
+      title: 'test1',
+      content: 'test1',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test2',
+      content: 'test2',
+      authorId: '1',
+    })
+    const [article3] = await articleService.createArticle({
+      title: 'test3',
+      content: 'test3',
+      authorId: '1',
+    })
+
+    // Create donations for articles
+    await Promise.all([
+      // Two donations for article1 from different users
+      createDonationTx(
+        {
+          senderId: '2',
+          recipientId: '1',
+          targetId: article1.id,
+        },
+        paymentService
+      ),
+      createDonationTx(
+        {
+          senderId: '3',
+          recipientId: '1',
+          targetId: article1.id,
+        },
+        paymentService
+      ),
+      // One donation for article2
+      createDonationTx(
+        {
+          senderId: '2',
+          recipientId: '1',
+          targetId: article2.id,
+        },
+        paymentService
+      ),
+      // Multiple donations from same user for article2 (should count as 1)
+      createDonationTx(
+        {
+          senderId: '2',
+          recipientId: '1',
+          targetId: article2.id,
+        },
+        paymentService
+      ),
+    ])
+
+    // Create query for articles
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+      .orderBy('id', 'asc')
+
+    // Add donation count column
+    const { query } = await paymentService.addDonationCountColumn(articlesQuery)
+
+    // Get results
+    const results = await query
+
+    // Verify results
+    expect(results).toHaveLength(3)
+    expect(results[0].donationCount).toBe('2') // article1 has 2 unique donors
+    expect(results[1].donationCount).toBe('1') // article2 has 1 unique donor (multiple donations)
+    expect(results[2].donationCount).toBe('0') // article3 has no donations
+  })
+})
