@@ -182,7 +182,7 @@ export const connectionFromQuery = async <T extends { id: string }>({
   maxTake,
 }: {
   query: Knex.QueryBuilder<T>
-  orderBy: { column: keyof T; order: 'asc' | 'desc' }
+  orderBy: { column: keyof T; order: 'asc' | 'desc'; nulls?: 'first' | 'last' }
 
   cursorColumn: keyof T
   args: ConnectionArguments
@@ -205,7 +205,7 @@ export const connectionFromQuery = async <T extends { id: string }>({
 
   const knex = query.client.queryBuilder()
   const baseTableName = 'connection_base'
-  const sorted = query.orderBy(orderBy.column as string, orderBy.order)
+  const sorted = query.orderBy([orderBy])
   knex.with(
     baseTableName,
     query.client

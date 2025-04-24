@@ -638,9 +638,7 @@ describe('findCurationChannelArticles', () => {
   })
 
   test('returns empty array when no articles in channel', async () => {
-    const results = await channelService
-      .findCurationChannelArticles(channel.id)
-      .orderBy('order', 'asc')
+    const results = await channelService.findCurationChannelArticles(channel.id)
     expect(results).toHaveLength(0)
   })
 
@@ -669,7 +667,7 @@ describe('findCurationChannelArticles', () => {
 
     const results = await channelService
       .findCurationChannelArticles(channel.id)
-      .orderBy('order', 'asc')
+      .orderBy('id', 'asc')
     expect(results).toHaveLength(2)
     expect(results[0].id).toBe(articles[0].id) // Pinned should be first
     expect(results[1].id).toBe(articles[1].id) // Unpinned should be second
@@ -701,7 +699,7 @@ describe('findCurationChannelArticles', () => {
 
     const results = await channelService
       .findCurationChannelArticles(channel.id)
-      .orderBy('order', 'asc')
+      .orderBy('id', 'asc')
     expect(results).toHaveLength(2)
     expect(results[0].id).toBe(articles[0].id) // Most recently pinned
     expect(results[1].id).toBe(articles[1].id) // Pinned earlier
@@ -731,7 +729,7 @@ describe('findCurationChannelArticles', () => {
 
     const results = await channelService
       .findCurationChannelArticles(channel.id)
-      .orderBy('order', 'asc')
+      .orderBy('id', 'asc')
     expect(results).toHaveLength(2)
     expect(results[0].id).toBe(articles[0].id) // Most recently created
     expect(results[1].id).toBe(articles[1].id) // Created earlier
@@ -781,7 +779,7 @@ describe('findCurationChannelArticles', () => {
 
     const results = await channelService
       .findCurationChannelArticles(channel.id)
-      .orderBy('order', 'asc')
+      .orderBy('id', 'asc')
     expect(results).toHaveLength(4)
 
     // Check order: pinned (by pinnedAt DESC) then unpinned (by createdAt DESC)
