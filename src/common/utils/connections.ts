@@ -391,6 +391,7 @@ const connectionFromQueryOffsetBased = async <T extends { id: string }>({
             builder.limit(maxTake)
           }
         })
+        .as('base')
     )
 
   // Apply pagination
