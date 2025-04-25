@@ -575,7 +575,7 @@ export default /* GraphQL */ `
   input OSSArticlesInput {
     after: String
     first: Int @constraint(min: 0)
-    sort: ArticlesSort
+    sort: ArticlesSort = newest
     filter: OSSArticlesFilterInput
   }
 

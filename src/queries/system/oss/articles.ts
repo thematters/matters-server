@@ -32,7 +32,7 @@ export const articles: GQLOssResolvers['articles'] = async (
     order: 'desc',
   }
 
-  switch (input.sort) {
+  switch (input?.sort) {
     case 'newest':
       break
     case 'mostAppreciations': {

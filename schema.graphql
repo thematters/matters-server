@@ -2520,7 +2520,7 @@ input SetSpamStatusInput {
 input OSSArticlesInput {
   after: String
   first: Int
-  sort: ArticlesSort
+  sort: ArticlesSort = newest
   filter: OSSArticlesFilterInput
 }
 
