@@ -419,7 +419,7 @@ describe('query article readerCount/donationCount', () => {
       providerTxId: Math.random().toString(),
     })
   })
-  test('only article author can view readerCount/donationCount', async () => {
+  test('only article author can view readerCount', async () => {
     const anonymousServer = await testClient({ connections })
     const { data } = await anonymousServer.executeOperation({
       query: GET_ARTICLE,
@@ -428,7 +428,6 @@ describe('query article readerCount/donationCount', () => {
       },
     })
     expect(data.article.readerCount).toBe(0)
-    expect(data.article.donationCount).toBe(0)
 
     const author = await atomService.userIdLoader.load('1')
     const authorServer = await testClient({
@@ -442,7 +441,6 @@ describe('query article readerCount/donationCount', () => {
       },
     })
     expect(data2.article.readerCount).not.toBe(0)
-    expect(data2.article.donationCount).not.toBe(0)
   })
 })
 
@@ -503,6 +501,8 @@ describe('query users articles', () => {
 })
 
 describe('query article donations', () => {
+  const authorId = '1'
+  const articleId = '1'
   beforeAll(async () => {
     // insert test data
     const baseTx = {
@@ -511,8 +511,8 @@ describe('query article donations', () => {
       state: TRANSACTION_STATE.succeeded,
       purpose: TRANSACTION_PURPOSE.donation,
       provider: PAYMENT_PROVIDER.blockchain,
-      recipientId: 1,
-      targetId: 1,
+      recipientId: authorId,
+      targetId: articleId,
       targetType: 4,
     }
     await connections.knex('transaction').insert([
@@ -568,6 +568,35 @@ describe('query article donations', () => {
       data.article.donations.edges.filter((e: any) => e.node.sender === null)
         .length
     ).toBe(3)
+  })
+
+  test('donation count and donations is visible to public', async () => {
+    // Test anonymous user
+    const anonymousServer = await testClient({ connections })
+    const { data: anonymousData } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: { mediaHash: 'someIpfsMediaHash1' },
+      },
+    })
+    expect(anonymousData.article.donationCount).not.toBe(0)
+    expect(anonymousData.article.donations.totalCount).not.toBe(0)
+    expect(anonymousData.article.donations.edges.length).not.toBe(0)
+
+    // Test non-author user
+    const nonAuthorServer = await testClient({
+      connections,
+      isAuth: true,
+    })
+    const { data: nonAuthorData } = await nonAuthorServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: { mediaHash: 'someIpfsMediaHash1' },
+      },
+    })
+    expect(nonAuthorData.article.donationCount).not.toBe(0)
+    expect(nonAuthorData.article.donations.totalCount).not.toBe(0)
+    expect(nonAuthorData.article.donations.edges.length).not.toBe(0)
   })
 })
 
