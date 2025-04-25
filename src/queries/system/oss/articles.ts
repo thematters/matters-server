@@ -78,6 +78,5 @@ export const articles: GQLOssResolvers['articles'] = async (
     query,
     args: input,
     orderBy,
-    cursorColumn: 'id',
   })
 }

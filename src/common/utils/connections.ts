@@ -359,7 +359,7 @@ const connectionFromQueryCursorBased = async <T extends { id: string }>({
  * This is used as a fallback when cursor-based pagination is not available.
  */
 const connectionFromQueryOffsetBased = async <T extends { id: string }>({
-  query,
+  query: baseQuery,
   args,
   orderBy,
   maxTake,
@@ -370,33 +370,31 @@ const connectionFromQueryOffsetBased = async <T extends { id: string }>({
   maxTake?: number
 }): Promise<Connection<T>> => {
   const { after, before, first, includeAfter } = args
-
   if (before) {
     throw new UserInputError(
       'Cannot use `before` with offset based pagination.'
     )
   }
-
   const take =
     first === null ? MAX_TAKE_PER_PAGE : first ?? DEFAULT_TAKE_PER_PAGE
-
   const offset = includeAfter ? cursorToIndex(after) : cursorToIndex(after) + 1
 
-  // Get total count first
-  const baseQuery = query
-    .orderBy(orderBy.column as string, orderBy.order, 'last')
-    .modify((builder) => {
-      if (maxTake) {
-        builder.limit(maxTake)
-      }
-    })
+  const knex = baseQuery.client.queryBuilder()
+  const query = knex
+    .select('*')
     .modify(selectWithTotalCount)
+    .from(
+      baseQuery
+        .orderBy(orderBy.column as string, orderBy.order, 'last')
+        .modify((builder) => {
+          if (maxTake) {
+            builder.limit(maxTake)
+          }
+        })
+    )
 
   // Apply pagination
-  const knex = query.client.queryBuilder()
-  const finalQuery = knex.from(baseQuery).offset(offset).limit(take)
-  console.log(finalQuery.toString())
-  const nodes = await finalQuery
+  const nodes = await query.offset(offset).limit(take)
 
   const totalCount = maxTake ? maxTake : nodes[0]?.totalCount || 0
 
