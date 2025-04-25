@@ -1,6 +1,11 @@
 import type { Connections } from '#definitions/index.js'
 
-import { CACHE_PREFIX, USER_ACTION } from '#common/enums/index.js'
+import {
+  CACHE_PREFIX,
+  USER_ACTION,
+  APPRECIATION_PURPOSE,
+  ARTICLE_ACTION,
+} from '#common/enums/index.js'
 import { ActionFailedError } from '#common/errors.js'
 import {
   AtomService,
@@ -814,5 +819,165 @@ describe('follow', () => {
     await userService.block(blockerId, blockeeId)
     const users2 = await userService.findFollowers(blockerId)
     expect(users2.map(({ id }) => id)).not.toContain(blockeeId)
+  })
+})
+
+describe('addAppreciationAmountColumn', () => {
+  test('adds appreciation amount column to articles query', async () => {
+    // Create test articles
+    const [article1, article2, article3] = await atomService.findMany({
+      table: 'article',
+      where: { authorId: '1' },
+      take: 3,
+    })
+
+    await atomService.deleteMany({
+      table: 'appreciation',
+    })
+    // Create appreciations for articles
+    await Promise.all([
+      atomService.create({
+        table: 'appreciation',
+        data: {
+          senderId: '2',
+          recipientId: '1',
+          referenceId: article1.id,
+          amount: 100,
+          purpose: APPRECIATION_PURPOSE.appreciate,
+        },
+      }),
+      atomService.create({
+        table: 'appreciation',
+        data: {
+          senderId: '3',
+          recipientId: '2',
+          referenceId: article1.id,
+          amount: 200,
+          purpose: APPRECIATION_PURPOSE.appreciateSubsidy,
+        },
+      }),
+      atomService.create({
+        table: 'appreciation',
+        data: {
+          senderId: '2',
+          recipientId: '1',
+          referenceId: article2.id,
+          amount: 50,
+          purpose: APPRECIATION_PURPOSE.appreciate,
+        },
+      }),
+      atomService.create({
+        table: 'appreciation',
+        data: {
+          senderId: '3',
+          recipientId: '1',
+          referenceId: article2.id,
+          amount: 1000,
+          purpose: APPRECIATION_PURPOSE.superlike,
+        },
+      }),
+    ])
+
+    // Create base articles query
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+      .orderBy('id', 'asc')
+
+    // Add appreciation amount column
+    const { query } = userService.addAppreciationAmountColumn(articlesQuery)
+
+    // Execute query
+    const results = await query
+
+    // Verify results
+    expect(results).toHaveLength(3)
+
+    console.dir(results, { depth: null })
+    // Article 1 should have 300 (100 + 200) appreciation amount
+    const article1Result = results[0]
+    expect(article1Result.appreciationAmount).toBe('300')
+
+    // Article 2 should have 50 appreciation amount
+    const article2Result = results[1]
+    expect(article2Result.appreciationAmount).toBe('50')
+
+    // Article 3 should have 0 appreciation amount
+    const article3Result = results[2]
+    expect(article3Result.appreciationAmount).toBe('0')
+  })
+})
+
+describe('addBookmarkCountColumn', () => {
+  test('adds bookmark count column to articles query', async () => {
+    // Create test articles
+    const [article1, article2, article3] = await atomService.findMany({
+      table: 'article',
+      where: { authorId: '1' },
+      take: 3,
+    })
+
+    // Clean up any existing bookmarks
+    await atomService.deleteMany({
+      table: 'action_article',
+      where: { action: ARTICLE_ACTION.subscribe },
+    })
+
+    // Create bookmarks for articles
+    await Promise.all([
+      atomService.create({
+        table: 'action_article',
+        data: {
+          userId: '2',
+          targetId: article1.id,
+          action: ARTICLE_ACTION.subscribe,
+        },
+      }),
+      atomService.create({
+        table: 'action_article',
+        data: {
+          userId: '3',
+          targetId: article1.id,
+          action: ARTICLE_ACTION.subscribe,
+        },
+      }),
+      atomService.create({
+        table: 'action_article',
+        data: {
+          userId: '2',
+          targetId: article2.id,
+          action: ARTICLE_ACTION.subscribe,
+        },
+      }),
+    ])
+
+    // Create base articles query
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+      .orderBy('id', 'asc')
+
+    // Add bookmark count column
+    const { query } = userService.addBookmarkCountColumn(articlesQuery)
+
+    // Execute query
+    const results = await query
+
+    // Verify results
+    expect(results).toHaveLength(3)
+
+    // Article 1 should have 2 bookmarks
+    const article1Result = results[0]
+    expect(article1Result.bookmarkCount).toBe('2')
+
+    // Article 2 should have 1 bookmark
+    const article2Result = results[1]
+    expect(article2Result.bookmarkCount).toBe('1')
+
+    // Article 3 should have 0 bookmarks
+    const article3Result = results[2]
+    expect(article3Result.bookmarkCount).toBe('0')
   })
 })

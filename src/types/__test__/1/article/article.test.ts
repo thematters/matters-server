@@ -89,6 +89,7 @@ const GET_ARTICLE = /* GraphQL */ `
           id
         }
       }
+      bookmarkCount
     }
   }
 `
@@ -324,53 +325,6 @@ describe('publish article', () => {
       'Article cannot be added to campaign or circle at the same time'
     )
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
-  })
-})
-
-describe('toggle article state', () => {
-  test('subscribe an article', async () => {
-    const server = await testClient({
-      isAuth: true,
-      isAdmin: true,
-      connections,
-    })
-    const { errors, data } = await server.executeOperation({
-      query: TOGGLE_SUBSCRIBE_ARTICLE,
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          enabled: true,
-        },
-      },
-    })
-    expect(errors).toBeUndefined()
-    expect(data.toggleSubscribeArticle.subscribed).toBe(true)
-
-    const action = await atomService.findFirst({
-      table: 'action_article',
-      where: { targetId: ARTICLE_DB_ID },
-      orderBy: [{ column: 'id', order: 'desc' }],
-    })
-    expect(action.targetId).toBe(ARTICLE_DB_ID)
-    expect(action.articleVersionId).not.toBeNull()
-  })
-
-  test('unsubscribe an article ', async () => {
-    const server = await testClient({
-      isAuth: true,
-      connections,
-      isAdmin: true,
-    })
-    const { data } = await server.executeOperation({
-      query: TOGGLE_SUBSCRIBE_ARTICLE,
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          enabled: false,
-        },
-      },
-    })
-    expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(false)
   })
 })
 

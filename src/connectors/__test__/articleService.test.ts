@@ -860,3 +860,18 @@ describe('spam detection', () => {
     expect(articles.length).toBeGreaterThan(0)
   })
 })
+
+describe('addReadTimeColumn', () => {
+  test('add read time column to articles query', async () => {
+    const articlesQuery = connections
+      .knex('article')
+      .where({ authorId: '1' })
+      .limit(3)
+    const { query } = articleService.addReadTimeColumn(articlesQuery)
+    const results = await query
+    expect(results.length).toBe(3)
+    expect(results[0].sumReadTime).toBe('0')
+    expect(results[1].sumReadTime).toBe('0')
+    expect(results[2].sumReadTime).toBe('0')
+  })
+})

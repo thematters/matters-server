@@ -986,6 +986,38 @@ export class UserService extends BaseService<User> {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
+  public addAppreciationAmountColumn = (articlesQuery: Knex.QueryBuilder) => {
+    const column = 'appreciation_amount'
+    const knex = articlesQuery.client.queryBuilder()
+    return {
+      query: knex
+        .clone()
+        .from(articlesQuery.as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('appreciation')
+            .whereIn('purpose', [
+              APPRECIATION_PURPOSE.appreciate,
+              APPRECIATION_PURPOSE.appreciateSubsidy,
+            ])
+            .groupBy('reference_id')
+            .select(
+              'reference_id',
+              knex.client.raw('SUM(amount) as ??', [column])
+            )
+            .as('t2'),
+          't1.id',
+          't2.reference_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
+  }
+
   public findAppreciationBySender = async ({
     senderId,
     take,
@@ -1404,6 +1436,34 @@ export class UserService extends BaseService<User> {
     }
 
     return query
+  }
+
+  public addBookmarkCountColumn = (articlesQuery: Knex.QueryBuilder) => {
+    const column = 'bookmark_count'
+    const knex = articlesQuery.client.queryBuilder()
+    return {
+      query: knex
+        .clone()
+        .from(articlesQuery.as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('action_article')
+            .where({
+              action: USER_ACTION.subscribe,
+            })
+            .groupBy('target_id')
+            .select('target_id', knex.client.raw('count(*) as ??', [column]))
+            .as('t2'),
+          't1.id',
+          't2.target_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
   }
 
   /*********************************

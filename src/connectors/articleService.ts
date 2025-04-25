@@ -1410,6 +1410,29 @@ export class ArticleService extends BaseService<Article> {
     return { newRead: false }
   }
 
+  public addReadTimeColumn = (articlesQuery: Knex.QueryBuilder) => {
+    const knex = articlesQuery.client.queryBuilder()
+    const column = 'sum_read_time'
+    return {
+      query: knex
+        .clone()
+        .from(articlesQuery.as('t1'))
+        .leftJoin(
+          'article_read_time_materialized',
+          't1.id',
+          'article_read_time_materialized.article_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw(
+            'COALESCE(article_read_time_materialized.??, 0) as ??',
+            [column, column]
+          )
+        ),
+      column,
+    }
+  }
+
   /*********************************
    *                               *
    *          Connection           *

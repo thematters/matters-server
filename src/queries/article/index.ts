@@ -10,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal.js'
 import assets from './assets.js'
 import author from './author.js'
 import availableTranslations from './availableTranslations.js'
+import bookmarkCount from './bookmarkCount.js'
 import bookmarked from './bookmarked.js'
 import campaigns from './campaigns.js'
 import canComment from './canComment.js'
@@ -106,6 +107,7 @@ const schema: GQLResolvers = {
     pinned,
     subscribed: bookmarked,
     bookmarked,
+    bookmarkCount,
     tags,
     translation: articleTranslation,
     availableTranslations,
