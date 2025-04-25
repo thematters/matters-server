@@ -3894,7 +3894,7 @@ type CurationChannel implements Channel {
 }
 
 input ChannelArticlesFilter {
-  dateTimeRange: DatetimeRangeInput
+  datetimeRange: DatetimeRangeInput
 }
 
 input ChannelInput {

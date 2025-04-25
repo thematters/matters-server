@@ -172,10 +172,52 @@ export const connectionFromArrayWithKeys = <
 }
 
 /**
- * Construct a GQL connection from knex query using cursor based pagination.
- * Note: This implementation does not support nulls last ordering.
+ * Construct a GQL connection from knex query.
+ *
+ * If `cursorColumn` is provided, use cursor based pagination.
+ * Otherwise, use offset based pagination.
+ *
+ * Cursor based pagination is preferred because it's more efficient and more robust for varying sequence of data.
+ * Offset based pagination is used as a fallback when cursor based pagination can not be applied for reasons like:
+ *  1. nulls last ordering.
+ *  2. numbered pages use cases, which need to calculate offset based on page number.
  */
 export const connectionFromQuery = async <T extends { id: string }>({
+  query,
+  args,
+  orderBy,
+  cursorColumn,
+  maxTake,
+}: {
+  query: Knex.QueryBuilder<T>
+  orderBy: { column: keyof T; order: 'asc' | 'desc' }
+  args: ConnectionArguments
+  cursorColumn?: keyof T
+  maxTake?: number
+}): Promise<Connection<T>> => {
+  if (cursorColumn) {
+    return connectionFromQueryCursorBased({
+      query,
+      args,
+      orderBy,
+      cursorColumn,
+      maxTake,
+    })
+  }
+
+  return connectionFromQueryOffsetBased({ query, args, orderBy, maxTake })
+}
+
+/**
+ * Construct a GQL connection from knex query using cursor based pagination.
+ *
+ * Note:
+ *   This implementation does not support:
+ *    1. nulls last ordering.
+ *    2. numbered pages use cases, which need to calculate offset based on page number.
+ *   In such cases, use offset based pagination instead.
+ */
+const connectionFromQueryCursorBased = async <T extends { id: string }>({
   query,
   args,
   orderBy,
@@ -310,6 +352,54 @@ export const connectionFromQuery = async <T extends { id: string }>({
         lastEdge && lastEdge.node.rowNumber < totalCount ? true : false,
     },
   }
+}
+
+/**
+ * Construct a GQL connection from knex query using offset based pagination.
+ * This is used as a fallback when cursor-based pagination is not available.
+ */
+const connectionFromQueryOffsetBased = async <T extends { id: string }>({
+  query: baseQuery,
+  args,
+  orderBy,
+  maxTake,
+}: {
+  query: Knex.QueryBuilder<T>
+  orderBy: { column: keyof T; order: 'asc' | 'desc' }
+  args: ConnectionArguments
+  maxTake?: number
+}): Promise<Connection<T>> => {
+  const { after, before, first, includeAfter } = args
+  if (before) {
+    throw new UserInputError(
+      'Cannot use `before` with offset based pagination.'
+    )
+  }
+  const take =
+    first === null ? MAX_TAKE_PER_PAGE : first ?? DEFAULT_TAKE_PER_PAGE
+  const offset = includeAfter ? cursorToIndex(after) : cursorToIndex(after) + 1
+
+  const knex = baseQuery.client.queryBuilder()
+  const query = knex
+    .select('*')
+    .modify(selectWithTotalCount)
+    .from(
+      baseQuery
+        .orderBy(orderBy.column as string, orderBy.order, 'last')
+        .modify((builder) => {
+          if (maxTake) {
+            builder.limit(maxTake)
+          }
+        })
+        .as('base')
+    )
+
+  // Apply pagination
+  const nodes = await query.offset(offset).limit(take)
+
+  const totalCount = maxTake ? maxTake : nodes[0]?.totalCount || 0
+
+  return connectionFromArray(nodes, args, totalCount)
 }
 
 export const fromConnectionArgs = (

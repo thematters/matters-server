@@ -21,8 +21,9 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     },
   }
 ) => {
+  const isAdmin = viewer.hasRole('admin')
   const sort = input.sort ?? 'newest'
-  if (sort !== 'newest' && !viewer.hasRole('admin')) {
+  if (sort !== 'newest' && !isAdmin) {
     throw new ForbiddenError('Only admins can sort articles')
   }
   const channelThreshold = await systemService.getArticleChannelThreshold()
@@ -30,7 +31,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
   const baseQuery = channelService.findTopicChannelArticles(id, {
     channelThreshold: channelThreshold ?? undefined,
     spamThreshold: spamThreshold ?? undefined,
-    datetimeRange: input.filter?.dateTimeRange,
+    datetimeRange: input.filter?.datetimeRange,
     addOrderColumn: sort === 'newest' ? true : false,
   })
 
@@ -89,8 +90,9 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     query,
     args: input,
     orderBy,
-    cursorColumn: 'id',
     maxTake: MAX_ITEM_COUNT,
+    // oss use offset based pagination
+    cursorColumn: isAdmin ? undefined : 'id',
   })
 
   return {

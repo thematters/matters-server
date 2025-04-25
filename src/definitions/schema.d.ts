@@ -855,7 +855,7 @@ export type GQLChannelArticleEdge = {
 }
 
 export type GQLChannelArticlesFilter = {
-  dateTimeRange?: InputMaybe<GQLDatetimeRangeInput>
+  datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
 }
 
 export type GQLChannelArticlesInput = {
