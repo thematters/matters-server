@@ -598,6 +598,14 @@ export type GQLArticleVersionsInput = {
   first?: InputMaybe<Scalars['Int']['input']>
 }
 
+export type GQLArticlesSort =
+  | 'mostAppreciations'
+  | 'mostBookmarks'
+  | 'mostComments'
+  | 'mostDonations'
+  | 'mostReadTime'
+  | 'newest'
+
 /** This type contains type, link and related data of an asset. */
 export type GQLAsset = {
   __typename?: 'Asset'
@@ -856,16 +864,8 @@ export type GQLChannelArticlesInput = {
   filter?: InputMaybe<GQLChannelArticlesFilter>
   first?: InputMaybe<Scalars['Int']['input']>
   shortHash?: InputMaybe<Scalars['String']['input']>
-  sort?: InputMaybe<GQLChannelArticlesSort>
+  sort?: InputMaybe<GQLArticlesSort>
 }
-
-export type GQLChannelArticlesSort =
-  | 'mostAppreciations'
-  | 'mostBookmarks'
-  | 'mostComments'
-  | 'mostDonations'
-  | 'mostReadTime'
-  | 'newest'
 
 export type GQLChannelInput = {
   shortHash: Scalars['String']['input']
@@ -2732,6 +2732,7 @@ export type GQLOssArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLOssArticlesFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
+  sort?: InputMaybe<GQLArticlesSort>
 }
 
 export type GQLOauth1CredentialInput = {
@@ -4821,6 +4822,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleVersionsInput: GQLArticleVersionsInput
+  ArticlesSort: GQLArticlesSort
   Asset: ResolverTypeWrapper<AssetModel>
   AssetType: GQLAssetType
   AuthResult: ResolverTypeWrapper<
@@ -4895,7 +4897,6 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ChannelArticlesFilter: GQLChannelArticlesFilter
   ChannelArticlesInput: GQLChannelArticlesInput
-  ChannelArticlesSort: GQLChannelArticlesSort
   ChannelInput: GQLChannelInput
   ChannelsInput: GQLChannelsInput
   Circle: ResolverTypeWrapper<CircleModel>

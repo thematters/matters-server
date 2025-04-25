@@ -793,6 +793,15 @@ enum RecommendTypes {
   search
 }
 
+enum ArticlesSort {
+  newest
+  mostAppreciations
+  mostBookmarks
+  mostComments
+  mostDonations
+  mostReadTime
+}
+
 input CampaignInput {
   shortHash: String!
 }
@@ -2511,6 +2520,7 @@ input SetSpamStatusInput {
 input OSSArticlesInput {
   after: String
   first: Int
+  sort: ArticlesSort
   filter: OSSArticlesFilterInput
 }
 
@@ -2551,7 +2561,7 @@ input ChannelArticlesInput {
   shortHash: String
   after: String
   first: Int
-  sort: ChannelArticlesSort = newest
+  sort: ArticlesSort = newest
   filter: ChannelArticlesFilter
 }
 
@@ -3881,15 +3891,6 @@ type CurationChannel implements Channel {
   activePeriod: DatetimeRange!
   state: CurationChannelState!
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
-}
-
-enum ChannelArticlesSort {
-  newest
-  mostAppreciations
-  mostBookmarks
-  mostComments
-  mostDonations
-  mostReadTime
 }
 
 input ChannelArticlesFilter {
