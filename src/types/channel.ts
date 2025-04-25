@@ -47,7 +47,7 @@ export default /* GraphQL */ `
 
 
   input ChannelArticlesFilter {
-    dateTimeRange: DatetimeRangeInput
+    datetimeRange: DatetimeRangeInput
   }
 
   input ChannelInput {

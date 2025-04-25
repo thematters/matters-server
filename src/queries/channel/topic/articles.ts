@@ -30,7 +30,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
   const baseQuery = channelService.findTopicChannelArticles(id, {
     channelThreshold: channelThreshold ?? undefined,
     spamThreshold: spamThreshold ?? undefined,
-    datetimeRange: input.filter?.dateTimeRange,
+    datetimeRange: input.filter?.datetimeRange,
     addOrderColumn: sort === 'newest' ? true : false,
   })
 

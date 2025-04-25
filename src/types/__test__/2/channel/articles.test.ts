@@ -143,7 +143,7 @@ describe('TopicChannel.articles', () => {
           articleInput: {
             first: 10,
             filter: {
-              dateTimeRange: { start: oneDayBefore, end: oneDayAfter },
+              datetimeRange: { start: oneDayBefore, end: oneDayAfter },
             },
           },
         },
@@ -173,7 +173,7 @@ describe('TopicChannel.articles', () => {
           articleInput: {
             first: 10,
             filter: {
-              dateTimeRange: { start: oneDayBefore },
+              datetimeRange: { start: oneDayBefore },
             },
           },
         },
