@@ -5,8 +5,11 @@ import { USER_ACTION } from '#common/enums/index.js'
 const resolver: GQLArticleResolvers['bookmarkCount'] = async (
   { id: articleId },
   _,
-  { dataSources: { atomService } }
+  { viewer, dataSources: { atomService } }
 ) => {
+  if (!viewer.hasRole('admin')) {
+    return 0
+  }
   const count = await atomService.count({
     table: 'action_article',
     where: {
