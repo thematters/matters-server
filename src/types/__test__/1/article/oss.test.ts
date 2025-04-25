@@ -55,61 +55,103 @@ describe('query oss articles', () => {
     expect(data.oss.articles.edges.length).toBeGreaterThan(1)
   })
 
-  describe('query article oss', () => {
-    const GET_ARTICLE_OSS = /* GraphQL */ `
-      query ($input: ArticleInput!) {
-        article(input: $input) {
-          id
-          oss {
-            boost
+  test('query articles with sort', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors: errors1, data: data1 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: { input: { sort: 'mostAppreciations' } },
+    })
+    expect(errors1).toBeUndefined()
+    expect(data1.oss.articles.edges.length).toBeGreaterThan(1)
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: { input: { sort: 'mostBookmarks' } },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.oss.articles.edges.length).toBeGreaterThan(1)
+
+    const { errors: errors3, data: data3 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: { input: { sort: 'mostComments' } },
+    })
+    expect(errors3).toBeUndefined()
+    expect(data3.oss.articles.edges.length).toBeGreaterThan(1)
+
+    const { errors: errors4, data: data4 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: { input: { sort: 'mostDonations' } },
+    })
+    expect(errors4).toBeUndefined()
+    expect(data4.oss.articles.edges.length).toBeGreaterThan(1)
+
+    const { errors: errors5, data: data5 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: { input: { sort: 'mostReadTime' } },
+    })
+    expect(errors5).toBeUndefined()
+    expect(data5.oss.articles.edges.length).toBeGreaterThan(1)
+  })
+})
+
+describe('query article oss', () => {
+  const GET_ARTICLE_OSS = /* GraphQL */ `
+    query ($input: ArticleInput!) {
+      article(input: $input) {
+        id
+        oss {
+          boost
+          score
+          inRecommendIcymi
+          inRecommendHottest
+          inRecommendNewest
+          inSearch
+          spamStatus {
             score
-            inRecommendIcymi
-            inRecommendHottest
-            inRecommendNewest
-            inSearch
-            spamStatus {
-              score
-              isSpam
-            }
+            isSpam
           }
         }
       }
-    `
-    test('only admin can view oss info', async () => {
-      const article = await atomService.findUnique({
-        table: 'article',
-        where: { id: '1' },
-      })
-      const anonymousServer = await testClient({ connections })
-      const { errors } = await anonymousServer.executeOperation({
-        query: GET_ARTICLE_OSS,
-        variables: {
-          input: {
-            shortHash: article.shortHash,
-          },
-        },
-      })
-      expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
-      const adminServer = await testClient({ connections, isAdmin: true })
-      const { errors: errorsAdmin, data } = await adminServer.executeOperation({
-        query: GET_ARTICLE_OSS,
-        variables: {
-          input: {
-            shortHash: article.shortHash,
-          },
-        },
-      })
-      expect(errorsAdmin).toBeUndefined()
-      expect(data.article.oss).toBeDefined()
-      expect(data.article.oss.boost).toBeDefined()
-      expect(data.article.oss.score).toBeDefined()
-      expect(data.article.oss.inRecommendIcymi).toBeDefined()
-      expect(data.article.oss.inRecommendHottest).toBeDefined()
-      expect(data.article.oss.inRecommendNewest).toBeDefined()
-      expect(data.article.oss.inSearch).toBeDefined()
-      expect(data.article.oss.spamStatus).toBeDefined()
-      expect(data.article.oss.spamStatus.score).toBeDefined()
-      expect(data.article.oss.spamStatus.isSpam).toBeDefined()
+    }
+  `
+  test('only admin can view oss info', async () => {
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
     })
+    const anonymousServer = await testClient({ connections })
+    const { errors } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE_OSS,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    const adminServer = await testClient({ connections, isAdmin: true })
+    const { errors: errorsAdmin, data } = await adminServer.executeOperation({
+      query: GET_ARTICLE_OSS,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+    expect(errorsAdmin).toBeUndefined()
+    expect(data.article.oss).toBeDefined()
+    expect(data.article.oss.boost).toBeDefined()
+    expect(data.article.oss.score).toBeDefined()
+    expect(data.article.oss.inRecommendIcymi).toBeDefined()
+    expect(data.article.oss.inRecommendHottest).toBeDefined()
+    expect(data.article.oss.inRecommendNewest).toBeDefined()
+    expect(data.article.oss.inSearch).toBeDefined()
+    expect(data.article.oss.spamStatus).toBeDefined()
+    expect(data.article.oss.spamStatus.score).toBeDefined()
+    expect(data.article.oss.spamStatus.isSpam).toBeDefined()
   })
 })

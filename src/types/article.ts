@@ -541,4 +541,13 @@ export default /* GraphQL */ `
     newest
     search
   }
+
+  enum ArticlesSort {
+    newest
+    mostAppreciations
+    mostBookmarks
+    mostComments
+    mostDonations
+    mostReadTime
+  }
 `

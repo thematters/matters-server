@@ -41,18 +41,10 @@ export default /* GraphQL */ `
   input ChannelArticlesInput {
     after: String
     first: Int
-    sort: ChannelArticlesSort = newest
+    sort: ArticlesSort = newest
     filter: ChannelArticlesFilter
   }
 
-  enum ChannelArticlesSort {
-    newest
-    mostAppreciations
-    mostBookmarks
-    mostComments
-    mostDonations
-    mostReadTime
-  }
 
   input ChannelArticlesFilter {
     dateTimeRange: DatetimeRangeInput
