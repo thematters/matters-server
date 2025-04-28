@@ -1387,13 +1387,49 @@ export class ArticleService extends BaseService<Article> {
     return { newRead: false }
   }
 
+  public addReadCountColumn = (
+    articlesQuery: Knex.QueryBuilder,
+    { start }: { start?: Date } = {}
+  ) => {
+    const knex = articlesQuery.client.queryBuilder()
+    const column = 'read_count'
+    return {
+      query: knex
+        .clone()
+        .from(articlesQuery.clone().as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('article_read_count')
+            .modify((builder) => {
+              if (start) {
+                builder.where('created_at', '>=', start)
+              }
+            })
+            .groupBy('article_id')
+            .select(
+              'article_id',
+              knex.client.raw('count(timed_count) as ??', [column])
+            )
+            .as('t2'),
+          't1.id',
+          't2.article_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
+  }
+
   public addReadTimeColumn = (articlesQuery: Knex.QueryBuilder) => {
     const knex = articlesQuery.client.queryBuilder()
     const column = 'sum_read_time'
     return {
       query: knex
         .clone()
-        .from(articlesQuery.as('t1'))
+        .from(articlesQuery.clone().as('t1'))
         .leftJoin(
           'article_read_time_materialized',
           't1.id',

@@ -121,6 +121,20 @@ export interface ArticleCountView {
   score
 }
 
+export interface ArticleReadCount {
+  id: string
+  userId: string
+  articleId: string
+  count: string
+  archived: boolean
+  ip: string
+  createdAt: Date
+  updatedAt: Date
+  readTime: string
+  timedCount: string
+  lastRead: Date
+}
+
 export interface ArticleReadTimeMaterialized {
   id: string
   articleId: string

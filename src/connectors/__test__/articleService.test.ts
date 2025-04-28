@@ -858,3 +858,75 @@ describe('addArticleCountColumn', () => {
     expect(results[2].articleCount).toBe('0')
   })
 })
+
+describe('addReadCountColumn', () => {
+  test('adds read count column to articles query', async () => {
+    // Create test articles
+    const [article1, article2, article3] = await atomService.findMany({
+      table: 'article',
+      where: { authorId: '1' },
+      take: 3,
+    })
+
+    // Clean up any existing read counts
+    await atomService.deleteMany({
+      table: 'article_read_count',
+    })
+
+    // Create read counts for articles
+    await Promise.all([
+      atomService.create({
+        table: 'article_read_count',
+        data: {
+          userId: '2',
+          articleId: article1.id,
+          count: '2',
+          timedCount: '2',
+          archived: false,
+          lastRead: new Date(),
+        },
+      }),
+      atomService.create({
+        table: 'article_read_count',
+        data: {
+          userId: '3',
+          articleId: article1.id,
+          count: '1',
+          timedCount: '1',
+          archived: false,
+          lastRead: new Date(),
+        },
+      }),
+      atomService.create({
+        table: 'article_read_count',
+        data: {
+          userId: '2',
+          articleId: article2.id,
+          count: '1',
+          timedCount: '1',
+          archived: false,
+          lastRead: new Date(),
+        },
+      }),
+    ])
+
+    // Create base articles query
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+
+    // Add read count column
+    const { query } = articleService.addReadCountColumn(articlesQuery)
+
+    // Execute query
+    const results = await query.orderBy('id', 'asc')
+
+    // Verify results
+    expect(results).toHaveLength(3)
+
+    expect(results[0].readCount).toBe('2')
+    expect(results[1].readCount).toBe('1')
+    expect(results[2].readCount).toBe('0')
+  })
+})
