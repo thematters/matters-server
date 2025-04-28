@@ -3,18 +3,25 @@ import type { Connections } from '#definitions/index.js'
 import {
   MATTERS_CHOICE_TOPIC_STATE,
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
+  RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY,
 } from '#common/enums/index.js'
-import { RecommendationService, AtomService } from '#connectors/index.js'
+import {
+  RecommendationService,
+  AtomService,
+  ArticleService,
+} from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let atomService: AtomService
+let articleService: ArticleService
 let recommendationService: RecommendationService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  articleService = new ArticleService(connections)
   recommendationService = new RecommendationService(connections)
 }, 30000)
 
@@ -243,5 +250,37 @@ describe('find icymi articles', () => {
       await recommendationService.findIcymiArticles({})
     expect(articles2).toHaveLength(0)
     expect(totalCount2).toBe(0)
+  })
+})
+
+describe('calRecommendationPoolSize', () => {
+  test('returns minimum pool size when no articles', async () => {
+    const days = 1
+    const articlesQuery = connections.knex('article').where({ id: '0' })
+    const poolSize = await recommendationService.calRecommendationPoolSize({
+      articlesQuery,
+      days,
+      dateColumn: 'created_at',
+    })
+    expect(poolSize).toBe(RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days)
+  })
+  test('returns pool size when there are articles', async () => {
+    const days = 1
+    for (let i = 0; i < RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY + 1; i++) {
+      await articleService.createArticle({
+        title: `test title ${i}`,
+        content: `test content ${i}`,
+        authorId: '1',
+      })
+    }
+    const articlesQuery = connections.knex('article')
+    const poolSize = await recommendationService.calRecommendationPoolSize({
+      articlesQuery,
+      days,
+      dateColumn: 'created_at',
+    })
+    expect(poolSize).toBeGreaterThan(
+      RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days
+    )
   })
 })

@@ -6,6 +6,7 @@ import {
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
+  RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -203,5 +204,26 @@ export class RecommendationService {
       })
 
     return [records as Article[], records[0]?.totalCount || 0]
+  }
+
+  public calRecommendationPoolSize = async ({
+    articlesQuery,
+    days,
+    dateColumn = 'created_at',
+  }: {
+    articlesQuery: Knex.QueryBuilder
+    days: number
+    dateColumn: string
+  }) => {
+    const knex = articlesQuery.client.queryBuilder()
+    const query = knex
+      .from(articlesQuery.clone().as('t'))
+      .whereRaw(`t.${dateColumn} >= (NOW() - INTERVAL '?? DAYS')`, [days])
+      .count()
+      .first()
+
+    const result = await query
+    const amount = result?.count || 0
+    return Math.max(amount, RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days)
   }
 }

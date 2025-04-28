@@ -261,3 +261,6 @@ export const MAX_TAG_DESCRIPTION_LENGTH = 200
 export const MAX_PINNED_WORKS_LIMIT = 3
 
 export const LATEST_WORKS_NUM = 4
+
+// the magic value from https://observablehq.com/d/fa3d3eb13109fc23
+export const RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY = 6
