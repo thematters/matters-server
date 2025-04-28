@@ -507,3 +507,170 @@ describe('addCommentCountColumn', () => {
     expect(results[2].commentCount).toBe('0')
   })
 })
+
+describe('addNotAuthorCommentCountColumn', () => {
+  test('counts only comments not by the article author', async () => {
+    const [article1] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: '2',
+    })
+    const [article3] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: '3',
+    })
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+
+    // Comments by article authors (should NOT be counted)
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article1.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '1', // same as article1 author
+      },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article2.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '2', // same as article2 author
+      },
+    })
+
+    // Comments NOT by article authors (should be counted)
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article1.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '2',
+      },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article1.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '3',
+      },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article2.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+      .orderBy('id', 'asc')
+
+    const { query } = await commentService.addNotAuthorCommentCountColumn(
+      articlesQuery
+    )
+    const results = await query
+
+    expect(results).toHaveLength(3)
+    // article1: 2 comments not by author
+    expect(results[0].notAuthorCommentCount).toBe('2')
+    // article2: 1 comment not by author
+    expect(results[1].notAuthorCommentCount).toBe('1')
+    // article3: 0 comments
+    expect(results[2].notAuthorCommentCount).toBe('0')
+  })
+
+  test('respects the start date filter', async () => {
+    const [article] = await articleService.createArticle({
+      title: 'test with date',
+      content: 'test',
+      authorId: '10',
+    })
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+
+    // Comment before the start date
+    const oldDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) // 2 days ago
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '11',
+        createdAt: oldDate,
+      },
+    })
+
+    // Comment after the start date
+    const recentDate = new Date()
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: article.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: '12',
+        createdAt: recentDate,
+      },
+    })
+
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .where('id', article.id)
+
+    // Only count comments after yesterday
+    const start = new Date(Date.now() - 1000 * 60 * 60 * 24)
+    const { query } = await commentService.addNotAuthorCommentCountColumn(
+      articlesQuery,
+      { start }
+    )
+    const results = await query
+
+    expect(results).toHaveLength(1)
+    expect(results[0].notAuthorCommentCount).toBe('1')
+  })
+})

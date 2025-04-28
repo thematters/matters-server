@@ -445,7 +445,7 @@ export class CommentService extends BaseService<Comment> {
     return {
       query: knex
         .clone()
-        .from(articlesQuery.as('t1'))
+        .from(articlesQuery.clone().as('t1'))
         .leftJoin(
           knex
             .clone()
@@ -464,6 +464,58 @@ export class CommentService extends BaseService<Comment> {
         .select(
           't1.*',
           knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
+  }
+
+  public addNotAuthorCommentCountColumn = async (
+    articlesQuery: Knex.QueryBuilder,
+    { start }: { start?: Date } = {}
+  ) => {
+    const column = 'not_author_comment_count'
+    const knex = articlesQuery.client.queryBuilder()
+    const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
+    const commentCountQuery = knex
+      .clone()
+      .from(
+        knex
+          .clone()
+          .from('comment')
+          .where({
+            type: COMMENT_TYPE.article,
+            state: COMMENT_STATE.active,
+            targetTypeId,
+          })
+          .modify((query) => {
+            if (start) {
+              query.where('created_at', '>=', start)
+            }
+          })
+          .as('comment')
+      )
+      .leftJoin('article', 'comment.target_id', 'article.id')
+      .whereRaw('article.author_id != comment.author_id')
+      .groupBy('article.id')
+      .select(
+        'article.id',
+        knex.client.raw('COALESCE(COUNT(1), 0) as ??', [column])
+      )
+    return {
+      query: knex
+        .clone()
+        .from(articlesQuery.clone().as('article'))
+        .leftJoin(
+          commentCountQuery.as('comment_count'),
+          'article.id',
+          'comment_count.id'
+        )
+        .select(
+          'article.*',
+          knex.client.raw('COALESCE(comment_count.??, 0) as ??', [
+            column,
+            column,
+          ])
         ),
       column,
     }
