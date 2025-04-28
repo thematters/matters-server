@@ -461,7 +461,7 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._postArticleCreation({
+      this.postArticleCreation({
         articleId: article.id,
         articleVersionId: articleVersion.id,
         title,
@@ -653,7 +653,7 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (newData.content) {
-      this._postArticleCreation({
+      this.postArticleCreation({
         articleId,
         articleVersionId: articleVersion.id,
         title: articleVersion.title,
@@ -2202,7 +2202,7 @@ export class ArticleService extends BaseService<Article> {
     callback?.(score)
   }
 
-  private _postArticleCreation = async ({
+  private postArticleCreation = async ({
     articleId,
     articleVersionId,
     title,
