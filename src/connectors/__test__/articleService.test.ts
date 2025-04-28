@@ -17,6 +17,7 @@ import {
   AtomService,
   SystemService,
   ChannelService,
+  UserService,
 } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
@@ -26,6 +27,7 @@ let articleService: ArticleService
 let channelService: ChannelService
 let atomService: AtomService
 let systemService: SystemService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -33,6 +35,7 @@ beforeAll(async () => {
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -873,5 +876,53 @@ describe('addReadTimeColumn', () => {
     expect(results[0].sumReadTime).toBe('0')
     expect(results[1].sumReadTime).toBe('0')
     expect(results[2].sumReadTime).toBe('0')
+  })
+})
+
+describe('addArticleCountColumn', () => {
+  test('adds article count column to authors query', async () => {
+    // Create test users/authors
+    const author1 = await userService.create()
+    const author2 = await userService.create()
+    const author3 = await userService.create()
+
+    // Create articles for authors
+    await Promise.all([
+      articleService.createArticle({
+        authorId: author1.id,
+        title: 'a1',
+        content: 'content1',
+      }),
+      articleService.createArticle({
+        authorId: author1.id,
+        title: 'a2',
+        content: 'content2',
+      }),
+      articleService.createArticle({
+        authorId: author2.id,
+        title: 'b1',
+        content: 'content3',
+      }),
+      // author3 will have no articles
+    ])
+
+    // Create base authors query
+    const authorsQuery = connections
+      .knex('user')
+      .select('id')
+      .whereIn('id', [author1.id, author2.id, author3.id])
+
+    // Add article count column
+    const { query } = articleService.addArticleCountColumn(authorsQuery)
+
+    // Execute query
+    const results = await query.orderBy('id', 'asc')
+    console.dir(results, { depth: null })
+
+    // Verify results
+    expect(results).toHaveLength(3)
+    expect(results[0].articleCount).toBe('2')
+    expect(results[1].articleCount).toBe('1')
+    expect(results[2].articleCount).toBe('0')
   })
 })

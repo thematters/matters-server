@@ -2239,4 +2239,35 @@ export class ArticleService extends BaseService<Article> {
       }
     )
   }
+
+  /*********************************
+   *                               *
+   *         Authoring             *
+   *                               *
+   *********************************/
+
+  public addArticleCountColumn = (authorsQuery: Knex.QueryBuilder) => {
+    const column = 'article_count'
+    const knex = authorsQuery.client.queryBuilder()
+    return {
+      query: knex
+        .clone()
+        .from(authorsQuery.clone().as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('article')
+            .groupBy('author_id')
+            .select('author_id', knex.client.raw('count(*) as ??', [column]))
+            .as('t2'),
+          't1.id',
+          't2.author_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
+  }
 }
