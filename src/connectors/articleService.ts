@@ -48,7 +48,6 @@ import {
   genMD5,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
-  selectWithTotalCount as selectWithTotalCountModifier,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -317,24 +316,14 @@ export class ArticleService extends BaseService<Article> {
         }
       })
 
-  public latestArticles = async ({
-    skip,
-    take,
-    maxTake,
-    oss,
-    excludeSpam,
+  public latestArticles = ({
+    spamThreshold,
     excludeChannelArticles,
   }: {
-    skip: number
-    take: number
-    maxTake: number
-    oss: boolean
-    excludeSpam: boolean
+    spamThreshold?: number
     excludeChannelArticles?: boolean
-  }): Promise<[Article[], number]> => {
-    const systemService = new SystemService(this.connections)
-    const spamThreshold = await systemService.getSpamThreshold()
-    const query = this.knexRO
+  } = {}): Knex.QueryBuilder<Article, Article[]> =>
+    this.knexRO
       .select('article_set.*')
       .from(
         this.knexRO
@@ -365,22 +354,10 @@ export class ArticleService extends BaseService<Article> {
           .as('article_set')
       )
       .where((builder) => {
-        if (!oss && excludeSpam) {
+        if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold, 'article_set')
         }
-      })
-      .as('newest')
-
-    const records = await this.knexRO
-      .select('*')
-      .modify(selectWithTotalCountModifier)
-      .from(oss ? query : query.limit(maxTake))
-      .orderBy('id', 'desc')
-      .offset(skip)
-      .limit(take)
-
-    return [records, parseInt(records[0]?.totalCount ?? '0', 10)]
-  }
+      }) as Knex.QueryBuilder<any>
 
   /**
    * Create article from draft

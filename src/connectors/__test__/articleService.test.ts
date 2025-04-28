@@ -444,60 +444,20 @@ test('countReaders', async () => {
 
 describe('latestArticles', () => {
   test('base', async () => {
-    const [articles, totalCount] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: false,
-    })
+    const articles = await articleService.latestArticles()
     expect(articles.length).toBeGreaterThan(0)
-    expect(totalCount).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
-  test('should ignore `maxTake` limit when oss=true', async () => {
-    const [articles1, totalCount1] = await articleService.latestArticles({
-      maxTake: 1,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: false,
-    })
-    expect(articles1.length).toBe(1)
-    expect(totalCount1).toBe(1)
-    const [articles2, totalCount2] = await articleService.latestArticles({
-      maxTake: 1,
-      skip: 0,
-      take: 10,
-      oss: true,
-      excludeSpam: false,
-    })
-    expect(articles2.length).toBeGreaterThan(1)
-    expect(totalCount2).toBeGreaterThan(1)
-  })
   test('spam are excluded', async () => {
-    const [articles] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
     // spam flag is on but no detected articles
-    const [articles1] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles1 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles1).toEqual(articles)
 
@@ -507,12 +467,8 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const [articles2] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles2 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
 
@@ -522,12 +478,8 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { isSpam: false },
     })
-    const [articles3] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles3 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
 
@@ -537,12 +489,8 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { spamScore: spamThreshold - 0.1 },
     })
-    const [articles4] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles4 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
 
@@ -552,12 +500,8 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { isSpam: true },
     })
-    const [articles5] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles5 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
   })
@@ -639,23 +583,12 @@ describe('latestArticles', () => {
       },
     })
 
-    const [articles, totalCount1] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: false,
+    const articles = await articleService.latestArticles({
       excludeChannelArticles: false,
     })
-    const [articlesExcludedChannel, totalCount2] =
-      await articleService.latestArticles({
-        maxTake: 500,
-        skip: 0,
-        take: 10,
-        oss: false,
-        excludeSpam: false,
-        excludeChannelArticles: true,
-      })
+    const articlesExcludedChannel = await articleService.latestArticles({
+      excludeChannelArticles: true,
+    })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
     expect(articles.map(({ id }) => id)).toContain(article2.id)
     expect(articles.map(({ id }) => id)).toContain(article3.id)
@@ -664,7 +597,6 @@ describe('latestArticles', () => {
     )
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
-    expect(totalCount1).toBe(totalCount2 + 1)
   })
 })
 
