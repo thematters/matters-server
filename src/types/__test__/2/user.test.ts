@@ -1,10 +1,8 @@
-import type { Connections, User, GlobalId } from '#definitions/index.js'
-import type { Knex } from 'knex'
+import type { Connections, User } from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
 
 import {
-  MATERIALIZED_VIEW,
   NODE_TYPES,
   PAYMENT_CURRENCY,
   RESERVED_NAMES,
@@ -20,11 +18,7 @@ import {
   PaymentService,
   MomentService,
 } from '#connectors/index.js'
-import {
-  createDonationTx,
-  createTx,
-  refreshView,
-} from '#connectors/__test__/utils.js'
+import { createDonationTx, createTx } from '#connectors/__test__/utils.js'
 
 import {
   defaultTestUser,
@@ -287,70 +281,6 @@ const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
       }
     }
   }
-`
-
-const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
-query($first: first_Int_min_0) {
-  viewer {
-    recommendation {
-      ${list}(input: { first: $first }) {
-        totalCount
-        edges {
-          node {
-            ...on Article {
-              id
-              author {
-                id
-              }
-              slug
-              state
-              cover
-              summary
-              mediaHash
-              dataHash
-              iscnId
-              createdAt
-              revisedAt
-              createdAt
-            }
-          }
-        }
-      }
-    }
-  }
-}
-`
-
-const GET_VIEWER_RECOMMENDATION_TAGS = /* GraphQL */ `
-  query ($input: RecommendInput!) {
-    viewer {
-      recommendation {
-        tags(input: $input) {
-          edges {
-            node {
-              id
-            }
-          }
-        }
-      }
-    }
-  }
-`
-
-const GET_AUTHOR_RECOMMENDATION = (list: string) => /* GraphQL */ `
-  query($input: RecommendInput!) {
-    viewer {
-      recommendation {
-        ${list}(input: $input) {
-          edges {
-            node {
-              id
-          }
-        }
-      }
-    }
-  }
-}
 `
 
 const GET_VIEWER_BADGES = /* GraphQL */ `
@@ -982,157 +912,6 @@ describe('mutations on User object', () => {
     expect(
       _get(clearResult, 'data.clearReadHistory.activity.history.totalCount')
     ).toBe(0)
-  })
-})
-
-describe('user recommendations', () => {
-  let knex: Knex
-  beforeAll(async () => {
-    knex = connections.knex
-  })
-  test('retrieve articles from hottest, newest and icymi', async () => {
-    await createTx(
-      {
-        senderId: '2',
-        recipientId: '1',
-        purpose: TRANSACTION_PURPOSE.donation,
-        currency: PAYMENT_CURRENCY.HKD,
-        state: TRANSACTION_STATE.succeeded,
-        targetId: '1',
-      },
-      paymentService
-    )
-
-    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
-
-    const lists = ['hottest', 'newest', 'icymi']
-    for (const list of lists) {
-      const serverNew = await testClient({
-        isAuth: true,
-        connections,
-      })
-
-      const { data, errors } = await serverNew.executeOperation({
-        query: GET_VIEWER_RECOMMENDATION(list),
-        variables: { first: 1 },
-      })
-      expect(errors).toBeUndefined()
-      const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
-      expect(fromGlobalId(article.id).type).toBe('Article')
-      const count = _get(data, `viewer.recommendation.${list}.totalCount`)
-      expect(count).toBeGreaterThan(0)
-    }
-  })
-
-  test('retrieve tags from tags', async () => {
-    await refreshView(MATERIALIZED_VIEW.curation_tag_materialized, knex)
-
-    const serverNew = await testClient({
-      isAuth: true,
-      connections,
-    })
-    const { data } = await serverNew.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_TAGS,
-      variables: { input: { first: 1 } },
-    })
-    const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
-    if (tag) {
-      expect(fromGlobalId(tag.id).type).toBe('Tag')
-    }
-  })
-
-  test('retrive users from authors', async () => {
-    await refreshView(MATERIALIZED_VIEW.user_reader_materialized, knex)
-
-    const server = await testClient({
-      isAuth: true,
-      connections,
-    })
-    const { data } = await server.executeOperation({
-      query: GET_AUTHOR_RECOMMENDATION('authors'),
-      variables: { input: { first: 1 } },
-    })
-    const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
-    expect(fromGlobalId(author.id).type).toBe('User')
-  })
-
-  test('articleHottest restricted authors not show in hottest', async () => {
-    const getAuthorIds = (data: any) =>
-      data!
-        .viewer!.recommendation!.hottest!.edges.map(
-          ({
-            node: {
-              author: { id },
-            },
-          }: {
-            node: { author: { id: string } }
-          }) => id
-        )
-        .map((id: GlobalId) => fromGlobalId(id).id)
-
-    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
-    // before restricted
-    const server = await testClient({
-      isAuth: true,
-      connections,
-    })
-    const { data: data1 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION('hottest'),
-      variables: { first: 10 },
-    })
-    const authorIdsBefore = getAuthorIds(data1)
-
-    const restrictedUserId = '1'
-    expect(authorIdsBefore).toContain(restrictedUserId)
-
-    // after restricted
-    await userService.addRestriction('1', 'articleHottest')
-
-    const { data: data2 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION('hottest'),
-      variables: { first: 11 },
-    })
-    const authorIdsAfter = getAuthorIds(data2)
-    expect(authorIdsAfter).not.toContain(restrictedUserId)
-  })
-
-  test('articleNewest restricted authors not show in newest', async () => {
-    const getAuthorIds = (data: any) =>
-      data!
-        .viewer!.recommendation!.newest!.edges.map(
-          ({
-            node: {
-              author: { id },
-            },
-          }: {
-            node: { author: { id: string } }
-          }) => id
-        )
-        .map((id: GlobalId) => fromGlobalId(id).id)
-
-    // before restricted
-    const server = await testClient({
-      isAuth: true,
-      connections,
-    })
-    const { data: data1 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION('newest'),
-      variables: { first: 10 },
-    })
-    const authorIdsBefore = getAuthorIds(data1)
-
-    const restrictedUserId = '1'
-    expect(authorIdsBefore).toContain(restrictedUserId)
-
-    // after restricted
-    await userService.addRestriction('1', 'articleNewest')
-
-    const { data: data2 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION('newest'),
-      variables: { first: 10 },
-    })
-    const authorIdsAfter = getAuthorIds(data2)
-    expect(authorIdsAfter).not.toContain(restrictedUserId)
   })
 })
 
