@@ -302,22 +302,7 @@ export class ChannelService {
           builder.modify(excludeSpamModifier, spamThreshold)
         }
       })
-      .where((builder) => {
-        if (datetimeRange) {
-          builder.where(
-            'topic_channel_article.created_at',
-            '>=',
-            datetimeRange.start
-          )
-          if (datetimeRange.end) {
-            builder.where(
-              'topic_channel_article.created_at',
-              '<=',
-              datetimeRange.end
-            )
-          }
-        }
-      })
+
     if (addOrderColumn) {
       pinnedQuery.select(
         knexRO.raw(
@@ -331,7 +316,21 @@ export class ChannelService {
       )
     }
 
-    return pinnedQuery.union(unpinnedQuery)
+    const query = pinnedQuery.union(unpinnedQuery)
+
+    if (datetimeRange) {
+      const alias = 'find_topic_channel_articles_alias'
+      const filteredQuery = knexRO(query.as(alias)).where(
+        `${alias}.created_at`,
+        '>=',
+        datetimeRange.start
+      )
+      if (datetimeRange.end) {
+        filteredQuery.where(`${alias}.created_at`, '<=', datetimeRange.end)
+      }
+      return filteredQuery
+    }
+    return query
   }
 
   public classifyArticlesChannels = async ({

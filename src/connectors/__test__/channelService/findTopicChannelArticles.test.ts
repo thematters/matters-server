@@ -180,26 +180,48 @@ describe('findTopicChannelArticles', () => {
     const twoDaysAfter = new Date(baseTime.getTime() + 172800000)
 
     beforeEach(async () => {
-      await atomService.update({
-        table: 'topic_channel_article',
-        where: { articleId: articles[0].id, channelId: channel.id },
-        data: { createdAt: oneDayBefore, pinned: false }, // 1 day before
-      })
-      await atomService.update({
-        table: 'topic_channel_article',
-        where: { articleId: articles[1].id, channelId: channel.id },
-        data: { createdAt: baseTime, pinned: false }, // exactly at start
-      })
-      await atomService.update({
-        table: 'topic_channel_article',
-        where: { articleId: articles[2].id, channelId: channel.id },
-        data: { createdAt: oneDayAfter, pinned: false }, // 1 day after
-      })
-      await atomService.update({
-        table: 'topic_channel_article',
-        where: { articleId: articles[3].id, channelId: channel.id },
-        data: { createdAt: twoDaysAfter, pinned: false }, // 2 days after
-      })
+      await Promise.all([
+        atomService.update({
+          table: 'topic_channel_article',
+          where: { articleId: articles[0].id, channelId: channel.id },
+          data: { pinned: false },
+        }),
+        atomService.update({
+          table: 'topic_channel_article',
+          where: { articleId: articles[1].id, channelId: channel.id },
+          data: { pinned: false },
+        }),
+        atomService.update({
+          table: 'topic_channel_article',
+          where: { articleId: articles[2].id, channelId: channel.id },
+          data: { pinned: false },
+        }),
+        atomService.update({
+          table: 'topic_channel_article',
+          where: { articleId: articles[3].id, channelId: channel.id },
+          data: { pinned: false },
+        }),
+        atomService.update({
+          table: 'article',
+          where: { id: articles[0].id },
+          data: { createdAt: oneDayBefore }, // 1 day before
+        }),
+        atomService.update({
+          table: 'article',
+          where: { id: articles[1].id },
+          data: { createdAt: baseTime }, // exactly at start
+        }),
+        atomService.update({
+          table: 'article',
+          where: { id: articles[2].id },
+          data: { createdAt: oneDayAfter }, // 1 day after
+        }),
+        atomService.update({
+          table: 'article',
+          where: { id: articles[3].id },
+          data: { createdAt: twoDaysAfter }, // 2 days after
+        }),
+      ])
     })
 
     test('filters articles within date range', async () => {
