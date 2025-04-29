@@ -523,7 +523,8 @@ describe('recommandation', () => {
   describe('recommendAuthors', () => {
     test('returns authors', async () => {
       // authors with 1 article are not included
-      const authors = await recommendationService.recommendAuthors()
+      const { query } = await recommendationService.recommendAuthors()
+      const authors = await query
       expect(authors).toEqual([{ authorId: author1.id }])
     })
     test('returns authors in channel', async () => {
@@ -532,7 +533,8 @@ describe('recommandation', () => {
         providerId: 'test provider',
         enabled: true,
       })
-      const authors = await recommendationService.recommendAuthors(channel.id)
+      const { query } = await recommendationService.recommendAuthors(channel.id)
+      const authors = await query
       expect(authors.length).toEqual(0)
     })
   })
@@ -541,7 +543,8 @@ describe('recommandation', () => {
       await atomService.deleteMany({ table: 'article_tag' })
     })
     test('returns 0 tags', async () => {
-      const tags = await recommendationService.recommendTags()
+      const { query } = await recommendationService.recommendTags()
+      const tags = await query
       expect(tags.length).toEqual(0)
     })
     test('returns tags', async () => {
@@ -575,7 +578,8 @@ describe('recommandation', () => {
           },
         }),
       ])
-      const tags = await recommendationService.recommendTags()
+      const { query } = await recommendationService.recommendTags()
+      const tags = await query
       expect(tags).toEqual([{ tagId: '1' }])
     })
     test('returns tags in channel', async () => {
@@ -584,7 +588,8 @@ describe('recommandation', () => {
         providerId: 'test provider 2',
         enabled: true,
       })
-      const tags = await recommendationService.recommendTags(channel.id)
+      const { query } = await recommendationService.recommendTags(channel.id)
+      const tags = await query
       expect(tags.length).toEqual(0)
     })
   })

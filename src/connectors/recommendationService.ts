@@ -305,7 +305,9 @@ export class RecommendationService {
 
   public recommendAuthors = async (
     channelId?: string
-  ): Promise<Array<{ authorId: string }>> => {
+  ): Promise<{
+    query: Knex.QueryBuilder<any, Array<{ authorId: string }>>
+  }> => {
     const decayDays = channelId
       ? RECOMMENDATION_DECAY_DAYS_CHANNEL
       : RECOMMENDATION_DECAY_DAYS
@@ -376,12 +378,12 @@ export class RecommendationService {
       .whereRaw(`author_score > median_score`)
       .select('with_article_count.author_id')
 
-    return query
+    return { query }
   }
 
   public recommendTags = async (
     channelId?: string
-  ): Promise<Array<{ tagId: string }>> => {
+  ): Promise<{ query: Knex.QueryBuilder<any, Array<{ tagId: string }>> }> => {
     const decayDays = channelId
       ? RECOMMENDATION_DECAY_DAYS_CHANNEL
       : RECOMMENDATION_DECAY_DAYS
@@ -490,6 +492,6 @@ export class RecommendationService {
       .whereRaw('count > percentile_count')
       .select('tag_id')
 
-    return query
+    return { query }
   }
 }
