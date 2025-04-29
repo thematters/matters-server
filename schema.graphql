@@ -2570,6 +2570,7 @@ input RecommendInput {
   first: Int
   oss: Boolean
   filter: RecommendFilterInput
+  newAlgo: Boolean
 }
 
 input RecommendFilterInput {

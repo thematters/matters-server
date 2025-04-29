@@ -11,7 +11,7 @@ import chunk from 'lodash/chunk.js'
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
   { input },
-  { dataSources: { userService }, viewer }
+  { dataSources: { userService, recommendationService, atomService }, viewer }
 ) => {
   const { filter, oss = false } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -38,22 +38,40 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     ]
   }
 
+  const limit = 50
+  const draw = input.first || 5
+  const _take = limit * draw
+
   /**
-   * Pick randomly
+   * new algo
+   */
+  if (input.newAlgo) {
+    const { query } = await recommendationService.recommendAuthors(
+      input.filter?.channelId
+    )
+    const authorIds = await query.whereNotIn('author_id', notIn).limit(_take)
+    const chunks = chunk(authorIds, draw)
+    const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
+    const randomAuthorIds = chunks[index] || []
+    const randomAuthors = await atomService.userIdLoader.loadMany(
+      randomAuthorIds.map(({ authorId }) => authorId)
+    )
+
+    return connectionFromArray(randomAuthors, input, authorIds.length)
+  }
+
+  /**
+   * old algo
    */
   if (typeof filter?.random === 'number') {
-    const MAX_RANDOM_INDEX = 50
-    const randomDraw = input.first || 5
-    const _take = MAX_RANDOM_INDEX * randomDraw
-
     const authorPool = await userService.recommendAuthors({
       take: _take,
       notIn,
       oss,
     })
 
-    const chunks = chunk(authorPool, randomDraw)
-    const index = Math.min(filter.random, MAX_RANDOM_INDEX, chunks.length - 1)
+    const chunks = chunk(authorPool, draw)
+    const index = Math.min(filter.random, limit, chunks.length - 1)
     const filteredAuthors = chunks[index] || []
 
     return connectionFromArray(

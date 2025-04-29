@@ -246,6 +246,7 @@ export default /* GraphQL */ `
     first: Int @constraint(min: 0)
     oss: Boolean
     filter: RecommendFilterInput
+    newAlgo: Boolean
   }
 
   input RecommendFilterInput {
