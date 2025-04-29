@@ -112,17 +112,17 @@ describe('findTopicChannelArticles', () => {
     expect(results[1].id).toBe(articles[1].id) // Pinned earlier
   })
 
-  test('orders unpinned articles by created_at DESC', async () => {
+  test('orders unpinned articles by topic_channel_article.created_at DESC', async () => {
     // Update created_at for articles to ensure specific ordering
     const baseTime = new Date()
     await atomService.update({
-      table: 'article',
-      where: { id: articles[2].id },
+      table: 'topic_channel_article',
+      where: { articleId: articles[2].id, channelId: channel.id },
       data: { createdAt: new Date(baseTime.getTime() + 1000) },
     })
     await atomService.update({
-      table: 'article',
-      where: { id: articles[3].id },
+      table: 'topic_channel_article',
+      where: { articleId: articles[3].id, channelId: channel.id },
       data: { createdAt: baseTime },
     })
 
