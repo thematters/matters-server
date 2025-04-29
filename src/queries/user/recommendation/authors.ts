@@ -1,17 +1,27 @@
 import type { GQLRecommendationResolvers, User } from '#definitions/index.js'
 
+import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from '#common/utils/index.js'
+import { CacheService } from '#connectors/index.js'
 import chunk from 'lodash/chunk.js'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
   { input },
-  { dataSources: { userService, recommendationService, atomService }, viewer }
+  {
+    dataSources: {
+      userService,
+      recommendationService,
+      atomService,
+      connections: { objectCacheRedis },
+    },
+    viewer,
+  }
 ) => {
   const { filter, oss = false } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -49,15 +59,29 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     const { query } = await recommendationService.recommendAuthors(
       input.filter?.channelId
     )
-    const authorIds = await query.whereNotIn('author_id', notIn).limit(_take)
+    const cacheService = new CacheService(
+      CACHE_PREFIX.RECOMMENDATION_AUTHORS,
+      objectCacheRedis
+    )
+    const authorIds = await cacheService.getObject({
+      keys: {
+        type: 'recommendationAuthors',
+        args: {
+          viewerId: viewer.id,
+          channelId: input.filter?.channelId,
+          take: _take,
+        },
+      },
+      getter: () => query.whereNotIn('author_id', notIn).limit(_take),
+      expire: CACHE_TTL.MEDIUM,
+    })
     const chunks = chunk(authorIds, draw)
     const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
     const randomAuthorIds = chunks[index] || []
     const randomAuthors = await atomService.userIdLoader.loadMany(
       randomAuthorIds.map(({ authorId }) => authorId)
     )
-
-    return connectionFromArray(randomAuthors, input, authorIds.length)
+    return connectionFromArray(randomAuthors, input, randomAuthors.length)
   }
 
   /**
