@@ -12,6 +12,7 @@ import {
   RecommendationService,
   AtomService,
   ArticleService,
+  ChannelService,
   UserService,
 } from '#connectors/index.js'
 
@@ -20,6 +21,7 @@ import { genConnections, closeConnections } from './utils.js'
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let channelService: ChannelService
 let userService: UserService
 let recommendationService: RecommendationService
 
@@ -27,6 +29,7 @@ beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
+  channelService = new ChannelService(connections)
   userService = new UserService(connections)
   recommendationService = new RecommendationService(connections)
 }, 30000)
@@ -522,6 +525,67 @@ describe('recommandation', () => {
       // authors with 1 article are not included
       const authors = await recommendationService.recommendAuthors()
       expect(authors).toEqual([{ authorId: author1.id }])
+    })
+    test('returns authors in channel', async () => {
+      const channel = await channelService.createTopicChannel({
+        name: 'test channel',
+        providerId: 'test provider',
+        enabled: true,
+      })
+      const authors = await recommendationService.recommendAuthors(channel.id)
+      expect(authors.length).toEqual(0)
+    })
+  })
+  describe('recommendTags', () => {
+    beforeEach(async () => {
+      await atomService.deleteMany({ table: 'article_tag' })
+    })
+    test('returns 0 tags', async () => {
+      const tags = await recommendationService.recommendTags()
+      expect(tags.length).toEqual(0)
+    })
+    test('returns tags', async () => {
+      await Promise.all([
+        atomService.create({
+          table: 'article_tag',
+          data: {
+            articleId: article1.id,
+            tagId: '1',
+          },
+        }),
+        atomService.create({
+          table: 'article_tag',
+          data: {
+            articleId: article2.id,
+            tagId: '1',
+          },
+        }),
+        atomService.create({
+          table: 'article_tag',
+          data: {
+            articleId: article2.id,
+            tagId: '2',
+          },
+        }),
+        atomService.create({
+          table: 'article_tag',
+          data: {
+            articleId: article2.id,
+            tagId: '3',
+          },
+        }),
+      ])
+      const tags = await recommendationService.recommendTags()
+      expect(tags).toEqual([{ tagId: '1' }])
+    })
+    test('returns tags in channel', async () => {
+      const channel = await channelService.createTopicChannel({
+        name: 'test channel',
+        providerId: 'test provider 2',
+        enabled: true,
+      })
+      const tags = await recommendationService.recommendTags(channel.id)
+      expect(tags.length).toEqual(0)
     })
   })
 })

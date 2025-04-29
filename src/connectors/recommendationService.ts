@@ -306,7 +306,6 @@ export class RecommendationService {
   public recommendAuthors = async (
     channelId?: string
   ): Promise<Array<{ authorId: string }>> => {
-    // site recommendation
     const decayDays = channelId
       ? RECOMMENDATION_DECAY_DAYS_CHANNEL
       : RECOMMENDATION_DECAY_DAYS
@@ -376,6 +375,120 @@ export class RecommendationService {
       .whereRaw(`article_count > 1`)
       .whereRaw(`author_score > median_score`)
       .select('with_article_count.author_id')
+
+    return query
+  }
+
+  public recommendTags = async (
+    channelId?: string
+  ): Promise<Array<{ tagId: string }>> => {
+    const decayDays = channelId
+      ? RECOMMENDATION_DECAY_DAYS_CHANNEL
+      : RECOMMENDATION_DECAY_DAYS
+    const percentile = channelId
+      ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL
+      : RECOMMENDATION_TOP_PERCENTILE
+    const decayFactor = RECOMMENDATION_DECAY_FACTOR
+    const spamThreshold = await this.systemService.getSpamThreshold()
+    const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
+    const articlesQuery = channelId
+      ? this.channelService
+          .findTopicChannelArticles(channelId, {
+            channelThreshold: undefined,
+            spamThreshold: spamThreshold ?? undefined,
+            addOrderColumn: true,
+          })
+          .orderBy('order', 'asc')
+      : this.articleService.latestArticles({
+          excludeChannelArticles: false,
+          spamThreshold: spamThreshold ?? undefined,
+        })
+
+    const { query: scoreQuery, column: articleScoreColumn } =
+      await this.addRecommendationScoreColumn({
+        articlesQuery,
+        decay: { days: decayDays, factor: decayFactor },
+        dateColumn,
+      })
+    const knex = articlesQuery.client.queryBuilder()
+    const query = knex
+      .with('with_article_score', (qb) => {
+        return qb
+          .from(scoreQuery.as('t'))
+          .select('id as article_id', articleScoreColumn)
+      })
+      .with('article_median_score', (qb) => {
+        return qb
+          .from('with_article_score')
+          .select(
+            knex.client.raw(
+              'percentile_cont(0.5) WITHIN GROUP (ORDER BY ?? DESC) as median_score',
+              [articleScoreColumn]
+            )
+          )
+          .limit(1)
+      })
+      .with('article_top_percentile', (qb) => {
+        return qb
+          .from('with_article_score')
+          .crossJoin(
+            knex.client.raw(
+              '(SELECT median_score FROM article_median_score LIMIT 1) AS median_score_table'
+            )
+          )
+          .whereRaw('?? > median_score', [articleScoreColumn])
+          .select('article_id')
+      })
+      .with('tags', (qb) => {
+        return qb
+          .from('article_tag')
+          .whereIn(
+            'article_id',
+            knex.client.raw('select article_id from article_top_percentile')
+          )
+          .distinct('tag_id')
+      })
+      .with('with_author_avg_count', (qb) => {
+        return qb
+          .from(
+            qb
+              .clone()
+              .from('article_tag')
+              .join('article', 'article_tag.article_id', 'article.id')
+              .whereRaw("article_tag.created_at > now() - interval '3 months'")
+              .groupBy(
+                'tag_id',
+                knex.client.raw("date_trunc('month', article_tag.created_at)")
+              )
+              .select(
+                'tag_id',
+                knex.client.raw('count(distinct author_id) as count')
+              )
+              .as('at')
+          )
+          .join('tags', 'at.tag_id', 'tags.tag_id')
+          .groupBy('tags.tag_id')
+          .select('tags.tag_id', knex.client.raw('avg(at.count) as count'))
+      })
+      .with('percentile_author_count', (qb) => {
+        return qb
+          .from('with_author_avg_count')
+          .select(
+            knex.client.raw(
+              'percentile_cont(??) WITHIN GROUP (ORDER BY count DESC) as percentile_count',
+              [percentile]
+            )
+          )
+          .limit(1)
+      })
+      .from('with_author_avg_count')
+      .crossJoin(
+        knex.client.raw(
+          '(SELECT percentile_count FROM percentile_author_count LIMIT 1) AS percentile_count_table'
+        )
+      )
+      .whereRaw('count > percentile_count')
+      .select('tag_id')
 
     return query
   }
