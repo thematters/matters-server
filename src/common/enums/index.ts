@@ -262,5 +262,10 @@ export const MAX_PINNED_WORKS_LIMIT = 3
 
 export const LATEST_WORKS_NUM = 4
 
-// the magic value from https://observablehq.com/d/fa3d3eb13109fc23
+// the values from https://observablehq.com/d/fa3d3eb13109fc23
 export const RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY = 6
+export const RECOMMENDATION_DECAY_DAYS = 30
+export const RECOMMENDATION_DECAY_DAYS_CHANNEL = 10
+export const RECOMMENDATION_DECAY_FACTOR = 0.75
+export const RECOMMENDATION_TOP_PERCENTILE = 0.75
+export const RECOMMENDATION_TOP_PERCENTILE_CHANNEL = 0.5

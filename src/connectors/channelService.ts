@@ -265,7 +265,10 @@ export class ChannelService {
   ) => {
     const knexRO = this.connections.knexRO
     const pinnedQuery = knexRO
-      .select('article.*')
+      .select(
+        'article.*',
+        'topic_channel_article.created_at as channel_article_created_at'
+      )
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -276,7 +279,10 @@ export class ChannelService {
       })
 
     const unpinnedQuery = knexRO
-      .select('article.*')
+      .select(
+        'article.*',
+        'topic_channel_article.created_at as channel_article_created_at'
+      )
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({

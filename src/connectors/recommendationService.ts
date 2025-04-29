@@ -7,6 +7,11 @@ import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
   RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY,
+  RECOMMENDATION_DECAY_DAYS,
+  RECOMMENDATION_DECAY_DAYS_CHANNEL,
+  RECOMMENDATION_DECAY_FACTOR,
+  RECOMMENDATION_TOP_PERCENTILE,
+  RECOMMENDATION_TOP_PERCENTILE_CHANNEL,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -16,18 +21,30 @@ import {
 
 import { ArticleService } from './articleService.js'
 import { AtomService } from './atomService.js'
+import { ChannelService } from './channelService.js'
 import { CommentService } from './commentService.js'
+import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'
 
 export class RecommendationService {
   private connections: Connections
   private models: AtomService
+  private articleService: ArticleService
+  private channelService: ChannelService
+  private commentService: CommentService
+  private systemService: SystemService
+  private userService: UserService
   private knexRO: Knex
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.knexRO = connections.knexRO
     this.models = new AtomService(this.connections)
+    this.articleService = new ArticleService(this.connections)
+    this.channelService = new ChannelService(this.connections)
+    this.commentService = new CommentService(this.connections)
+    this.userService = new UserService(this.connections)
+    this.systemService = new SystemService(this.connections)
   }
 
   public createIcymiTopic = async ({
@@ -249,15 +266,12 @@ export class RecommendationService {
     })
 
     const baseQuery = articlesQuery.clone().limit(size)
-    const articleService = new ArticleService(this.connections)
-    const commentService = new CommentService(this.connections)
-    const userService = new UserService(this.connections)
     const { query: withReadCount, column: readCountColumn } =
-      articleService.addReadCountColumn(baseQuery)
+      this.articleService.addReadCountColumn(baseQuery)
     const { query: withCommentCount, column: commentCountColumn } =
-      await commentService.addNotAuthorCommentCountColumn(withReadCount)
+      await this.commentService.addNotAuthorCommentCountColumn(withReadCount)
     const { query: withBookmarkCount, column: bookmarkCountColumn } =
-      userService.addBookmarkCountColumn(withCommentCount)
+      this.userService.addBookmarkCountColumn(withCommentCount)
 
     const knex = articlesQuery.client.queryBuilder()
 
@@ -285,6 +299,84 @@ export class RecommendationService {
           )
         ),
       column: scoreColumn,
+      size,
     }
+  }
+
+  public recommendAuthors = async (
+    channelId?: string
+  ): Promise<Array<{ authorId: string }>> => {
+    // site recommendation
+    const decayDays = channelId
+      ? RECOMMENDATION_DECAY_DAYS_CHANNEL
+      : RECOMMENDATION_DECAY_DAYS
+    const percentile = channelId
+      ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL
+      : RECOMMENDATION_TOP_PERCENTILE
+    const decayFactor = RECOMMENDATION_DECAY_FACTOR
+    const spamThreshold = await this.systemService.getSpamThreshold()
+    const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
+    const articlesQuery = channelId
+      ? this.channelService
+          .findTopicChannelArticles(channelId, {
+            channelThreshold: undefined,
+            spamThreshold: spamThreshold ?? undefined,
+            addOrderColumn: true,
+          })
+          .orderBy('order', 'asc')
+      : this.articleService.latestArticles({
+          excludeChannelArticles: false,
+          spamThreshold: spamThreshold ?? undefined,
+        })
+
+    const { query: scoreQuery, column: articleScoreColumn } =
+      await this.addRecommendationScoreColumn({
+        articlesQuery,
+        decay: { days: decayDays, factor: decayFactor },
+        dateColumn,
+      })
+    const knex = articlesQuery.client.queryBuilder()
+    const query = knex
+      .with('with_author_score', (qb) => {
+        return qb
+          .from(scoreQuery.as('t'))
+          .groupBy('author_id')
+          .select(
+            'author_id',
+            knex.client.raw('avg(??) as author_score', [articleScoreColumn])
+          )
+      })
+      .with('author_median_score', (qb) => {
+        return qb
+          .from('with_author_score')
+          .select(
+            knex.client.raw(
+              'percentile_cont(??) WITHIN GROUP (ORDER BY author_score DESC) as median_score',
+              [percentile]
+            )
+          )
+          .limit(1)
+      })
+      .with('with_article_count', (qb) => {
+        const { query: withArticleCount } =
+          this.articleService.addArticleCountColumn(
+            qb.from('with_author_score'),
+            {
+              joinColumn: 'author_id',
+            }
+          )
+        return qb.from(withArticleCount.as('t'))
+      })
+      .from('with_article_count')
+      .crossJoin(
+        knex.client.raw(
+          '(SELECT median_score FROM author_median_score LIMIT 1) AS median_score_table'
+        )
+      )
+      .whereRaw(`article_count > 1`)
+      .whereRaw(`author_score > median_score`)
+      .select('with_article_count.author_id')
+
+    return query
   }
 }

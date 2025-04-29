@@ -2259,7 +2259,10 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public addArticleCountColumn = (authorsQuery: Knex.QueryBuilder) => {
+  public addArticleCountColumn = (
+    authorsQuery: Knex.QueryBuilder,
+    { joinColumn = 'id' }: { joinColumn?: string } = {}
+  ) => {
     const column = 'article_count'
     const knex = authorsQuery.client.queryBuilder()
     return {
@@ -2273,7 +2276,7 @@ export class ArticleService extends BaseService<Article> {
             .groupBy('author_id')
             .select('author_id', knex.client.raw('count(*) as ??', [column]))
             .as('t2'),
-          't1.id',
+          `t1.${joinColumn}`,
           't2.author_id'
         )
         .select(

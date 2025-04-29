@@ -1,4 +1,4 @@
-import type { Connections } from '#definitions/index.js'
+import type { Connections, Article, User } from '#definitions/index.js'
 
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -12,6 +12,7 @@ import {
   RecommendationService,
   AtomService,
   ArticleService,
+  UserService,
 } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
@@ -19,12 +20,14 @@ import { genConnections, closeConnections } from './utils.js'
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let userService: UserService
 let recommendationService: RecommendationService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
+  userService = new UserService(connections)
   recommendationService = new RecommendationService(connections)
 }, 30000)
 
@@ -288,22 +291,41 @@ describe('calRecommendationPoolSize', () => {
   })
 })
 
-describe('calRecommendationScore', () => {
-  test('calculates recommendation score with decay', async () => {
-    // Create test articles with different timestamps
+describe('recommandation', () => {
+  let author1: User, author2: User, author3: User
+  let article1: Article, article2: Article, article3: Article
+  beforeAll(async () => {
     const now = new Date()
     const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
-    const [article1] = await articleService.createArticle({
+    author1 = await userService.create()
+    author2 = await userService.create()
+    author3 = await userService.create()
+
+    // author1 has 2 articles, others only 1
+    const [_article1] = await articleService.createArticle({
       title: 'test score article 1',
       content: 'test content 1',
-      authorId: '1',
+      authorId: author1.id,
     })
-    const [article2] = await articleService.createArticle({
+    await articleService.createArticle({
+      title: 'test score article 1',
+      content: 'test content 1',
+      authorId: author1.id,
+    })
+    const [_article2] = await articleService.createArticle({
       title: 'test score article 2',
       content: 'test content 2',
-      authorId: '1',
+      authorId: author2.id,
     })
+    const [_article3] = await articleService.createArticle({
+      title: 'test score article 3',
+      content: 'test content 3',
+      authorId: author3.id,
+    })
+    article1 = _article1
+    article2 = _article2
+    article3 = _article3
     await atomService.update({
       table: 'article',
       where: { id: article1.id },
@@ -367,7 +389,7 @@ describe('calRecommendationScore', () => {
           targetTypeId,
           parentCommentId: null,
           state: COMMENT_STATE.active,
-          authorId: '2',
+          authorId: '3',
           content: 'test comment 1',
           createdAt: now,
           uuid: uuidv4(),
@@ -381,8 +403,22 @@ describe('calRecommendationScore', () => {
           targetTypeId,
           parentCommentId: null,
           state: COMMENT_STATE.active,
-          authorId: '2',
+          authorId: '3',
           content: 'test comment 2',
+          createdAt: dayAgo,
+          uuid: uuidv4(),
+        },
+      }),
+      atomService.create({
+        table: 'comment',
+        data: {
+          type: 'article',
+          targetId: article3.id,
+          targetTypeId,
+          parentCommentId: null,
+          state: COMMENT_STATE.active,
+          authorId: author3.id,
+          content: 'test comment 3',
           createdAt: dayAgo,
           uuid: uuidv4(),
         },
@@ -419,10 +455,13 @@ describe('calRecommendationScore', () => {
         },
       }),
     ])
+  })
+  test('calculates recommendation score with decay', async () => {
+    // Create test articles with different timestamps
 
     const articlesQuery = connections
       .knex('article')
-      .whereIn('id', [article1.id, article2.id])
+      .whereIn('id', [article1.id, article2.id, article3.id])
 
     const { query, column } =
       await recommendationService.addRecommendationScoreColumn({
@@ -438,6 +477,7 @@ describe('calRecommendationScore', () => {
 
     // Article 1 (newer) should have higher score than Article 2 (older)
     expect(Number(result[0][column])).toBeGreaterThan(Number(result[1][column]))
+    expect(Number(result[1][column])).toBeGreaterThan(Number(result[2][column]))
 
     // Verify score components
     // Article 1: 2 reads (0.4), 1 comment (0.4), 2 bookmarks (0.2)
@@ -457,6 +497,9 @@ describe('calRecommendationScore', () => {
       (0.4 * 1 + 0.4 * 1 + 0.2 * 1) * (1 - expectedDecayFactor),
       2
     )
+
+    // article 3 should have no score
+    expect(Number(result[2][column])).toBeCloseTo(0, 2)
   })
 
   test('handles empty result set', async () => {
@@ -473,5 +516,12 @@ describe('calRecommendationScore', () => {
 
     const scores = await query
     expect(scores).toHaveLength(0)
+  })
+  describe('recommendAuthors', () => {
+    test('returns authors', async () => {
+      // authors with 1 article are not included
+      const authors = await recommendationService.recommendAuthors()
+      expect(authors).toEqual([{ authorId: author1.id }])
+    })
   })
 })
