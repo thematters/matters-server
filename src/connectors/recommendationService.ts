@@ -14,7 +14,10 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 
+import { ArticleService } from './articleService.js'
 import { AtomService } from './atomService.js'
+import { CommentService } from './commentService.js'
+import { UserService } from './userService.js'
 
 export class RecommendationService {
   private connections: Connections
@@ -225,5 +228,63 @@ export class RecommendationService {
     const result = await query
     const amount = result?.count || 0
     return Math.max(amount, RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days)
+  }
+
+  public addRecommendationScoreColumn = async ({
+    articlesQuery,
+    decay,
+    dateColumn = 'created_at',
+  }: {
+    articlesQuery: Knex.QueryBuilder
+    decay: {
+      days: number
+      factor: number
+    }
+    dateColumn: string
+  }) => {
+    const size = await this.calRecommendationPoolSize({
+      articlesQuery,
+      days: decay.days,
+      dateColumn,
+    })
+
+    const baseQuery = articlesQuery.clone().limit(size)
+    const articleService = new ArticleService(this.connections)
+    const commentService = new CommentService(this.connections)
+    const userService = new UserService(this.connections)
+    const { query: withReadCount, column: readCountColumn } =
+      articleService.addReadCountColumn(baseQuery)
+    const { query: withCommentCount, column: commentCountColumn } =
+      await commentService.addNotAuthorCommentCountColumn(withReadCount)
+    const { query: withBookmarkCount, column: bookmarkCountColumn } =
+      userService.addBookmarkCountColumn(withCommentCount)
+
+    const knex = articlesQuery.client.queryBuilder()
+
+    const decaySeconds = decay.days * 24 * 3600
+    const alias = 'article_with_metrics'
+    const scoreColumn = 'score'
+    return {
+      query: knex
+        .from(withBookmarkCount.as(alias))
+        .select(
+          `${alias}.*`,
+          knex.client.raw(
+            '(0.4 * ?? + 0.4 * ?? + 0.2 * ?? ) * (1 - least(?, ? * (EXTRACT(EPOCH FROM now()-??.??) / ?))) AS ??',
+            [
+              readCountColumn,
+              commentCountColumn,
+              bookmarkCountColumn,
+              decay.factor,
+              decay.factor,
+              alias,
+              dateColumn,
+              decaySeconds,
+              scoreColumn,
+            ]
+          )
+        ),
+      column: scoreColumn,
+    }
   }
 }
