@@ -7,6 +7,7 @@ import {
   RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY,
   COMMENT_STATE,
   ARTICLE_ACTION,
+  DAY,
 } from '#common/enums/index.js'
 import {
   RecommendationService,
@@ -273,13 +274,37 @@ describe('calRecommendationPoolSize', () => {
     })
     expect(poolSize).toBe(RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days)
   })
-  test('returns pool size when there are articles', async () => {
-    const days = 1
+  test('new articles with today are excluded', async () => {
+    const days = 10
     for (let i = 0; i < RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY + 1; i++) {
       await articleService.createArticle({
         title: `test title ${i}`,
         content: `test content ${i}`,
         authorId: '1',
+      })
+    }
+    const articlesQuery = connections.knex('article')
+    const poolSize = await recommendationService.calRecommendationPoolSize({
+      articlesQuery,
+      days,
+      dateColumn: 'created_at',
+    })
+    expect(poolSize).toBe(RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days)
+  })
+  test('returns pool size when there are articles', async () => {
+    const days = 2
+    for (let i = 0; i < RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * 3; i++) {
+      const [article] = await articleService.createArticle({
+        title: `test title ${i}`,
+        content: `test content ${i}`,
+        authorId: '1',
+      })
+      await atomService.update({
+        table: 'article',
+        where: { id: article.id },
+        data: {
+          createdAt: new Date(Date.now() - DAY),
+        },
       })
     }
     const articlesQuery = connections.knex('article')
@@ -296,10 +321,11 @@ describe('calRecommendationPoolSize', () => {
 
 describe('recommandation', () => {
   let author1: User, author2: User, author3: User
-  let article1: Article, article2: Article, article3: Article
+  let article1: Article, article2: Article, article3: Article, article4: Article
   beforeAll(async () => {
     const now = new Date()
-    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const dayAgo = new Date(now.getTime() - DAY)
+    const twoDaysAgo = new Date(now.getTime() - 2 * DAY)
 
     author1 = await userService.create()
     author2 = await userService.create()
@@ -326,17 +352,28 @@ describe('recommandation', () => {
       content: 'test content 3',
       authorId: author3.id,
     })
+    const [_article4] = await articleService.createArticle({
+      title: 'test score article 3',
+      content: 'test content 3',
+      authorId: author3.id,
+    })
     article1 = _article1
     article2 = _article2
     article3 = _article3
+    article4 = _article4
     await atomService.update({
       table: 'article',
       where: { id: article1.id },
-      data: { createdAt: now },
+      data: { createdAt: dayAgo },
     })
     await atomService.update({
       table: 'article',
       where: { id: article2.id },
+      data: { createdAt: twoDaysAgo },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: article3.id },
       data: { createdAt: dayAgo },
     })
 
@@ -462,15 +499,17 @@ describe('recommandation', () => {
   test('calculates recommendation score with decay', async () => {
     // Create test articles with different timestamps
 
+    const decayDays = 10
+
     const articlesQuery = connections
       .knex('article')
-      .whereIn('id', [article1.id, article2.id, article3.id])
+      .whereIn('id', [article1.id, article2.id, article3.id, article4.id])
 
     const { query, column } =
       await recommendationService.addRecommendationScoreColumn({
         articlesQuery,
         decay: {
-          days: 10,
+          days: decayDays,
           factor: 0.75,
         },
         dateColumn: 'created_at',
@@ -478,26 +517,31 @@ describe('recommandation', () => {
 
     const result = await query.orderBy('id', 'asc')
 
+    // articles of today (article4) are excluded
+    expect(result).toHaveLength(3)
+
     // Article 1 (newer) should have higher score than Article 2 (older)
     expect(Number(result[0][column])).toBeGreaterThan(Number(result[1][column]))
     expect(Number(result[1][column])).toBeGreaterThan(Number(result[2][column]))
 
+    const oneDaysAgoDecayFactor = Math.min(
+      0.75,
+      (0.75 * (1 * 24 * 3600)) / (decayDays * 24 * 3600)
+    )
     // Verify score components
     // Article 1: 2 reads (0.4), 1 comment (0.4), 2 bookmarks (0.2)
-    // No decay for newest article
     expect(Number(result[0][column])).toBeCloseTo(
-      (0.4 * 2 + 0.4 * 1 + 0.2 * 2) * (1 - 0),
+      (0.4 * 2 + 0.4 * 1 + 0.2 * 2) * (1 - oneDaysAgoDecayFactor),
       2
     )
 
-    // Article 2: 1 read (0.4), 1 comment (0.4), 1 bookmark (0.2)
-    // Has some decay due to being older
-    const expectedDecayFactor = Math.min(
+    const twoDaysAgoDecayFactor = Math.min(
       0.75,
-      (0.75 * (24 * 3600)) / (10 * 24 * 3600)
+      (0.75 * (2 * 24 * 3600)) / (decayDays * 24 * 3600)
     )
+    // Article 2: 1 read (0.4), 1 comment (0.4), 1 bookmark (0.2)
     expect(Number(result[1][column])).toBeCloseTo(
-      (0.4 * 1 + 0.4 * 1 + 0.2 * 1) * (1 - expectedDecayFactor),
+      (0.4 * 1 + 0.4 * 1 + 0.2 * 1) * (1 - twoDaysAgoDecayFactor),
       2
     )
 
@@ -560,6 +604,13 @@ describe('recommandation', () => {
           table: 'article_tag',
           data: {
             articleId: article2.id,
+            tagId: '1',
+          },
+        }),
+        atomService.create({
+          table: 'article_tag',
+          data: {
+            articleId: article3.id,
             tagId: '1',
           },
         }),

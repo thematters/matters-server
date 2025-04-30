@@ -18,6 +18,7 @@ import {
   EntityNotFoundError,
   ActionFailedError,
 } from '#common/errors.js'
+import { daysToDatetimeRange } from '#common/utils/time.js'
 
 import { ArticleService } from './articleService.js'
 import { AtomService } from './atomService.js'
@@ -236,9 +237,12 @@ export class RecommendationService {
     dateColumn: string
   }) => {
     const knex = articlesQuery.client.queryBuilder()
+    const { start, end } = daysToDatetimeRange(days)
     const query = knex
+      .clone()
       .from(articlesQuery.clone().as('t'))
-      .whereRaw(`t.${dateColumn} >= (NOW() - INTERVAL '?? DAYS')`, [days])
+      .whereRaw(`t.?? >= ?`, [dateColumn, start])
+      .whereRaw(`t.?? < ?`, [dateColumn, end])
       .count()
       .first()
 
@@ -247,6 +251,7 @@ export class RecommendationService {
     return Math.max(amount, RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * days)
   }
 
+  //  add recommendation score column to articlesQuery and filter out new articles of today (UTC+8)
   public addRecommendationScoreColumn = async ({
     articlesQuery,
     decay,
@@ -264,8 +269,15 @@ export class RecommendationService {
       days: decay.days,
       dateColumn,
     })
+    const { start, end } = daysToDatetimeRange(decay.days)
 
-    const baseQuery = articlesQuery.clone().limit(size)
+    const knex = articlesQuery.client.queryBuilder()
+    const baseQuery = knex
+      .clone()
+      .from(articlesQuery.clone().as('t'))
+      .whereRaw(`t.?? >= ?`, [dateColumn, start])
+      .whereRaw(`t.?? < ?`, [dateColumn, end])
+      .limit(size)
     const { query: withReadCount, column: readCountColumn } =
       this.articleService.addReadCountColumn(baseQuery)
     const { query: withCommentCount, column: commentCountColumn } =
@@ -273,13 +285,12 @@ export class RecommendationService {
     const { query: withBookmarkCount, column: bookmarkCountColumn } =
       this.userService.addBookmarkCountColumn(withCommentCount)
 
-    const knex = articlesQuery.client.queryBuilder()
-
     const decaySeconds = decay.days * 24 * 3600
     const alias = 'article_with_metrics'
     const scoreColumn = 'score'
     return {
       query: knex
+        .clone()
         .from(withBookmarkCount.as(alias))
         .select(
           `${alias}.*`,
