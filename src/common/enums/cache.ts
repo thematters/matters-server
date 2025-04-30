@@ -34,6 +34,8 @@ export const CACHE_PREFIX = {
   TAG_COVERS: 'cache-tag-covers',
   SPAM_THRESHOLD: 'cache-spam-threshold',
   ARTICLE_CHANNEL_THRESHOLD: 'cache-article-channel-threshold',
+  RECOMMENDATION_TAGS: 'cache-recommendation-tags',
+  RECOMMENDATION_AUTHORS: 'cache-recommendation-authors',
 }
 
 export const DEFAULT_IPNS_LIFETIME = '7200h' // the maximum, is 300days, almost 1 year

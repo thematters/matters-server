@@ -1,20 +1,29 @@
-import type { GQLRecommendationResolvers } from '#definitions/index.js'
+import type { GQLRecommendationResolvers, User } from '#definitions/index.js'
 
-import { AUTHOR_TYPE } from '#common/enums/index.js'
+import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from '#common/utils/index.js'
+import { CacheService } from '#connectors/index.js'
 import chunk from 'lodash/chunk.js'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
   { input },
-  { dataSources: { userService }, viewer }
+  {
+    dataSources: {
+      userService,
+      recommendationService,
+      atomService,
+      connections: { objectCacheRedis },
+    },
+    viewer,
+  }
 ) => {
-  const { filter, oss = false, type = AUTHOR_TYPE.default } = input
+  const { filter, oss = false } = input
   const { take, skip } = fromConnectionArgs(input)
 
   if (oss) {
@@ -23,62 +32,88 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     }
   }
 
-  const isDefault = type === AUTHOR_TYPE.default
-  const isAppreciated = type === AUTHOR_TYPE.appreciated
-
   /**
    * Filter out followed users
    */
-  let notIn: any[] = id ? [id] : []
+  let notIn: string[] = id ? [id] : []
   if (filter?.followed === false && id) {
     // TODO: move this logic to db layer
     const followees = await userService.findFollowees({
       userId: id,
       take: 999,
     })
-    notIn = [...notIn, ...followees.map(({ targetId }: any) => targetId)]
-  }
-
-  /**
-   * Filter out top 60 trendy authors if type is most appreciated
-   */
-  if (isAppreciated) {
-    const trendyAuthors = await userService.recommendAuthors({ take: 60, type })
     notIn = [
       ...notIn,
-      ...trendyAuthors.map((author: { id: string }) => author.id),
+      ...followees.map(({ targetId }: { targetId: string }) => targetId),
     ]
   }
 
+  const limit = 50
+  const draw = input.first || 5
+  const _take = limit * draw
+
   /**
-   * Pick randomly
+   * new algo
+   */
+  if (input.newAlgo) {
+    const cacheService = new CacheService(
+      CACHE_PREFIX.RECOMMENDATION_AUTHORS,
+      objectCacheRedis
+    )
+    const authorIds = await cacheService.getObject({
+      keys: {
+        type: 'recommendationAuthors',
+        args: {
+          viewerId: viewer.id,
+          channelId: input.filter?.channelId,
+          take: _take,
+        },
+      },
+      getter: async () => {
+        const { query } = await recommendationService.recommendAuthors(
+          input.filter?.channelId
+        )
+        return query.whereNotIn('author_id', notIn).limit(_take)
+      },
+      expire: CACHE_TTL.MEDIUM,
+    })
+    const chunks = chunk(authorIds, draw)
+    const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
+    const randomAuthorIds = chunks[index] || []
+    const randomAuthors = await atomService.userIdLoader.loadMany(
+      randomAuthorIds.map(({ authorId }) => authorId)
+    )
+    return connectionFromArray(randomAuthors, input, randomAuthors.length)
+  }
+
+  /**
+   * old algo
    */
   if (typeof filter?.random === 'number') {
-    const MAX_RANDOM_INDEX = isDefault ? 50 : 12
-    const randomDraw = isDefault ? input.first || 5 : 5
-
     const authorPool = await userService.recommendAuthors({
-      take: MAX_RANDOM_INDEX * randomDraw,
+      take: _take,
       notIn,
       oss,
-      type,
     })
 
-    const chunks = chunk(authorPool, randomDraw)
-    const index = Math.min(filter.random, MAX_RANDOM_INDEX, chunks.length - 1)
+    const chunks = chunk(authorPool, draw)
+    const index = Math.min(filter.random, limit, chunks.length - 1)
     const filteredAuthors = chunks[index] || []
 
-    return connectionFromArray(filteredAuthors as any, input, authorPool.length)
+    return connectionFromArray(
+      filteredAuthors as User[],
+      input,
+      authorPool.length
+    )
   }
 
   const users = await userService.recommendAuthors({
     skip,
     take,
     notIn,
-    type,
     count: true,
   })
   const totalCount = +users[0]?.totalCount || users.length
 
-  return connectionFromPromisedArray(users as any, input, totalCount)
+  return connectionFromPromisedArray(users as User[], input, totalCount)
 }

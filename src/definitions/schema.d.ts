@@ -1631,12 +1631,8 @@ export type GQLFeaturedTagsInput = {
 }
 
 export type GQLFilterInput = {
-  /** Used in RecommendInput */
-  followed?: InputMaybe<Scalars['Boolean']['input']>
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
   inRangeStart?: InputMaybe<Scalars['DateTime']['input']>
-  /** index of list, min: 0, max: 49 */
-  random?: InputMaybe<Scalars['Int']['input']>
   /** Used in User Articles filter, by tags or by time range, or both */
   tagIds?: InputMaybe<Array<Scalars['ID']['input']>>
 }
@@ -3136,12 +3132,20 @@ export type GQLRecentSearchEdge = {
   node: Scalars['String']['output']
 }
 
+export type GQLRecommendFilterInput = {
+  channelId?: InputMaybe<Scalars['ID']['input']>
+  /** filter out followed users */
+  followed?: InputMaybe<Scalars['Boolean']['input']>
+  /** index of list, min: 0, max: 49 */
+  random?: InputMaybe<Scalars['Int']['input']>
+}
+
 export type GQLRecommendInput = {
   after?: InputMaybe<Scalars['String']['input']>
-  filter?: InputMaybe<GQLFilterInput>
+  filter?: InputMaybe<GQLRecommendFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
+  newAlgo?: InputMaybe<Scalars['Boolean']['input']>
   oss?: InputMaybe<Scalars['Boolean']['input']>
-  type?: InputMaybe<GQLAuthorsType>
 }
 
 /** Enums for types of recommend articles. */
@@ -3611,7 +3615,7 @@ export type GQLTagArticlesArgs = {
 
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagRecommendedArgs = {
-  input: GQLConnectionArgs
+  input: GQLRecommendInput
 }
 
 /** This type contains content, count and related data of an article tag. */
@@ -5192,6 +5196,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   RecentSearchConnection: ResolverTypeWrapper<GQLRecentSearchConnection>
   RecentSearchEdge: ResolverTypeWrapper<GQLRecentSearchEdge>
+  RecommendFilterInput: GQLRecommendFilterInput
   RecommendInput: GQLRecommendInput
   RecommendTypes: GQLRecommendTypes
   Recommendation: ResolverTypeWrapper<UserModel>
@@ -5788,6 +5793,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   RecentSearchConnection: GQLRecentSearchConnection
   RecentSearchEdge: GQLRecentSearchEdge
+  RecommendFilterInput: GQLRecommendFilterInput
   RecommendInput: GQLRecommendInput
   Recommendation: UserModel
   RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput

@@ -155,7 +155,7 @@ export class UserService extends BaseService<User> {
       emailVerified?: boolean
       language?: LANGUAGES
       referralCode?: string
-    },
+    } = {},
     trx?: Knex.Transaction
   ) => {
     const uuid = v4()

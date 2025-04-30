@@ -47,6 +47,7 @@ import type {
   ArticleConnection,
   ArticleContent,
   ArticleCountView,
+  ArticleReadCount,
   ArticleReadTimeMaterialized,
   ArticleRecommendSetting,
   ArticleTag,
@@ -216,6 +217,7 @@ export type TableTypeMap = {
   article_connection: ArticleConnection
   article_content: ArticleContent
   article_count_view: ArticleCountView
+  article_read_count: ArticleReadCount
   article_read_time_materialized: ArticleReadTimeMaterialized
   article_recommend_setting: ArticleRecommendSetting
   article_tag: ArticleTag

@@ -277,7 +277,7 @@ export default /* GraphQL */ `
     isFollower: Boolean
 
     "Tags recommended based on relations to current tag."
-    recommended(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
+    recommended(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Authors recommended based on relations to current tag."
     recommendedAuthors(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)

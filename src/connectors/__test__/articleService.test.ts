@@ -17,6 +17,7 @@ import {
   AtomService,
   SystemService,
   ChannelService,
+  UserService,
 } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
@@ -26,6 +27,7 @@ let articleService: ArticleService
 let channelService: ChannelService
 let atomService: AtomService
 let systemService: SystemService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -33,6 +35,7 @@ beforeAll(async () => {
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -441,60 +444,20 @@ test('countReaders', async () => {
 
 describe('latestArticles', () => {
   test('base', async () => {
-    const [articles, totalCount] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: false,
-    })
+    const articles = await articleService.latestArticles()
     expect(articles.length).toBeGreaterThan(0)
-    expect(totalCount).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
-  test('should ignore `maxTake` limit when oss=true', async () => {
-    const [articles1, totalCount1] = await articleService.latestArticles({
-      maxTake: 1,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: false,
-    })
-    expect(articles1.length).toBe(1)
-    expect(totalCount1).toBe(1)
-    const [articles2, totalCount2] = await articleService.latestArticles({
-      maxTake: 1,
-      skip: 0,
-      take: 10,
-      oss: true,
-      excludeSpam: false,
-    })
-    expect(articles2.length).toBeGreaterThan(1)
-    expect(totalCount2).toBeGreaterThan(1)
-  })
   test('spam are excluded', async () => {
-    const [articles] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
     // spam flag is on but no detected articles
-    const [articles1] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles1 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles1).toEqual(articles)
 
@@ -504,12 +467,8 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const [articles2] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles2 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
 
@@ -519,12 +478,8 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { isSpam: false },
     })
-    const [articles3] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles3 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
 
@@ -534,12 +489,8 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { spamScore: spamThreshold - 0.1 },
     })
-    const [articles4] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles4 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
 
@@ -549,12 +500,8 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { isSpam: true },
     })
-    const [articles5] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: true,
+    const articles5 = await articleService.latestArticles({
+      spamThreshold: 0.5,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
   })
@@ -636,23 +583,12 @@ describe('latestArticles', () => {
       },
     })
 
-    const [articles, totalCount1] = await articleService.latestArticles({
-      maxTake: 500,
-      skip: 0,
-      take: 10,
-      oss: false,
-      excludeSpam: false,
+    const articles = await articleService.latestArticles({
       excludeChannelArticles: false,
     })
-    const [articlesExcludedChannel, totalCount2] =
-      await articleService.latestArticles({
-        maxTake: 500,
-        skip: 0,
-        take: 10,
-        oss: false,
-        excludeSpam: false,
-        excludeChannelArticles: true,
-      })
+    const articlesExcludedChannel = await articleService.latestArticles({
+      excludeChannelArticles: true,
+    })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
     expect(articles.map(({ id }) => id)).toContain(article2.id)
     expect(articles.map(({ id }) => id)).toContain(article3.id)
@@ -661,7 +597,6 @@ describe('latestArticles', () => {
     )
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
-    expect(totalCount1).toBe(totalCount2 + 1)
   })
 })
 
@@ -873,5 +808,125 @@ describe('addReadTimeColumn', () => {
     expect(results[0].sumReadTime).toBe('0')
     expect(results[1].sumReadTime).toBe('0')
     expect(results[2].sumReadTime).toBe('0')
+  })
+})
+
+describe('addArticleCountColumn', () => {
+  test('adds article count column to authors query', async () => {
+    // Create test users/authors
+    const author1 = await userService.create()
+    const author2 = await userService.create()
+    const author3 = await userService.create()
+
+    // Create articles for authors
+    await Promise.all([
+      articleService.createArticle({
+        authorId: author1.id,
+        title: 'a1',
+        content: 'content1',
+      }),
+      articleService.createArticle({
+        authorId: author1.id,
+        title: 'a2',
+        content: 'content2',
+      }),
+      articleService.createArticle({
+        authorId: author2.id,
+        title: 'b1',
+        content: 'content3',
+      }),
+      // author3 will have no articles
+    ])
+
+    // Create base authors query
+    const authorsQuery = connections
+      .knex('user')
+      .select('id')
+      .whereIn('id', [author1.id, author2.id, author3.id])
+
+    // Add article count column
+    const { query } = articleService.addArticleCountColumn(authorsQuery)
+
+    // Execute query
+    const results = await query.orderBy('id', 'asc')
+    console.dir(results, { depth: null })
+
+    // Verify results
+    expect(results).toHaveLength(3)
+    expect(results[0].articleCount).toBe('2')
+    expect(results[1].articleCount).toBe('1')
+    expect(results[2].articleCount).toBe('0')
+  })
+})
+
+describe('addReadCountColumn', () => {
+  test('adds read count column to articles query', async () => {
+    // Create test articles
+    const [article1, article2, article3] = await atomService.findMany({
+      table: 'article',
+      where: { authorId: '1' },
+      take: 3,
+    })
+
+    // Clean up any existing read counts
+    await atomService.deleteMany({
+      table: 'article_read_count',
+    })
+
+    // Create read counts for articles
+    await Promise.all([
+      atomService.create({
+        table: 'article_read_count',
+        data: {
+          userId: '2',
+          articleId: article1.id,
+          count: '2',
+          timedCount: '2',
+          archived: false,
+          lastRead: new Date(),
+        },
+      }),
+      atomService.create({
+        table: 'article_read_count',
+        data: {
+          userId: '3',
+          articleId: article1.id,
+          count: '1',
+          timedCount: '1',
+          archived: false,
+          lastRead: new Date(),
+        },
+      }),
+      atomService.create({
+        table: 'article_read_count',
+        data: {
+          userId: '2',
+          articleId: article2.id,
+          count: '1',
+          timedCount: '1',
+          archived: false,
+          lastRead: new Date(),
+        },
+      }),
+    ])
+
+    // Create base articles query
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+
+    // Add read count column
+    const { query } = articleService.addReadCountColumn(articlesQuery)
+
+    // Execute query
+    const results = await query.orderBy('id', 'asc')
+
+    // Verify results
+    expect(results).toHaveLength(3)
+
+    expect(results[0].readCount).toBe('2')
+    expect(results[1].readCount).toBe('1')
+    expect(results[2].readCount).toBe('0')
   })
 })
