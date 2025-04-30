@@ -43,16 +43,7 @@ export const tagSlugify = (content: string) =>
 
 export const stripAllPunct = (content: string) => {
   const words = `${content}`.split(anyNonAlphaNum).filter(Boolean)
-  switch (words.length) {
-    case 0:
-      return ''
-    case 1:
-      return words[0]
-    default: {
-      const [first, ...rest] = words
-      return `${first} ${rest.join('')}`
-    }
-  }
+  return words.length === 0 ? '' : words.join(' ')
 }
 
 export const stripSpaces = (content: string | null) =>

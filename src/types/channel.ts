@@ -21,7 +21,7 @@ export default /* GraphQL */ `
 
     enabled: Boolean!
 
-    articles(input: ConnectionArgs!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: ChannelArticlesInput!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
   type CurationChannel implements Channel {
@@ -35,7 +35,19 @@ export default /* GraphQL */ `
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange!
     state: CurationChannelState! @auth(mode: "${AUTH_MODE.admin}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
-    articles(input: ConnectionArgs!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: ChannelArticlesInput!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
+  }
+
+  input ChannelArticlesInput {
+    after: String
+    first: Int
+    sort: ArticlesSort = newest
+    filter: ChannelArticlesFilter
+  }
+
+
+  input ChannelArticlesFilter {
+    datetimeRange: DatetimeRangeInput
   }
 
   input ChannelInput {

@@ -8,12 +8,14 @@ import {
   AtomService,
   MomentService,
   UserService,
+  ArticleService,
 } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let atomService: AtomService
+let articleService: ArticleService
 let commentService: CommentService
 let momentService: MomentService
 let userService: UserService
@@ -21,6 +23,7 @@ let userService: UserService
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  articleService = new ArticleService(connections)
   commentService = new CommentService(connections)
   momentService = new MomentService(connections)
   userService = new UserService(connections)
@@ -424,5 +427,83 @@ describe('upvote', () => {
     expect(
       commentService.upvote({ user: voter, comment })
     ).rejects.toThrowError()
+  })
+})
+
+describe('addCommentCountColumn', () => {
+  test('', async () => {
+    const [article1] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: '1',
+    })
+    const [article3] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: '1',
+    })
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+
+    await Promise.all([
+      atomService.create({
+        table: 'comment',
+        data: {
+          type: 'article',
+          targetId: article1.id,
+          targetTypeId,
+          parentCommentId: null,
+          state: COMMENT_STATE.active,
+          uuid: uuidv4(),
+          authorId: '1',
+        },
+      }),
+      atomService.create({
+        table: 'comment',
+        data: {
+          type: 'article',
+          targetId: article1.id,
+          targetTypeId,
+          parentCommentId: null,
+          state: COMMENT_STATE.active,
+          uuid: uuidv4(),
+          authorId: '1',
+        },
+      }),
+      atomService.create({
+        table: 'comment',
+        data: {
+          type: 'article',
+          targetId: article2.id,
+          targetTypeId,
+          parentCommentId: null,
+          state: COMMENT_STATE.active,
+          uuid: uuidv4(),
+          authorId: '1',
+        },
+      }),
+    ])
+
+    const articlesQuery = connections
+      .knex('article')
+      .select('id')
+      .whereIn('id', [article1.id, article2.id, article3.id])
+      .orderBy('id', 'asc')
+
+    const { query } = await commentService.addCommentCountColumn(articlesQuery)
+
+    const results = await query
+
+    expect(results).toHaveLength(3)
+    expect(results[0].commentCount).toBe('2')
+    expect(results[1].commentCount).toBe('1')
+    expect(results[2].commentCount).toBe('0')
   })
 })

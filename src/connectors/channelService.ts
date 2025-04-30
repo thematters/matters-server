@@ -30,6 +30,7 @@ import {
   AtomService,
   ChannelClassifier,
 } from '#connectors/index.js'
+
 const logger = getLogger('service-channel')
 
 export class ChannelService {
@@ -251,19 +252,20 @@ export class ChannelService {
     {
       channelThreshold,
       spamThreshold,
+      datetimeRange,
+      addOrderColumn = false,
     }: {
       channelThreshold?: number
       spamThreshold?: number
-    } = {}
+      datetimeRange?: { start: Date; end?: Date }
+      addOrderColumn?: boolean
+    } = {
+      addOrderColumn: false,
+    }
   ) => {
     const knexRO = this.connections.knexRO
     const pinnedQuery = knexRO
-      .select(
-        'article.*',
-        knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
-        )
-      )
+      .select('article.*')
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -274,12 +276,7 @@ export class ChannelService {
       })
 
     const unpinnedQuery = knexRO
-      .select(
-        'article.*',
-        knexRO.raw(
-          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
-        )
-      )
+      .select('article.*')
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -305,7 +302,35 @@ export class ChannelService {
           builder.modify(excludeSpamModifier, spamThreshold)
         }
       })
-    return pinnedQuery.union(unpinnedQuery)
+
+    if (addOrderColumn) {
+      pinnedQuery.select(
+        knexRO.raw(
+          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
+        )
+      )
+      unpinnedQuery.select(
+        knexRO.raw(
+          'RANK() OVER (ORDER BY topic_channel_article.created_at DESC) + 100 AS order'
+        )
+      )
+    }
+
+    const query = pinnedQuery.union(unpinnedQuery)
+
+    if (datetimeRange) {
+      const alias = 'find_topic_channel_articles_alias'
+      const filteredQuery = knexRO(query.as(alias)).where(
+        `${alias}.created_at`,
+        '>=',
+        datetimeRange.start
+      )
+      if (datetimeRange.end) {
+        filteredQuery.where(`${alias}.created_at`, '<=', datetimeRange.end)
+      }
+      return filteredQuery
+    }
+    return query
   }
 
   public classifyArticlesChannels = async ({
@@ -426,15 +451,13 @@ export class ChannelService {
   /**
    * Find articles for a curation channel  with order column considering pinned flag
    */
-  public findCurationChannelArticles = (channelId: string) => {
+  public findCurationChannelArticles = (
+    channelId: string,
+    { addOrderColumn }: { addOrderColumn: boolean } = { addOrderColumn: false }
+  ) => {
     const knexRO = this.connections.knexRO
-    return knexRO('article')
-      .select(
-        'article.*',
-        knexRO.raw(
-          'RANK() OVER (ORDER BY curation_channel_article.pinned_at DESC) AS order'
-        )
-      )
+    const pinnedQuery = knexRO('article')
+      .select('article.*')
       .join(
         'curation_channel_article',
         'article.id',
@@ -445,25 +468,34 @@ export class ChannelService {
         'curation_channel_article.pinned': true,
         'article.state': ARTICLE_STATE.active,
       })
-      .union(
-        knexRO('article')
-          .select(
-            'article.*',
-            knexRO.raw(
-              'RANK() OVER (ORDER BY curation_channel_article.created_at DESC) + 100 AS order'
-            )
-          )
-          .join(
-            'curation_channel_article',
-            'article.id',
-            'curation_channel_article.article_id'
-          )
-          .where({
-            channelId,
-            'curation_channel_article.pinned': false,
-            'article.state': ARTICLE_STATE.active,
-          })
+
+    const unpinnedQuery = knexRO('article')
+      .select('article.*')
+      .join(
+        'curation_channel_article',
+        'article.id',
+        'curation_channel_article.article_id'
       )
+      .where({
+        channelId,
+        'curation_channel_article.pinned': false,
+        'article.state': ARTICLE_STATE.active,
+      })
+
+    if (addOrderColumn) {
+      pinnedQuery.select(
+        knexRO.raw(
+          'RANK() OVER (ORDER BY curation_channel_article.pinned_at DESC) AS order'
+        )
+      )
+      unpinnedQuery.select(
+        knexRO.raw(
+          'RANK() OVER (ORDER BY curation_channel_article.created_at DESC) + 100 AS order'
+        )
+      )
+    }
+
+    return pinnedQuery.union(unpinnedQuery)
   }
 
   public togglePinChannelArticles = async ({

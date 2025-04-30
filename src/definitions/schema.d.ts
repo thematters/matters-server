@@ -194,6 +194,8 @@ export type GQLArticle = GQLNode &
     author: GQLUser
     /** Available translation languages. */
     availableTranslations?: Maybe<Array<GQLUserLanguage>>
+    /** The number of users who bookmarked this article. */
+    bookmarkCount: Scalars['Int']['output']
     bookmarked: Scalars['Boolean']['output']
     /** associated campaigns */
     campaigns: Array<GQLArticleCampaign>
@@ -596,6 +598,14 @@ export type GQLArticleVersionsInput = {
   first?: InputMaybe<Scalars['Int']['input']>
 }
 
+export type GQLArticlesSort =
+  | 'mostAppreciations'
+  | 'mostBookmarks'
+  | 'mostComments'
+  | 'mostDonations'
+  | 'mostReadTime'
+  | 'newest'
+
 /** This type contains type, link and related data of an asset. */
 export type GQLAsset = {
   __typename?: 'Asset'
@@ -844,11 +854,17 @@ export type GQLChannelArticleEdge = {
   pinned: Scalars['Boolean']['output']
 }
 
+export type GQLChannelArticlesFilter = {
+  datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
+}
+
 export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   channelId?: InputMaybe<Scalars['ID']['input']>
+  filter?: InputMaybe<GQLChannelArticlesFilter>
   first?: InputMaybe<Scalars['Int']['input']>
   shortHash?: InputMaybe<Scalars['String']['input']>
+  sort?: InputMaybe<GQLArticlesSort>
 }
 
 export type GQLChannelInput = {
@@ -1376,7 +1392,7 @@ export type GQLCurationChannel = GQLChannel & {
 }
 
 export type GQLCurationChannelArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLChannelArticlesInput
 }
 
 export type GQLCurationChannelNameArgs = {
@@ -2716,6 +2732,7 @@ export type GQLOssArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLOssArticlesFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
+  sort?: InputMaybe<GQLArticlesSort>
 }
 
 export type GQLOauth1CredentialInput = {
@@ -3721,7 +3738,7 @@ export type GQLTopicChannel = GQLChannel & {
 }
 
 export type GQLTopicChannelArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLChannelArticlesInput
 }
 
 export type GQLTopicChannelNameArgs = {
@@ -4805,6 +4822,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleVersionsInput: GQLArticleVersionsInput
+  ArticlesSort: GQLArticlesSort
   Asset: ResolverTypeWrapper<AssetModel>
   AssetType: GQLAssetType
   AuthResult: ResolverTypeWrapper<
@@ -4877,6 +4895,7 @@ export type GQLResolversTypes = ResolversObject<{
   ChannelArticleEdge: ResolverTypeWrapper<
     Omit<GQLChannelArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
+  ChannelArticlesFilter: GQLChannelArticlesFilter
   ChannelArticlesInput: GQLChannelArticlesInput
   ChannelInput: GQLChannelInput
   ChannelsInput: GQLChannelsInput
@@ -5543,6 +5562,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ChannelArticleEdge: Omit<GQLChannelArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
+  ChannelArticlesFilter: GQLChannelArticlesFilter
   ChannelArticlesInput: GQLChannelArticlesInput
   ChannelInput: GQLChannelInput
   ChannelsInput: GQLChannelsInput
@@ -6205,6 +6225,7 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType
   >
+  bookmarkCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   bookmarked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   campaigns?: Resolver<
     Array<GQLResolversTypes['ArticleCampaign']>,
