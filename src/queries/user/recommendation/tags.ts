@@ -40,9 +40,6 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
    * new algo
    */
   if (input.newAlgo) {
-    const { query } = await recommendationService.recommendTags(
-      input.filter?.channelId
-    )
     const cacheService = new CacheService(
       CACHE_PREFIX.RECOMMENDATION_TAGS,
       objectCacheRedis
@@ -53,7 +50,12 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
         type: 'recommendationTags',
         args: { channelId: input.filter?.channelId, take: _take },
       },
-      getter: () => query.limit(_take),
+      getter: async () => {
+        const { query } = await recommendationService.recommendTags(
+          input.filter?.channelId
+        )
+        return query.limit(_take)
+      },
       expire: CACHE_TTL.MEDIUM,
     })
     const chunks = chunk(tagIds, draw)

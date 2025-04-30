@@ -56,9 +56,6 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
    * new algo
    */
   if (input.newAlgo) {
-    const { query } = await recommendationService.recommendAuthors(
-      input.filter?.channelId
-    )
     const cacheService = new CacheService(
       CACHE_PREFIX.RECOMMENDATION_AUTHORS,
       objectCacheRedis
@@ -72,7 +69,12 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
           take: _take,
         },
       },
-      getter: () => query.whereNotIn('author_id', notIn).limit(_take),
+      getter: async () => {
+        const { query } = await recommendationService.recommendAuthors(
+          input.filter?.channelId
+        )
+        return query.whereNotIn('author_id', notIn).limit(_take)
+      },
       expire: CACHE_TTL.MEDIUM,
     })
     const chunks = chunk(authorIds, draw)
