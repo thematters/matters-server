@@ -64,6 +64,17 @@ export const getUTCNextMonday = (_date?: Date) => {
   return date.getTime()
 }
 
+// return start and end datetime of days ago, do not include today, using utc+8 timezone
+export const daysToDatetimeRange = (
+  days: number,
+  date?: Date
+): { start: Date; end: Date } => {
+  const todayMidnight = getUTC8Midnight(date)
+  const start = new Date(todayMidnight.getTime() - days * 24 * HOUR)
+  const end = todayMidnight
+  return { start, end }
+}
+
 export const toDatetimeRangeString = (start: Date, end?: Date) =>
   `[${start.toISOString()},${end ? end.toISOString() : ''})`
 
