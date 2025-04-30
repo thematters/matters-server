@@ -265,7 +265,7 @@ const connectionFromQueryCursorBased = async <T extends { id: string }>({
   const getOrderCursor = (cursor: string) => {
     const value = decodeCursor(cursor)
     return orderBy.column === cursorColumn
-      ? cursor
+      ? value
       : knex.client.raw('(SELECT ?? FROM ?? WHERE ?? = ?)', [
           orderBy.column,
           baseTableName,

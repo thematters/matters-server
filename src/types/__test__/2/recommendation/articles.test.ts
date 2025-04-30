@@ -191,10 +191,10 @@ describe('hottest articles', () => {
 })
 
 const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
-query($first: first_Int_min_0) {
+query($first: first_Int_min_0, $after: String) {
   viewer {
     recommendation {
-      ${list}(input: { first: $first }) {
+      ${list}(input: { first: $first, after: $after }) {
         totalCount
         edges {
           node {
@@ -249,15 +249,24 @@ describe('user recommendations', () => {
         connections,
       })
 
-      const { data, errors } = await serverNew.executeOperation({
-        query: GET_VIEWER_RECOMMENDATION(list),
-        variables: { first: 1 },
-      })
-      expect(errors).toBeUndefined()
-      const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
+      const { data: data1, errors: errors1 } = await serverNew.executeOperation(
+        {
+          query: GET_VIEWER_RECOMMENDATION(list),
+          variables: { first: 1 },
+        }
+      )
+      expect(errors1).toBeUndefined()
+      const article = _get(data1, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')
-      const count = _get(data, `viewer.recommendation.${list}.totalCount`)
+      const count = _get(data1, `viewer.recommendation.${list}.totalCount`)
       expect(count).toBeGreaterThan(0)
+
+      // test pagination
+      const { errors: errors2 } = await serverNew.executeOperation({
+        query: GET_VIEWER_RECOMMENDATION(list),
+        variables: { first: 1, after: article.id },
+      })
+      expect(errors2).toBeUndefined()
     }
   })
 
