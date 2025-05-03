@@ -23,3 +23,13 @@ export interface AnnouncementTranslation {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface ChannelAnnouncement {
+  id: string
+  announcementId: string
+  channelId: string
+  visible: boolean
+  order: number
+  createdAt: Date
+  updatedAt: Date
+}
