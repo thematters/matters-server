@@ -269,13 +269,12 @@ export class RecommendationService {
       days: decay.days,
       dateColumn,
     })
-    const { start, end } = daysToDatetimeRange(decay.days)
+    const { end } = daysToDatetimeRange(decay.days)
 
     const knex = articlesQuery.client.queryBuilder()
     const baseQuery = knex
       .clone()
       .from(articlesQuery.clone().as('t'))
-      .whereRaw(`t.?? >= ?`, [dateColumn, start])
       .whereRaw(`t.?? < ?`, [dateColumn, end])
       .limit(size)
     const { query: withReadCount, column: readCountColumn } =
