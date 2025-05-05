@@ -860,10 +860,8 @@ export type GQLChannelArticlesFilter = {
 
 export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
-  channelId?: InputMaybe<Scalars['ID']['input']>
   filter?: InputMaybe<GQLChannelArticlesFilter>
   first?: InputMaybe<Scalars['Int']['input']>
-  shortHash?: InputMaybe<Scalars['String']['input']>
   sort?: InputMaybe<GQLArticlesSort>
 }
 
@@ -1712,6 +1710,11 @@ export type GQLIcymiTopicEdge = {
 }
 
 export type GQLIcymiTopicState = 'archived' | 'editing' | 'published'
+
+export type GQLIdentityInput = {
+  id?: InputMaybe<Scalars['ID']['input']>
+  shortHash?: InputMaybe<Scalars['String']['input']>
+}
 
 export type GQLInvitation = {
   __typename?: 'Invitation'
@@ -3133,7 +3136,7 @@ export type GQLRecentSearchEdge = {
 }
 
 export type GQLRecommendFilterInput = {
-  channelId?: InputMaybe<Scalars['ID']['input']>
+  channel?: InputMaybe<GQLIdentityInput>
   /** filter out followed users */
   followed?: InputMaybe<Scalars['Boolean']['input']>
   /** index of list, min: 0, max: 49 */
@@ -5041,6 +5044,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLIcymiTopicEdge, 'node'> & { node: GQLResolversTypes['IcymiTopic'] }
   >
   IcymiTopicState: GQLIcymiTopicState
+  IdentityInput: GQLIdentityInput
   Int: ResolverTypeWrapper<Scalars['Int']['output']>
   Invitation: ResolverTypeWrapper<CircleInvitationModel>
   InvitationConnection: ResolverTypeWrapper<
@@ -5672,6 +5676,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   IcymiTopicEdge: Omit<GQLIcymiTopicEdge, 'node'> & {
     node: GQLResolversParentTypes['IcymiTopic']
   }
+  IdentityInput: GQLIdentityInput
   Int: Scalars['Int']['output']
   Invitation: CircleInvitationModel
   InvitationConnection: Omit<GQLInvitationConnection, 'edges'> & {

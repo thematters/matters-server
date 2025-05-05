@@ -6,6 +6,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
+  fromGlobalId,
 } from '#common/utils/index.js'
 import { CacheService } from '#connectors/index.js'
 import chunk from 'lodash/chunk.js'
@@ -45,15 +46,24 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
       objectCacheRedis
     )
 
+    let channelId = undefined
+    if (input.filter?.channel?.id) {
+      channelId = fromGlobalId(input.filter.channel.id).id
+    } else if (input.filter?.channel?.shortHash) {
+      const channel = await atomService.findUnique({
+        table: 'topic_channel',
+        where: { shortHash: input.filter.channel.shortHash },
+      })
+      channelId = channel?.id
+    }
+
     const tagIds = await cacheService.getObject({
       keys: {
         type: 'recommendationTags',
-        args: { channelId: input.filter?.channelId, take: _take },
+        args: { channel: channelId, take: _take },
       },
       getter: async () => {
-        const { query } = await recommendationService.recommendTags(
-          input.filter?.channelId
-        )
+        const { query } = await recommendationService.recommendTags(channelId)
         return query.limit(_take)
       },
       expire: CACHE_TTL.MEDIUM,
