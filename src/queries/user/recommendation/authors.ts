@@ -6,6 +6,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
+  fromGlobalId,
 } from '#common/utils/index.js'
 import { CacheService } from '#connectors/index.js'
 import chunk from 'lodash/chunk.js'
@@ -60,18 +61,29 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
       CACHE_PREFIX.RECOMMENDATION_AUTHORS,
       objectCacheRedis
     )
+    let channelId = undefined
+    if (input.filter?.channel?.id) {
+      channelId = fromGlobalId(input.filter.channel.id).id
+    } else if (input.filter?.channel?.shortHash) {
+      const channel = await atomService.findUnique({
+        table: 'topic_channel',
+        where: { shortHash: input.filter.channel.shortHash },
+      })
+      channelId = channel?.id
+    }
+
     const authorIds = await cacheService.getObject({
       keys: {
         type: 'recommendationAuthors',
         args: {
           viewerId: viewer.id,
-          channelId: input.filter?.channelId,
+          channelId,
           take: _take,
         },
       },
       getter: async () => {
         const { query } = await recommendationService.recommendAuthors(
-          input.filter?.channelId
+          channelId
         )
         return query.whereNotIn('author_id', notIn).limit(_take)
       },

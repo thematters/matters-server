@@ -233,14 +233,6 @@ export default /* GraphQL */ `
     authors(input: RecommendInput!): UserConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
   }
 
-
-  input ChannelArticlesInput {
-    channelId: ID
-    shortHash: String
-    after: String
-    first: Int @constraint(min: 0)
-  }
-
   input RecommendInput {
     after: String
     first: Int @constraint(min: 0)
@@ -250,11 +242,16 @@ export default /* GraphQL */ `
   }
 
   input RecommendFilterInput {
-    channelId: ID
+    channel: IdentityInput
     "index of list, min: 0, max: 49"
     random: Int @constraint(min: 0, max: 49)
     "filter out followed users"
     followed: Boolean
+  }
+
+  input IdentityInput {
+    id: ID
+    shortHash: String
   }
 
   input FilterInput {
