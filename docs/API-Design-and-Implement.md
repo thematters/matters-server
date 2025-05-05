@@ -97,6 +97,8 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
 
 ### Unions and Interfaces
 
+> **Note:** Always use `__type` (not `__typename`) for type discrimination in resolver return objects. This ensures consistency with our type resolution logic and cache handling.
+
 1. return `__type` in resolvers:
 ```typescript
 // Example from comment/node.ts

@@ -63,7 +63,7 @@ beforeEach(async () => {
    const server = await testClient({
      connections,
      isAuth: true,
-     isAdmin: true, // When admin privileges are needed
+     isAdmin: true, // Use this instead of context: { viewer: admin } if admin.id is not needed
    })
    ```
 
@@ -156,6 +156,15 @@ beforeEach(async () => {
    ```typescript
    expect(errors).toBeUndefined()
    expect(data?.node.articles.edges).toHaveLength(3)
+   ```
+
+2. **ID Assertions**
+   ```typescript
+   // When asserting IDs, use toGlobalId to match the GraphQL global ID format
+   expect(data?.putAnnouncement.channels[0].channel.id).toBe(toGlobalId({
+     type: NODE_TYPES.TopicChannel,
+     id: channel.id,
+   }))
    ```
 
 ## Best Practices

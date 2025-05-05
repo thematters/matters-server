@@ -33,6 +33,7 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
     expiredAt,
     visible,
     order,
+    channels: channelsInput,
   } = input
 
   const toCoverURL = async (id: string | null) =>
@@ -150,6 +151,40 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
         invalidateFQC({
           node: { type: NODE_TYPES.Announcement, id: announcement.id },
           redis: connections.redis,
+        })
+      )
+    )
+  }
+
+  // Handle channels
+  if (channelsInput || channelsInput === null) {
+    if (globalId) {
+      await atomService.updateMany({
+        table: 'channel_announcement',
+        where: { announcementId: ret.id },
+        data: {
+          visible: false,
+        },
+      })
+    }
+    await Promise.all(
+      channelsInput.map((channelInput) =>
+        atomService.upsert({
+          table: 'channel_announcement',
+          where: {
+            announcementId: ret.id,
+            channelId: channelInput.channel,
+          },
+          create: {
+            announcementId: ret.id,
+            channelId: channelInput.channel,
+            visible: channelInput.visible,
+            order: channelInput.order,
+          },
+          update: {
+            visible: channelInput.visible,
+            order: channelInput.order,
+          },
         })
       )
     )

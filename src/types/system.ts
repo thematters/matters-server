@@ -119,7 +119,14 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     updatedAt: DateTime!
     expiredAt: DateTime
-    translations: [TranslatedAnnouncement!] @deprecated(reason: "Use title, content, link with input instead")
+    translations: [TranslatedAnnouncement!] @deprecated(reason: "Use title, content, link with TranslationArgs instead")
+    channels: [AnnouncementChannel!]!
+  }
+
+  type AnnouncementChannel {
+    channel: Channel!
+    order: Int!
+    visible: Boolean!
   }
 
   type TranslatedAnnouncement {
@@ -371,7 +378,15 @@ export default /* GraphQL */ `
     expiredAt: DateTime
     visible: Boolean
     order: Int
+    channels: [AnnouncementChannelInput!]
   }
+
+  input AnnouncementChannelInput {
+    channel: ID!
+    visible: Boolean!
+    order: Int!
+  }
+
 
   input DeleteAnnouncementsInput {
     ids: [ID!]

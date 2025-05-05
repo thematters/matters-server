@@ -2,14 +2,16 @@ import type { Connections } from '#definitions/index.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { genConnections, closeConnections, testClient } from '../../utils.js'
-import { AtomService } from '#connectors/index.js'
+import { AtomService, ChannelService } from '#connectors/index.js'
 
 let connections: Connections
 let atomService: AtomService
+let channelService: ChannelService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  channelService = new ChannelService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -33,6 +35,13 @@ const PUT_ANNOUNCEMENT = /* GraphQL */ `
       createdAt
       updatedAt
       expiredAt
+      channels {
+        channel {
+          id
+        }
+        order
+        visible
+      }
     }
   }
 `
@@ -80,6 +89,7 @@ describe('create or update announcements', () => {
     expect(data?.putAnnouncement.type).toBe('community')
     expect(data?.putAnnouncement.visible).toBe(true)
     expect(data?.putAnnouncement.order).toBe(1)
+    expect(data?.putAnnouncement.channels).toHaveLength(0)
   })
 
   test('create announcement with cover success', async () => {
@@ -232,5 +242,168 @@ describe('create or update announcements', () => {
 
     expect(errors).toBeDefined()
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
+  test('create announcement with channels', async () => {
+    // Create a test channel
+    const channel = await channelService.createTopicChannel({
+      name: 'Test Channel',
+      providerId: 'providerId',
+      enabled: true,
+    })
+
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_ANNOUNCEMENT,
+      variables: {
+        input: {
+          title: [{ language: 'en', text: 'With Channel' }],
+          type: 'community',
+          channels: [{ channel: channel.id, visible: true, order: 1 }],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data?.putAnnouncement.channels).toHaveLength(1)
+    expect(data?.putAnnouncement.channels[0].channel.id).toBe(
+      toGlobalId({
+        type: NODE_TYPES.TopicChannel,
+        id: channel.id,
+      })
+    )
+    expect(data?.putAnnouncement.channels[0].visible).toBe(true)
+    expect(data?.putAnnouncement.channels[0].order).toBe(1)
+  })
+
+  test('update announcement channels', async () => {
+    // Create two channels
+    const channel1 = await channelService.createTopicChannel({
+      name: 'Channel 1',
+      providerId: 'providerId1',
+      enabled: true,
+    })
+    const channel2 = await channelService.createTopicChannel({
+      name: 'Channel 2',
+      providerId: 'providerId2',
+      enabled: true,
+    })
+
+    // Create an announcement with channel1
+    const announcement = await atomService.create({
+      table: 'announcement',
+      data: {
+        title: 'Announcement with Channel',
+        type: 'community',
+      },
+    })
+
+    await atomService.create({
+      table: 'channel_announcement',
+      data: {
+        announcementId: announcement.id,
+        channelId: channel1.id,
+        visible: true,
+        order: 1,
+      },
+    })
+
+    const announcementGlobalId = toGlobalId({
+      type: NODE_TYPES.Announcement,
+      id: announcement.id,
+    })
+
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // create channel_announcement2 and mark channel_announcement1 as invisible
+    const { data, errors } = await server.executeOperation({
+      query: PUT_ANNOUNCEMENT,
+      variables: {
+        input: {
+          id: announcementGlobalId,
+          type: 'community',
+          channels: [{ channel: channel2.id, visible: false, order: 2 }],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    const channels = data?.putAnnouncement.channels
+    expect(channels).toHaveLength(2)
+    expect(channels.map((channel: any) => channel.visible)).toEqual([
+      false,
+      false,
+    ])
+    expect(channels.map((channel: any) => channel.order).sort()).toEqual(
+      [1, 2].sort()
+    )
+  })
+
+  test('remove all channels from announcement', async () => {
+    // Create a channel and announcement
+    const channel = await channelService.createTopicChannel({
+      name: 'Channel to Remove',
+      providerId: 'providerId-removechannels',
+      enabled: true,
+    })
+    const announcement = await atomService.create({
+      table: 'announcement',
+      data: {
+        title: 'Announcement to Remove Channel',
+        type: 'community',
+      },
+    })
+    await atomService.create({
+      table: 'channel_announcement',
+      data: {
+        announcementId: announcement.id,
+        channelId: channel.id,
+        visible: true,
+        order: 1,
+      },
+    })
+
+    const announcementGlobalId = toGlobalId({
+      type: NODE_TYPES.Announcement,
+      id: announcement.id,
+    })
+
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // Update with empty channels
+    const { data, errors } = await server.executeOperation({
+      query: PUT_ANNOUNCEMENT,
+      variables: {
+        input: {
+          id: announcementGlobalId,
+          type: 'community',
+          channels: [],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data?.putAnnouncement.channels).toHaveLength(1)
+    expect(data?.putAnnouncement.channels[0].channel.id).toBe(
+      toGlobalId({
+        type: NODE_TYPES.TopicChannel,
+        id: channel.id,
+      })
+    )
+    expect(data?.putAnnouncement.channels[0].visible).toBe(false)
+    expect(data?.putAnnouncement.channels[0].order).toBe(1)
   })
 })

@@ -102,6 +102,7 @@ export type GQLAddCurationChannelArticlesInput = {
 
 export type GQLAnnouncement = {
   __typename?: 'Announcement'
+  channels: Array<GQLAnnouncementChannel>
   content?: Maybe<Scalars['String']['output']>
   cover?: Maybe<Scalars['String']['output']>
   createdAt: Scalars['DateTime']['output']
@@ -110,7 +111,7 @@ export type GQLAnnouncement = {
   link?: Maybe<Scalars['String']['output']>
   order: Scalars['Int']['output']
   title?: Maybe<Scalars['String']['output']>
-  /** @deprecated Use title, content, link with input instead */
+  /** @deprecated Use title, content, link with TranslationArgs instead */
   translations?: Maybe<Array<GQLTranslatedAnnouncement>>
   type: GQLAnnouncementType
   updatedAt: Scalars['DateTime']['output']
@@ -127,6 +128,19 @@ export type GQLAnnouncementLinkArgs = {
 
 export type GQLAnnouncementTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLAnnouncementChannel = {
+  __typename?: 'AnnouncementChannel'
+  channel: GQLChannel
+  order: Scalars['Int']['output']
+  visible: Scalars['Boolean']['output']
+}
+
+export type GQLAnnouncementChannelInput = {
+  channel: Scalars['ID']['input']
+  order: Scalars['Int']['input']
+  visible: Scalars['Boolean']['input']
 }
 
 export type GQLAnnouncementType = 'community' | 'product' | 'seminar'
@@ -2868,6 +2882,7 @@ export type GQLPublishArticleInput = {
 export type GQLPublishState = 'error' | 'pending' | 'published' | 'unpublished'
 
 export type GQLPutAnnouncementInput = {
+  channels?: InputMaybe<Array<GQLAnnouncementChannelInput>>
   content?: InputMaybe<Array<GQLTranslationInput>>
   cover?: InputMaybe<Scalars['String']['input']>
   expiredAt?: InputMaybe<Scalars['DateTime']['input']>
@@ -4752,6 +4767,12 @@ export type GQLResolversTypes = ResolversObject<{
   >
   AddCurationChannelArticlesInput: GQLAddCurationChannelArticlesInput
   Announcement: ResolverTypeWrapper<AnnouncementModel>
+  AnnouncementChannel: ResolverTypeWrapper<
+    Omit<GQLAnnouncementChannel, 'channel'> & {
+      channel: GQLResolversTypes['Channel']
+    }
+  >
+  AnnouncementChannelInput: GQLAnnouncementChannelInput
   AnnouncementType: GQLAnnouncementType
   AnnouncementsInput: GQLAnnouncementsInput
   ApplyCampaignInput: GQLApplyCampaignInput
@@ -5472,6 +5493,10 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   AddCurationChannelArticlesInput: GQLAddCurationChannelArticlesInput
   Announcement: AnnouncementModel
+  AnnouncementChannel: Omit<GQLAnnouncementChannel, 'channel'> & {
+    channel: GQLResolversParentTypes['Channel']
+  }
+  AnnouncementChannelInput: GQLAnnouncementChannelInput
   AnnouncementsInput: GQLAnnouncementsInput
   ApplyCampaignInput: GQLApplyCampaignInput
   AppreciateArticleInput: GQLAppreciateArticleInput
@@ -6144,6 +6169,11 @@ export type GQLAnnouncementResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Announcement'] = GQLResolversParentTypes['Announcement']
 > = ResolversObject<{
+  channels?: Resolver<
+    Array<GQLResolversTypes['AnnouncementChannel']>,
+    ParentType,
+    ContextType
+  >
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -6182,6 +6212,16 @@ export type GQLAnnouncementResolvers<
     ContextType
   >
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  visible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLAnnouncementChannelResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['AnnouncementChannel'] = GQLResolversParentTypes['AnnouncementChannel']
+> = ResolversObject<{
+  channel?: Resolver<GQLResolversTypes['Channel'], ParentType, ContextType>
+  order?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   visible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -10384,6 +10424,7 @@ export type GQLWritingEdgeResolvers<
 export type GQLResolvers<ContextType = Context> = ResolversObject<{
   AddCreditResult?: GQLAddCreditResultResolvers<ContextType>
   Announcement?: GQLAnnouncementResolvers<ContextType>
+  AnnouncementChannel?: GQLAnnouncementChannelResolvers<ContextType>
   Appreciation?: GQLAppreciationResolvers<ContextType>
   AppreciationConnection?: GQLAppreciationConnectionResolvers<ContextType>
   AppreciationEdge?: GQLAppreciationEdgeResolvers<ContextType>
