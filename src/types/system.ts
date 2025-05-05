@@ -366,6 +366,7 @@ export default /* GraphQL */ `
   input AnnouncementsInput {
     id: ID
     visible: Boolean
+    channel: IdentityInput
   }
 
   input PutAnnouncementInput {

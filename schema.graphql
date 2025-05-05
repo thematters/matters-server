@@ -2311,6 +2311,7 @@ input ToggleSeedingUsersInput {
 input AnnouncementsInput {
   id: ID
   visible: Boolean
+  channel: IdentityInput
 }
 
 input PutAnnouncementInput {

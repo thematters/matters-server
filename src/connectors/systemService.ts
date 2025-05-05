@@ -663,4 +663,59 @@ export class SystemService extends BaseService<BaseDBSchema> {
 
     return false
   }
+
+  public findAnnouncement = async ({
+    id,
+    visible,
+  }: {
+    id: string
+    visible?: boolean
+  }) => {
+    const records = await this.models.findMany({
+      table: 'announcement',
+      where: {
+        id,
+        ...(visible !== undefined ? { visible } : {}),
+      },
+      modifier: (builder: Knex.QueryBuilder) => {
+        builder.whereRaw(
+          `(expired_at IS NULL OR expired_at >= CURRENT_TIMESTAMP)`
+        )
+      },
+      orderBy: [{ column: 'createdAt', order: 'desc' }],
+    })
+    return records[0] ?? null
+  }
+
+  public findAnnouncements = async ({
+    channelId,
+    visible,
+  }: {
+    channelId?: string
+    visible?: boolean
+  }) => {
+    let ids: string[] = []
+    if (channelId) {
+      const relations = await this.models.findMany({
+        table: 'channel_announcement',
+        where: {
+          channelId,
+        },
+      })
+      ids = relations.map((relation) => relation.announcementId)
+    }
+    return this.models.findMany({
+      table: 'announcement',
+      where: {
+        ...(visible !== undefined ? { visible } : {}),
+      },
+      whereIn: ids.length > 0 ? ['id', ids] : undefined,
+      modifier: (builder: Knex.QueryBuilder) => {
+        builder.whereRaw(
+          `(expired_at IS NULL OR expired_at >= CURRENT_TIMESTAMP)`
+        )
+      },
+      orderBy: [{ column: 'createdAt', order: 'desc' }],
+    })
+  }
 }

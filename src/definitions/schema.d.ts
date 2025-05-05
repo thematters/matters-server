@@ -146,6 +146,7 @@ export type GQLAnnouncementChannelInput = {
 export type GQLAnnouncementType = 'community' | 'product' | 'seminar'
 
 export type GQLAnnouncementsInput = {
+  channel?: InputMaybe<GQLIdentityInput>
   id?: InputMaybe<Scalars['ID']['input']>
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
