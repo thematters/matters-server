@@ -85,6 +85,53 @@ beforeEach(async () => {
    })
    ```
 
+4. **Testing Multi-language Content**
+   ```typescript
+   const PUT_ANNOUNCEMENT = /* GraphQL */ `
+     mutation PutAnnouncement($input: PutAnnouncementInput!) {
+       putAnnouncement(input: $input) {
+         id
+         title
+         titleEn: title(input: { language: en })
+         content
+         cover
+         link
+         type
+         visible
+         order
+       }
+     }
+   `
+
+   const { data, errors } = await server.executeOperation({
+     query: PUT_ANNOUNCEMENT,
+     variables: {
+       input: {
+         title: [
+           { language: 'zh_hant', text: '測試標題' },
+           { language: 'en', text: 'Test Title' },
+         ],
+         content: [
+           { language: 'zh_hant', text: '測試內容' },
+           { language: 'en', text: 'Test Content' },
+         ],
+         link: [
+           { language: 'zh_hant', text: 'https://example.com' },
+           { language: 'en', text: 'https://example.com' },
+         ],
+         type: 'community',
+         visible: true,
+         order: 1,
+       },
+     },
+   })
+
+   expect(errors).toBeUndefined()
+   expect(data?.putAnnouncement).toBeDefined()
+   expect(data?.putAnnouncement.title).toBe('測試標題')
+   expect(data?.putAnnouncement.titleEn).toBe('Test Title')
+   ```
+
 ### Data Setup
 1. **Test Data Creation**
    ```typescript
@@ -130,15 +177,17 @@ beforeEach(async () => {
 - Verify error codes using `errors?.[0].extensions.code`, do not verify error messages
 - Handle async errors appropriately
 - Example:
-   ```typescript
-   // Success case
-   expect(errors).toBeUndefined()
-   expect(data).toBeDefined()
+  ```typescript
+  // Success case
+  expect(errors).toBeUndefined()
+  expect(data).toBeDefined()
 
-   // Error case
-   expect(errors).toBeDefined()
-   expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
-   ```
+  // Error cases
+  expect(errors).toBeDefined()
+  expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')  // For validation errors
+  expect(errors?.[0].extensions.code).toBe('ENTITY_NOT_FOUND')  // For not found errors
+  expect(errors?.[0].extensions.code).toBe('FORBIDDEN')  // For permission errors
+  ```
 
 ### Performance
 - Use appropriate timeouts (e.g., 30000ms for `beforeAll`)

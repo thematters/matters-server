@@ -6,95 +6,138 @@ import {
   EntityNotFoundError,
   UserInputError,
 } from '#common/errors.js'
-import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
+import { fromGlobalId } from '#common/utils/index.js'
+import { isUUID } from '#common/utils/validator.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import lodash from 'lodash'
 
 const resolver: GQLMutationResolvers['putAnnouncement'] = async (
   _,
   { input },
-  { dataSources: { atomService, systemService, connections }, viewer }
+  {
+    dataSources: {
+      atomService,
+      systemService,
+      translationService,
+      connections,
+    },
+    viewer,
+  }
 ) => {
   const {
-    id,
-    // title, content, cover, link,
+    id: globalId,
+    title,
+    content,
+    cover,
+    link,
     type,
     expiredAt,
     visible,
     order,
-    translations,
   } = input
-  const toAnnouncementId = (dbId: string) =>
-    toGlobalId({ type: NODE_TYPES.Announcement, id: dbId })
 
-  const toCoverURL = async (coverId: string | null) =>
-    coverId ? systemService.findAssetUrl(coverId) : null
+  const toCoverURL = async (id: string | null) =>
+    id ? systemService.findAssetUrl(id) : null
 
   // preparation
-  let coverDbId
-  if (input.cover) {
-    const asset = await systemService.findAssetByUUID(input.cover)
+  let coverId
+  if (cover) {
+    if (!isUUID(cover)) {
+      throw new UserInputError('Invalid announcement cover uuid')
+    }
+    const asset = await systemService.findAssetByUUID(cover)
     if (
       !asset ||
       asset.type !== ASSET_TYPE.announcementCover ||
       asset.authorId !== viewer.id
     ) {
-      throw new AssetNotFoundError('annuncement cover asset does not exists')
+      throw new AssetNotFoundError('Announcement cover asset does not exists')
     }
-    coverDbId = asset.id
+    coverId = asset.id
   }
 
   let ret
 
   // update
-  if (id) {
-    const { id: dbId } = fromGlobalId(id)
+  if (globalId) {
+    const { id } = fromGlobalId(globalId)
     const item = await atomService.findUnique({
       table: 'announcement',
-      where: { id: dbId },
+      where: { id },
     })
 
     if (!item) {
-      throw new EntityNotFoundError(`target ${dbId} not found`)
+      throw new EntityNotFoundError(`Target ${id} not found`)
     }
 
-    const { title, content, link } = input
-    const data = lodash.omitBy(
-      {
-        title,
-        content,
-        cover: coverDbId,
-        link,
+    ret = await atomService.update({
+      table: 'announcement',
+      where: { id },
+      data: {
+        title: title ? title[0].text : undefined,
+        content: content ? content[0].text : undefined,
+        cover: coverId,
+        link: link ? link[0].text : undefined,
         type,
         visible,
         expiredAt,
       },
-      lodash.isUndefined
-    )
-    ret = await atomService.update({
-      table: 'announcement',
-      where: { id: dbId },
-      data,
     })
   } else {
     // create
     if (!type) {
-      throw new UserInputError('required parameters missing: type')
+      throw new UserInputError('Required parameters missing: type')
     }
 
-    const { title, content, link } = input
     ret = await atomService.create({
       table: 'announcement',
       data: {
-        cover: coverDbId,
-        title,
-        content,
-        link,
+        cover: coverId,
+        title: title ? title[0].text : undefined,
+        content: content ? content[0].text : undefined,
+        link: link ? link[0].text : undefined,
         type,
-        order, // default to 0 // : order || 0
+        order,
+        visible,
         expiredAt,
       },
     })
+
+    // create or update translations
+    if (title) {
+      for (const trans of title) {
+        await translationService.updateOrCreateTranslation({
+          table: 'announcement',
+          field: 'title',
+          id: ret.id,
+          language: trans.language,
+          text: trans.text,
+        })
+      }
+    }
+
+    if (content) {
+      for (const trans of content) {
+        await translationService.updateOrCreateTranslation({
+          table: 'announcement',
+          field: 'content',
+          id: ret.id,
+          language: trans.language,
+          text: trans.text,
+        })
+      }
+    }
+
+    if (link) {
+      for (const trans of link) {
+        await translationService.updateOrCreateTranslation({
+          table: 'announcement',
+          field: 'link',
+          id: ret.id,
+          language: trans.language,
+          text: trans.text,
+        })
+      }
+    }
 
     // query and purge previous announcements
     // since the resolve return new announcement which is not cached
@@ -112,52 +155,10 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
     )
   }
 
-  const announcementId = ret.id
-  const transResults = []
-  for (const tr of translations || []) {
-    const { language, title, cover, content, link } = tr
-    // only 'en' translations for now
-    // if (!(language in { en: 1 })) { // console.log('unrecognized language:', tr); continue; }
-
-    if (cover) {
-      const asset = await systemService.findAssetByUUID(cover)
-      if (
-        !asset ||
-        asset.type !== ASSET_TYPE.announcementCover ||
-        asset.authorId !== viewer.id
-      ) {
-        throw new AssetNotFoundError('annuncement cover asset does not exists')
-      }
-      coverDbId = asset.id
-    }
-
-    transResults.push(
-      await atomService.upsert({
-        table: 'announcement_translation',
-        where: { announcementId, language },
-        create: {
-          announcementId, // annoucementId,
-          language,
-          title,
-          cover: coverDbId,
-          content,
-          link,
-        },
-        update: { language, title, cover: coverDbId, content, link },
-      })
-    )
-  }
-
   return {
     ...ret,
-    id: toAnnouncementId(ret.id),
     cover: (await toCoverURL(ret.cover)) ?? '',
-    translations:
-      translations &&
-      transResults.map((tr: any) => ({
-        ...tr,
-        cover: toCoverURL(tr.cover),
-      })),
+    translations: [],
   }
 }
 
