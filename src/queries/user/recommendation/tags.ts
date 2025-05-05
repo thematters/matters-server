@@ -60,7 +60,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     const tagIds = await cacheService.getObject({
       keys: {
         type: 'recommendationTags',
-        args: { channel: channelId, take: _take },
+        args: { channelId: channelId, take: _take },
       },
       getter: async () => {
         const { query } = await recommendationService.recommendTags(channelId)
