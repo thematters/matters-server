@@ -576,6 +576,8 @@ export type GQLArticleState = 'active' | 'archived' | 'banned'
 export type GQLArticleTopicChannel = {
   __typename?: 'ArticleTopicChannel'
   channel: GQLTopicChannel
+  /** datetime when this article is classified */
+  classicfiedAt: Scalars['DateTime']['output']
   /** whether this article channel is enabled */
   enabled: Scalars['Boolean']['output']
   /** whether this article is labeled by human, null for not labeled yet.  */
@@ -6659,6 +6661,11 @@ export type GQLArticleTopicChannelResolvers<
   ParentType extends GQLResolversParentTypes['ArticleTopicChannel'] = GQLResolversParentTypes['ArticleTopicChannel']
 > = ResolversObject<{
   channel?: Resolver<GQLResolversTypes['TopicChannel'], ParentType, ContextType>
+  classicfiedAt?: Resolver<
+    GQLResolversTypes['DateTime'],
+    ParentType,
+    ContextType
+  >
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
