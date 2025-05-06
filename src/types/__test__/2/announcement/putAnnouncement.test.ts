@@ -264,7 +264,16 @@ describe('create or update announcements', () => {
         input: {
           title: [{ language: 'en', text: 'With Channel' }],
           type: 'community',
-          channels: [{ channel: channel.id, visible: true, order: 1 }],
+          channels: [
+            {
+              channel: toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: channel.id,
+              }),
+              visible: true,
+              order: 1,
+            },
+          ],
         },
       },
     })
@@ -331,7 +340,16 @@ describe('create or update announcements', () => {
         input: {
           id: announcementGlobalId,
           type: 'community',
-          channels: [{ channel: channel2.id, visible: false, order: 2 }],
+          channels: [
+            {
+              channel: toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: channel2.id,
+              }),
+              visible: false,
+              order: 2,
+            },
+          ],
         },
       },
     })
