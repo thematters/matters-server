@@ -2532,6 +2532,7 @@ input OSSArticlesInput {
 
 input OSSArticlesFilterInput {
   isSpam: Boolean
+  datetimeRange: DatetimeRangeInput
 }
 
 enum CacheControlScope {

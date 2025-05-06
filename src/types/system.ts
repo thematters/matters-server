@@ -588,6 +588,7 @@ export default /* GraphQL */ `
 
   input OSSArticlesFilterInput {
     isSpam: Boolean
+    datetimeRange: DatetimeRangeInput
   }
 
   ####################

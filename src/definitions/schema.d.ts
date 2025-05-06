@@ -2753,6 +2753,7 @@ export type GQLOssUsersArgs = {
 }
 
 export type GQLOssArticlesFilterInput = {
+  datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
   isSpam?: InputMaybe<Scalars['Boolean']['input']>
 }
 
