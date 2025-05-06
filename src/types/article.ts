@@ -338,6 +338,9 @@ export default /* GraphQL */ `
 
     "whether this article channel is enabled"
     enabled: Boolean!
+
+    "datetime when this article is classified"
+    classicfiedAt: DateTime!
   }
 
   type ArticleTranslation {
