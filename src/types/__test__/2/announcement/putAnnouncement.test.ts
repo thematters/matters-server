@@ -406,4 +406,43 @@ describe('create or update announcements', () => {
     expect(data?.putAnnouncement.channels[0].visible).toBe(false)
     expect(data?.putAnnouncement.channels[0].order).toBe(1)
   })
+
+  test('translations are updated after announcement creation', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_ANNOUNCEMENT,
+      variables: {
+        input: {
+          title: [
+            { language: 'zh_hant', text: '新標題' },
+            { language: 'en', text: 'New Title' },
+          ],
+          content: [
+            { language: 'zh_hant', text: '新內容' },
+            { language: 'en', text: 'New Content' },
+          ],
+          link: [
+            { language: 'zh_hant', text: 'https://example.com/zh_hant_new' },
+            { language: 'en', text: 'https://example.com/en_new' },
+          ],
+          type: 'community',
+          visible: true,
+          order: 2,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data?.putAnnouncement.title).toBe('新標題')
+    expect(data?.putAnnouncement.titleEn).toBe('New Title')
+    expect(data?.putAnnouncement.content).toBe('新內容')
+    expect(data?.putAnnouncement.contentEn).toBe('New Content')
+    expect(data?.putAnnouncement.link).toBe('https://example.com/zh_hant_new')
+    expect(data?.putAnnouncement.linkEn).toBe('https://example.com/en_new')
+  })
 })
