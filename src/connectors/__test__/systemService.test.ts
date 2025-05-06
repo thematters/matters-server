@@ -9,7 +9,12 @@ import {
   FEATURE_FLAG,
   FEATURE_NAME,
 } from '#common/enums/index.js'
-import { SystemService, AtomService, MomentService } from '#connectors/index.js'
+import {
+  SystemService,
+  AtomService,
+  MomentService,
+  ChannelService,
+} from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
@@ -26,11 +31,12 @@ const assetValidation = {
 let connections: Connections
 let systemService: SystemService
 let atomService: AtomService
-
+let channelService: ChannelService
 beforeAll(async () => {
   connections = await genConnections()
   systemService = new SystemService(connections)
   atomService = new AtomService(connections)
+  channelService = new ChannelService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -237,4 +243,119 @@ test('setFeature', async () => {
 test('get spam threshold', async () => {
   const threshold = await systemService.getSpamThreshold()
   expect(threshold).toBe(0.5)
+})
+
+describe('announcement', () => {
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'channel_announcement' })
+    await atomService.deleteMany({ table: 'announcement' })
+  })
+  const createAnnouncement = async (expiredAt?: Date) => {
+    return await atomService.create({
+      table: 'announcement',
+      data: {
+        title: 'test',
+        content: 'test',
+        link: 'https://example.com',
+        visible: true,
+        order: 1,
+        type: 'product',
+        expiredAt: expiredAt ?? null,
+      },
+    })
+  }
+  test('findAnnouncement by id', async () => {
+    // return null if announcement not found
+    const announcement0 = await systemService.findAnnouncement({
+      id: '1',
+    })
+    expect(announcement0).toBeNull()
+
+    // return announcement if found
+    const createdAnnouncement = await createAnnouncement()
+
+    const announcement1 = await systemService.findAnnouncement({
+      id: createdAnnouncement.id,
+    })
+    expect(announcement1).toBeDefined()
+    expect(announcement1?.id).toBe(createdAnnouncement.id)
+  })
+
+  test('findAnnouncement with visibility filter', async () => {
+    const createdAnnouncement = await createAnnouncement()
+    const visibleAnnouncement = await systemService.findAnnouncement({
+      id: createdAnnouncement.id,
+      visible: true,
+    })
+    expect(visibleAnnouncement).toBeDefined()
+    expect(visibleAnnouncement?.visible).toBe(true)
+
+    const invisibleAnnouncement = await systemService.findAnnouncement({
+      id: createdAnnouncement.id,
+      visible: false,
+    })
+    expect(invisibleAnnouncement).toBeNull()
+  })
+
+  test('findAnnouncement with expired announcement', async () => {
+    // Create an expired announcement
+    const expiredAnnouncement = await createAnnouncement(
+      new Date(Date.now() - 1000)
+    )
+
+    const result = await systemService.findAnnouncement({
+      id: expiredAnnouncement.id,
+    })
+    expect(result).toBeNull()
+  })
+
+  test('findAnnouncements without filters', async () => {
+    const createdAnnouncement = await createAnnouncement()
+    const announcements = await systemService.findAnnouncements({})
+    expect(Array.isArray(announcements)).toBe(true)
+    expect(announcements.length).toBe(1)
+    expect(announcements[0].id).toBe(createdAnnouncement.id)
+  })
+
+  test('findAnnouncements with channel filter', async () => {
+    const createdAnnouncement = await createAnnouncement()
+    const channel = await channelService.createTopicChannel({
+      name: 'test',
+      providerId: 'test',
+      enabled: true,
+    })
+
+    // Verify all announcements are associated with the channel
+    await atomService.create({
+      table: 'channel_announcement',
+      data: {
+        channelId: channel.id,
+        announcementId: createdAnnouncement.id,
+      },
+    })
+
+    const announcements = await systemService.findAnnouncements({
+      channelId: channel.id,
+    })
+    expect(announcements.length).toBe(1)
+    expect(announcements[0].id).toBe(createdAnnouncement.id)
+  })
+
+  test('findAnnouncements with visibility filter', async () => {
+    const visibleAnnouncements = await systemService.findAnnouncements({
+      visible: true,
+    })
+    expect(Array.isArray(visibleAnnouncements)).toBe(true)
+    visibleAnnouncements.forEach((announcement) => {
+      expect(announcement.visible).toBe(true)
+    })
+
+    const invisibleAnnouncements = await systemService.findAnnouncements({
+      visible: false,
+    })
+    expect(Array.isArray(invisibleAnnouncements)).toBe(true)
+    invisibleAnnouncements.forEach((announcement) => {
+      expect(announcement.visible).toBe(false)
+    })
+  })
 })

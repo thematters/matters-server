@@ -27,6 +27,11 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Validate field formats and constraints
    - Throw Errors defined in `src/common/errors.js` for invalid inputs
    - Handle special validations (e.g., datetime ranges)
+   - Use appropriate error codes:
+     - `BAD_USER_INPUT` for validation errors
+     - `ENTITY_NOT_FOUND` for not found errors
+     - `FORBIDDEN` for permission errors
+     - `UNAUTHENTICATED` for authentication errors
 
 5. Implement business logic
    - Use service layer classes for database operations
@@ -91,6 +96,8 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
 ```
 
 ### Unions and Interfaces
+
+> **Note:** Always use `__type` (not `__typename`) for type discrimination in resolver return objects. This ensures consistency with our type resolution logic and cache handling.
 
 1. return `__type` in resolvers:
 ```typescript

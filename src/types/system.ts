@@ -7,14 +7,6 @@ import {
 
 const UPLOAD_RATE_LIMIT = 40 // 20 pictures per 12 minutes, `directImageUpload` called twice for each picture
 
-const TranslatedAnnouncementFields = `
-  language: UserLanguage!
-  title: String
-  cover: String
-  content: String
-  link: String @constraint(format: "uri")
-`
-
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
@@ -117,21 +109,32 @@ export default /* GraphQL */ `
 
   type Announcement {
     id: ID!
-    title: String
+    title(input: TranslationArgs): String
     cover: String
-    content: String
-    link: String
+    content(input: TranslationArgs): String
+    link(input: TranslationArgs): String
     type: AnnouncementType!
     visible: Boolean!
     order: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
     expiredAt: DateTime
-    translations: [TranslatedAnnouncement!]
+    translations: [TranslatedAnnouncement!] @deprecated(reason: "Use title, content, link with TranslationArgs instead")
+    channels: [AnnouncementChannel!]!
+  }
+
+  type AnnouncementChannel {
+    channel: Channel!
+    order: Int!
+    visible: Boolean!
   }
 
   type TranslatedAnnouncement {
-    ${TranslatedAnnouncementFields}
+    language: UserLanguage!
+    title: String
+    cover: String
+    content: String
+    link: String @constraint(format: "uri")
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -363,24 +366,28 @@ export default /* GraphQL */ `
   input AnnouncementsInput {
     id: ID
     visible: Boolean
-  }
-
-  input TranslatedAnnouncementInput {
-    ${TranslatedAnnouncementFields}
+    channel: IdentityInput
   }
 
   input PutAnnouncementInput {
     id: ID
-    title: String
+    title: [TranslationInput!]
     cover: String
-    content: String
-    link: String @constraint(format: "uri")
+    content: [TranslationInput!]
+    link: [TranslationInput!]
     type: AnnouncementType
     expiredAt: DateTime
     visible: Boolean
     order: Int
-    translations: [TranslatedAnnouncementInput!]
+    channels: [AnnouncementChannelInput!]
   }
+
+  input AnnouncementChannelInput {
+    channel: ID!
+    visible: Boolean!
+    order: Int!
+  }
+
 
   input DeleteAnnouncementsInput {
     ids: [ID!]

@@ -5,6 +5,7 @@ const require = createRequire(import.meta.url)
 const isEmail = require('validator/lib/isEmail')
 
 export const isUrl = require('validator/lib/isURL')
+export const isUUID = require('validator/lib/isUUID')
 
 /**
  * Validate email address.

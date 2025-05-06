@@ -38,7 +38,11 @@ import type {
   ActionUser,
   ActionCollection,
 } from './action.js'
-import type { Announcement, AnnouncementTranslation } from './announcement.js'
+import type {
+  Announcement,
+  AnnouncementTranslation,
+  ChannelAnnouncement,
+} from './announcement.js'
 import type { Appreciation } from './appreciation.js'
 import type {
   Article,
@@ -200,7 +204,7 @@ export interface DataSources {
   }
 }
 
-export type TableTypeMap = {
+export interface TableTypeMap {
   action_article: ActionArticle
   action_circle: ActionCircle
   action_comment: ActionComment
@@ -280,6 +284,7 @@ export type TableTypeMap = {
   verification_code: VerificationCode
   curation_channel: CurationChannel
   curation_channel_article: CurationChannelArticle
+  channel_announcement: ChannelAnnouncement
 }
 
 export type TableTypeMapKey = keyof TableTypeMap

@@ -42,6 +42,7 @@ import {
   TopicChannel as TopicChannelModel,
   CurationChannel as CurationChannelModel,
 } from './channel.js'
+import { Announcement as AnnouncementModel } from './announcement.js'
 import { GlobalId } from './nominal.js'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
@@ -101,6 +102,7 @@ export type GQLAddCurationChannelArticlesInput = {
 
 export type GQLAnnouncement = {
   __typename?: 'Announcement'
+  channels: Array<GQLAnnouncementChannel>
   content?: Maybe<Scalars['String']['output']>
   cover?: Maybe<Scalars['String']['output']>
   createdAt: Scalars['DateTime']['output']
@@ -109,15 +111,42 @@ export type GQLAnnouncement = {
   link?: Maybe<Scalars['String']['output']>
   order: Scalars['Int']['output']
   title?: Maybe<Scalars['String']['output']>
+  /** @deprecated Use title, content, link with TranslationArgs instead */
   translations?: Maybe<Array<GQLTranslatedAnnouncement>>
   type: GQLAnnouncementType
   updatedAt: Scalars['DateTime']['output']
   visible: Scalars['Boolean']['output']
 }
 
+export type GQLAnnouncementContentArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLAnnouncementLinkArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLAnnouncementTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLAnnouncementChannel = {
+  __typename?: 'AnnouncementChannel'
+  channel: GQLChannel
+  order: Scalars['Int']['output']
+  visible: Scalars['Boolean']['output']
+}
+
+export type GQLAnnouncementChannelInput = {
+  channel: Scalars['ID']['input']
+  order: Scalars['Int']['input']
+  visible: Scalars['Boolean']['input']
+}
+
 export type GQLAnnouncementType = 'community' | 'product' | 'seminar'
 
 export type GQLAnnouncementsInput = {
+  channel?: InputMaybe<GQLIdentityInput>
   id?: InputMaybe<Scalars['ID']['input']>
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
@@ -2854,14 +2883,14 @@ export type GQLPublishArticleInput = {
 export type GQLPublishState = 'error' | 'pending' | 'published' | 'unpublished'
 
 export type GQLPutAnnouncementInput = {
-  content?: InputMaybe<Scalars['String']['input']>
+  channels?: InputMaybe<Array<GQLAnnouncementChannelInput>>
+  content?: InputMaybe<Array<GQLTranslationInput>>
   cover?: InputMaybe<Scalars['String']['input']>
   expiredAt?: InputMaybe<Scalars['DateTime']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
-  link?: InputMaybe<Scalars['String']['input']>
+  link?: InputMaybe<Array<GQLTranslationInput>>
   order?: InputMaybe<Scalars['Int']['input']>
-  title?: InputMaybe<Scalars['String']['input']>
-  translations?: InputMaybe<Array<GQLTranslatedAnnouncementInput>>
+  title?: InputMaybe<Array<GQLTranslationInput>>
   type?: InputMaybe<GQLAnnouncementType>
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
@@ -3862,14 +3891,6 @@ export type GQLTranslatedAnnouncement = {
   title?: Maybe<Scalars['String']['output']>
 }
 
-export type GQLTranslatedAnnouncementInput = {
-  content?: InputMaybe<Scalars['String']['input']>
-  cover?: InputMaybe<Scalars['String']['input']>
-  language: GQLUserLanguage
-  link?: InputMaybe<Scalars['String']['input']>
-  title?: InputMaybe<Scalars['String']['input']>
-}
-
 export type GQLTranslationArgs = {
   language: GQLUserLanguage
 }
@@ -4746,7 +4767,13 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   AddCurationChannelArticlesInput: GQLAddCurationChannelArticlesInput
-  Announcement: ResolverTypeWrapper<GQLAnnouncement>
+  Announcement: ResolverTypeWrapper<AnnouncementModel>
+  AnnouncementChannel: ResolverTypeWrapper<
+    Omit<GQLAnnouncementChannel, 'channel'> & {
+      channel: GQLResolversTypes['Channel']
+    }
+  >
+  AnnouncementChannelInput: GQLAnnouncementChannelInput
   AnnouncementType: GQLAnnouncementType
   AnnouncementsInput: GQLAnnouncementsInput
   ApplyCampaignInput: GQLApplyCampaignInput
@@ -5146,7 +5173,11 @@ export type GQLResolversTypes = ResolversObject<{
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
-  Official: ResolverTypeWrapper<GQLOfficial>
+  Official: ResolverTypeWrapper<
+    Omit<GQLOfficial, 'announcements'> & {
+      announcements?: Maybe<Array<GQLResolversTypes['Announcement']>>
+    }
+  >
   OfficialAnnouncementNotice: ResolverTypeWrapper<NoticeItemModel>
   PageInfo: ResolverTypeWrapper<GQLPageInfo>
   PayToInput: GQLPayToInput
@@ -5343,7 +5374,6 @@ export type GQLResolversTypes = ResolversObject<{
   TransactionsFilter: GQLTransactionsFilter
   TransactionsReceivedByArgs: GQLTransactionsReceivedByArgs
   TranslatedAnnouncement: ResolverTypeWrapper<GQLTranslatedAnnouncement>
-  TranslatedAnnouncementInput: GQLTranslatedAnnouncementInput
   TranslationArgs: GQLTranslationArgs
   TranslationInput: GQLTranslationInput
   UnbindLikerIdInput: GQLUnbindLikerIdInput
@@ -5463,7 +5493,11 @@ export type GQLResolversParentTypes = ResolversObject<{
     transaction: GQLResolversParentTypes['Transaction']
   }
   AddCurationChannelArticlesInput: GQLAddCurationChannelArticlesInput
-  Announcement: GQLAnnouncement
+  Announcement: AnnouncementModel
+  AnnouncementChannel: Omit<GQLAnnouncementChannel, 'channel'> & {
+    channel: GQLResolversParentTypes['Channel']
+  }
+  AnnouncementChannelInput: GQLAnnouncementChannelInput
   AnnouncementsInput: GQLAnnouncementsInput
   ApplyCampaignInput: GQLApplyCampaignInput
   AppreciateArticleInput: GQLAppreciateArticleInput
@@ -5756,7 +5790,9 @@ export type GQLResolversParentTypes = ResolversObject<{
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
-  Official: GQLOfficial
+  Official: Omit<GQLOfficial, 'announcements'> & {
+    announcements?: Maybe<Array<GQLResolversParentTypes['Announcement']>>
+  }
   OfficialAnnouncementNotice: NoticeItemModel
   PageInfo: GQLPageInfo
   PayToInput: GQLPayToInput
@@ -5899,7 +5935,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   TransactionsFilter: GQLTransactionsFilter
   TransactionsReceivedByArgs: GQLTransactionsReceivedByArgs
   TranslatedAnnouncement: GQLTranslatedAnnouncement
-  TranslatedAnnouncementInput: GQLTranslatedAnnouncementInput
   TranslationArgs: GQLTranslationArgs
   TranslationInput: GQLTranslationInput
   UnbindLikerIdInput: GQLUnbindLikerIdInput
@@ -6135,10 +6170,16 @@ export type GQLAnnouncementResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Announcement'] = GQLResolversParentTypes['Announcement']
 > = ResolversObject<{
+  channels?: Resolver<
+    Array<GQLResolversTypes['AnnouncementChannel']>,
+    ParentType,
+    ContextType
+  >
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
-    ContextType
+    ContextType,
+    Partial<GQLAnnouncementContentArgs>
   >
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
@@ -6148,9 +6189,19 @@ export type GQLAnnouncementResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  link?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  link?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    Partial<GQLAnnouncementLinkArgs>
+  >
   order?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  title?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  title?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    Partial<GQLAnnouncementTitleArgs>
+  >
   translations?: Resolver<
     Maybe<Array<GQLResolversTypes['TranslatedAnnouncement']>>,
     ParentType,
@@ -6162,6 +6213,16 @@ export type GQLAnnouncementResolvers<
     ContextType
   >
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  visible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLAnnouncementChannelResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['AnnouncementChannel'] = GQLResolversParentTypes['AnnouncementChannel']
+> = ResolversObject<{
+  channel?: Resolver<GQLResolversTypes['Channel'], ParentType, ContextType>
+  order?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   visible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -10364,6 +10425,7 @@ export type GQLWritingEdgeResolvers<
 export type GQLResolvers<ContextType = Context> = ResolversObject<{
   AddCreditResult?: GQLAddCreditResultResolvers<ContextType>
   Announcement?: GQLAnnouncementResolvers<ContextType>
+  AnnouncementChannel?: GQLAnnouncementChannelResolvers<ContextType>
   Appreciation?: GQLAppreciationResolvers<ContextType>
   AppreciationConnection?: GQLAppreciationConnectionResolvers<ContextType>
   AppreciationEdge?: GQLAppreciationEdgeResolvers<ContextType>

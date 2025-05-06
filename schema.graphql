@@ -2058,17 +2058,24 @@ type Feature {
 
 type Announcement {
   id: ID!
-  title: String
+  title(input: TranslationArgs): String
   cover: String
-  content: String
-  link: String
+  content(input: TranslationArgs): String
+  link(input: TranslationArgs): String
   type: AnnouncementType!
   visible: Boolean!
   order: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
   expiredAt: DateTime
-  translations: [TranslatedAnnouncement!]
+  translations: [TranslatedAnnouncement!] @deprecated(reason: "Use title, content, link with TranslationArgs instead")
+  channels: [AnnouncementChannel!]!
+}
+
+type AnnouncementChannel {
+  channel: Channel!
+  order: Int!
+  visible: Boolean!
 }
 
 type TranslatedAnnouncement {
@@ -2304,27 +2311,26 @@ input ToggleSeedingUsersInput {
 input AnnouncementsInput {
   id: ID
   visible: Boolean
-}
-
-input TranslatedAnnouncementInput {
-  language: UserLanguage!
-  title: String
-  cover: String
-  content: String
-  link: String
+  channel: IdentityInput
 }
 
 input PutAnnouncementInput {
   id: ID
-  title: String
+  title: [TranslationInput!]
   cover: String
-  content: String
-  link: String
+  content: [TranslationInput!]
+  link: [TranslationInput!]
   type: AnnouncementType
   expiredAt: DateTime
   visible: Boolean
   order: Int
-  translations: [TranslatedAnnouncementInput!]
+  channels: [AnnouncementChannelInput!]
+}
+
+input AnnouncementChannelInput {
+  channel: ID!
+  visible: Boolean!
+  order: Int!
 }
 
 input DeleteAnnouncementsInput {
