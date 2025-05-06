@@ -407,14 +407,14 @@ describe('create or update announcements', () => {
     expect(data?.putAnnouncement.channels[0].order).toBe(1)
   })
 
-  test('translations are updated after announcement creation', async () => {
+  test('translations are updated both announcement creation and update', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
       isAdmin: true,
     })
 
-    const { data, errors } = await server.executeOperation({
+    const { data: data1, errors: errors1 } = await server.executeOperation({
       query: PUT_ANNOUNCEMENT,
       variables: {
         input: {
@@ -437,12 +437,49 @@ describe('create or update announcements', () => {
       },
     })
 
-    expect(errors).toBeUndefined()
-    expect(data?.putAnnouncement.title).toBe('新標題')
-    expect(data?.putAnnouncement.titleEn).toBe('New Title')
-    expect(data?.putAnnouncement.content).toBe('新內容')
-    expect(data?.putAnnouncement.contentEn).toBe('New Content')
-    expect(data?.putAnnouncement.link).toBe('https://example.com/zh_hant_new')
-    expect(data?.putAnnouncement.linkEn).toBe('https://example.com/en_new')
+    expect(errors1).toBeUndefined()
+    expect(data1?.putAnnouncement.title).toBe('新標題')
+    expect(data1?.putAnnouncement.titleEn).toBe('New Title')
+    expect(data1?.putAnnouncement.content).toBe('新內容')
+    expect(data1?.putAnnouncement.contentEn).toBe('New Content')
+    expect(data1?.putAnnouncement.link).toBe('https://example.com/zh_hant_new')
+    expect(data1?.putAnnouncement.linkEn).toBe('https://example.com/en_new')
+
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: PUT_ANNOUNCEMENT,
+      variables: {
+        input: {
+          id: data1?.putAnnouncement.id,
+          title: [
+            { language: 'zh_hant', text: '更新標題' },
+            { language: 'en', text: 'Updated Title' },
+          ],
+          content: [
+            { language: 'zh_hant', text: '更新內容' },
+            { language: 'en', text: 'Updated Content' },
+          ],
+          link: [
+            {
+              language: 'zh_hant',
+              text: 'https://example.com/zh_hant_updated',
+            },
+            { language: 'en', text: 'https://example.com/en_updated' },
+          ],
+          type: 'community',
+          visible: true,
+          order: 3,
+        },
+      },
+    })
+
+    expect(errors2).toBeUndefined()
+    expect(data2?.putAnnouncement.title).toBe('更新標題')
+    expect(data2?.putAnnouncement.titleEn).toBe('Updated Title')
+    expect(data2?.putAnnouncement.content).toBe('更新內容')
+    expect(data2?.putAnnouncement.contentEn).toBe('Updated Content')
+    expect(data2?.putAnnouncement.link).toBe(
+      'https://example.com/zh_hant_updated'
+    )
+    expect(data2?.putAnnouncement.linkEn).toBe('https://example.com/en_updated')
   })
 })
