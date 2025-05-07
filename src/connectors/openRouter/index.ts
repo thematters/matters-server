@@ -81,9 +81,9 @@ export class OpenRouter {
     const currentModel = model
       ? this.fromDatabaseModel(model)
       : this.defaultModel
-    const fallbackModels = this.availableModels.filter(
-      (m) => m !== currentModel
-    )
+    const fallbackModels = this.availableModels
+      .filter((m) => m !== currentModel)
+      .slice(0, 2)
 
     try {
       const response = await fetch(
