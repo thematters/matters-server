@@ -16,12 +16,15 @@ export const articles: GQLOssResolvers['articles'] = async (
     },
   }
 ) => {
-  let query: Knex.QueryBuilder = articleService.findArticles()
+  let query: Knex.QueryBuilder = articleService.findArticles({
+    datetimeRange: input?.filter?.datetimeRange,
+  })
   if (input?.filter?.isSpam) {
     const spamThreshold = await systemService.getSpamThreshold()
     query = articleService.findArticles({
       isSpam: input?.filter?.isSpam ?? false,
       spamThreshold: spamThreshold ?? 0,
+      datetimeRange: input?.filter?.datetimeRange,
     })
   }
   let orderBy: {

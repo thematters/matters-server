@@ -51,6 +51,7 @@ describe('manage topic channels', () => {
             enabled
             isLabeled
             score
+            classicfiedAt
           }
         }
       }
@@ -321,6 +322,23 @@ describe('manage topic channels', () => {
       true
     )
     expect(data.setArticleTopicChannels.oss.topicChannels[0].score).toBeNull()
+    expect(
+      data.setArticleTopicChannels.oss.topicChannels[0].classicfiedAt
+    ).toBeDefined()
+
+    // Verify classicfiedAt matches createdAt
+    const articleChannel = await atomService.findFirst({
+      table: 'topic_channel_article',
+      where: {
+        articleId: article.id,
+        channelId: channel.id,
+      },
+    })
+    expect(
+      new Date(
+        data.setArticleTopicChannels.oss.topicChannels[0].classicfiedAt
+      ).getTime()
+    ).toBe(articleChannel.createdAt.getTime())
   })
 
   test('query channel', async () => {

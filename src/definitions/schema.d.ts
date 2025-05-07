@@ -79,6 +79,12 @@ export type Scalars = {
   Upload: { input: any; output: any }
 }
 
+export type GQLAdStatus = {
+  __typename?: 'AdStatus'
+  /** whether this article is labeled as ad by human, null for not labeled yet.  */
+  isAd?: Maybe<Scalars['Boolean']['output']>
+}
+
 export type GQLAddCollectionsArticlesInput = {
   articles: Array<Scalars['ID']['input']>
   collections: Array<Scalars['ID']['input']>
@@ -548,6 +554,7 @@ export type GQLArticleNoticeType =
 
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'
+  adStatus: GQLAdStatus
   boost: Scalars['Float']['output']
   inRecommendHottest: Scalars['Boolean']['output']
   inRecommendIcymi: Scalars['Boolean']['output']
@@ -576,6 +583,8 @@ export type GQLArticleState = 'active' | 'archived' | 'banned'
 export type GQLArticleTopicChannel = {
   __typename?: 'ArticleTopicChannel'
   channel: GQLTopicChannel
+  /** datetime when this article is classified */
+  classicfiedAt: Scalars['DateTime']['output']
   /** whether this article channel is enabled */
   enabled: Scalars['Boolean']['output']
   /** whether this article is labeled by human, null for not labeled yet.  */
@@ -2043,6 +2052,7 @@ export type GQLMutation = {
   sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
+  setAdStatus: GQLArticle
   setArticleTopicChannels: GQLArticle
   setBoost: GQLNode
   /** Set user currency preference. */
@@ -2377,6 +2387,10 @@ export type GQLMutationSendCampaignAnnouncementArgs = {
 
 export type GQLMutationSendVerificationCodeArgs = {
   input: GQLSendVerificationCodeInput
+}
+
+export type GQLMutationSetAdStatusArgs = {
+  input: GQLSetAdStatusInput
 }
 
 export type GQLMutationSetArticleTopicChannelsArgs = {
@@ -2754,6 +2768,7 @@ export type GQLOssUsersArgs = {
 }
 
 export type GQLOssArticlesFilterInput = {
+  datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
   isSpam?: InputMaybe<Scalars['Boolean']['input']>
 }
 
@@ -3429,6 +3444,11 @@ export type GQLSendVerificationCodeInput = {
   redirectUrl?: InputMaybe<Scalars['String']['input']>
   token?: InputMaybe<Scalars['String']['input']>
   type: GQLVerificationCodeType
+}
+
+export type GQLSetAdStatusInput = {
+  id: Scalars['ID']['input']
+  isAd: Scalars['Boolean']['input']
 }
 
 export type GQLSetArticleTopicChannelsInput = {
@@ -4769,6 +4789,7 @@ export type GQLResolversInterfaceTypes<
 
 /** Mapping between all available schema types and the resolvers types */
 export type GQLResolversTypes = ResolversObject<{
+  AdStatus: ResolverTypeWrapper<GQLAdStatus>
   AddCollectionsArticlesInput: GQLAddCollectionsArticlesInput
   AddCreditInput: GQLAddCreditInput
   AddCreditResult: ResolverTypeWrapper<
@@ -5299,6 +5320,7 @@ export type GQLResolversTypes = ResolversObject<{
   SearchTypes: GQLSearchTypes
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
+  SetAdStatusInput: GQLSetAdStatusInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5498,6 +5520,7 @@ export type GQLResolversTypes = ResolversObject<{
 
 /** Mapping between all available schema types and the resolvers parents */
 export type GQLResolversParentTypes = ResolversObject<{
+  AdStatus: GQLAdStatus
   AddCollectionsArticlesInput: GQLAddCollectionsArticlesInput
   AddCreditInput: GQLAddCreditInput
   AddCreditResult: Omit<GQLAddCreditResult, 'transaction'> & {
@@ -5885,6 +5908,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
+  SetAdStatusInput: GQLSetAdStatusInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -6163,6 +6187,14 @@ export type GQLRateLimitDirectiveResolver<
   ContextType = Context,
   Args = GQLRateLimitDirectiveArgs
 > = DirectiveResolverFn<Result, Parent, ContextType, Args>
+
+export type GQLAdStatusResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['AdStatus'] = GQLResolversParentTypes['AdStatus']
+> = ResolversObject<{
+  isAd?: Resolver<Maybe<GQLResolversTypes['Boolean']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
 
 export type GQLAddCreditResultResolvers<
   ContextType = Context,
@@ -6616,6 +6648,7 @@ export type GQLArticleOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleOSS'] = GQLResolversParentTypes['ArticleOSS']
 > = ResolversObject<{
+  adStatus?: Resolver<GQLResolversTypes['AdStatus'], ParentType, ContextType>
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   inRecommendHottest?: Resolver<
     GQLResolversTypes['Boolean'],
@@ -6669,6 +6702,11 @@ export type GQLArticleTopicChannelResolvers<
   ParentType extends GQLResolversParentTypes['ArticleTopicChannel'] = GQLResolversParentTypes['ArticleTopicChannel']
 > = ResolversObject<{
   channel?: Resolver<GQLResolversTypes['TopicChannel'], ParentType, ContextType>
+  classicfiedAt?: Resolver<
+    GQLResolversTypes['DateTime'],
+    ParentType,
+    ContextType
+  >
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
@@ -8427,6 +8465,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSendVerificationCodeArgs, 'input'>
+  >
+  setAdStatus?: Resolver<
+    GQLResolversTypes['Article'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetAdStatusArgs, 'input'>
   >
   setArticleTopicChannels?: Resolver<
     GQLResolversTypes['Article'],
@@ -10439,6 +10483,7 @@ export type GQLWritingEdgeResolvers<
 }>
 
 export type GQLResolvers<ContextType = Context> = ResolversObject<{
+  AdStatus?: GQLAdStatusResolvers<ContextType>
   AddCreditResult?: GQLAddCreditResultResolvers<ContextType>
   Announcement?: GQLAnnouncementResolvers<ContextType>
   AnnouncementChannel?: GQLAnnouncementChannelResolvers<ContextType>

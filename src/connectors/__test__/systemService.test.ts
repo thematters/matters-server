@@ -325,6 +325,11 @@ describe('announcement', () => {
       enabled: true,
     })
 
+    const announcements1 = await systemService.findAnnouncements({
+      channelId: channel.id,
+    })
+    expect(announcements1.length).toBe(0)
+
     // Verify all announcements are associated with the channel
     await atomService.create({
       table: 'channel_announcement',
@@ -334,11 +339,11 @@ describe('announcement', () => {
       },
     })
 
-    const announcements = await systemService.findAnnouncements({
+    const announcements2 = await systemService.findAnnouncements({
       channelId: channel.id,
     })
-    expect(announcements.length).toBe(1)
-    expect(announcements[0].id).toBe(createdAnnouncement.id)
+    expect(announcements2.length).toBe(1)
+    expect(announcements2[0].id).toBe(createdAnnouncement.id)
   })
 
   test('findAnnouncements with visibility filter', async () => {

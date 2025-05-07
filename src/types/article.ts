@@ -316,6 +316,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+    adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
     topicChannels: [ArticleTopicChannel!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -325,6 +326,11 @@ export default /* GraphQL */ `
 
     "whether this article is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
+  }
+
+  type AdStatus {
+    "whether this article is labeled as ad by human, null for not labeled yet. "
+    isAd: Boolean
   }
 
   type ArticleTopicChannel {
@@ -338,6 +344,9 @@ export default /* GraphQL */ `
 
     "whether this article channel is enabled"
     enabled: Boolean!
+
+    "datetime when this article is classified"
+    classicfiedAt: DateTime!
   }
 
   enum TranslationModel {

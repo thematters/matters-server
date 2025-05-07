@@ -184,6 +184,39 @@ test('findByCommentedAuthor', async () => {
   const articles = await articleService.findByCommentedAuthor({ id: '1' })
   expect(articles.length).toBeDefined()
 })
+
+describe('findArticles', () => {
+  test('filter by datetime range with start only', async () => {
+    const startDate = new Date('2024-01-01')
+    const result = await articleService.findArticles({
+      datetimeRange: { start: startDate },
+    })
+    expect(result.length).toBeGreaterThan(0)
+    expect(result[0].createdAt.getTime()).toBeGreaterThanOrEqual(
+      startDate.getTime()
+    )
+  })
+
+  test('filter by datetime range with start and end', async () => {
+    const startDate = new Date('2024-01-01')
+    const endDate = new Date('2024-01-31')
+    const result = await articleService.findArticles({
+      datetimeRange: { start: startDate, end: endDate },
+    })
+    expect(result.length).toBe(0)
+  })
+
+  test('filter by spam and datetime range', async () => {
+    const startDate = new Date('2024-01-01')
+    const result = await articleService.findArticles({
+      isSpam: true,
+      spamThreshold: 0.5,
+      datetimeRange: { start: startDate },
+    })
+    expect(result.length).toBe(0)
+  })
+})
+
 test('countAppreciations', async () => {
   expect(await articleService.countAppreciations('1')).toBe(5)
   expect(await articleService.countAppreciations('0')).toBe(0)

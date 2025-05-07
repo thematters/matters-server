@@ -116,8 +116,9 @@ export class ArticleService extends BaseService<Article> {
    *********************************/
 
   public findArticles = (filter?: {
-    isSpam: boolean
-    spamThreshold: number
+    isSpam?: boolean
+    spamThreshold?: number
+    datetimeRange?: { start: Date; end?: Date }
   }) => {
     const query = this.knexRO('article').select('*')
 
@@ -125,10 +126,16 @@ export class ArticleService extends BaseService<Article> {
       query.where((builder) => {
         builder.where('is_spam', '=', true).orWhere((orWhereBuilder) => {
           orWhereBuilder
-            .where('spam_score', '>=', filter.spamThreshold)
+            .whereRaw('spam_score >= ?', [filter.spamThreshold])
             .whereNull('is_spam')
         })
       })
+    }
+    if (filter?.datetimeRange) {
+      query.where('created_at', '>=', filter.datetimeRange.start)
+      if (filter.datetimeRange.end) {
+        query.where('created_at', '<=', filter.datetimeRange.end)
+      }
     }
     return query
   }

@@ -103,43 +103,6 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
       },
     })
 
-    // create or update translations
-    if (title) {
-      for (const trans of title) {
-        await translationService.updateOrCreateTranslation({
-          table: 'announcement',
-          field: 'title',
-          id: ret.id,
-          language: trans.language,
-          text: trans.text,
-        })
-      }
-    }
-
-    if (content) {
-      for (const trans of content) {
-        await translationService.updateOrCreateTranslation({
-          table: 'announcement',
-          field: 'content',
-          id: ret.id,
-          language: trans.language,
-          text: trans.text,
-        })
-      }
-    }
-
-    if (link) {
-      for (const trans of link) {
-        await translationService.updateOrCreateTranslation({
-          table: 'announcement',
-          field: 'link',
-          id: ret.id,
-          language: trans.language,
-          text: trans.text,
-        })
-      }
-    }
-
     // query and purge previous announcements
     // since the resolve return new announcement which is not cached
     const prevAnnouncements = await atomService.findMany({
@@ -154,6 +117,43 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
         })
       )
     )
+  }
+
+  // create or update translations
+  if (title) {
+    for (const trans of title) {
+      await translationService.updateOrCreateTranslation({
+        table: 'announcement',
+        field: 'title',
+        id: ret.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  if (content) {
+    for (const trans of content) {
+      await translationService.updateOrCreateTranslation({
+        table: 'announcement',
+        field: 'content',
+        id: ret.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  if (link) {
+    for (const trans of link) {
+      await translationService.updateOrCreateTranslation({
+        table: 'announcement',
+        field: 'link',
+        id: ret.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
   }
 
   // Handle channels
@@ -173,11 +173,11 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
           table: 'channel_announcement',
           where: {
             announcementId: ret.id,
-            channelId: channelInput.channel,
+            channelId: fromGlobalId(channelInput.channel).id,
           },
           create: {
             announcementId: ret.id,
-            channelId: channelInput.channel,
+            channelId: fromGlobalId(channelInput.channel).id,
             visible: channelInput.visible,
             order: channelInput.order,
           },

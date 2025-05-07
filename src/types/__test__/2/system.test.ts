@@ -1169,3 +1169,38 @@ describe('setSpamStatus', () => {
     expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
   })
 })
+
+describe('setAdStatus', () => {
+  const SET_AD_STATUS = /* GraphQL */ `
+    mutation ($input: SetAdStatusInput!) {
+      setAdStatus(input: $input) {
+        id
+        ... on Article {
+          oss {
+            adStatus {
+              isAd
+            }
+          }
+        }
+      }
+    }
+  `
+  test('set ad status successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_AD_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          isAd: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setAdStatus.oss.adStatus.isAd).toBe(true)
+  })
+})

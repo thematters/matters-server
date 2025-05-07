@@ -47,7 +47,8 @@ export default /* GraphQL */ `
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
-    setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
+    setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
   }
 
   input KeywordsInput {
@@ -579,6 +580,11 @@ export default /* GraphQL */ `
     isSpam: Boolean!
   }
 
+  input SetAdStatusInput {
+    id: ID!
+    isAd: Boolean!
+  }
+
   input OSSArticlesInput {
     after: String
     first: Int @constraint(min: 0)
@@ -588,6 +594,7 @@ export default /* GraphQL */ `
 
   input OSSArticlesFilterInput {
     isSpam: Boolean
+    datetimeRange: DatetimeRangeInput
   }
 
   ####################

@@ -162,6 +162,7 @@ const schema: GQLResolvers = {
     inRecommendNewest: articleOSS.inRecommendNewest,
     inSearch: articleOSS.inSearch,
     spamStatus: articleOSS.spamStatus,
+    adStatus: articleOSS.adStatus,
     topicChannels: articleOSS.topicChannels,
   },
   TagOSS: {
