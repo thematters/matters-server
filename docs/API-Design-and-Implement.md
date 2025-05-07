@@ -93,6 +93,8 @@ const resolver: GQLMutationResolvers['putChannel'] = async (
   // 4. Return response
   return channel
 }
+
+// helpers should be placed below resolvers
 ```
 
 ### Unions and Interfaces

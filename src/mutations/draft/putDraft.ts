@@ -3,6 +3,8 @@ import type {
   DataSources,
   GQLMutationResolvers,
   Draft,
+  GlobalId,
+  User,
 } from '#definitions/index.js'
 
 import {
@@ -52,43 +54,33 @@ const {
 
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,
-  {
-    input: {
-      id,
-      title,
-      summary,
-      content,
-      tags,
-      cover,
-      collection: connectionGlobalIds,
-      circle: circleGlobalId,
-      accessType,
-      sensitive,
-      license,
-      requestForDonation,
-      replyToDonator,
-      iscnPublish,
-      canComment,
-      indentFirstLine,
-      campaigns,
-      lastUpdatedAt,
-    },
-  },
+  { input },
   { viewer, dataSources: { atomService, systemService, campaignService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
+  validateUserState(viewer)
 
-  if (
-    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
-      viewer.state
-    )
-  ) {
-    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
-  }
+  const {
+    id: GlobalId,
+    title,
+    summary,
+    content,
+    tags,
+    cover,
+    collection: connectionGlobalIds,
+    circle: circleGlobalId,
+    accessType,
+    sensitive,
+    license,
+    requestForDonation,
+    replyToDonator,
+    iscnPublish,
+    canComment,
+    indentFirstLine,
+    campaigns,
+    lastUpdatedAt,
+  } = input
 
-  // check tags
+  // Validate tags if provided
   if (tags) {
     await validateTags({
       viewerId: viewer.id,
@@ -97,11 +89,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     })
   }
 
-  // check for asset existence
+  // Handle cover asset
   let coverId
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
-
     if (
       !asset ||
       [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
@@ -109,16 +100,16 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     ) {
       throw new AssetNotFoundError('Asset does not exists')
     }
-
     coverId = asset.id
   }
 
-  // check connections
+  // Handle connections
   const connections = connectionGlobalIds
     ? uniq(
         compact(connectionGlobalIds).map((_id) => fromGlobalId(_id).id)
       ).filter((articleId) => !!articleId)
-    : connectionGlobalIds // do not convert null or undefined
+    : connectionGlobalIds
+
   if (connections) {
     await validateConnections({
       connections,
@@ -126,35 +117,21 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     })
   }
 
-  // check circle
+  // Handle circle
   let circleId
   if (circleGlobalId) {
-    const { id: cId } = fromGlobalId(circleGlobalId)
-    const circle = await atomService.findFirst({
-      table: 'circle',
-      where: { id: cId, state: CIRCLE_STATE.active },
-    })
-
-    if (!circle) {
-      throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
-    } else if (circle.owner !== viewer.id) {
-      throw new ForbiddenError(
-        `Viewer isn't the owner of circle ${circleGlobalId}.`
-      )
-    } else if (circle.state !== CIRCLE_STATE.active) {
-      throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
-    }
-
     if (!accessType) {
       throw new UserInputError('"accessType" is required on `circle`.')
     }
-
-    circleId = cId
+    circleId = await validateCircle({
+      circleGlobalId,
+      viewerId: viewer.id,
+      atomService,
+    })
   }
 
-  // validate and assemble data
-  // TODO: move all validations into functions and call in below data assemble
-  const isUpdate = !!id
+  // Prepare data
+  const isUpdate = !!GlobalId
   const data: Partial<Draft> = omitBy(
     {
       authorId: isUpdate ? undefined : viewer.id,
@@ -179,44 +156,18 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           await campaignService.validateCampaigns(campaigns, viewer.id)
         ),
     },
-    isUndefined // to drop only undefined
+    isUndefined
   )
 
   if (isUpdate) {
-    const { id: dbId } = fromGlobalId(id)
-    const draft = await atomService.draftIdLoader.load(dbId)
+    const { id } = fromGlobalId(GlobalId)
+    const draft = await atomService.draftIdLoader.load(id)
 
-    // check for draft existence
     if (!draft) {
       throw new DraftNotFoundError('target draft does not exist')
     }
 
-    // check for permission
-    if (draft.authorId !== viewer.id) {
-      throw new ForbiddenError('viewer has no permission')
-    }
-
-    // check for draft state
-    if (
-      draft.publishState === PUBLISH_STATE.pending ||
-      draft.publishState === PUBLISH_STATE.published
-    ) {
-      throw new ForbiddenError(
-        'current publishState is not allow to be updated'
-      )
-    }
-
-    // Check for version conflict
-    if (
-      lastUpdatedAt &&
-      new Date(lastUpdatedAt).getTime() !== new Date(draft.updatedAt).getTime()
-    ) {
-      throw new DraftVersionConflictError(
-        'Draft has been modified by another session'
-      )
-    }
-
-    // check for tags limit
+    // Validate tags limit for update
     if (tags) {
       const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
       if (
@@ -229,7 +180,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       }
     }
 
-    // check for collection limit
+    // Validate connections limit for update
     if (connections) {
       const oldConnectionLength =
         draft.collection == null ? 0 : draft.collection.length
@@ -243,7 +194,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       }
     }
 
-    // handle candidate cover
+    // Handle candidate cover
     const resetCover = cover === null
     const isUpdateContent = content || content === ''
     if (
@@ -274,81 +225,55 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       }
     }
 
-    // update
+    // Update draft
     const resetCircle = circleGlobalId === null
-    return atomService.update({
-      table: 'draft',
-      where: { id: dbId },
+    return handleDraftUpdate({
+      draft,
       data: {
         ...data,
-        // reset fields
         circleId: resetCircle ? null : data.circleId,
       },
+      lastUpdatedAt,
+      viewerId: viewer.id,
+      atomService,
     })
   }
 
-  // Create
-  else {
-    if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
-      throw new TooManyTagsForArticleError(
-        `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
-      )
-    }
-    if (connections && connections.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
-      throw new ArticleCollectionReachLimitError(
-        `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
-      )
-    }
-
-    const draft = await atomService.create({ table: 'draft', data })
-    ;(
-      draft as Draft & {
-        [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
-      }
-    )[CACHE_KEYWORD] = [
-      {
-        id: viewer.id,
-        type: NODE_TYPES.User,
-      },
-    ]
-    return draft
-  }
-}
-
-// validators
-
-const normalizeAndValidateTitle = (title: string) => {
-  const _title = title.trim()
-  if (_title.length > MAX_ARTICLE_TITLE_LENGTH) {
-    throw new UserInputError('title reach length limit')
-  }
-  return _title
-}
-
-const normalizeAndValidateSummary = (summary: string) => {
-  const _summary = summary.trim()
-  if (_summary.length > MAX_ARTICLE_SUMMARY_LENGTH) {
-    throw new UserInputError('summary reach length limit')
-  }
-  return _summary
-}
-
-const normalizeAndValidateContent = (content: string) => {
-  const _content = normalizeArticleHTML(sanitizeHTML(content))
-  if (stripHtml(_content).length > MAX_ARTICLE_CONTENT_LENGTH) {
-    throw new UserInputError('content reach length limit')
-  }
-  return _content
-}
-
-const validateLicense = (license: string) => {
-  // cc_by_nc_nd_2 license not longer in use
-  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
-    throw new UserInputError(
-      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
+  // Create new draft
+  if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+    throw new TooManyTagsForArticleError(
+      `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
     )
   }
-  return license
+  if (connections && connections.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
+    throw new ArticleCollectionReachLimitError(
+      `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
+    )
+  }
+
+  return handleDraftCreate({
+    data,
+    viewerId: viewer.id,
+    atomService,
+  })
+}
+
+// Validation functions
+const validateUserState = (viewer: User) => {
+  if (!viewer.id) {
+    throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (
+    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+      viewer.state as
+        | typeof USER_STATE.archived
+        | typeof USER_STATE.banned
+        | typeof USER_STATE.frozen
+    )
+  ) {
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
 }
 
 const validateTags = async ({
@@ -360,7 +285,6 @@ const validateTags = async ({
   tags: string[]
   dataSources: Pick<DataSources, 'atomService'>
 }) => {
-  // check if tags includes matty's tag
   const isMatty = viewerId === environment.mattyId
   const mattyTagId = environment.mattyChoiceTagId
   if (mattyTagId && !isMatty) {
@@ -398,6 +322,132 @@ const validateConnections = async ({
       }
     })
   )
+}
+
+const validateCircle = async ({
+  circleGlobalId,
+  viewerId,
+  atomService,
+}: {
+  circleGlobalId: GlobalId
+  viewerId: string
+  atomService: AtomService
+}) => {
+  const { id } = fromGlobalId(circleGlobalId)
+  const circle = await atomService.findFirst({
+    table: 'circle',
+    where: { id, state: CIRCLE_STATE.active },
+  })
+
+  if (!circle) {
+    throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
+  } else if (circle.owner !== viewerId) {
+    throw new ForbiddenError(
+      `Viewer isn't the owner of circle ${circleGlobalId}.`
+    )
+  } else if (circle.state !== CIRCLE_STATE.active) {
+    throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
+  }
+
+  return id
+}
+
+// Data transformation functions
+const normalizeAndValidateTitle = (title: string) => {
+  const _title = title.trim()
+  if (_title.length > MAX_ARTICLE_TITLE_LENGTH) {
+    throw new UserInputError('title reach length limit')
+  }
+  return _title
+}
+
+const normalizeAndValidateSummary = (summary: string) => {
+  const _summary = summary.trim()
+  if (_summary.length > MAX_ARTICLE_SUMMARY_LENGTH) {
+    throw new UserInputError('summary reach length limit')
+  }
+  return _summary
+}
+
+const normalizeAndValidateContent = (content: string) => {
+  const _content = normalizeArticleHTML(sanitizeHTML(content))
+  if (stripHtml(_content).length > MAX_ARTICLE_CONTENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
+  return _content
+}
+
+const validateLicense = (license: string) => {
+  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
+    throw new UserInputError(
+      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
+    )
+  }
+  return license
+}
+
+// Draft update functions
+const handleDraftUpdate = async ({
+  draft,
+  data,
+  lastUpdatedAt,
+  viewerId,
+  atomService,
+}: {
+  draft: Draft
+  data: Partial<Draft>
+  lastUpdatedAt?: string
+  viewerId: string
+  atomService: AtomService
+}) => {
+  if (draft.authorId !== viewerId) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
+  if (
+    draft.publishState === PUBLISH_STATE.pending ||
+    draft.publishState === PUBLISH_STATE.published
+  ) {
+    throw new ForbiddenError('current publishState is not allow to be updated')
+  }
+
+  if (
+    lastUpdatedAt &&
+    new Date(lastUpdatedAt).getTime() !== new Date(draft.updatedAt).getTime()
+  ) {
+    throw new DraftVersionConflictError(
+      'Draft has been modified by another session'
+    )
+  }
+
+  return atomService.update({
+    table: 'draft',
+    where: { id: draft.id },
+    data,
+  })
+}
+
+const handleDraftCreate = async ({
+  data,
+  viewerId,
+  atomService,
+}: {
+  data: Partial<Draft>
+  viewerId: string
+  atomService: AtomService
+}) => {
+  const draft = await atomService.create({ table: 'draft', data })
+  ;(
+    draft as Draft & {
+      [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
+    }
+  )[CACHE_KEYWORD] = [
+    {
+      id: viewerId,
+      type: NODE_TYPES.User,
+    },
+  ]
+  return draft
 }
 
 export default resolver
