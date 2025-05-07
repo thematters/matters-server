@@ -109,6 +109,7 @@ export interface ArticleTranslation {
   title: string
   content: string
   summary: string | null
+  model: string
   createdAt: Date
   updatedAt: Date
 }

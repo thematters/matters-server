@@ -428,7 +428,7 @@ export type GQLArticleTransactionsReceivedByArgs = {
  * want information about article's comments. Please check Comment type.
  */
 export type GQLArticleTranslationArgs = {
-  input?: InputMaybe<GQLTranslationArgs>
+  input?: InputMaybe<GQLArticleTranslationInput>
 }
 
 /**
@@ -597,8 +597,14 @@ export type GQLArticleTranslation = {
   __typename?: 'ArticleTranslation'
   content?: Maybe<Scalars['String']['output']>
   language?: Maybe<Scalars['String']['output']>
+  model?: Maybe<GQLTranslationModel>
   summary?: Maybe<Scalars['String']['output']>
   title?: Maybe<Scalars['String']['output']>
+}
+
+export type GQLArticleTranslationInput = {
+  language: GQLUserLanguage
+  model?: InputMaybe<GQLTranslationModel>
 }
 
 export type GQLArticleVersion = GQLNode & {
@@ -615,7 +621,7 @@ export type GQLArticleVersion = GQLNode & {
 }
 
 export type GQLArticleVersionTranslationArgs = {
-  input?: InputMaybe<GQLTranslationArgs>
+  input?: InputMaybe<GQLArticleTranslationInput>
 }
 
 export type GQLArticleVersionEdge = {
@@ -3920,6 +3926,14 @@ export type GQLTranslationInput = {
   text: Scalars['String']['input']
 }
 
+export type GQLTranslationModel =
+  | 'google_gemini_2_0_flash_001'
+  | 'google_gemini_2_5_flash_preview'
+  | 'google_translation_v2'
+  | 'openai_gpt_4_1_nano'
+  | 'openai_gpt_4o_mini'
+  | 'xai_grok_3_mini_beta'
+
 export type GQLUnbindLikerIdInput = {
   id: Scalars['ID']['input']
   likerId: Scalars['String']['input']
@@ -4865,6 +4879,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
+  ArticleTranslationInput: GQLArticleTranslationInput
   ArticleVersion: ResolverTypeWrapper<ArticleVersionModel>
   ArticleVersionEdge: ResolverTypeWrapper<
     Omit<GQLArticleVersionEdge, 'node'> & {
@@ -5398,6 +5413,7 @@ export type GQLResolversTypes = ResolversObject<{
   TranslatedAnnouncement: ResolverTypeWrapper<GQLTranslatedAnnouncement>
   TranslationArgs: GQLTranslationArgs
   TranslationInput: GQLTranslationInput
+  TranslationModel: GQLTranslationModel
   UnbindLikerIdInput: GQLUnbindLikerIdInput
   UnlikeCollectionInput: GQLUnlikeCollectionInput
   UnlikeMomentInput: GQLUnlikeMomentInput
@@ -5566,6 +5582,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     channel: GQLResolversParentTypes['TopicChannel']
   }
   ArticleTranslation: GQLArticleTranslation
+  ArticleTranslationInput: GQLArticleTranslationInput
   ArticleVersion: ArticleVersionModel
   ArticleVersionEdge: Omit<GQLArticleVersionEdge, 'node'> & {
     node: GQLResolversParentTypes['ArticleVersion']
@@ -6713,6 +6730,11 @@ export type GQLArticleTranslationResolvers<
   >
   language?: Resolver<
     Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  model?: Resolver<
+    Maybe<GQLResolversTypes['TranslationModel']>,
     ParentType,
     ContextType
   >

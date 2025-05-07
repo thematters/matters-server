@@ -162,7 +162,7 @@ export default /* GraphQL */ `
     pinned: Boolean!
 
     "Translation of article title and content."
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: ArticleTranslationInput): ArticleTranslation
 
     "Available translation languages."
     availableTranslations: [UserLanguage!]
@@ -253,7 +253,7 @@ export default /* GraphQL */ `
     title: String!
     summary: String!
     contents: ArticleContents!
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: ArticleTranslationInput): ArticleTranslation
     createdAt: DateTime!
     description: String
   }
@@ -349,11 +349,30 @@ export default /* GraphQL */ `
     classicfiedAt: DateTime!
   }
 
+  enum TranslationModel {
+    google_translation_v2
+    google_gemini_2_5_flash_preview
+    google_gemini_2_0_flash_001
+    openai_gpt_4_1_nano
+    openai_gpt_4o_mini
+    xai_grok_3_mini_beta
+  }
+
   type ArticleTranslation {
     title: String
     content: String
     summary: String
     language: String
+    model: TranslationModel
+  }
+
+  input ArticleTranslationInput {
+    language: UserLanguage!
+    model: TranslationModel
+  }
+
+  input TranslationArgs {
+    language: UserLanguage!
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -507,10 +526,6 @@ export default /* GraphQL */ `
     first: Int @constraint(min: 0)
     purpose: TransactionPurpose!
     senderId: ID
-  }
-
-  input TranslationArgs {
-    language: UserLanguage!
   }
 
   input RelatedDonationArticlesInput {
