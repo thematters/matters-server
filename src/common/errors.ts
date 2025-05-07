@@ -221,21 +221,10 @@ export class ArticleCollectionReachLimitError extends GraphQLError {
  *              Tag              *
  *                               *
  *********************************/
-export class DuplicateTagError extends GraphQLError {
-  public constructor(message: string) {
-    super(message, { extensions: { code: 'DUPLICATE_TAG' } })
-  }
-}
 
 export class TooManyTagsForArticleError extends GraphQLError {
   public constructor(message: string) {
     super(message, { extensions: { code: 'TOO_MANY_TAGS_FOR_ARTICLE' } })
-  }
-}
-
-export class TagEditorsReachLimitError extends GraphQLError {
-  public constructor(message: string) {
-    super(message, { extensions: { code: 'TAG_EDITORS_REACH_LIMIT' } })
   }
 }
 
