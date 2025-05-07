@@ -340,11 +340,23 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  enum TranslationModel {
+    google_translation_v2
+    google_gemini_2_5_flash_preview
+    openai_gpt_4_1_nano
+  }
+
   type ArticleTranslation {
     title: String
     content: String
     summary: String
     language: String
+    model: TranslationModel
+  }
+
+  input TranslationArgs {
+    language: String!
+    model: TranslationModel
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -498,10 +510,6 @@ export default /* GraphQL */ `
     first: Int @constraint(min: 0)
     purpose: TransactionPurpose!
     senderId: ID
-  }
-
-  input TranslationArgs {
-    language: UserLanguage!
   }
 
   input RelatedDonationArticlesInput {

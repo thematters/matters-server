@@ -6,6 +6,7 @@ import type {
   ArticleVersion,
   ArticleBoost,
   Connections,
+  GQLTranslationModel,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -55,18 +56,19 @@ import {
   UserWorkService,
   TagService,
   NotificationService,
-  PaymentService,
   GCP,
   SpamDetector,
   ChannelService,
   aws,
+  PaymentService,
 } from '#connectors/index.js'
-import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
 import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
+
+import { OpenRouter } from './openRouter/index.js'
 
 const { difference, isEqual, uniq } = _
 
@@ -80,6 +82,8 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
+  private openRouter = new OpenRouter()
+  private gcp = new GCP()
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -2028,10 +2032,11 @@ export class ArticleService extends BaseService<Article> {
   public getOrCreateTranslation = async (
     articleVersion: ArticleVersion,
     language: string,
-    actorId?: string
+    actorId?: string,
+    model?: GQLTranslationModel
   ) => {
     // paywalled content
-    const { id, articleId } = articleVersion
+    const { id: articleVersionId, articleId, contentId } = articleVersion
     const { authorId } = await this.models.articleIdLoader.load(articleId)
     let isPaywalledContent = false
     const isAuthor = authorId === actorId
@@ -2057,111 +2062,141 @@ export class ArticleService extends BaseService<Article> {
       }
     }
 
-    const {
-      title: originTitle,
-      summary: originSummary,
-      language: storedLanguage,
-      contentId,
-    } = articleVersion
-    const { content: originContent } =
-      await this.models.articleContentIdLoader.load(contentId)
+    // Load article content
+    const { content } = await this.models.articleContentIdLoader.load(contentId)
 
-    // it's same as original language
-    if (language === storedLanguage) {
+    // check if language match article original language
+    if (articleVersion.language && articleVersion.language === language) {
+      // return original content directly
       return {
-        content: isPaywalledContent ? '' : originContent,
-        title: originTitle,
-        summary: originSummary,
+        title: articleVersion.title,
+        content: isPaywalledContent ? '' : content,
+        summary: articleVersion.summary,
         language,
       }
     }
 
-    // get translation
+    // return translation if exists
     const translation = await this.models.findFirst({
       table: 'article_translation',
-      where: { articleId, language, articleVersionId: id },
+      where: {
+        articleId,
+        articleVersionId,
+        language,
+        model:
+          model ||
+          this.openRouter.toDatabaseModel(this.openRouter.defaultModel),
+      },
     })
 
     if (translation) {
       return {
-        ...translation,
+        title: translation.title,
         content: isPaywalledContent ? '' : translation.content,
+        summary: translation.summary,
+        language: translation.language,
+        model: translation.model as GQLTranslationModel,
       }
     }
 
-    const gcp = new GCP()
+    // Otherwise, translate
+    let translatedTitle: string | null = null
+    let translatedContent: string | null = null
+    let translatedSummary: string | null = null
+    let translatedModel: GQLTranslationModel | null = null
 
-    // or translate and store to db
-    const [title, content, summary] = await Promise.all(
-      [originTitle, originContent, originSummary].map((text) =>
-        gcp.translate({
-          content: text,
+    // translate with Google
+    if (model === 'google_translation_v2') {
+      const [gcpTitle, gcpContent, gcpSummary] = await Promise.all([
+        this.gcp.translate({
+          content: articleVersion.title,
           target: language,
-        })
-      )
-    )
-
-    if (title && content) {
-      const data = {
-        articleId,
-        title,
-        content,
-        summary,
-        language,
-        articleVersionId: id,
-      }
-      await this.models.upsert({
-        table: 'article_translation',
-        where: { articleId, language, articleVersionId: id },
-        create: data,
-        update: data,
-      })
-
-      // translate tags
-      const tagIds = await this.findTagIds({ id: articleId })
-      if (tagIds && tagIds.length > 0) {
-        try {
-          const tags = await this.models.tagIdLoader.loadMany(tagIds)
-          await Promise.all(
-            tags.map(async (tag) => {
-              if (tag instanceof Error) {
-                return
-              }
-              const translatedTag = await gcp.translate({
-                content: tag.content,
-                target: language,
-              })
-              const tagData = {
-                tagId: tag.id,
-                content: translatedTag ?? '',
-                language,
-              }
-              await this.models.upsert({
-                table: 'tag_translation',
-                where: { tagId: tag.id },
-                create: tagData,
-                update: tagData,
-              })
+          mimeType: 'text/html',
+        }),
+        this.gcp.translate({
+          content: content,
+          target: language,
+          mimeType: 'text/html',
+        }),
+        articleVersion.summary
+          ? this.gcp.translate({
+              content: articleVersion.summary,
+              target: language,
+              mimeType: 'text/html',
             })
-          )
-        } catch (error) {
-          logger.error(error)
+          : null,
+      ])
+
+      if (
+        gcpTitle &&
+        gcpContent &&
+        (articleVersion.summary ? gcpSummary : true)
+      ) {
+        await this.models.create({
+          table: 'article_translation',
+          data: {
+            articleId,
+            articleVersionId,
+            language,
+            title: gcpTitle,
+            content: gcpContent,
+            summary: gcpSummary,
+            model: 'google_translation_v2',
+          },
+        })
+
+        translatedTitle = gcpTitle
+        translatedContent = gcpContent
+        translatedModel = 'google_translation_v2'
+        if (gcpSummary) {
+          translatedSummary = gcpSummary
         }
       }
+    }
 
-      await invalidateFQC({
-        node: { type: NODE_TYPES.Article, id: articleId },
-        redis: this.redis,
+    // translate with LLM
+    const [llmTitle, llmContent, llmSummary] = await Promise.all([
+      this.openRouter.translate(articleVersion.title, language, model),
+      this.openRouter.translate(content, language, model),
+      this.openRouter.translate(articleVersion.summary, language, model),
+    ])
+
+    if (
+      llmTitle &&
+      llmContent &&
+      (articleVersion.summary ? llmSummary : true)
+    ) {
+      await this.models.create({
+        table: 'article_translation',
+        data: {
+          articleId,
+          articleVersionId,
+          language,
+          title: llmTitle.text,
+          content: llmContent.text,
+          summary: llmSummary?.text,
+          model: llmTitle.model,
+        },
       })
 
-      return {
-        title,
-        content: isPaywalledContent ? '' : content,
-        summary,
-        language,
+      translatedTitle = llmTitle.text
+      translatedContent = llmContent.text
+      translatedModel = llmTitle.model
+      if (llmSummary) {
+        translatedSummary = llmSummary.text
       }
-    } else {
+    }
+
+    if (!translatedTitle || !translatedContent || !translatedModel) {
       return null
+    }
+
+    return {
+      title: translatedTitle,
+      content: isPaywalledContent ? '' : translatedContent,
+      summary: translatedSummary,
+      language,
+      model: translatedModel,
     }
   }
 

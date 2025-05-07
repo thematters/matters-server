@@ -122,6 +122,8 @@ export const environment = {
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
+  openRouterApiKey: process.env.MATTERS_OPENROUTER_API_KEY || '',
+
   twitterConsumerKey: process.env.MATTERS_TWITTER_CONSUMER_KEY || '',
   twitterConsumerSecret: process.env.MATTERS_TWITTER_CONSUMER_SECRET || '',
   twitterClientId: process.env.MATTERS_TWITTER_CLIENT_ID || '',

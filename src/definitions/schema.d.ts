@@ -588,6 +588,7 @@ export type GQLArticleTranslation = {
   __typename?: 'ArticleTranslation'
   content?: Maybe<Scalars['String']['output']>
   language?: Maybe<Scalars['String']['output']>
+  model?: Maybe<GQLTranslationModel>
   summary?: Maybe<Scalars['String']['output']>
   title?: Maybe<Scalars['String']['output']>
 }
@@ -3892,13 +3893,19 @@ export type GQLTranslatedAnnouncement = {
 }
 
 export type GQLTranslationArgs = {
-  language: GQLUserLanguage
+  language: Scalars['String']['input']
+  model?: InputMaybe<GQLTranslationModel>
 }
 
 export type GQLTranslationInput = {
   language: GQLUserLanguage
   text: Scalars['String']['input']
 }
+
+export type GQLTranslationModel =
+  | 'google_gemini_2_5_flash_preview'
+  | 'google_translation_v2'
+  | 'openai_gpt_4_1_nano'
 
 export type GQLUnbindLikerIdInput = {
   id: Scalars['ID']['input']
@@ -5376,6 +5383,7 @@ export type GQLResolversTypes = ResolversObject<{
   TranslatedAnnouncement: ResolverTypeWrapper<GQLTranslatedAnnouncement>
   TranslationArgs: GQLTranslationArgs
   TranslationInput: GQLTranslationInput
+  TranslationModel: GQLTranslationModel
   UnbindLikerIdInput: GQLUnbindLikerIdInput
   UnlikeCollectionInput: GQLUnlikeCollectionInput
   UnlikeMomentInput: GQLUnlikeMomentInput
@@ -6675,6 +6683,11 @@ export type GQLArticleTranslationResolvers<
   >
   language?: Resolver<
     Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  model?: Resolver<
+    Maybe<GQLResolversTypes['TranslationModel']>,
     ParentType,
     ContextType
   >
