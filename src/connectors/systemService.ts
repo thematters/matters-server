@@ -703,6 +703,9 @@ export class SystemService extends BaseService<BaseDBSchema> {
         },
       })
       ids = relations.map((relation) => relation.announcementId)
+      if (ids.length === 0) {
+        return []
+      }
     }
     return this.models.findMany({
       table: 'announcement',

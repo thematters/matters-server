@@ -173,11 +173,11 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
           table: 'channel_announcement',
           where: {
             announcementId: ret.id,
-            channelId: channelInput.channel,
+            channelId: fromGlobalId(channelInput.channel).id,
           },
           create: {
             announcementId: ret.id,
-            channelId: channelInput.channel,
+            channelId: fromGlobalId(channelInput.channel).id,
             visible: channelInput.visible,
             order: channelInput.order,
           },

@@ -144,6 +144,10 @@ describe('announcements resolver', () => {
   })
 
   test('get announcements by channel shortHash', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+    })
     // Create a test channel with specific shortHash
     const channel = await channelService.createTopicChannel({
       name: 'ShortHash Channel',
@@ -162,6 +166,20 @@ describe('announcements resolver', () => {
       },
     })
 
+    const { data: data1, errors: errors1 } = await server.executeOperation({
+      query: GET_ANNOUNCEMENTS,
+      variables: {
+        input: {
+          channel: {
+            shortHash: channel.shortHash,
+          },
+        },
+      },
+    })
+
+    expect(errors1).toBeUndefined()
+    expect(data1?.official.announcements).toHaveLength(0)
+
     // Link announcement to channel
     await atomService.create({
       table: 'channel_announcement',
@@ -173,26 +191,23 @@ describe('announcements resolver', () => {
       },
     })
 
-    const server = await testClient({
-      connections,
-      isAuth: true,
-    })
-
-    const { data, errors } = await server.executeOperation({
+    const { data: data2, errors: errors2 } = await server.executeOperation({
       query: GET_ANNOUNCEMENTS,
       variables: {
         input: {
           channel: {
-            shortHash: 'test123',
+            shortHash: channel.shortHash,
           },
         },
       },
     })
 
-    expect(errors).toBeUndefined()
-    expect(data?.official.announcements).toHaveLength(1)
-    expect(data?.official.announcements[0].title).toBe('ShortHash Announcement')
-    expect(data?.official.announcements[0].content).toBe('ShortHash Content')
+    expect(errors2).toBeUndefined()
+    expect(data2?.official.announcements).toHaveLength(1)
+    expect(data2?.official.announcements[0].title).toBe(
+      'ShortHash Announcement'
+    )
+    expect(data2?.official.announcements[0].content).toBe('ShortHash Content')
   })
 
   test('get announcements with cover', async () => {
