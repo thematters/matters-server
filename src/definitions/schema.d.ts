@@ -3913,7 +3913,7 @@ export type GQLTranslatedAnnouncement = {
 }
 
 export type GQLTranslationArgs = {
-  language: Scalars['String']['input']
+  language: GQLUserLanguage
   model?: InputMaybe<GQLTranslationModel>
 }
 

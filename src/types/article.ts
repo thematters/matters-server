@@ -367,7 +367,7 @@ export default /* GraphQL */ `
   }
 
   input TranslationArgs {
-    language: String!
+    language: UserLanguage!
     model: TranslationModel
   }
 

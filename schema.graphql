@@ -623,7 +623,7 @@ type ArticleTranslation {
 }
 
 input TranslationArgs {
-  language: String!
+  language: UserLanguage!
   model: TranslationModel
 }
 
