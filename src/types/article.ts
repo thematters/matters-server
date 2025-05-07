@@ -162,7 +162,7 @@ export default /* GraphQL */ `
     pinned: Boolean!
 
     "Translation of article title and content."
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: ArticleTranslationInput): ArticleTranslation
 
     "Available translation languages."
     availableTranslations: [UserLanguage!]
@@ -253,7 +253,7 @@ export default /* GraphQL */ `
     title: String!
     summary: String!
     contents: ArticleContents!
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: ArticleTranslationInput): ArticleTranslation
     createdAt: DateTime!
     description: String
   }
@@ -366,9 +366,13 @@ export default /* GraphQL */ `
     model: TranslationModel
   }
 
-  input TranslationArgs {
+  input ArticleTranslationInput {
     language: UserLanguage!
     model: TranslationModel
+  }
+
+  input TranslationArgs {
+    language: UserLanguage!
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {

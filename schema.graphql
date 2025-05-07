@@ -399,7 +399,7 @@ type Article implements Node & PinnableWork {
   pinned: Boolean!
 
   """Translation of article title and content."""
-  translation(input: TranslationArgs): ArticleTranslation
+  translation(input: ArticleTranslationInput): ArticleTranslation
 
   """Available translation languages."""
   availableTranslations: [UserLanguage!]
@@ -510,7 +510,7 @@ type ArticleVersion implements Node {
   title: String!
   summary: String!
   contents: ArticleContents!
-  translation(input: TranslationArgs): ArticleTranslation
+  translation(input: ArticleTranslationInput): ArticleTranslation
   createdAt: DateTime!
   description: String
 }
@@ -622,9 +622,13 @@ type ArticleTranslation {
   model: TranslationModel
 }
 
-input TranslationArgs {
+input ArticleTranslationInput {
   language: UserLanguage!
   model: TranslationModel
+}
+
+input TranslationArgs {
+  language: UserLanguage!
 }
 
 type TagOSS {

@@ -23,7 +23,10 @@ const LLM_TRANSLATION = 'LLM translated text'
 
 describe('article translations', () => {
   const GET_ARTICLE_TRANSLATION = /* GraphQL */ `
-    query ($nodeInput: NodeInput!, $translationInput: TranslationArgs!) {
+    query (
+      $nodeInput: NodeInput!
+      $translationInput: ArticleTranslationInput!
+    ) {
       node(input: $nodeInput) {
         id
         ... on Article {
@@ -130,7 +133,10 @@ describe('article translations', () => {
 
 describe('article version translations', () => {
   const GET_ARTICLE_VERSION_TRANSLATION = /* GraphQL */ `
-    query ($nodeInput: NodeInput!, $translationInput: TranslationArgs!) {
+    query (
+      $nodeInput: NodeInput!
+      $translationInput: ArticleTranslationInput!
+    ) {
       node(input: $nodeInput) {
         id
         ... on ArticleVersion {

@@ -428,7 +428,7 @@ export type GQLArticleTransactionsReceivedByArgs = {
  * want information about article's comments. Please check Comment type.
  */
 export type GQLArticleTranslationArgs = {
-  input?: InputMaybe<GQLTranslationArgs>
+  input?: InputMaybe<GQLArticleTranslationInput>
 }
 
 /**
@@ -602,6 +602,11 @@ export type GQLArticleTranslation = {
   title?: Maybe<Scalars['String']['output']>
 }
 
+export type GQLArticleTranslationInput = {
+  language: GQLUserLanguage
+  model?: InputMaybe<GQLTranslationModel>
+}
+
 export type GQLArticleVersion = GQLNode & {
   __typename?: 'ArticleVersion'
   contents: GQLArticleContents
@@ -616,7 +621,7 @@ export type GQLArticleVersion = GQLNode & {
 }
 
 export type GQLArticleVersionTranslationArgs = {
-  input?: InputMaybe<GQLTranslationArgs>
+  input?: InputMaybe<GQLArticleTranslationInput>
 }
 
 export type GQLArticleVersionEdge = {
@@ -3914,7 +3919,6 @@ export type GQLTranslatedAnnouncement = {
 
 export type GQLTranslationArgs = {
   language: GQLUserLanguage
-  model?: InputMaybe<GQLTranslationModel>
 }
 
 export type GQLTranslationInput = {
@@ -4875,6 +4879,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
+  ArticleTranslationInput: GQLArticleTranslationInput
   ArticleVersion: ResolverTypeWrapper<ArticleVersionModel>
   ArticleVersionEdge: ResolverTypeWrapper<
     Omit<GQLArticleVersionEdge, 'node'> & {
@@ -5577,6 +5582,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     channel: GQLResolversParentTypes['TopicChannel']
   }
   ArticleTranslation: GQLArticleTranslation
+  ArticleTranslationInput: GQLArticleTranslationInput
   ArticleVersion: ArticleVersionModel
   ArticleVersionEdge: Omit<GQLArticleVersionEdge, 'node'> & {
     node: GQLResolversParentTypes['ArticleVersion']
