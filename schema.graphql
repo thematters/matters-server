@@ -148,6 +148,7 @@ type Mutation {
   putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Article!
+  setAdStatus(input: SetAdStatusInput!): Article!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -567,6 +568,7 @@ type ArticleOSS {
   inRecommendNewest: Boolean!
   inSearch: Boolean!
   spamStatus: SpamStatus!
+  adStatus: AdStatus!
   topicChannels: [ArticleTopicChannel!]!
 }
 
@@ -578,6 +580,13 @@ type SpamStatus {
   whether this article is labeled as spam by human, null for not labeled yet. 
   """
   isSpam: Boolean
+}
+
+type AdStatus {
+  """
+  whether this article is labeled as ad by human, null for not labeled yet. 
+  """
+  isAd: Boolean
 }
 
 type ArticleTopicChannel {
@@ -2524,6 +2533,11 @@ input PutIcymiTopicInput {
 input SetSpamStatusInput {
   id: ID!
   isSpam: Boolean!
+}
+
+input SetAdStatusInput {
+  id: ID!
+  isAd: Boolean!
 }
 
 input OSSArticlesInput {

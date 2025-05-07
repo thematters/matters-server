@@ -18,6 +18,7 @@ export interface Article {
   shortHash: string
   spamScore: number | null
   isSpam: boolean | null
+  isAd: boolean | null
 }
 
 export interface ArticleVersion {
