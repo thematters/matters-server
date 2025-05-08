@@ -78,17 +78,18 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
 ) => {
   validateUserState(viewer)
 
-  const draft = globalId
+  const oldDraft = globalId
     ? await validateDraft({
         globalId,
         viewerId: viewer.id,
+        lastUpdatedAt,
         atomService,
       })
     : null
   // Prepare data
   const data: Partial<Draft> = omitBy(
     {
-      authorId: draft ? undefined : viewer.id,
+      authorId: oldDraft ? undefined : viewer.id,
       title: title && normalizeAndValidateTitle(title),
       summary: summary && normalizeAndValidateSummary(summary),
       content: content && normalizeAndValidateContent(content),
@@ -98,7 +99,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         (await validateTags({
           tags,
           viewerId: viewer.id,
-          draft,
+          draft: oldDraft,
           atomService,
         })),
       cover:
@@ -111,7 +112,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         connectionGlobalIds &&
         (await validateConnections({
           connectionGlobalIds: compact(connectionGlobalIds),
-          draft,
+          draft: oldDraft,
           atomService,
         })),
       circleId:
@@ -138,16 +139,16 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     isUndefined
   )
 
-  if (draft) {
+  if (oldDraft) {
     // Handle candidate cover
     const resetCover = cover === null
     const isUpdateContent = content || content === ''
     if (
       (resetCover && !isUpdateContent) ||
-      (resetCover && isUpdateContent && draft.cover) ||
-      (!resetCover && isUpdateContent && !draft.cover)
+      (resetCover && isUpdateContent && oldDraft.cover) ||
+      (!resetCover && isUpdateContent && !oldDraft.cover)
     ) {
-      const draftContent = isUpdateContent ? content : draft.content
+      const draftContent = isUpdateContent ? content : oldDraft.content
       const uuids = (
         extractAssetDataFromHtml(draftContent, 'image') || []
       ).filter((uuid) => uuid && uuid !== 'embed')
@@ -170,20 +171,25 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       }
     }
 
-    // Update draft
-    return handleDraftUpdate({
-      draft,
+    return atomService.update({
+      table: 'draft',
+      where: { id: oldDraft.id },
       data,
-      lastUpdatedAt,
-      atomService,
     })
   }
 
-  return handleDraftCreate({
-    data,
-    viewerId: viewer.id,
-    atomService,
-  })
+  const draft = await atomService.create({ table: 'draft', data })
+  ;(
+    draft as Draft & {
+      [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
+    }
+  )[CACHE_KEYWORD] = [
+    {
+      id: viewer.id,
+      type: NODE_TYPES.User,
+    },
+  ]
+  return draft
 }
 
 // Validation functions
@@ -191,10 +197,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
 const validateDraft = async ({
   globalId,
   viewerId,
+  lastUpdatedAt,
   atomService,
 }: {
   globalId: GlobalId
   viewerId: string
+  lastUpdatedAt?: Date
   atomService: AtomService
 }) => {
   const draft = await atomService.draftIdLoader.load(fromGlobalId(globalId).id)
@@ -204,6 +212,22 @@ const validateDraft = async ({
   if (draft.authorId !== viewerId) {
     throw new ForbiddenError('viewer has no permission')
   }
+  if (
+    draft.publishState === PUBLISH_STATE.pending ||
+    draft.publishState === PUBLISH_STATE.published
+  ) {
+    throw new ForbiddenError('current publishState is not allow to be updated')
+  }
+
+  if (
+    lastUpdatedAt &&
+    new Date(lastUpdatedAt).getTime() !== new Date(draft.updatedAt).getTime()
+  ) {
+    throw new DraftVersionConflictError(
+      'Draft has been modified by another session'
+    )
+  }
+
   return draft
 }
 
@@ -393,64 +417,6 @@ const validateLicense = (license: string) => {
     )
   }
   return license
-}
-
-// Draft update functions
-const handleDraftUpdate = async ({
-  draft,
-  data,
-  lastUpdatedAt,
-  atomService,
-}: {
-  draft: Draft
-  data: Partial<Draft>
-  lastUpdatedAt?: string
-  atomService: AtomService
-}) => {
-  if (
-    draft.publishState === PUBLISH_STATE.pending ||
-    draft.publishState === PUBLISH_STATE.published
-  ) {
-    throw new ForbiddenError('current publishState is not allow to be updated')
-  }
-
-  if (
-    lastUpdatedAt &&
-    new Date(lastUpdatedAt).getTime() !== new Date(draft.updatedAt).getTime()
-  ) {
-    throw new DraftVersionConflictError(
-      'Draft has been modified by another session'
-    )
-  }
-
-  return atomService.update({
-    table: 'draft',
-    where: { id: draft.id },
-    data,
-  })
-}
-
-const handleDraftCreate = async ({
-  data,
-  viewerId,
-  atomService,
-}: {
-  data: Partial<Draft>
-  viewerId: string
-  atomService: AtomService
-}) => {
-  const draft = await atomService.create({ table: 'draft', data })
-  ;(
-    draft as Draft & {
-      [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
-    }
-  )[CACHE_KEYWORD] = [
-    {
-      id: viewerId,
-      type: NODE_TYPES.User,
-    },
-  ]
-  return draft
 }
 
 export default resolver
