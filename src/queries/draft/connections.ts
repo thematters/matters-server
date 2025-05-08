@@ -5,7 +5,7 @@ import {
   connectionFromPromisedArray,
 } from '#common/utils/index.js'
 
-const resolver: GQLDraftResolvers['collection'] = (
+const resolver: GQLDraftResolvers['connections'] = (
   { connections },
   { input },
   { dataSources: { atomService } }

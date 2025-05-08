@@ -60,7 +60,8 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       content,
       tags,
       cover,
-      collection: connectionGlobalIds,
+      connections,
+      collection,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -87,6 +88,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       })
     : null
   // Prepare data
+  const connectionsGlobalIds = connections || collection
   const data: Partial<Draft> = omitBy(
     {
       authorId: oldDraft ? undefined : viewer.id,
@@ -109,9 +111,9 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           userId: viewer.id,
         })),
       connections:
-        connectionGlobalIds &&
+        connectionsGlobalIds &&
         (await validateConnections({
-          connectionGlobalIds: compact(connectionGlobalIds),
+          connectionGlobalIds: compact(connectionsGlobalIds),
           draft: oldDraft,
           atomService,
         })),
