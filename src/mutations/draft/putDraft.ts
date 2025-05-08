@@ -257,13 +257,10 @@ const validateTags = async ({
   atomService,
 }: {
   viewerId: string
-  tags: string[] | null
+  tags: string[]
   draft: Draft | null
   atomService: AtomService
 }) => {
-  if (!tags) {
-    return null
-  }
   if (tags.length === 0) {
     return null
   }
@@ -307,12 +304,9 @@ const validateConnections = async ({
   connectionGlobalIds,
   atomService,
 }: {
-  connectionGlobalIds: GlobalId[] | null
+  connectionGlobalIds: GlobalId[]
   atomService: AtomService
 }) => {
-  if (!connectionGlobalIds) {
-    return null
-  }
   if (connectionGlobalIds.length === 0) {
     return null
   }
