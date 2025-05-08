@@ -80,16 +80,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     lastUpdatedAt,
   } = input
 
-  // Validate tags if provided
-  if (tags) {
-    await validateTags({
-      viewerId: viewer.id,
-      tags,
-      dataSources: { atomService },
-    })
-  }
-
-  // Handle cover asset
   let coverId
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
@@ -125,7 +115,13 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       summary: summary && normalizeAndValidateSummary(summary),
       content: content && normalizeAndValidateContent(content),
       license: license && validateLicense(license),
-      tags: tags?.length === 0 ? null : tags,
+      tags:
+        tags &&
+        (await validateTags({
+          viewerId: viewer.id,
+          tags,
+          dataSources: { atomService },
+        })),
       cover: coverId,
       collection:
         connectionGlobalIds &&
@@ -276,9 +272,15 @@ const validateTags = async ({
   dataSources: { atomService },
 }: {
   viewerId: string
-  tags: string[]
+  tags: string[] | null
   dataSources: Pick<DataSources, 'atomService'>
 }) => {
+  if (!tags) {
+    return null
+  }
+  if (tags.length === 0) {
+    return null
+  }
   const isMatty = viewerId === environment.mattyId
   const mattyTagId = environment.mattyChoiceTagId
   if (mattyTagId && !isMatty) {
