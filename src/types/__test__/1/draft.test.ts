@@ -172,198 +172,6 @@ describe('put draft', () => {
     expect(resetResult2.tags).toBeNull()
   })
 
-  test('edit draft connection', async () => {
-    const connectionIds = ['3', '4', '5', '6', '2']
-    const connectionGlobalIds = connectionIds.map((id) =>
-      toGlobalId({ type: NODE_TYPES.Article, id })
-    )
-
-    // create draft setting collection out of limit
-    const createFailedRes = await putDraft(
-      {
-        draft: {
-          title: Math.random().toString(),
-          content: Math.random().toString(),
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
-          ),
-        },
-      },
-      connections
-    )
-    expect(createFailedRes.errors[0].extensions.code).toBe(
-      'ARTICLE_COLLECTION_REACH_LIMIT'
-    )
-
-    // create draft setting connection within limit
-    const createSucceedRes = await putDraft(
-      {
-        draft: {
-          title: Math.random().toString(),
-          content: Math.random().toString(),
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT
-          ),
-        },
-      },
-      connections
-    )
-    expect(createSucceedRes.collection.totalCount).toBe(
-      MAX_ARTICLES_PER_CONNECTION_LIMIT
-    )
-    expect([
-      createSucceedRes.collection.edges[0].node.id,
-      createSucceedRes.collection.edges[1].node.id,
-      createSucceedRes.collection.edges[2].node.id,
-    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
-
-    const draftId = createSucceedRes.id
-
-    // should retain the collection after setting something else, without changing collection
-    const editRes = await putDraft(
-      {
-        draft: { id: draftId, summary: 'any-summary' },
-      },
-      connections
-    )
-    expect(editRes.collection.totalCount).toBe(
-      MAX_ARTICLES_PER_CONNECTION_LIMIT
-    )
-    expect([
-      editRes.collection.edges[0].node.id,
-      editRes.collection.edges[1].node.id,
-      editRes.collection.edges[2].node.id,
-    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
-
-    // edit draft setting collection out of limit
-    const editFailedRes = await putDraft(
-      {
-        draft: {
-          id: draftId,
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
-          ),
-        },
-      },
-      connections
-    )
-    expect(editFailedRes.errors[0].extensions.code).toBe(
-      'ARTICLE_COLLECTION_REACH_LIMIT'
-    )
-
-    // edit draft setting collection within limit
-    const editSucceedRes = await putDraft(
-      {
-        draft: {
-          id: draftId,
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT
-          ),
-        },
-      },
-      connections
-    )
-    expect(editSucceedRes.collection.totalCount).toBe(
-      MAX_ARTICLES_PER_CONNECTION_LIMIT
-    )
-    expect([
-      editSucceedRes.collection.edges[0].node.id,
-      editSucceedRes.collection.edges[1].node.id,
-      editSucceedRes.collection.edges[2].node.id,
-    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
-
-    // out of limit collection can remain
-    await atomService.update({
-      table: 'draft',
-      where: { id: fromGlobalId(draftId).id },
-      data: {
-        collection: connectionIds.slice(
-          0,
-          MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
-        ),
-      },
-    })
-    const remainRes = await putDraft(
-      {
-        draft: {
-          id: draftId,
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
-          ),
-        },
-      },
-      connections
-    )
-
-    expect(remainRes.collection.totalCount).toBe(
-      MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
-    )
-    expect([
-      remainRes.collection.edges[0].node.id,
-      remainRes.collection.edges[1].node.id,
-      remainRes.collection.edges[2].node.id,
-      remainRes.collection.edges[3].node.id,
-    ]).toEqual(
-      connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT + 1)
-    )
-
-    // out of limit collection can not increase
-    const increaseRes = await putDraft(
-      {
-        draft: {
-          id: draftId,
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT + 2
-          ),
-        },
-      },
-      connections
-    )
-    expect(increaseRes.errors[0].extensions.code).toBe(
-      'ARTICLE_COLLECTION_REACH_LIMIT'
-    )
-
-    // out of limit collection can decrease
-    const decreaseRes = await putDraft(
-      {
-        draft: {
-          id: draftId,
-          collection: connectionGlobalIds.slice(
-            0,
-            MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
-          ),
-        },
-      },
-      connections
-    )
-    expect(decreaseRes.collection.totalCount).toBe(
-      MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
-    )
-
-    // reset collection
-    const resetResult1 = await putDraft(
-      {
-        draft: { id: draftId, collection: [] },
-      },
-      connections
-    )
-    expect(resetResult1.collection.totalCount).toBe(0)
-
-    const resetResult2 = await putDraft(
-      {
-        draft: { id: draftId, collection: null as any },
-      },
-      connections
-    )
-    expect(resetResult2.collection.totalCount).toBe(0)
-  })
-
   test('edit draft license', async () => {
     const { id } = await putDraft(
       {
@@ -732,5 +540,262 @@ describe('put draft', () => {
       connections
     )
     expect(campaigns2[0].stage).toBeNull()
+  })
+
+  test('edit draft connections', async () => {
+    const connectionIds = ['3', '4', '5', '6', '2']
+    const connectionGlobalIds = connectionIds.map((id) =>
+      toGlobalId({ type: NODE_TYPES.Article, id })
+    )
+
+    // create draft setting connections out of limit
+    const createFailedRes = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
+        },
+      },
+      connections
+    )
+    expect(createFailedRes.errors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
+    )
+
+    // create draft setting connections within limit
+    const createSucceedRes = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT
+          ),
+        },
+      },
+      connections
+    )
+    expect(createSucceedRes.connections.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
+    expect([
+      createSucceedRes.connections.edges[0].node.id,
+      createSucceedRes.connections.edges[1].node.id,
+      createSucceedRes.connections.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
+
+    const draftId = createSucceedRes.id
+
+    // should retain the connections after setting something else, without changing connections
+    const editRes = await putDraft(
+      {
+        draft: { id: draftId, summary: 'any-summary' },
+      },
+      connections
+    )
+    expect(editRes.connections.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
+    expect([
+      editRes.connections.edges[0].node.id,
+      editRes.connections.edges[1].node.id,
+      editRes.connections.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
+
+    // edit draft setting connections out of limit
+    const editFailedRes = await putDraft(
+      {
+        draft: {
+          id: draftId,
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
+        },
+      },
+      connections
+    )
+    expect(editFailedRes.errors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
+    )
+
+    // edit draft setting connections within limit
+    const editSucceedRes = await putDraft(
+      {
+        draft: {
+          id: draftId,
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT
+          ),
+        },
+      },
+      connections
+    )
+    expect(editSucceedRes.connections.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
+    expect([
+      editSucceedRes.connections.edges[0].node.id,
+      editSucceedRes.connections.edges[1].node.id,
+      editSucceedRes.connections.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
+
+    // out of limit connections can remain
+    await atomService.update({
+      table: 'draft',
+      where: { id: fromGlobalId(draftId).id },
+      data: {
+        connections: connectionIds.slice(
+          0,
+          MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+        ),
+      },
+    })
+    const remainRes = await putDraft(
+      {
+        draft: {
+          id: draftId,
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
+        },
+      },
+      connections
+    )
+
+    expect(remainRes.connections.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+    )
+    expect([
+      remainRes.connections.edges[0].node.id,
+      remainRes.connections.edges[1].node.id,
+      remainRes.connections.edges[2].node.id,
+      remainRes.connections.edges[3].node.id,
+    ]).toEqual(
+      connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT + 1)
+    )
+
+    // out of limit connections can not increase
+    const increaseRes = await putDraft(
+      {
+        draft: {
+          id: draftId,
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 2
+          ),
+        },
+      },
+      connections
+    )
+    expect(increaseRes.errors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
+    )
+
+    // out of limit connections can decrease
+    const decreaseRes = await putDraft(
+      {
+        draft: {
+          id: draftId,
+          connections: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
+          ),
+        },
+      },
+      connections
+    )
+    expect(decreaseRes.connections.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
+    )
+
+    // reset connections
+    const resetResult1 = await putDraft(
+      {
+        draft: { id: draftId, connections: [] },
+      },
+      connections
+    )
+    expect(resetResult1.connections.totalCount).toBe(0)
+
+    const resetResult2 = await putDraft(
+      {
+        draft: { id: draftId, connections: null as any },
+      },
+      connections
+    )
+    expect(resetResult2.connections.totalCount).toBe(0)
+  })
+
+  test('collection field is deprecated but still functional', async () => {
+    const connectionIds = ['3', '4', '5']
+    const connectionGlobalIds = connectionIds.map((id) =>
+      toGlobalId({ type: NODE_TYPES.Article, id })
+    )
+
+    // create draft using deprecated collection field
+    const createRes = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          collection: connectionGlobalIds,
+        },
+      },
+      connections
+    )
+    expect(createRes.collection.totalCount).toBe(connectionIds.length)
+    expect(createRes.connections.totalCount).toBe(connectionIds.length)
+    expect([
+      createRes.collection.edges[0].node.id,
+      createRes.collection.edges[1].node.id,
+      createRes.collection.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds)
+
+    // edit draft using deprecated collection field
+    const editRes = await putDraft(
+      {
+        draft: {
+          id: createRes.id,
+          collection: connectionGlobalIds.slice(0, 2),
+        },
+      },
+      connections
+    )
+    expect(editRes.collection.totalCount).toBe(2)
+    expect(editRes.connections.totalCount).toBe(2)
+    expect([
+      editRes.collection.edges[0].node.id,
+      editRes.collection.edges[1].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, 2))
+  })
+
+  test('rejects invalid connection types', async () => {
+    // Create a draft with an invalid connection type (User instead of Article)
+    const invalidConnectionId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: '1',
+    })
+
+    const result = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          connections: [invalidConnectionId],
+        },
+      },
+      connections
+    )
+
+    expect(result.errors).toBeDefined()
+    expect(result.errors[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })

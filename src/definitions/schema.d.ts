@@ -1514,8 +1514,10 @@ export type GQLDraft = GQLNode & {
   campaigns: Array<GQLArticleCampaign>
   /** whether readers can comment */
   canComment: Scalars['Boolean']['output']
-  /** Collection list of this draft. */
+  /** @deprecated Use connections instead */
   collection: GQLArticleConnection
+  /** Connection articles of this draft. */
+  connections: GQLArticleConnection
   /** Content (HTML) of this draft. */
   content?: Maybe<Scalars['String']['output']>
   /** Draft's cover link. */
@@ -1558,6 +1560,11 @@ export type GQLDraft = GQLNode & {
 
 /** This type contains content, collections, assets and related data of a draft. */
 export type GQLDraftCollectionArgs = {
+  input: GQLConnectionArgs
+}
+
+/** This type contains content, collections, assets and related data of a draft. */
+export type GQLDraftConnectionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -2977,7 +2984,9 @@ export type GQLPutDraftInput = {
   /** whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
+  /** Deprecated, use connections instead */
   collection?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
+  connections?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
@@ -7644,6 +7653,12 @@ export type GQLDraftResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLDraftCollectionArgs, 'input'>
+  >
+  connections?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLDraftConnectionsArgs, 'input'>
   >
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,

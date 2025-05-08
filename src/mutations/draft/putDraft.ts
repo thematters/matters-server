@@ -60,7 +60,8 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       content,
       tags,
       cover,
-      collection: connectionGlobalIds,
+      connections,
+      collection,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -87,6 +88,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       })
     : null
   // Prepare data
+  const connectionsGlobalIds = connections || collection
   const data: Partial<Draft> = omitBy(
     {
       authorId: oldDraft ? undefined : viewer.id,
@@ -108,10 +110,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           coverUUID: cover,
           userId: viewer.id,
         })),
-      collection:
-        connectionGlobalIds &&
+      connections:
+        connectionsGlobalIds &&
         (await validateConnections({
-          connectionGlobalIds: compact(connectionGlobalIds),
+          connectionGlobalIds: compact(connectionsGlobalIds),
           draft: oldDraft,
           atomService,
         })),
@@ -311,12 +313,18 @@ const validateConnections = async ({
     return null
   }
   const connections = uniq(
-    connectionGlobalIds.map((_id) => fromGlobalId(_id).id)
+    connectionGlobalIds.map((_id) => {
+      const { id, type } = fromGlobalId(_id)
+      if (type !== NODE_TYPES.Article) {
+        throw new UserInputError(`Invalid connection type: ${type}`)
+      }
+      return id
+    })
   ).filter((articleId) => !!articleId)
 
   if (draft) {
     const oldConnectionLength =
-      draft.collection == null ? 0 : draft.collection.length
+      draft.connections == null ? 0 : draft.connections.length
     if (
       connectionGlobalIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
       connectionGlobalIds.length > oldConnectionLength

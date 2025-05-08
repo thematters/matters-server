@@ -5,7 +5,7 @@ This guide outlines the steps required to add a new table to the Matters server 
 
 ## 1. Create Migration File
 
-run `npm run db:migration:make create_new_table_name_table` to create migration files:
+run `npm run db:migration:make create_new_table_name_table` to create migration files in `db/migrations/` with a timestamp prefix:
 
 ```typescript
 import { baseDown } from '../utils.js'
