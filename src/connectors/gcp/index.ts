@@ -1,6 +1,7 @@
 import { LANGUAGE } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
+import { LANGUAGES } from '#definitions/index.js'
 import { v2 as TranslateAPI } from '@google-cloud/translate'
 
 const logger = getLogger('service-gcp')
@@ -50,11 +51,9 @@ export class GCP {
   public translate = async ({
     content,
     target,
-    mimeType = 'text/html',
   }: {
     content: string
-    target: string
-    mimeType?: 'text/plain' | 'text/html'
+    target: LANGUAGES
   }) => {
     try {
       const [translation] = await this.translateAPI.translate(

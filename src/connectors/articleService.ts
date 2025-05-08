@@ -7,6 +7,7 @@ import type {
   ArticleBoost,
   Connections,
   GQLTranslationModel,
+  LANGUAGES,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -2038,7 +2039,7 @@ export class ArticleService extends BaseService<Article> {
 
   public getOrCreateTranslation = async (
     articleVersion: ArticleVersion,
-    language: string,
+    language: LANGUAGES,
     actorId?: string,
     model?: GQLTranslationModel
   ) => {
@@ -2118,18 +2119,15 @@ export class ArticleService extends BaseService<Article> {
         this.gcp.translate({
           content: articleVersion.title,
           target: language,
-          mimeType: 'text/html',
         }),
         this.gcp.translate({
           content: content,
           target: language,
-          mimeType: 'text/html',
         }),
         articleVersion.summary
           ? this.gcp.translate({
               content: articleVersion.summary,
               target: language,
-              mimeType: 'text/html',
             })
           : null,
       ])
@@ -2164,8 +2162,10 @@ export class ArticleService extends BaseService<Article> {
     // translate with LLM
     const [llmTitle, llmContent, llmSummary] = await Promise.all([
       this.openRouter.translate(articleVersion.title, language, model),
-      this.openRouter.translate(content, language, model),
-      this.openRouter.translate(articleVersion.summary, language, model),
+      this.openRouter.translateHtml(content, language, model),
+      articleVersion.summary
+        ? this.openRouter.translate(articleVersion.summary, language, model)
+        : null,
     ])
 
     if (
