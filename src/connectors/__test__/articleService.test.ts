@@ -788,7 +788,7 @@ describe('findArticleVersions', () => {
     expect(count6).toBe(count5 + 1)
 
     await articleService.createNewArticleVersion('2', '2', {
-      collection: ['1'],
+      connections: ['1'],
     })
     const [, count7] = await articleService.findArticleVersions('2')
     expect(count7).toBe(count6 + 1)

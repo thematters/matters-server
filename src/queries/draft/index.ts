@@ -7,7 +7,7 @@ import slugify from '@matters/slugify'
 import * as draftAccess from './access/index.js'
 import assets from './assets.js'
 import campaigns from './campaigns.js'
-import collection from './collection.js'
+import connections from './connections.js'
 import draftContent from './content.js'
 import draftCover from './cover.js'
 import drafts from './drafts.js'
@@ -25,7 +25,8 @@ const schema: GQLResolvers = {
     summaryCustomized: ({ summary }) => !!summary,
     content: draftContent,
     cover: draftCover,
-    collection,
+    connections,
+    collection: connections,
     assets,
     article: (root, _, { dataSources: { atomService } }) =>
       root.articleId ? atomService.articleIdLoader.load(root.articleId) : null,

@@ -1682,8 +1682,9 @@ type Draft implements Node {
   """Published article"""
   article: Article
 
-  """Collection list of this draft."""
-  collection(input: ConnectionArgs!): ArticleConnection!
+  """Connection articles of this draft."""
+  connections(input: ConnectionArgs!): ArticleConnection!
+  collection(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use connections instead")
 
   """Access related fields on circle"""
   access: DraftAccess!
@@ -1736,7 +1737,10 @@ input PutDraftInput {
   content: String
   tags: [String!]
   cover: ID
+
+  """Deprecated, use connections instead"""
   collection: [ID]
+  connections: [ID!]
   circle: ID
   accessType: ArticleAccessType
   sensitive: Boolean

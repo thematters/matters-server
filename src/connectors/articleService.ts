@@ -383,7 +383,7 @@ export class ArticleService extends BaseService<Article> {
     contentMd,
     cover,
     tags,
-    collection,
+    connections,
     circleId,
     access,
     license,
@@ -436,7 +436,7 @@ export class ArticleService extends BaseService<Article> {
           contentMdId,
           cover,
           tags: tags ?? [],
-          connections: collection ?? [],
+          connections: connections ?? [],
           wordCount,
           circleId,
           access: access ?? ARTICLE_ACCESS_TYPE.public,
@@ -600,13 +600,13 @@ export class ArticleService extends BaseService<Article> {
         summaryCustomized: lastData.summaryCustomized,
       }
     }
-    if (newData.collection || newData.collection === null) {
-      data = { ...data, connections: newData.collection ?? [] }
+    if (newData.connections || newData.connections === null) {
+      data = { ...data, connections: newData.connections ?? [] }
       await this.updateArticleConnections({
         articleId,
-        connections: newData.collection ?? [],
+        connections: newData.connections ?? [],
       })
-      delete newData.collection
+      delete newData.connections
     }
 
     if (newData.circleId) {

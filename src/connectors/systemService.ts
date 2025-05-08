@@ -31,11 +31,11 @@ import {
   AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
+import { AssetNotFoundError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
 import { BaseService, CacheService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
-
 const logger = getLogger('service-system')
 
 export class SystemService extends BaseService<BaseDBSchema> {
@@ -446,6 +446,23 @@ export class SystemService extends BaseService<BaseDBSchema> {
    */
   public findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
     this.knex('asset').whereIn('type', types).andWhere({ authorId })
+
+  public validateArticleCover = async ({
+    coverUUID,
+    userId,
+  }: {
+    coverUUID: string
+    userId: string
+  }) => {
+    const asset = await this.findAssetByUUID(coverUUID)
+    if (
+      !asset ||
+      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
+      asset.authorId !== userId
+    ) {
+      throw new AssetNotFoundError('Asset does not exists')
+    }
+  }
 
   /*********************************
    *                               *

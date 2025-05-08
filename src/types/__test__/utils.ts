@@ -278,6 +278,14 @@ export const putDraft = async (
             }
           }
         }
+        connections(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
         tags
         cover
         title
