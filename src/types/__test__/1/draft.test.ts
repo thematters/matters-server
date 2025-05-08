@@ -1,14 +1,14 @@
 import type { Connections } from '#definitions/index.js'
 
-import _get from 'lodash/get.js'
-
 import { AtomService, CampaignService } from '#connectors/index.js'
 import {
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
   CAMPAIGN_STATE,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
+  MAX_ARTICLES_PER_CONNECTION_LIMIT,
 } from '#common/enums/index.js'
-import { toGlobalId } from '#common/utils/index.js'
+import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 
 import {
   testClient,
@@ -17,28 +17,16 @@ import {
   closeConnections,
 } from '../utils.js'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var mockEnums: any
-}
-
 let connections: Connections
+let atomService: AtomService
 beforeAll(async () => {
   connections = await genConnections()
+  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
 })
-
-// jest.mock('#common/enums/index.js', () => {
-//   const originalModule = jest.requireActual('common/enums')
-//   globalThis.mockEnums = {
-//     ...(originalModule ?? {}),
-//     __esModule: true,
-//   }
-//   return globalThis.mockEnums
-// })
 
 describe('query draft', () => {
   const GET_DRAFT_ARTICLE = /* GraphQL */ `
@@ -55,7 +43,6 @@ describe('query draft', () => {
   `
   test('get draft article', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Draft, id: 4 })
-    const atomService = new AtomService(connections)
     const author = await atomService.userIdLoader.load('1')
     const server = await testClient({
       connections,
@@ -85,8 +72,8 @@ describe('put draft', () => {
 
     const summary = 'my customized summary'
     const result = await putDraft({ draft: { id, summary } }, connections)
-    expect(_get(result, 'summary')).toBe(summary)
-    expect(_get(result, 'summaryCustomized')).toBe(true)
+    expect(result.summary).toBe(summary)
+    expect(result.summaryCustomized).toBe(true)
 
     // reset summary
     const resetResult1 = await putDraft(
@@ -95,19 +82,17 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(resetResult1, 'summary.length')).toBeGreaterThan(0)
-    expect(_get(resetResult1, 'summaryCustomized')).toBe(false)
+    expect(resetResult1.summary.length).toBeGreaterThan(0)
+    expect(resetResult1.summaryCustomized).toBe(false)
 
     const resetResult2 = await putDraft(
       { draft: { id, summary: '' } },
       connections
     )
-    expect(_get(resetResult2, 'summaryCustomized')).toBe(false)
+    expect(resetResult2.summaryCustomized).toBe(false)
   })
 
-  test.skip('edit draft tags', async () => {
-    const limit = 4
-    globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = limit
+  test('edit draft tags', async () => {
     const tags = [
       'abc',
       '123',
@@ -122,13 +107,13 @@ describe('put draft', () => {
         draft: {
           title: Math.random().toString(),
           content: Math.random().toString(),
-          tags: tags.slice(0, limit + 1),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT + 1),
         },
       },
       connections
     )
-    expect(_get(createFailedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} tags on an article`
+    expect(createFailedRes.errors[0].extensions.code).toBe(
+      'TOO_MANY_TAGS_FOR_ARTICLE'
     )
 
     // create draft setting tags within limit
@@ -137,15 +122,15 @@ describe('put draft', () => {
         draft: {
           title: Math.random().toString(),
           content: Math.random().toString(),
-          tags: tags.slice(0, limit),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT),
         },
       },
       connections
     )
-    expect(_get(draft, 'tags.length')).toBe(limit)
-    expect(_get(draft, 'tags.0')).toBe(tags[0])
-    expect(_get(draft, 'tags.1')).toBe(tags[1])
-    expect(_get(draft, 'tags.2')).toBe(tags[2])
+    expect(draft.tags.length).toBe(MAX_TAGS_PER_ARTICLE_LIMIT)
+    expect(draft.tags[0]).toBe(tags[0])
+    expect(draft.tags[1]).toBe(tags[1])
+    expect(draft.tags[2]).toBe(tags[2])
 
     // should retain the tags after setting something else, without changing tags
     const tagsResult1 = await putDraft(
@@ -154,22 +139,22 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(tagsResult1, 'tags.length')).toBe(limit)
-    expect(_get(tagsResult1, 'tags.0')).toBe(tags[0])
-    expect(_get(tagsResult1, 'tags.1')).toBe(tags[1])
+    expect(tagsResult1.tags.length).toBe(MAX_TAGS_PER_ARTICLE_LIMIT)
+    expect(tagsResult1.tags[0]).toBe(tags[0])
+    expect(tagsResult1.tags[1]).toBe(tags[1])
 
     // create draft setting tags out of limit
     const editFailedRes = await putDraft(
       {
         draft: {
           id: draft.id,
-          tags: tags.slice(0, limit + 1),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT + 1),
         },
       },
       connections
     )
-    expect(_get(editFailedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} tags on an article`
+    expect(editFailedRes.errors[0].extensions.code).toBe(
+      'TOO_MANY_TAGS_FOR_ARTICLE'
     )
     // reset tags
     const resetResult1 = await putDraft(
@@ -178,25 +163,20 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(resetResult1, 'tags')).toBeNull()
+    expect(resetResult1.tags).toBeNull()
 
     const resetResult2 = await putDraft(
       { draft: { id: draft.id, tags: [] } },
       connections
     )
-    expect(_get(resetResult2, 'tags')).toBeNull()
+    expect(resetResult2.tags).toBeNull()
   })
 
-  test.skip('edit draft collection', async () => {
-    const limit = 4
-    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
-    const collection = [
-      toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
-      toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
-      toGlobalId({ type: NODE_TYPES.Article, id: 5 }),
-      toGlobalId({ type: NODE_TYPES.Article, id: 6 }),
-      toGlobalId({ type: NODE_TYPES.Article, id: 2 }),
-    ]
+  test('edit draft connection', async () => {
+    const connectionIds = ['3', '4', '5', '6', '2']
+    const connectionGlobalIds = connectionIds.map((id) =>
+      toGlobalId({ type: NODE_TYPES.Article, id })
+    )
 
     // create draft setting collection out of limit
     const createFailedRes = await putDraft(
@@ -204,33 +184,40 @@ describe('put draft', () => {
         draft: {
           title: Math.random().toString(),
           content: Math.random().toString(),
-          collection: collection.slice(0, limit + 1),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
         },
       },
       connections
     )
-    expect(_get(createFailedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in collection`
+    expect(createFailedRes.errors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
-    // create draft setting collection within limit
+    // create draft setting connection within limit
     const createSucceedRes = await putDraft(
       {
         draft: {
           title: Math.random().toString(),
           content: Math.random().toString(),
-          collection: collection.slice(0, limit),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT
+          ),
         },
       },
       connections
     )
-    expect(_get(createSucceedRes, 'collection.totalCount')).toBe(limit)
+    expect(createSucceedRes.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
     expect([
-      _get(createSucceedRes, 'collection.edges.0.node.id'),
-      _get(createSucceedRes, 'collection.edges.1.node.id'),
-      _get(createSucceedRes, 'collection.edges.2.node.id'),
-      _get(createSucceedRes, 'collection.edges.3.node.id'),
-    ]).toEqual(collection.slice(0, limit))
+      createSucceedRes.collection.edges[0].node.id,
+      createSucceedRes.collection.edges[1].node.id,
+      createSucceedRes.collection.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
 
     const draftId = createSucceedRes.id
 
@@ -241,26 +228,30 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(editRes, 'collection.totalCount')).toBe(limit)
+    expect(editRes.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
     expect([
-      _get(editRes, 'collection.edges.0.node.id'),
-      _get(editRes, 'collection.edges.1.node.id'),
-      _get(editRes, 'collection.edges.2.node.id'),
-      _get(editRes, 'collection.edges.3.node.id'),
-    ]).toEqual(collection.slice(0, limit))
+      editRes.collection.edges[0].node.id,
+      editRes.collection.edges[1].node.id,
+      editRes.collection.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
 
     // edit draft setting collection out of limit
     const editFailedRes = await putDraft(
       {
         draft: {
           id: draftId,
-          collection: collection.slice(0, limit + 1),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
         },
       },
       connections
     )
-    expect(_get(editFailedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in collection`
+    expect(editFailedRes.errors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
     // edit draft setting collection within limit
@@ -268,51 +259,74 @@ describe('put draft', () => {
       {
         draft: {
           id: draftId,
-          collection: collection.slice(0, limit),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT
+          ),
         },
       },
       connections
     )
-    expect(_get(editSucceedRes, 'collection.totalCount')).toBe(limit)
+    expect(editSucceedRes.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
     expect([
-      _get(editSucceedRes, 'collection.edges.0.node.id'),
-      _get(editSucceedRes, 'collection.edges.1.node.id'),
-      _get(editSucceedRes, 'collection.edges.2.node.id'),
-      _get(editSucceedRes, 'collection.edges.3.node.id'),
-    ]).toEqual(collection.slice(0, limit))
+      editSucceedRes.collection.edges[0].node.id,
+      editSucceedRes.collection.edges[1].node.id,
+      editSucceedRes.collection.edges[2].node.id,
+    ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
 
     // out of limit collection can remain
-    const smallerlimit = limit - 1
-    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = smallerlimit
+    await atomService.update({
+      table: 'draft',
+      where: { id: fromGlobalId(draftId).id },
+      data: {
+        collection: connectionIds.slice(
+          0,
+          MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+        ),
+      },
+    })
     const remainRes = await putDraft(
       {
         draft: {
           id: draftId,
-          collection: collection.slice(0, smallerlimit + 1),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
         },
       },
       connections
     )
-    expect(_get(remainRes, 'collection.totalCount')).toBe(smallerlimit + 1)
+
+    expect(remainRes.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+    )
     expect([
-      _get(remainRes, 'collection.edges.0.node.id'),
-      _get(remainRes, 'collection.edges.1.node.id'),
-      _get(remainRes, 'collection.edges.2.node.id'),
-      _get(remainRes, 'collection.edges.3.node.id'),
-    ]).toEqual(collection.slice(0, smallerlimit + 1))
+      remainRes.collection.edges[0].node.id,
+      remainRes.collection.edges[1].node.id,
+      remainRes.collection.edges[2].node.id,
+      remainRes.collection.edges[3].node.id,
+    ]).toEqual(
+      connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT + 1)
+    )
 
     // out of limit collection can not increase
     const increaseRes = await putDraft(
       {
         draft: {
           id: draftId,
-          collection: collection.slice(0, smallerlimit + 2),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 2
+          ),
         },
       },
       connections
     )
-    expect(_get(increaseRes, 'errors.0.message')).toBe(
-      `Not allow more than ${smallerlimit} articles in collection`
+    expect(increaseRes.errors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
     // out of limit collection can decrease
@@ -320,12 +334,17 @@ describe('put draft', () => {
       {
         draft: {
           id: draftId,
-          collection: collection.slice(0, smallerlimit - 1),
+          collection: connectionGlobalIds.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
+          ),
         },
       },
       connections
     )
-    expect(_get(decreaseRes, 'collection.totalCount')).toBe(smallerlimit - 1)
+    expect(decreaseRes.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
+    )
 
     // reset collection
     const resetResult1 = await putDraft(
@@ -334,7 +353,7 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(resetResult1, 'collection.totalCount')).toBe(0)
+    expect(resetResult1.collection.totalCount).toBe(0)
 
     const resetResult2 = await putDraft(
       {
@@ -342,7 +361,7 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(resetResult2, 'collection.totalCount')).toBe(0)
+    expect(resetResult2.collection.totalCount).toBe(0)
   })
 
   test('edit draft license', async () => {
@@ -359,7 +378,7 @@ describe('put draft', () => {
     const result = await putDraft({ draft: { id } }, connections)
 
     // default license
-    expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
+    expect(result.license).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
 
     // set to CC0
     const result2 = await putDraft(
@@ -368,7 +387,7 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(result2, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_0)
+    expect(result2.license).toBe(ARTICLE_LICENSE_TYPE.cc_0)
 
     // change license to CC2 should throw error
     const changeCC2Result = await putDraft(
@@ -389,7 +408,7 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(changeResult, 'license')).toBe(ARTICLE_LICENSE_TYPE.arr)
+    expect(changeResult.license).toBe(ARTICLE_LICENSE_TYPE.arr)
 
     // after changing only tags, the license and accessType should remain unchanged
     const changeTagsResult = await putDraft(
@@ -398,7 +417,7 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(changeTagsResult, 'license')).toBe(ARTICLE_LICENSE_TYPE.arr)
+    expect(changeTagsResult.license).toBe(ARTICLE_LICENSE_TYPE.arr)
 
     // reset license
     const resetResult1 = await putDraft(
@@ -410,9 +429,7 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(resetResult1, 'license')).toBe(
-      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4
-    )
+    expect(resetResult1.license).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
   })
 
   test('edit draft support settings', async () => {
@@ -428,8 +445,8 @@ describe('put draft', () => {
     const result = await putDraft({ draft: { id } }, connections)
 
     // default
-    expect(_get(result, 'requestForDonation')).toBe(null)
-    expect(_get(result, 'replyToDonator')).toBe(null)
+    expect(result.requestForDonation).toBe(null)
+    expect(result.replyToDonator).toBe(null)
 
     // set long texts (length > 140) will throw error
     const longText = 't'.repeat(141)
@@ -439,14 +456,14 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(result2, 'errors')).toBeDefined()
+    expect(result2.errors).toBeDefined()
     const result3 = await putDraft(
       {
         draft: { id, replyToDonator: longText },
       },
       connections
     )
-    expect(_get(result3, 'errors')).toBeDefined()
+    expect(result3.errors).toBeDefined()
 
     // set text
     const text = 't'.repeat(140)
@@ -456,8 +473,8 @@ describe('put draft', () => {
       },
       connections
     )
-    expect(_get(result4, 'requestForDonation')).toBe(text)
-    expect(_get(result4, 'replyToDonator')).toBe(text)
+    expect(result4.requestForDonation).toBe(text)
+    expect(result4.replyToDonator).toBe(text)
   })
 
   test('edit draft comment setting', async () => {
@@ -479,7 +496,7 @@ describe('put draft', () => {
       connections
     )
 
-    expect(_get(result, 'canComment')).toBeFalsy()
+    expect(result.canComment).toBeFalsy()
 
     // turn on canComment
     const result2 = await putDraft(
@@ -487,7 +504,7 @@ describe('put draft', () => {
       connections
     )
 
-    expect(_get(result2, 'canComment')).toBeTruthy()
+    expect(result2.canComment).toBeTruthy()
   })
 
   test('edit draft sensitive settings', async () => {
@@ -509,14 +526,14 @@ describe('put draft', () => {
       { draft: { id, sensitive: true } },
       connections
     )
-    expect(_get(result, 'sensitiveByAuthor')).toBeTruthy()
+    expect(result.sensitiveByAuthor).toBeTruthy()
 
     // turn off by author
     const result2 = await putDraft(
       { draft: { id, sensitive: false } },
       connections
     )
-    expect(_get(result2, 'sensitiveByAuthor')).toBeFalsy()
+    expect(result2.sensitiveByAuthor).toBeFalsy()
   })
   test('edit indent', async () => {
     const { id, indentFirstLine } = await putDraft(
@@ -676,7 +693,6 @@ describe('put draft', () => {
     const stages = await campaignService.updateStages(campaign.id, [
       { name: 'stage1' },
     ])
-    const atomService = new AtomService(connections)
     const user = await atomService.userIdLoader.load('1')
     await campaignService.apply(campaign, user)
 

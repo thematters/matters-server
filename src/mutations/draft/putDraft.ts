@@ -103,20 +103,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     coverId = asset.id
   }
 
-  // Handle connections
-  const connections = connectionGlobalIds
-    ? uniq(
-        compact(connectionGlobalIds).map((_id) => fromGlobalId(_id).id)
-      ).filter((articleId) => !!articleId)
-    : connectionGlobalIds
-
-  if (connections) {
-    await validateConnections({
-      connections,
-      atomService,
-    })
-  }
-
   // Handle circle
   let circleId
   if (circleGlobalId) {
@@ -141,7 +127,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       license: license && validateLicense(license),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
-      collection: connections?.length === 0 ? null : connections,
+      collection:
+        connectionGlobalIds &&
+        (await validateConnections({
+          connectionGlobalIds: compact(connectionGlobalIds),
+          atomService,
+        })),
       circleId,
       access: accessType,
       sensitiveByAuthor: sensitive,
@@ -181,12 +172,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     }
 
     // Validate connections limit for update
-    if (connections) {
+    if (connectionGlobalIds) {
       const oldConnectionLength =
         draft.collection == null ? 0 : draft.collection.length
       if (
-        connections.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
-        connections.length > oldConnectionLength
+        connectionGlobalIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
+        connectionGlobalIds.length > oldConnectionLength
       ) {
         throw new ArticleCollectionReachLimitError(
           `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
@@ -245,7 +236,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
     )
   }
-  if (connections && connections.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
+  if (
+    connectionGlobalIds &&
+    connectionGlobalIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT
+  ) {
     throw new ArticleCollectionReachLimitError(
       `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
     )
@@ -300,13 +294,22 @@ const validateTags = async ({
 }
 
 const validateConnections = async ({
-  connections,
+  connectionGlobalIds,
   atomService,
 }: {
-  connections: string[]
+  connectionGlobalIds: GlobalId[] | null
   atomService: AtomService
 }) => {
-  await Promise.all(
+  if (!connectionGlobalIds) {
+    return null
+  }
+  if (connectionGlobalIds.length === 0) {
+    return null
+  }
+  const connections = uniq(
+    connectionGlobalIds.map((_id) => fromGlobalId(_id).id)
+  ).filter((articleId) => !!articleId)
+  return Promise.all(
     connections.map(async (articleId) => {
       const article = await atomService.findUnique({
         table: 'article',
@@ -320,6 +323,7 @@ const validateConnections = async ({
       if (article.state !== ARTICLE_STATE.active) {
         throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
       }
+      return articleId
     })
   )
 }
