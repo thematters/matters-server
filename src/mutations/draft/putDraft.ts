@@ -59,7 +59,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   validateUserState(viewer)
 
   const {
-    id: GlobalId,
+    id: globalId,
     title,
     summary,
     content,
@@ -80,10 +80,16 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   } = input
 
   // Prepare data
-  const isUpdate = !!GlobalId
+  const draft = globalId
+    ? await validateDraft({
+        globalId,
+        viewerId: viewer.id,
+        atomService,
+      })
+    : null
   const data: Partial<Draft> = omitBy(
     {
-      authorId: isUpdate ? undefined : viewer.id,
+      authorId: draft ? undefined : viewer.id,
       title: title && normalizeAndValidateTitle(title),
       summary: summary && normalizeAndValidateSummary(summary),
       content: content && normalizeAndValidateContent(content),
@@ -131,14 +137,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     isUndefined
   )
 
-  if (isUpdate) {
-    const { id } = fromGlobalId(GlobalId)
-    const draft = await atomService.draftIdLoader.load(id)
-
-    if (!draft) {
-      throw new DraftNotFoundError('target draft does not exist')
-    }
-
+  if (draft) {
     // Validate tags limit for update
     if (tags) {
       const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
@@ -206,7 +205,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         circleId: resetCircle ? null : data.circleId,
       },
       lastUpdatedAt,
-      viewerId: viewer.id,
       atomService,
     })
   }
@@ -234,6 +232,26 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
 }
 
 // Validation functions
+
+const validateDraft = async ({
+  globalId,
+  viewerId,
+  atomService,
+}: {
+  globalId: GlobalId
+  viewerId: string
+  atomService: AtomService
+}) => {
+  const draft = await atomService.draftIdLoader.load(fromGlobalId(globalId).id)
+  if (!draft) {
+    throw new DraftNotFoundError('target draft does not exist')
+  }
+  if (draft.authorId !== viewerId) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+  return draft
+}
+
 const validateUserState = (viewer: User) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -387,19 +405,13 @@ const handleDraftUpdate = async ({
   draft,
   data,
   lastUpdatedAt,
-  viewerId,
   atomService,
 }: {
   draft: Draft
   data: Partial<Draft>
   lastUpdatedAt?: string
-  viewerId: string
   atomService: AtomService
 }) => {
-  if (draft.authorId !== viewerId) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
   if (
     draft.publishState === PUBLISH_STATE.pending ||
     draft.publishState === PUBLISH_STATE.published
