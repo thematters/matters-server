@@ -1,111 +1,55 @@
-import { getLogger } from '#common/logger.js'
-import { GQLTranslationModel } from '#definitions/index.js'
-import * as cheerio from 'cheerio'
-
-const logger = getLogger('utils-translation')
-
-type HtmlTextNode = {
-  node: any
-  text: string
-}
-
-export const ERROR_TRANSLATION_SEGMENTS_MISMATCH =
-  'Translation segments mismatch'
-
 /**
- * Extracts and translates text from HTML while preserving document structure.
- * Uses a translator function to process text nodes in batches, then reinserts
- * translations back into the original HTML, maintaining all formatting and attributes.
+ * Replaces URLs in HTML content with placeholders to reduce token usage
  *
- * @param html The HTML content to process
- * @param translator Optional callback function that takes extracted texts and returns translations
- *
- * @returns Processed HTML result with translated HTML
+ * @param html The HTML content
+ * @returns Object containing processed HTML and a map of placeholders to original URL values
  */
-export const extractAndTranslateHtml = async (
-  html: string,
-  translator: (
-    texts: string[]
-  ) => Promise<
-    { translations: string[]; model: GQLTranslationModel } | undefined
-  >
-): Promise<
-  | {
-      html: string
-      model: GQLTranslationModel
-    }
-  | undefined
-> => {
-  // Extract text nodes from HTML
-  const $ = cheerio.load(html, null, false)
+export const extractAndReplaceUrls = (
+  html: string
+): {
+  html: string
+  urlMap: Map<string, string>
+} => {
+  const urlMap = new Map<string, string>()
+  let counter = 0
 
-  // Extract all text nodes
-  const nodes: HtmlTextNode[] = []
-  $('*')
-    .contents()
-    .each((_, element) => {
-      if (element.type === 'text' && element.data.trim()) {
-        const parent = element.parent
-        const parentTagName = parent && 'name' in parent ? parent.name : null
-        const grandparent = parent && parent.parent
-        const grandparentTagName =
-          grandparent && 'name' in grandparent ? grandparent.name : null
+  // Match URLs in HTML attributes (src, href, etc.)
+  const attributeRegex = /\b(src|href|srcset)=['"]([^'"]+)['"]/gi
 
-        const isParentMention =
-          parent &&
-          parentTagName === 'a' &&
-          'attribs' in parent &&
-          parent.attribs.class === 'mention'
-        const isGrandparentMention =
-          grandparent &&
-          grandparentTagName === 'a' &&
-          'attribs' in grandparent &&
-          grandparent.attribs.class === 'mention'
-
-        // Skip script, style, and mention elements
-        if (
-          parentTagName &&
-          !['script', 'style'].includes(parentTagName.toLowerCase()) &&
-          !isParentMention &&
-          !isGrandparentMention
-        ) {
-          nodes.push({ node: element, text: element.data })
-        }
-      }
-    })
-
-  // Get all text content
-  const texts = nodes.map((node) => node.text)
-
-  // If no text to translate or no translator provided
-  if (nodes.length === 0) {
-    return
-  }
-
-  // Call the translator function
-  const result = await translator(texts)
-
-  if (!result) return
-
-  const { translations, model } = result
-
-  // Check if segments count matches
-  if (translations.length !== nodes.length) {
-    logger.error(
-      `Translation segments mismatch: expected ${nodes.length}, got ${translations.length}`
-    )
-    throw new Error(ERROR_TRANSLATION_SEGMENTS_MISMATCH)
-  }
-
-  // Apply translations to HTML
-  nodes.forEach((item, index) => {
-    if (translations[index]) {
-      item.node.data = item.node.data.replace(item.text, translations[index])
-    }
+  const processedHtml = html.replace(attributeRegex, (match, attr, url) => {
+    const placeholder = `URL${counter}`
+    urlMap.set(placeholder, url)
+    counter++
+    return `${attr}="${placeholder}"`
   })
 
   return {
-    html: $.html(),
-    model,
+    html: processedHtml,
+    urlMap,
   }
+}
+
+/**
+ * Restore original URL values from placeholders
+ *
+ * @param html The HTML content with placeholders
+ * @param urlMap Map of placeholders to original URL values
+ * @returns HTML with original URL values restored
+ */
+export const restoreUrlPlaceholders = (
+  html: string,
+  urlMap: Map<string, string>
+): string => {
+  let result = html
+
+  // Use attribute regex similar to extraction
+  const attributeRegex = /\b(src|href|srcset)=["'](URL\d+)["']/gi
+
+  result = result.replace(attributeRegex, (match, attr, placeholder) => {
+    const originalUrl = urlMap.get(placeholder)
+    if (!originalUrl) return match
+    return `${attr}="${originalUrl}"`
+  })
+
+  return result
 }

@@ -1,8 +1,8 @@
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import {
-  ERROR_TRANSLATION_SEGMENTS_MISMATCH,
-  extractAndTranslateHtml,
+  extractAndReplaceUrls,
+  restoreUrlPlaceholders,
 } from '#common/utils/index.js'
 import { GQLTranslationModel, LANGUAGES } from '#definitions/index.js'
 
@@ -160,83 +160,44 @@ export class OpenRouter {
   }
 
   /**
-   * Translate HTML content preserving structure
-   */
-  public translateHtml = async (
-    html: string,
-    targetLanguage: LANGUAGES,
-    model?: GQLTranslationModel
-  ): Promise<{ text: string; model: GQLTranslationModel } | undefined> => {
-    const translator = async (
-      texts: string[]
-    ): Promise<
-      { translations: string[]; model: GQLTranslationModel } | undefined
-    > => {
-      const messages = [
-        {
-          role: 'system',
-          content: `You are a professional translator. Translate the provided article to ${this.toLanguageName(
-            targetLanguage
-          )}. The article is split into segments in the array.
-IMPORTANT:
-- Return exactly the same number of segments in the array as provided, maintaining the original array length
-- Translate each segment independently
-- Preserve formatting within each segment and maintain the original tone, terminology, and writing style
-- Only return the translated text without explanations`,
-        },
-        {
-          role: 'user',
-          content: JSON.stringify(texts),
-        },
-      ]
-
-      // Call OpenRouter API with structured output for HTML translation
-      const apiResult = await this.makeCompletions(messages, model, true)
-
-      if (!apiResult) return
-
-      return {
-        translations: JSON.parse(apiResult.text),
-        model: apiResult.model,
-      }
-    }
-
-    // Process the HTML with our translator
-    try {
-      const result = await extractAndTranslateHtml(html, translator)
-
-      if (!result?.html || !result?.model) return
-
-      return {
-        text: result.html,
-        model: result.model,
-      }
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === ERROR_TRANSLATION_SEGMENTS_MISMATCH
-      ) {
-        // retry with non-structured output
-        return this.translate(html, targetLanguage, model)
-      }
-    }
-  }
-
-  /**
-   * Translate plain text
+   * Translate arbitrary text
    */
   public translate = async (
     text: string,
     targetLanguage: LANGUAGES,
-    model?: GQLTranslationModel
+    model?: GQLTranslationModel,
+    html?: boolean
   ): Promise<{ text: string; model: GQLTranslationModel } | undefined> => {
+    // Replace URLs with placeholders to reduce token usage
+    let urlMap: Map<string, string> | undefined
+    if (html) {
+      const processed = extractAndReplaceUrls(text)
+      text = processed.html
+      urlMap = processed.urlMap
+    }
+
     const messages = [
-      {
-        role: 'system',
-        content: `You are a professional translator. Translate text to ${this.toLanguageName(
-          targetLanguage
-        )}. Maintain the original formats, tone and terminology. Only return the translated text without explanations.`,
-      },
+      html
+        ? {
+            role: 'system',
+            content: `You are a professional translator. Translate the provided HTML content to ${this.toLanguageName(
+              targetLanguage
+            )}.
+IMPORTANT:
+- Preserve all HTML formatting, attributes and structure.
+- DO NOT translate mentions (e.g., @username).
+- Maintain the original formats, tone and terminology.
+- Only return the translated text without explanations.`,
+          }
+        : {
+            role: 'system',
+            content: `You are a professional translator. Translate the provided text to ${this.toLanguageName(
+              targetLanguage
+            )}.
+IMPORTANT:
+- Maintain the original formats, tone and terminology.
+- Only return the translated text without explanations.`,
+          },
       {
         role: 'user',
         content: text,
@@ -246,6 +207,14 @@ IMPORTANT:
     const result = await this.makeCompletions(messages, model)
 
     if (!result) return
+
+    // Restore URL placeholders if HTML content
+    if (html && urlMap) {
+      return {
+        text: restoreUrlPlaceholders(result.text, urlMap),
+        model: result.model,
+      }
+    }
 
     return {
       text: result.text,
