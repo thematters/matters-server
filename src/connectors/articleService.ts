@@ -2162,7 +2162,7 @@ export class ArticleService extends BaseService<Article> {
     // translate with LLM
     const [llmTitle, llmContent, llmSummary] = await Promise.all([
       this.openRouter.translate(articleVersion.title, language, model),
-      this.openRouter.translateHtml(content, language, model),
+      this.openRouter.translate(content, language, model, true),
       articleVersion.summary
         ? this.openRouter.translate(articleVersion.summary, language, model)
         : null,
