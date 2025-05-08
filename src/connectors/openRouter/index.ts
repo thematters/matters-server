@@ -1,6 +1,9 @@
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
-import { extractAndTranslateHtml } from '#common/utils/index.js'
+import {
+  ERROR_TRANSLATION_SEGMENTS_MISMATCH,
+  extractAndTranslateHtml,
+} from '#common/utils/index.js'
 import { GQLTranslationModel, LANGUAGES } from '#definitions/index.js'
 
 const logger = getLogger('service-openrouter')
@@ -166,7 +169,9 @@ export class OpenRouter {
   ): Promise<{ text: string; model: GQLTranslationModel } | undefined> => {
     const translator = async (
       texts: string[]
-    ): Promise<{ translations: string[]; model: GQLTranslationModel }> => {
+    ): Promise<
+      { translations: string[]; model: GQLTranslationModel } | undefined
+    > => {
       const messages = [
         {
           role: 'system',
@@ -188,9 +193,7 @@ IMPORTANT:
       // Call OpenRouter API with structured output for HTML translation
       const apiResult = await this.makeCompletions(messages, model, true)
 
-      if (!apiResult) {
-        throw new Error('Translation failed')
-      }
+      if (!apiResult) return
 
       return {
         translations: JSON.parse(apiResult.text),
@@ -199,13 +202,23 @@ IMPORTANT:
     }
 
     // Process the HTML with our translator
-    const result = await extractAndTranslateHtml(html, translator)
+    try {
+      const result = await extractAndTranslateHtml(html, translator)
 
-    if (!result?.html || !result?.model) return
+      if (!result?.html || !result?.model) return
 
-    return {
-      text: result.html,
-      model: result.model,
+      return {
+        text: result.html,
+        model: result.model,
+      }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === ERROR_TRANSLATION_SEGMENTS_MISMATCH
+      ) {
+        // retry with non-structured output
+        return this.translate(html, targetLanguage, model)
+      }
     }
   }
 

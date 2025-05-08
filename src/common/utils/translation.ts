@@ -9,6 +9,9 @@ type HtmlTextNode = {
   text: string
 }
 
+export const ERROR_TRANSLATION_SEGMENTS_MISMATCH =
+  'Translation segments mismatch'
+
 /**
  * Extracts and translates text from HTML while preserving document structure.
  * Uses a translator function to process text nodes in batches, then reinserts
@@ -23,7 +26,9 @@ export const extractAndTranslateHtml = async (
   html: string,
   translator: (
     texts: string[]
-  ) => Promise<{ translations: string[]; model: GQLTranslationModel }>
+  ) => Promise<
+    { translations: string[]; model: GQLTranslationModel } | undefined
+  >
 ): Promise<
   | {
       html: string
@@ -78,30 +83,29 @@ export const extractAndTranslateHtml = async (
   }
 
   // Call the translator function
-  try {
-    const { translations, model } = await translator(texts)
+  const result = await translator(texts)
 
-    // Check if segments count matches
-    if (translations.length !== nodes.length) {
-      logger.error(
-        `Translation segments mismatch: expected ${nodes.length}, got ${translations.length}`
-      )
-      return
+  if (!result) return
+
+  const { translations, model } = result
+
+  // Check if segments count matches
+  if (translations.length !== nodes.length) {
+    logger.error(
+      `Translation segments mismatch: expected ${nodes.length}, got ${translations.length}`
+    )
+    throw new Error(ERROR_TRANSLATION_SEGMENTS_MISMATCH)
+  }
+
+  // Apply translations to HTML
+  nodes.forEach((item, index) => {
+    if (translations[index]) {
+      item.node.data = item.node.data.replace(item.text, translations[index])
     }
+  })
 
-    // Apply translations to HTML
-    nodes.forEach((item, index) => {
-      if (translations[index]) {
-        item.node.data = item.node.data.replace(item.text, translations[index])
-      }
-    })
-
-    return {
-      html: $.html(),
-      model,
-    }
-  } catch (error) {
-    logger.error('Translation error:', error)
-    return
+  return {
+    html: $.html(),
+    model,
   }
 }
