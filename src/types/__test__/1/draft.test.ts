@@ -776,4 +776,26 @@ describe('put draft', () => {
       editRes.collection.edges[1].node.id,
     ]).toEqual(connectionGlobalIds.slice(0, 2))
   })
+
+  test('rejects invalid connection types', async () => {
+    // Create a draft with an invalid connection type (User instead of Article)
+    const invalidConnectionId = toGlobalId({
+      type: NODE_TYPES.Collection,
+      id: '1',
+    })
+
+    const result = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          connections: [invalidConnectionId],
+        },
+      },
+      connections
+    )
+
+    expect(result.errors).toBeDefined()
+    expect(result.errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
 })

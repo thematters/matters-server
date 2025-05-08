@@ -313,7 +313,13 @@ const validateConnections = async ({
     return null
   }
   const connections = uniq(
-    connectionGlobalIds.map((_id) => fromGlobalId(_id).id)
+    connectionGlobalIds.map((_id) => {
+      const { id, type } = fromGlobalId(_id)
+      if (type !== NODE_TYPES.Article) {
+        throw new UserInputError(`Invalid connection type: ${type}`)
+      }
+      return id
+    })
   ).filter((articleId) => !!articleId)
 
   if (draft) {
