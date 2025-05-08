@@ -26,7 +26,6 @@ import { environment } from '#common/environment.js'
 import {
   ArticleCollectionReachLimitError,
   ArticleNotFoundError,
-  AssetNotFoundError,
   AuthenticationError,
   CircleNotFoundError,
   DraftNotFoundError,
@@ -80,19 +79,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     lastUpdatedAt,
   } = input
 
-  let coverId
-  if (cover) {
-    const asset = await systemService.findAssetByUUID(cover)
-    if (
-      !asset ||
-      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
-      asset.authorId !== viewer.id
-    ) {
-      throw new AssetNotFoundError('Asset does not exists')
-    }
-    coverId = asset.id
-  }
-
   // Handle circle
   let circleId
   if (circleGlobalId) {
@@ -122,7 +108,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           tags,
           dataSources: { atomService },
         })),
-      cover: coverId,
+      cover:
+        cover &&
+        (await systemService.validateArticleCover({
+          coverUUID: cover,
+          userId: viewer.id,
+        })),
       collection:
         connectionGlobalIds &&
         (await validateConnections({

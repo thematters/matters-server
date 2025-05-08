@@ -8,7 +8,9 @@ import {
   COMMENT_STATE,
   FEATURE_FLAG,
   FEATURE_NAME,
+  ASSET_TYPE,
 } from '#common/enums/index.js'
+import { AssetNotFoundError } from '#common/errors.js'
 import {
   SystemService,
   AtomService,
@@ -362,5 +364,93 @@ describe('announcement', () => {
     invisibleAnnouncements.forEach((announcement) => {
       expect(announcement.visible).toBe(false)
     })
+  })
+})
+
+describe('validateArticleCover', () => {
+  test('validates cover asset successfully', async () => {
+    // Create a valid cover asset
+    const data = {
+      uuid: v4(),
+      authorId: '1',
+      type: ASSET_TYPE.cover,
+      path: 'path/to/cover.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should not throw error for valid cover
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).resolves.not.toThrow()
+  })
+
+  test('validates embed asset successfully', async () => {
+    // Create a valid embed asset
+    const data = {
+      uuid: v4(),
+      authorId: '1',
+      type: ASSET_TYPE.embed,
+      path: 'path/to/embed.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should not throw error for valid embed
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).resolves.not.toThrow()
+  })
+
+  test('throws error for non-existent asset', async () => {
+    // Should throw error for non-existent asset
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: v4(),
+        userId: '1',
+      })
+    ).rejects.toThrow(AssetNotFoundError)
+  })
+
+  test('throws error for invalid asset type', async () => {
+    // Create an asset with invalid type
+    const data = {
+      uuid: v4(),
+      authorId: '1',
+      type: ASSET_TYPE.avatar, // Invalid type for article cover
+      path: 'path/to/avatar.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should throw error for invalid asset type
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).rejects.toThrow(AssetNotFoundError)
+  })
+
+  test('throws error for asset owned by different user', async () => {
+    // Create an asset owned by user 2
+    const data = {
+      uuid: v4(),
+      authorId: '2',
+      type: ASSET_TYPE.cover,
+      path: 'path/to/cover.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should throw error when user 1 tries to use user 2's asset
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).rejects.toThrow(AssetNotFoundError)
   })
 })
