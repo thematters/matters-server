@@ -171,13 +171,9 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     }
 
     // Update draft
-    const resetCircle = circleGlobalId === null
     return handleDraftUpdate({
       draft,
-      data: {
-        ...data,
-        circleId: resetCircle ? null : data.circleId,
-      },
+      data,
       lastUpdatedAt,
       atomService,
     })
