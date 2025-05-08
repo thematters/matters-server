@@ -1,4 +1,7 @@
-import { extractAndTranslateHtml } from '#common/utils/translation.js'
+import {
+  ERROR_TRANSLATION_SEGMENTS_MISMATCH,
+  extractAndTranslateHtml,
+} from '#common/utils/translation.js'
 import * as cheerio from 'cheerio'
 import { jest } from '@jest/globals'
 
@@ -55,35 +58,15 @@ describe('extractAndTranslateHtml', () => {
     expect(result).toBeUndefined()
   })
 
-  test('should handle segment count mismatch', async () => {
-    // Create a translator that returns mismatched segments
-    const mismatchTranslator = jest.fn<MockTranslator>().mockResolvedValue({
-      translations: ['你好世界'], // Missing one segment
-      model: 'google_gemini_2_5_flash_preview',
-    })
-
-    const result = await extractAndTranslateHtml(testHtml, mismatchTranslator)
-
-    // Should have called the translator
-    expect(mismatchTranslator).toHaveBeenCalled()
-
-    // Should return undefined when segments don't match
-    expect(result).toBeUndefined()
-  })
-
   test('should handle translation errors', async () => {
     // Create a translator that throws an error
     const errorTranslator = jest
       .fn<MockTranslator>()
-      .mockRejectedValue(new Error('Translation failed'))
+      .mockRejectedValue(new Error(ERROR_TRANSLATION_SEGMENTS_MISMATCH))
 
-    const result = await extractAndTranslateHtml(testHtml, errorTranslator)
-
-    // Should have called the translator
-    expect(errorTranslator).toHaveBeenCalled()
-
-    // Should return undefined on error
-    expect(result).toBeUndefined()
+    await expect(
+      extractAndTranslateHtml(testHtml, errorTranslator)
+    ).rejects.toThrow(ERROR_TRANSLATION_SEGMENTS_MISMATCH)
   })
 
   test('should handle complex HTML with nested elements', async () => {
