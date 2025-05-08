@@ -894,7 +894,6 @@ describe('addAppreciationAmountColumn', () => {
     // Verify results
     expect(results).toHaveLength(3)
 
-    console.dir(results, { depth: null })
     // Article 1 should have 300 (100 + 200) appreciation amount
     const article1Result = results[0]
     expect(article1Result.appreciationAmount).toBe('300')

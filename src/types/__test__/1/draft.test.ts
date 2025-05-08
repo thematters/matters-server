@@ -281,7 +281,7 @@ describe('put draft', () => {
       table: 'draft',
       where: { id: fromGlobalId(draftId).id },
       data: {
-        collection: connectionIds.slice(
+        connections: connectionIds.slice(
           0,
           MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
         ),

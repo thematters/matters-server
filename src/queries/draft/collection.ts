@@ -6,7 +6,7 @@ import {
 } from '#common/utils/index.js'
 
 const resolver: GQLDraftResolvers['collection'] = (
-  { collection: connections },
+  { connections },
   { input },
   { dataSources: { atomService } }
 ) => {

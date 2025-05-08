@@ -68,7 +68,6 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Test error cases
    - Test edge cases
 
-
 Example:
 ```typescript
 // Implement resolver

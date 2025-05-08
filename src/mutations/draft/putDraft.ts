@@ -108,7 +108,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           coverUUID: cover,
           userId: viewer.id,
         })),
-      collection:
+      connections:
         connectionGlobalIds &&
         (await validateConnections({
           connectionGlobalIds: compact(connectionGlobalIds),
@@ -316,7 +316,7 @@ const validateConnections = async ({
 
   if (draft) {
     const oldConnectionLength =
-      draft.collection == null ? 0 : draft.collection.length
+      draft.connections == null ? 0 : draft.connections.length
     if (
       connectionGlobalIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
       connectionGlobalIds.length > oldConnectionLength
