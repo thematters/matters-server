@@ -79,19 +79,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     lastUpdatedAt,
   } = input
 
-  // Handle circle
-  let circleId
-  if (circleGlobalId) {
-    if (!accessType) {
-      throw new UserInputError('"accessType" is required on `circle`.')
-    }
-    circleId = await validateCircle({
-      circleGlobalId,
-      viewerId: viewer.id,
-      atomService,
-    })
-  }
-
   // Prepare data
   const isUpdate = !!GlobalId
   const data: Partial<Draft> = omitBy(
@@ -120,7 +107,14 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           connectionGlobalIds: compact(connectionGlobalIds),
           atomService,
         })),
-      circleId,
+      circleId:
+        circleGlobalId &&
+        (await validateCircle({
+          circleGlobalId,
+          viewerId: viewer.id,
+          atomService,
+          accessType,
+        })),
       access: accessType,
       sensitiveByAuthor: sensitive,
       requestForDonation,
@@ -323,13 +317,18 @@ const validateConnections = async ({
 
 const validateCircle = async ({
   circleGlobalId,
+  accessType,
   viewerId,
   atomService,
 }: {
   circleGlobalId: GlobalId
+  accessType: string | undefined
   viewerId: string
   atomService: AtomService
 }) => {
+  if (!accessType) {
+    throw new UserInputError('"accessType" is required on `circle`.')
+  }
   const { id } = fromGlobalId(circleGlobalId)
   const circle = await atomService.findFirst({
     table: 'circle',
