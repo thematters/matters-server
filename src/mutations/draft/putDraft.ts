@@ -1,6 +1,5 @@
 import type { AtomService } from '#connectors/index.js'
 import type {
-  DataSources,
   GQLMutationResolvers,
   Draft,
   GlobalId,
@@ -53,33 +52,32 @@ const {
 
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,
-  { input },
+  {
+    input: {
+      id: globalId,
+      title,
+      summary,
+      content,
+      tags,
+      cover,
+      collection: connectionGlobalIds,
+      circle: circleGlobalId,
+      accessType,
+      sensitive,
+      license,
+      requestForDonation,
+      replyToDonator,
+      iscnPublish,
+      canComment,
+      indentFirstLine,
+      campaigns,
+      lastUpdatedAt,
+    },
+  },
   { viewer, dataSources: { atomService, systemService, campaignService } }
 ) => {
   validateUserState(viewer)
 
-  const {
-    id: globalId,
-    title,
-    summary,
-    content,
-    tags,
-    cover,
-    collection: connectionGlobalIds,
-    circle: circleGlobalId,
-    accessType,
-    sensitive,
-    license,
-    requestForDonation,
-    replyToDonator,
-    iscnPublish,
-    canComment,
-    indentFirstLine,
-    campaigns,
-    lastUpdatedAt,
-  } = input
-
-  // Prepare data
   const draft = globalId
     ? await validateDraft({
         globalId,
@@ -87,6 +85,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         atomService,
       })
     : null
+  // Prepare data
   const data: Partial<Draft> = omitBy(
     {
       authorId: draft ? undefined : viewer.id,
@@ -97,9 +96,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       tags:
         tags &&
         (await validateTags({
-          viewerId: viewer.id,
           tags,
-          dataSources: { atomService },
+          viewerId: viewer.id,
+          draft,
+          atomService,
         })),
       cover:
         cover &&
@@ -138,19 +138,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   )
 
   if (draft) {
-    // Validate tags limit for update
-    if (tags) {
-      const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
-      if (
-        tags.length > MAX_TAGS_PER_ARTICLE_LIMIT &&
-        tags.length > oldTagsLength
-      ) {
-        throw new TooManyTagsForArticleError(
-          `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
-        )
-      }
-    }
-
     // Validate connections limit for update
     if (connectionGlobalIds) {
       const oldConnectionLength =
@@ -209,12 +196,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     })
   }
 
-  // Create new draft
-  if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
-    throw new TooManyTagsForArticleError(
-      `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
-    )
-  }
   if (
     connectionGlobalIds &&
     connectionGlobalIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT
@@ -272,11 +253,13 @@ const validateUserState = (viewer: User) => {
 const validateTags = async ({
   viewerId,
   tags,
-  dataSources: { atomService },
+  draft,
+  atomService,
 }: {
   viewerId: string
   tags: string[] | null
-  dataSources: Pick<DataSources, 'atomService'>
+  draft: Draft | null
+  atomService: AtomService
 }) => {
   if (!tags) {
     return null
@@ -284,6 +267,28 @@ const validateTags = async ({
   if (tags.length === 0) {
     return null
   }
+  // validate tag length
+  if (draft) {
+    // update draft , check tag length compare with old tags and MAX_TAGS_PER_ARTICLE_LIMIT
+    const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
+    if (
+      tags.length > MAX_TAGS_PER_ARTICLE_LIMIT &&
+      tags.length > oldTagsLength
+    ) {
+      throw new TooManyTagsForArticleError(
+        `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      )
+    }
+  } else {
+    // create new draft , check tag length compare with MAX_TAGS_PER_ARTICLE_LIMIT
+    if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+      throw new TooManyTagsForArticleError(
+        `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      )
+    }
+  }
+
+  // Validate matty tag
   const isMatty = viewerId === environment.mattyId
   const mattyTagId = environment.mattyChoiceTagId
   if (mattyTagId && !isMatty) {
