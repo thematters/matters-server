@@ -47,8 +47,9 @@ describe('article translations', () => {
     })
   })
 
-  test('query article translations with google translation', async () => {
+  test('query article translations with valid translation model', async () => {
     const articleId = '1'
+    const model = 'google_gemini_2_5_flash_preview'
 
     // Get article versions to link translations
     const articleVersions = await atomService.findMany({
@@ -64,9 +65,9 @@ describe('article translations', () => {
           articleId,
           articleVersionId: version.id,
           language: 'en',
-          title: GOOGLE_TRANSLATION,
-          content: GOOGLE_TRANSLATION,
-          model: 'google_translation_v2',
+          title: LLM_TRANSLATION,
+          content: LLM_TRANSLATION,
+          model,
         },
       })
     }
@@ -77,14 +78,32 @@ describe('article translations', () => {
       query: GET_ARTICLE_TRANSLATION,
       variables: {
         nodeInput: { id },
-        translationInput: { language: 'en', model: 'google_translation_v2' },
+        translationInput: { language: 'en', model },
       },
     })
 
     expect(error).toBeUndefined()
-    expect(data.node.translation.title).toBe(GOOGLE_TRANSLATION)
-    expect(data.node.translation.content).toBe(GOOGLE_TRANSLATION)
-    expect(data.node.translation.model).toBe('google_translation_v2')
+    expect(data.node.translation.title).toBe(LLM_TRANSLATION)
+    expect(data.node.translation.content).toBe(LLM_TRANSLATION)
+    expect(data.node.translation.model).toBe(model)
+  })
+
+  test('query article translations with deprecated model throws error', async () => {
+    const articleId = '1'
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: GET_ARTICLE_TRANSLATION,
+      variables: {
+        nodeInput: { id },
+        translationInput: { language: 'en', model: 'google_translation_v2' },
+      },
+    })
+
+    expect(errors).toBeDefined()
+    expect(errors?.[0].message).toContain(
+      'google_translation_v2" is no longer supported'
+    )
   })
 
   test('query article translations with specific LLM model', async () => {
@@ -260,16 +279,16 @@ describe('article version translations', () => {
       { title: 'new title' }
     )
 
-    // Create translation record for the new version
+    // Create translation record for the new version with valid model
     await atomService.create({
       table: 'article_translation',
       data: {
         articleId,
         articleVersionId: newArticleVersion.id,
         language: 'en',
-        title: GOOGLE_TRANSLATION,
-        content: GOOGLE_TRANSLATION,
-        model: 'google_translation_v2',
+        title: LLM_TRANSLATION,
+        content: LLM_TRANSLATION,
+        model: 'google_gemini_2_0_flash_001',
       },
     })
 
@@ -311,6 +330,7 @@ describe('article version translations', () => {
   test('query paywalled article version', async () => {
     const articleVersionId = '1'
     const authorId = '1'
+    const model = 'google_gemini_2_5_flash_preview'
 
     const { articleId } = await atomService.findUnique({
       table: 'article_version',
@@ -324,9 +344,9 @@ describe('article version translations', () => {
         articleId,
         articleVersionId,
         language: 'en',
-        title: GOOGLE_TRANSLATION,
-        content: GOOGLE_TRANSLATION,
-        model: 'google_translation_v2',
+        title: LLM_TRANSLATION,
+        content: LLM_TRANSLATION,
+        model,
       },
     })
 
@@ -356,14 +376,14 @@ describe('article version translations', () => {
       query: GET_ARTICLE_VERSION_TRANSLATION,
       variables: {
         nodeInput: { id },
-        translationInput: { language: 'en', model: 'google_translation_v2' },
+        translationInput: { language: 'en', model },
       },
     })
 
     expect(error).toBeUndefined()
-    expect(data.node.translation.title).toBe(GOOGLE_TRANSLATION)
+    expect(data.node.translation.title).toBe(LLM_TRANSLATION)
     expect(data.node.translation.content).toBe('')
-    expect(data.node.translation.model).toBe('google_translation_v2')
+    expect(data.node.translation.model).toBe(model)
 
     // Query with author
     const server2 = await testClient({
@@ -374,13 +394,13 @@ describe('article version translations', () => {
       query: GET_ARTICLE_VERSION_TRANSLATION,
       variables: {
         nodeInput: { id },
-        translationInput: { language: 'en', model: 'google_translation_v2' },
+        translationInput: { language: 'en', model },
       },
     })
 
     expect(error2).toBeUndefined()
-    expect(data2.node.translation.title).toBe(GOOGLE_TRANSLATION)
-    expect(data2.node.translation.content).toBe(GOOGLE_TRANSLATION)
-    expect(data2.node.translation.model).toBe('google_translation_v2')
+    expect(data2.node.translation.title).toBe(LLM_TRANSLATION)
+    expect(data2.node.translation.content).toBe(LLM_TRANSLATION)
+    expect(data2.node.translation.model).toBe(model)
   })
 })

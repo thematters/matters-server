@@ -1,18 +1,23 @@
 import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { stripHtml, stripMentions } from '#common/utils/index.js'
-import { GCP } from '#connectors/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId, isSpam, spamScore },
   _,
-  { dataSources: { articleService, atomService, systemService } }
+  {
+    dataSources: {
+      articleService,
+      atomService,
+      systemService,
+      connections: { redis },
+    },
+  }
 ) => {
-  const {
-    id: versionId,
-    language: storedLanguage,
-    contentId,
-  } = await articleService.loadLatestArticleVersion(articleId)
+  const { id: versionId, language: storedLanguage } =
+    await articleService.loadLatestArticleVersion(articleId)
+
   if (storedLanguage) {
     return storedLanguage
   }
@@ -29,23 +34,23 @@ const resolver: GQLArticleResolvers['language'] = async (
   }
 
   // Detect language
-  const gcp = new GCP()
+  const language = await articleService.detectLanguage(articleId)
+  if (language) {
+    await atomService.update({
+      table: 'article_version',
+      where: { id: versionId },
+      data: { language },
+    })
 
-  const { content } = await atomService.articleContentIdLoader.load(contentId)
+    // invalidate article
+    invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: articleId },
+      redis,
+    })
 
-  const excerpt = stripHtml(stripMentions(content)).slice(0, 300)
+    return language
+  }
 
-  gcp.detectLanguage(excerpt).then((language) => {
-    if (language) {
-      atomService.update({
-        table: 'article_version',
-        where: { id: versionId },
-        data: { language },
-      })
-    }
-  })
-
-  // return first to prevent blocking
   return null
 }
 
