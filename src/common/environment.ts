@@ -82,7 +82,6 @@ export const environment = {
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
-  translateKey: process.env.MATTERS_GCP_TRANSLATE_KEY,
   OICDPrivateKey: process.env.MATTERS_OICD_PRIVATE_KEY || '',
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
@@ -142,6 +141,7 @@ export const environment = {
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
+  languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
 }
 
 export const contract = {

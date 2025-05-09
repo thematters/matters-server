@@ -50,6 +50,8 @@ import {
   genMD5,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
+  stripMentions,
+  stripHtml,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -57,11 +59,11 @@ import {
   UserWorkService,
   TagService,
   NotificationService,
-  GCP,
   SpamDetector,
   ChannelService,
   aws,
   PaymentService,
+  LanguageDetector,
 } from '#connectors/index.js'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
@@ -84,7 +86,6 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 export class ArticleService extends BaseService<Article> {
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
   private openRouter = new OpenRouter()
-  private gcp = new GCP()
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -2113,53 +2114,6 @@ export class ArticleService extends BaseService<Article> {
     let translatedSummary: string | null = null
     let translatedModel: GQLTranslationModel | null = null
 
-    // translate with Google
-    if (model === 'google_translation_v2') {
-      const [gcpTitle, gcpContent, gcpSummary] = await Promise.all([
-        this.gcp.translate({
-          content: articleVersion.title,
-          target: language,
-        }),
-        this.gcp.translate({
-          content: content,
-          target: language,
-        }),
-        articleVersion.summary
-          ? this.gcp.translate({
-              content: articleVersion.summary,
-              target: language,
-            })
-          : null,
-      ])
-
-      if (
-        gcpTitle &&
-        gcpContent &&
-        (articleVersion.summary ? gcpSummary : true)
-      ) {
-        await this.models.create({
-          table: 'article_translation',
-          data: {
-            articleId,
-            articleVersionId,
-            language,
-            title: gcpTitle,
-            content: gcpContent,
-            summary: gcpSummary,
-            model: 'google_translation_v2',
-          },
-        })
-
-        translatedTitle = gcpTitle
-        translatedContent = gcpContent
-        translatedModel = 'google_translation_v2'
-        if (gcpSummary) {
-          translatedSummary = gcpSummary
-        }
-      }
-    }
-
-    // translate with LLM
     const [llmTitle, llmContent, llmSummary] = await Promise.all([
       this.openRouter.translate(articleVersion.title, language, model),
       this.openRouter.translate(content, language, model, true),
@@ -2257,6 +2211,19 @@ export class ArticleService extends BaseService<Article> {
     callback?.(score)
   }
 
+  public detectLanguage = async (articleVersionId: string) => {
+    const languageDetector = new LanguageDetector()
+
+    const { title, summary, contentId } =
+      await this.models.articleVersionIdLoader.load(articleVersionId)
+    const { content } = await this.models.articleContentIdLoader.load(contentId)
+    const excerpt = stripHtml(stripMentions(content), {
+      lineReplacement: ' ',
+    }).slice(0, 300)
+
+    return languageDetector.detect(`${title} ${summary} ${excerpt}`)
+  }
+
   private postArticleCreation = async ({
     articleId,
     articleVersionId,
@@ -2285,6 +2252,19 @@ export class ArticleService extends BaseService<Article> {
 
         // infer article channels if not spam
         channelService.classifyArticlesChannels({ ids: [articleId] })
+
+        // detect language
+        this.detectLanguage(articleVersionId).then((language) => {
+          if (!language) {
+            return
+          }
+
+          this.models.update({
+            table: 'article_version',
+            where: { id: articleVersionId },
+            data: { language },
+          })
+        })
 
         // trigger IPFS publication
         aws.sqsSendMessage({
