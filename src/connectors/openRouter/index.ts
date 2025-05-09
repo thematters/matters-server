@@ -176,33 +176,48 @@ export class OpenRouter {
       urlMap = processed.urlMap
     }
 
-    const messages = [
-      html
-        ? {
-            role: 'system',
-            content: `You are a professional translator. Translate the provided HTML content to ${this.toLanguageName(
-              targetLanguage
-            )}.
+    const targetLanguageName = this.toLanguageName(targetLanguage)
+    let messages = []
+    const extraInstruction =
+      targetLanguage === 'zh_hant'
+        ? '- Use wording and style natural to Taiwanese readers. Avoid Mainland China terms.'
+        : ''
+
+    if (html) {
+      messages = [
+        {
+          role: 'system',
+          content: `You are a professional translator. You must respond in ${targetLanguageName}.
 IMPORTANT:
 - Preserve all HTML formatting, attributes and structure.
 - DO NOT translate mentions (e.g., @username).
 - Maintain the original formats, tone and terminology.
-- Only return the translated text without explanations.`,
-          }
-        : {
-            role: 'system',
-            content: `You are a professional translator. Translate the provided text to ${this.toLanguageName(
-              targetLanguage
-            )}.
+- Only return the translated text without explanations.
+${extraInstruction}`,
+        },
+        {
+          role: 'user',
+          content: `Translate the following HTML content to ${targetLanguageName}:`,
+        },
+        { role: 'user', content: text },
+      ]
+    } else {
+      messages = [
+        {
+          role: 'system',
+          content: `You are a professional translator. You must respond in ${targetLanguageName}.
 IMPORTANT:
 - Maintain the original formats, tone and terminology.
-- Only return the translated text without explanations.`,
-          },
-      {
-        role: 'user',
-        content: text,
-      },
-    ]
+- Only return the translated text without explanations.
+${extraInstruction}`,
+        },
+        {
+          role: 'user',
+          content: `Translate the following text to ${targetLanguageName}:`,
+        },
+        { role: 'user', content: text },
+      ]
+    }
 
     const result = await this.makeCompletions(messages, model)
 
