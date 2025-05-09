@@ -68,32 +68,63 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Test error cases
    - Test edge cases
 
+### Connection Utilities
+
+For implementing GraphQL connections (pagination), use the following utility functions from `#common/utils/index.js`:
+
+1. `connectionFromArray`: For simple array data
+   ```typescript
+   if (!data || data.length === 0) {
+     return connectionFromArray([], input)
+   }
+   ```
+
+2. `connectionFromPromisedArray`: For async data loading
+   ```typescript
+   return connectionFromPromisedArray(
+     dataLoader.loadMany(ids),
+     input,
+     totalCount // optional
+   )
+   ```
+
+3. `fromConnectionArgs`: For parsing pagination arguments
+   ```typescript
+   const { take, skip } = fromConnectionArgs(input, {
+     allowTakeAll?: boolean,
+     defaultTake?: number,
+     maxTake?: number,
+     maxSkip?: number
+   })
+   ```
+
+4. `connectionFromQuery`: For database queries with cursor-based pagination
+   ```typescript
+   return connectionFromQuery({
+     query,
+     orderBy: { column: 'order', order: 'desc' },
+     cursorColumn: 'id',
+     args: input
+   })
+   ```
+
 Example:
 ```typescript
 // Implement resolver
-const resolver: GQLMutationResolvers['putChannel'] = async (
-  _,
+const resolver: GQLDraftResolvers['collections'] = async (
+  { collections },
   { input },
-  { viewer, dataSources }
+  { dataSources: { atomService } }
 ) => {
-  // 1. Auth check
-  if (!viewer.id) {
-    throw new AuthenticationError('unauthorized')
+  if (!collections || collections.length === 0) {
+    return connectionFromArray([], input)
   }
 
-  // 2. Validate input
-  if (input.activePeriod && !isValidDateRange(input.activePeriod)) {
-    throw new UserInputError('invalid date range') 
-  }
-
-  // 3. Business logic
-  const channel = await dataSources.channelService.createOrUpdate(input)
-
-  // 4. Return response
-  return channel
+  return connectionFromPromisedArray(
+    atomService.collectionIdLoader.loadMany(collections),
+    input
+  )
 }
-
-// helpers should be placed below resolvers
 ```
 
 ### Unions and Interfaces

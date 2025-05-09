@@ -1510,12 +1510,14 @@ export type GQLDraft = GQLNode & {
   article?: Maybe<GQLArticle>
   /** List of assets are belonged to this draft. */
   assets: Array<GQLAsset>
-  /** associated campaigns */
+  /** Associated campaigns */
   campaigns: Array<GQLArticleCampaign>
-  /** whether readers can comment */
+  /** Whether readers can comment */
   canComment: Scalars['Boolean']['output']
   /** @deprecated Use connections instead */
   collection: GQLArticleConnection
+  /** Collections of this draft. */
+  collections: GQLCollectionConnection
   /** Connection articles of this draft. */
   connections: GQLArticleConnection
   /** Content (HTML) of this draft. */
@@ -1526,9 +1528,9 @@ export type GQLDraft = GQLNode & {
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this draft. */
   id: Scalars['ID']['output']
-  /** whether the first line of paragraph should be indented */
+  /** Whether the first line of paragraph should be indented */
   indentFirstLine: Scalars['Boolean']['output']
-  /** whether publish to ISCN */
+  /** Whether publish to ISCN */
   iscnPublish?: Maybe<Scalars['Boolean']['output']>
   /** License Type */
   license: GQLArticleLicenseType
@@ -1536,11 +1538,11 @@ export type GQLDraft = GQLNode & {
   mediaHash?: Maybe<Scalars['String']['output']>
   /** State of draft during publihsing. */
   publishState: GQLPublishState
-  /** creator message after support */
+  /** Creator message after support */
   replyToDonator?: Maybe<Scalars['String']['output']>
-  /** creator message asking for support */
+  /** Creator message asking for support */
   requestForDonation?: Maybe<Scalars['String']['output']>
-  /** whether content is marked as sensitive by author */
+  /** Whether content is marked as sensitive by author */
   sensitiveByAuthor: Scalars['Boolean']['output']
   /** Slugified draft title. */
   slug: Scalars['String']['output']
@@ -1560,6 +1562,11 @@ export type GQLDraft = GQLNode & {
 
 /** This type contains content, collections, assets and related data of a draft. */
 export type GQLDraftCollectionArgs = {
+  input: GQLConnectionArgs
+}
+
+/** This type contains content, collections, assets and related data of a draft. */
+export type GQLDraftCollectionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -2979,21 +2986,23 @@ export type GQLPutCurationChannelInput = {
 
 export type GQLPutDraftInput = {
   accessType?: InputMaybe<GQLArticleAccessType>
-  /** which campaigns to attach */
+  /** Which campaigns to attach */
   campaigns?: InputMaybe<Array<GQLArticleCampaignInput>>
-  /** whether readers can comment */
+  /** Whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
   /** Deprecated, use connections instead */
   collection?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
+  /** Add article to these collections when published */
+  collections?: InputMaybe<Array<Scalars['ID']['input']>>
   connections?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
   indentFirstLine?: InputMaybe<Scalars['Boolean']['input']>
-  /** whether publish to ISCN */
+  /** Whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>
-  /** last known update timestamp for version conflict detection */
+  /** Last known update timestamp for version conflict detection */
   lastUpdatedAt?: InputMaybe<Scalars['DateTime']['input']>
   license?: InputMaybe<GQLArticleLicenseType>
   replyToDonator?: InputMaybe<Scalars['String']['input']>
@@ -7653,6 +7662,12 @@ export type GQLDraftResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLDraftCollectionArgs, 'input'>
+  >
+  collections?: Resolver<
+    GQLResolversTypes['CollectionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLDraftCollectionsArgs, 'input'>
   >
   connections?: Resolver<
     GQLResolversTypes['ArticleConnection'],

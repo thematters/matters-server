@@ -62,31 +62,34 @@ export default /* GraphQL */ `
     connections(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
     collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connections instead")
 
+    "Collections of this draft."
+    collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
+
     "Access related fields on circle"
     access: DraftAccess!
 
-    "whether content is marked as sensitive by author"
+    "Whether content is marked as sensitive by author"
     sensitiveByAuthor: Boolean!
 
     "License Type"
     license: ArticleLicenseType!
 
-    "creator message asking for support"
+    "Creator message asking for support"
     requestForDonation: String
 
-    "creator message after support"
+    "Creator message after support"
     replyToDonator: String
 
-    "whether publish to ISCN"
+    "Whether publish to ISCN"
     iscnPublish: Boolean
 
-    "whether readers can comment"
+    "Whether readers can comment"
     canComment: Boolean!
 
-    "whether the first line of paragraph should be indented"
+    "Whether the first line of paragraph should be indented"
     indentFirstLine: Boolean!
 
-    "associated campaigns"
+    "Associated campaigns"
     campaigns: [ArticleCampaign!]!
   }
 
@@ -116,6 +119,8 @@ export default /* GraphQL */ `
     "Deprecated, use connections instead"
     collection: [ID]
     connections: [ID!]
+    "Add article to these collections when published"
+    collections: [ID!]
     circle: ID
     accessType: ArticleAccessType
     sensitive: Boolean
@@ -125,16 +130,16 @@ export default /* GraphQL */ `
     requestForDonation: String  @constraint(maxLength: 140)
     replyToDonator: String  @constraint(maxLength: 140)
 
-    "whether publish to ISCN"
+    "Whether publish to ISCN"
     iscnPublish: Boolean
 
-    "whether readers can comment"
+    "Whether readers can comment"
     canComment: Boolean
 
-    "which campaigns to attach"
+    "Which campaigns to attach"
     campaigns: [ArticleCampaignInput!]
 
-    "last known update timestamp for version conflict detection"
+    "Last known update timestamp for version conflict detection"
     lastUpdatedAt: DateTime
   }
 

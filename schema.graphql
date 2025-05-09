@@ -1686,31 +1686,34 @@ type Draft implements Node {
   connections(input: ConnectionArgs!): ArticleConnection!
   collection(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use connections instead")
 
+  """Collections of this draft."""
+  collections(input: ConnectionArgs!): CollectionConnection!
+
   """Access related fields on circle"""
   access: DraftAccess!
 
-  """whether content is marked as sensitive by author"""
+  """Whether content is marked as sensitive by author"""
   sensitiveByAuthor: Boolean!
 
   """License Type"""
   license: ArticleLicenseType!
 
-  """creator message asking for support"""
+  """Creator message asking for support"""
   requestForDonation: String
 
-  """creator message after support"""
+  """Creator message after support"""
   replyToDonator: String
 
-  """whether publish to ISCN"""
+  """Whether publish to ISCN"""
   iscnPublish: Boolean
 
-  """whether readers can comment"""
+  """Whether readers can comment"""
   canComment: Boolean!
 
-  """whether the first line of paragraph should be indented"""
+  """Whether the first line of paragraph should be indented"""
   indentFirstLine: Boolean!
 
-  """associated campaigns"""
+  """Associated campaigns"""
   campaigns: [ArticleCampaign!]!
 }
 
@@ -1741,6 +1744,9 @@ input PutDraftInput {
   """Deprecated, use connections instead"""
   collection: [ID]
   connections: [ID!]
+
+  """Add article to these collections when published"""
+  collections: [ID!]
   circle: ID
   accessType: ArticleAccessType
   sensitive: Boolean
@@ -1749,16 +1755,16 @@ input PutDraftInput {
   requestForDonation: String
   replyToDonator: String
 
-  """whether publish to ISCN"""
+  """Whether publish to ISCN"""
   iscnPublish: Boolean
 
-  """whether readers can comment"""
+  """Whether readers can comment"""
   canComment: Boolean
 
-  """which campaigns to attach"""
+  """Which campaigns to attach"""
   campaigns: [ArticleCampaignInput!]
 
-  """last known update timestamp for version conflict detection"""
+  """Last known update timestamp for version conflict detection"""
   lastUpdatedAt: DateTime
 }
 

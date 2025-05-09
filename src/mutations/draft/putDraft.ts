@@ -62,6 +62,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       cover,
       connections,
       collection,
+      collections,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -115,6 +116,13 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         (await validateConnections({
           connectionGlobalIds: compact(connectionsGlobalIds),
           draft: oldDraft,
+          atomService,
+        })),
+      collections:
+        collections &&
+        (await validateCollections({
+          collectionGlobalIds: collections,
+          viewerId: viewer.id,
           atomService,
         })),
       circleId:
@@ -356,6 +364,49 @@ const validateConnections = async ({
         throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
       }
       return articleId
+    })
+  )
+}
+
+const validateCollections = async ({
+  collectionGlobalIds,
+  viewerId,
+  atomService,
+}: {
+  collectionGlobalIds: GlobalId[]
+  viewerId: string
+  atomService: AtomService
+}) => {
+  if (collectionGlobalIds.length === 0) {
+    return null
+  }
+
+  const collections = uniq(
+    collectionGlobalIds.map((_id) => {
+      const { id, type } = fromGlobalId(_id)
+      if (type !== NODE_TYPES.Collection) {
+        throw new UserInputError(`Invalid collection type: ${type}`)
+      }
+      return id
+    })
+  ).filter((collectionId) => !!collectionId)
+
+  return Promise.all(
+    collections.map(async (collectionId) => {
+      const collection = await atomService.findUnique({
+        table: 'collection',
+        where: { id: collectionId },
+      })
+
+      if (!collection) {
+        throw new UserInputError(`Cannot find collection ${collectionId}`)
+      }
+
+      if (collection.authorId !== viewerId) {
+        throw new ForbiddenError(`Collection ${collectionId} cannot be added.`)
+      }
+
+      return collectionId
     })
   )
 }
