@@ -38,6 +38,39 @@ export class CollectionService extends BaseService<Collection> {
     articleIds: readonly string[]
     user: Pick<User, 'id'>
   }) => {
+    await this.validateAddArticles({
+      collectionId,
+      articleIds,
+      user,
+    })
+    const [{ max }] = await this.knexRO('collection_article')
+      .where('collection_id', collectionId)
+      .max('order')
+    const initOrder = max ? parseFloat(max) + 1 : 1
+    await this.knex('collection_article').insert(
+      articleIds.map((articleId, index) => ({
+        articleId,
+        collectionId,
+        order: initOrder + index,
+      }))
+    )
+    // update timestamp
+    this.models.update({
+      table: 'collection',
+      where: { id: collectionId },
+      data: {},
+    })
+  }
+
+  public validateAddArticles = async ({
+    collectionId,
+    articleIds,
+    user,
+  }: {
+    collectionId: string
+    articleIds: readonly string[]
+    user: Pick<User, 'id'>
+  }) => {
     const collection = await this.models.collectionIdLoader.load(collectionId)
     if (!collection) {
       throw new EntityNotFoundError('Collection not found')
@@ -73,23 +106,6 @@ export class CollectionService extends BaseService<Collection> {
         throw new ForbiddenError('Viewer has no permission')
       }
     }
-    const [{ max }] = await this.knexRO('collection_article')
-      .where('collection_id', collectionId)
-      .max('order')
-    const initOrder = max ? parseFloat(max) + 1 : 1
-    await this.knex('collection_article').insert(
-      articleIds.map((articleId, index) => ({
-        articleId,
-        collectionId,
-        order: initOrder + index,
-      }))
-    )
-    // update timestamp
-    this.models.update({
-      table: 'collection',
-      where: { id: collectionId },
-      data: {},
-    })
   }
 
   public createCollection = async ({
