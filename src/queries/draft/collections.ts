@@ -1,9 +1,7 @@
 import type { GQLDraftResolvers } from '#definitions/index.js'
 
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-} from '#common/utils/index.js'
+import { connectionFromArray } from '#common/utils/index.js'
+import compact from 'lodash/compact.js'
 
 const resolver: GQLDraftResolvers['collections'] = async (
   { collections },
@@ -14,10 +12,9 @@ const resolver: GQLDraftResolvers['collections'] = async (
     return connectionFromArray([], input)
   }
 
-  return connectionFromPromisedArray(
-    atomService.collectionIdLoader.loadMany(collections),
-    input
-  )
+  const records = await atomService.collectionIdLoader.loadMany(collections)
+
+  return connectionFromArray(compact(records), input)
 }
 
 export default resolver

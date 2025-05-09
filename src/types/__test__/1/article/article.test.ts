@@ -1,13 +1,11 @@
 import type { Connections, Article } from '#definitions/index.js'
 import _get from 'lodash/get.js'
 import _omit from 'lodash/omit.js'
-import { jest } from '@jest/globals'
 
 import {
   NODE_TYPES,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
-  PUBLISH_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -23,7 +21,6 @@ import {
 } from '#connectors/index.js'
 
 import {
-  publishArticle,
   putDraft,
   testClient,
   updateUserState,
@@ -115,20 +112,6 @@ const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   }
 `
 
-const PUBLISH_ARTICLE = `
-  mutation($input: PublishArticleInput!) {
-    publishArticle(input: $input) {
-      id
-      publishState
-      title
-      content
-      createdAt
-      iscnPublish
-      article { id iscnId content }
-    }
-  }
-`
-
 const GET_RELATED_ARTICLES = /* GraphQL */ `
   query ($input: ArticleInput!) {
     article(input: $input) {
@@ -197,134 +180,6 @@ describe('query tag on article', () => {
     expect(
       new Set(tags.map(({ content }: { content: string }) => content))
     ).toEqual(new Set(['article', 'test']))
-  })
-})
-
-describe('publish article', () => {
-  test('user w/o username can not publish', async () => {
-    const draft = {
-      title: Math.random().toString(),
-      content: Math.random().toString(),
-    }
-    const { id } = await putDraft({ draft }, connections)
-    const server = await testClient({ noUserName: true, connections })
-
-    const { errors } = await server.executeOperation({
-      query: PUBLISH_ARTICLE,
-      variables: { input: { id } },
-    })
-    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
-  })
-  test('create a draft & publish it', async () => {
-    jest.setTimeout(10000)
-    const draft = {
-      title: Math.random().toString(),
-      content: Math.random().toString(),
-    }
-    const { id } = await putDraft({ draft }, connections)
-    const { publishState, article } = await publishArticle({ id }, connections)
-    expect(publishState).toBe(PUBLISH_STATE.pending)
-    expect(article).toBeNull()
-  })
-
-  test('create a draft & publish with iscn', async () => {
-    jest.setTimeout(10000)
-    const draft = await putDraft(
-      {
-        draft: {
-          title: Math.random().toString(),
-          content: Math.random().toString(),
-          iscnPublish: true,
-        },
-      },
-      connections
-    )
-    expect(_get(draft, 'id')).not.toBeNull()
-    expect(_get(draft, 'iscnPublish')).toBe(true)
-
-    const { publishState } = await publishArticle({ id: draft.id }, connections)
-    expect(publishState).toBe(PUBLISH_STATE.pending)
-  })
-
-  test('publish published draft', async () => {
-    const draftId = '4'
-    await atomService.update({
-      table: 'draft',
-      where: { id: draftId },
-      data: { articleId: '4', archived: true },
-    })
-    const publishedDraftId = toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
-    const { publishState, article } = await publishArticle(
-      {
-        id: publishedDraftId,
-      },
-      connections
-    )
-    expect(publishState).toBe(PUBLISH_STATE.published)
-    expect(article.content).not.toBeNull()
-    expect(article.indentFirstLine).toBe(false)
-  })
-
-  test('cannot publish article with both circle and campaign', async () => {
-    jest.setTimeout(10000)
-
-    const campaignData = {
-      name: 'test',
-      description: 'test',
-      link: 'https://test.com',
-      applicationPeriod: [
-        new Date('2010-01-01 11:30'),
-        new Date('2010-01-01 15:00'),
-      ] as const,
-      writingPeriod: [
-        new Date('2010-01-02 11:30'),
-        new Date('2010-01-02 15:00'),
-      ] as const,
-      creatorId: '2',
-    }
-    const campaignService = new CampaignService(connections)
-    const campaign = await campaignService.createWritingChallenge({
-      ...campaignData,
-      state: CAMPAIGN_STATE.active,
-    })
-    const stages = await campaignService.updateStages(campaign.id, [
-      { name: 'stage1' },
-    ])
-    const userId = '1'
-    const circle = await atomService.create({
-      table: 'circle',
-      data: {
-        name: 'circle-test',
-        owner: userId,
-        displayName: 'circle-test',
-        providerProductId: 'circle-test-product-id',
-      },
-    })
-    const draft = await atomService.create({
-      table: 'draft',
-      data: {
-        title: Math.random().toString(),
-        content: Math.random().toString(),
-        authorId: userId,
-        circleId: circle.id,
-        campaigns: JSON.stringify([
-          { campaign: campaign.id, stage: stages[0].id },
-        ]),
-      },
-    })
-    const server = await testClient({ isAuth: true, userId, connections })
-
-    const { errors } = await server.executeOperation({
-      query: PUBLISH_ARTICLE,
-      variables: {
-        input: { id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }) },
-      },
-    })
-
-    expect(errors?.[0].message).toContain(
-      'Article cannot be added to campaign or circle at the same time'
-    )
-    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })
 
