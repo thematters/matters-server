@@ -71,30 +71,17 @@ export class CollectionService extends BaseService<Collection> {
     articleIds: readonly string[]
     user: Pick<User, 'id'>
   }) => {
-    const collection = await this.models.collectionIdLoader.load(collectionId)
-    if (!collection) {
-      throw new EntityNotFoundError('Collection not found')
-    }
-    if (collection.authorId !== user.id) {
-      throw new ForbiddenError('Viewer has no permission')
-    }
-    if (articleIds.length > 0) {
-      const [originalArticles, count] =
-        await this.findAndCountArticlesInCollection(collectionId, {
-          take: MAX_ARTICLES_PER_COLLECTION_LIMIT,
-        })
-      if (count + articleIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
-        throw new ActionLimitExceededError('Action limit exceeded')
-      }
-      if (originalArticles.length > 0) {
-        const originalArticleIds = originalArticles.map((a) => a.id)
-        const duplicatedArticleIds = originalArticleIds.filter((id) =>
-          articleIds.includes(id)
-        )
-        if (duplicatedArticleIds.length > 0) {
-          throw new UserInputError('Duplicated Article ids')
-        }
-      }
+    const originalArticles = await this.validateCollectionCapacity({
+      collectionId,
+      newArticlesCount: articleIds.length,
+      user,
+    })
+    const originalArticleIds = originalArticles.map((a) => a.id)
+    const duplicatedArticleIds = originalArticleIds.filter((id) =>
+      articleIds.includes(id)
+    )
+    if (duplicatedArticleIds.length > 0) {
+      throw new UserInputError('Duplicated Article ids')
     }
 
     for (const articleId of articleIds) {
@@ -106,6 +93,37 @@ export class CollectionService extends BaseService<Collection> {
         throw new ForbiddenError('Viewer has no permission')
       }
     }
+  }
+
+  public validateCollectionCapacity = async ({
+    collectionId,
+    newArticlesCount,
+    user,
+  }: {
+    collectionId: string
+    newArticlesCount: number
+    user: Pick<User, 'id'>
+  }) => {
+    const collection = await this.models.collectionIdLoader.load(collectionId)
+    if (!collection) {
+      throw new EntityNotFoundError('Collection not found')
+    }
+    if (collection.authorId !== user.id) {
+      throw new ForbiddenError('Viewer has no permission')
+    }
+    const [articles, count] = await this.findAndCountArticlesInCollection(
+      collectionId,
+      {
+        take: MAX_ARTICLES_PER_COLLECTION_LIMIT,
+      }
+    )
+    if (count + newArticlesCount > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+      throw new ActionLimitExceededError(
+        `Collection ${collection.id} capacity exceeded`
+      )
+    }
+
+    return articles
   }
 
   public createCollection = async ({
