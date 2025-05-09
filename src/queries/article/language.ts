@@ -15,7 +15,7 @@ const resolver: GQLArticleResolvers['language'] = async (
     },
   }
 ) => {
-  const { id: versionId, language: storedLanguage } =
+  const { id: articleVersionId, language: storedLanguage } =
     await articleService.loadLatestArticleVersion(articleId)
 
   if (storedLanguage) {
@@ -34,11 +34,14 @@ const resolver: GQLArticleResolvers['language'] = async (
   }
 
   // Detect language
-  const language = await articleService.detectLanguage(articleId)
-  if (language) {
-    await atomService.update({
+  articleService.detectLanguage(articleVersionId).then((language) => {
+    if (!language) {
+      return
+    }
+
+    atomService.update({
       table: 'article_version',
-      where: { id: versionId },
+      where: { id: articleVersionId },
       data: { language },
     })
 
@@ -47,9 +50,7 @@ const resolver: GQLArticleResolvers['language'] = async (
       node: { type: NODE_TYPES.Article, id: articleId },
       redis,
     })
-
-    return language
-  }
+  })
 
   return null
 }
