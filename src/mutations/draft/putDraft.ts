@@ -95,7 +95,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       title: title && normalizeAndValidateTitle(title),
       summary: summary && normalizeAndValidateSummary(summary),
       content: content && normalizeAndValidateContent(content),
-      license: license && validateLicense(license),
+      license:
+        license === undefined || license === null
+          ? undefined
+          : validateLicense(license),
       tags:
         tags &&
         (await validateTags({
