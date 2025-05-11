@@ -643,8 +643,8 @@ describe('edit article', () => {
     expect(data2.editArticle.license).toBe(ARTICLE_LICENSE_TYPE.arr)
     expect(data2.editArticle.revisionCount).toBe(0)
 
-    // reset license
-    const { data: data3 } = await server.executeOperation({
+    // ignore license when null
+    const { errors: errors3, data: data3 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -653,6 +653,7 @@ describe('edit article', () => {
         },
       },
     })
+    expect(errors3).toBeUndefined()
     expect(data3.editArticle.summary.length).toBeGreaterThan(0)
     expect(data3.editArticle.summaryCustomized).toBe(false)
 
@@ -778,7 +779,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(errors2).not.toBeUndefined()
+    expect(errors2).toBeDefined()
 
     // can turn on
     const atomService = new AtomService(connections)

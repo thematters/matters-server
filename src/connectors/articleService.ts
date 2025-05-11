@@ -553,6 +553,12 @@ export class ArticleService extends BaseService<Article> {
     delete data.description
     delete data.createdAt
     delete data.updatedAt
+    const newContent = newData.content
+
+    if (newData.title) {
+      data = { ...data, title: newData.title }
+      delete newData.title
+    }
 
     if (newData.content) {
       const { id: contentId } = await this.getOrCreateArticleContent(
@@ -573,8 +579,8 @@ export class ArticleService extends BaseService<Article> {
           _contentMd
         )
         data = { ...data, contentMdId: _contentMdId }
-        delete newData.content
       }
+      delete newData.content
     } else {
       data = {
         ...data,
@@ -641,12 +647,12 @@ export class ArticleService extends BaseService<Article> {
       data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
 
-    if (newData.content) {
+    if (newContent) {
       this.postArticleCreation({
         articleId,
         articleVersionId: articleVersion.id,
         title: articleVersion.title,
-        content: newData.content,
+        content: newContent,
         summary: articleVersion.summaryCustomized
           ? articleVersion.summary
           : undefined,
