@@ -439,7 +439,9 @@ export default /* GraphQL */ `
     tags: [String!]
     content: String
     cover: ID
+    "Deprecated, use connections instead"
     collection: [ID!]
+    connections: [ID!]
     circle: ID
     accessType: ArticleAccessType
     sensitive: Boolean
