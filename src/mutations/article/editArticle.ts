@@ -57,6 +57,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       summary,
       cover,
       collection,
+      connections,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -133,6 +134,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   // collect new article version data
+  const connectionsGlobalIds = connections ?? collection
   const data: Partial<Draft> = omitBy(
     {
       title: title === undefined ? undefined : normalizeAndValidateTitle(title),
@@ -148,7 +150,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
           coverUUID: cover,
           userId: viewer.id,
         })),
-      connections: collection && validateConnections(collection),
+      connections:
+        connectionsGlobalIds && validateConnections(connectionsGlobalIds),
       access: accessType,
       license:
         license === undefined || license === null

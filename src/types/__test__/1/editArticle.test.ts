@@ -436,7 +436,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
+          connections: collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
         },
       },
     })
@@ -457,7 +457,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
+          connections: collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
         },
       },
     })
@@ -471,7 +471,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(
+          connections: collection.slice(
             0,
             MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
           ),
@@ -513,7 +513,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: reorderConnections,
+          connections: reorderConnections,
         },
       },
     })
@@ -532,7 +532,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(
+          connections: collection.slice(
             0,
             MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
           ),
@@ -554,7 +554,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: [],
+          connections: [],
         },
       },
     })
@@ -565,7 +565,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: null,
+          connections: null,
         },
       },
     })
