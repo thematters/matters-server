@@ -16,15 +16,12 @@ import {
   MAX_ARTICLE_CONTENT_LENGTH,
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
-  USER_STATE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
 } from '#common/enums/index.js'
 import {
-  ArticleNotFoundError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
   CircleNotFoundError,
-  ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
@@ -42,7 +39,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   _,
   {
     input: {
-      id,
+      id: globalId,
       state,
       pinned,
       tags,
@@ -67,45 +64,24 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   {
     viewer,
     dataSources: {
+      userService,
       articleService,
       atomService,
       systemService,
       campaignService,
-      notificationService,
       queues: { revisionQueue },
       connections: { redis },
     },
   }
 ) => {
-  if (!viewer.userName) {
-    throw new ForbiddenError('user has no username')
-  }
-
-  if (
-    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
-      viewer.state
-    )
-  ) {
-    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
-  }
+  userService.validateUserState(viewer)
 
   // checks
-  const { id: dbId } = fromGlobalId(id)
-  let article = await atomService.articleIdLoader.load(dbId)
-  const articleVersion = await articleService.loadLatestArticleVersion(
-    article.id
-  )
-  if (!article) {
-    throw new ArticleNotFoundError('article does not exist')
-  }
-  if (!articleVersion) {
-    throw new ArticleNotFoundError('article version does not exist')
-  }
+  const { id } = fromGlobalId(globalId)
+  const [article, articleVersion] = await articleService.validateArticle(id)
+
   if (article.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
-  }
-  if (article.state !== ARTICLE_STATE.active) {
-    throw new ForbiddenError('only active article is allowed to be edited.')
   }
 
   /**
@@ -122,8 +98,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       node: { type: NODE_TYPES.User, id: article.authorId },
       redis,
     })
-    notificationService.withdraw(`publication:${article.id}`)
-    return articleService.archive(dbId)
+    return articleService.archive(id)
   }
 
   /**
@@ -131,7 +106,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    */
   const isPinned = pinned
   if (typeof isPinned === 'boolean') {
-    article = await articleService.updatePinned(article.id, viewer.id, isPinned)
+    await articleService.updatePinned(article.id, viewer.id, isPinned)
   }
 
   // collect new article version data
@@ -218,7 +193,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    */
   if (collection !== undefined) {
     const connections = (collection ?? []).map(
-      (globalId) => fromGlobalId(globalId).id
+      (connection) => fromGlobalId(connection).id
     )
 
     if (connections.toString() !== articleVersion.connections.toString()) {
@@ -411,7 +386,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   // fetch latest article data
   const node = await atomService.findUnique({
     table: 'article',
-    where: { id: dbId },
+    where: { id },
   })
   articleService.latestArticleVersionLoader.clearAll()
 
