@@ -15,6 +15,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
+  MAX_ARTICLES_PER_CONNECTION_LIMIT,
 } from '#common/enums/index.js'
 import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 import {
@@ -24,11 +26,6 @@ import {
   closeConnections,
 } from '../utils.js'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var mockEnums: any
-}
-
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
@@ -37,15 +34,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await closeConnections(connections)
 })
-
-// jest.mock('common/enums', () => {
-//   const originalModule = jest.requireActual('common/enums')
-//   globalThis.mockEnums = {
-//     ...(originalModule ?? {}),
-//     __esModule: true,
-//   }
-//   return globalThis.mockEnums
-// })
 
 const GET_ARTICLE = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -312,27 +300,23 @@ describe('edit article', () => {
     expect(resetData2.editArticle.revisionCount).toBe(2)
   })
 
-  test.skip('edit article tags', async () => {
+  test('edit article tags', async () => {
     const tags = ['abc', '123', 'tag3', 'tag4', 'tag5']
     const server = await testClient({
       isAuth: true,
       connections,
     })
-    const limit = 3
-    globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = limit
     // set tags out of limit
     const { errors: failedErrors } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: articleGlobalId,
-          tags: tags.slice(0, limit + 1),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT + 1),
         },
       },
     })
-    expect(failedErrors[0].message).toBe(
-      `Not allow more than ${limit} tags on an article`
-    )
+    expect(failedErrors[0].extensions.code).toBe('TOO_MANY_TAGS_FOR_ARTICLE')
 
     // set tags within limit
     const { data: succeededData } = await server.executeOperation({
@@ -340,11 +324,13 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          tags: tags.slice(0, limit),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT),
         },
       },
     })
-    expect(succeededData.editArticle.tags.length).toBe(limit)
+    expect(succeededData.editArticle.tags.length).toBe(
+      MAX_TAGS_PER_ARTICLE_LIMIT
+    )
     expect(succeededData.editArticle.tags[0].content).toBe(tags[0])
     expect(succeededData.editArticle.tags[1].content).toBe(tags[1])
     expect(succeededData.editArticle.tags[2].content).toBe(tags[2])
@@ -356,7 +342,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          tags: tags.slice(0, limit),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT),
         },
       },
     })
@@ -373,7 +359,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(otherData.editArticle.tags.length).toBe(limit)
+    expect(otherData.editArticle.tags.length).toBe(MAX_TAGS_PER_ARTICLE_LIMIT)
     expect(otherData.editArticle.tags[0].content).toBe(tags[0])
     expect(otherData.editArticle.tags[1].content).toBe(tags[1])
     expect(otherData.editArticle.tags[2].content).toBe(tags[2])
@@ -385,11 +371,13 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          tags: tags.slice(0, limit - 1),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT - 1),
         },
       },
     })
-    expect(decreaseData.editArticle.tags.length).toBe(limit - 1)
+    expect(decreaseData.editArticle.tags.length).toBe(
+      MAX_TAGS_PER_ARTICLE_LIMIT - 1
+    )
     expect(decreaseData.editArticle.revisionCount).toBe(2)
 
     // increase tags
@@ -398,62 +386,14 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          tags: tags.slice(0, limit),
+          tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT),
         },
       },
     })
-    expect(increaseData.editArticle.tags.length).toBe(limit)
+    expect(increaseData.editArticle.tags.length).toBe(
+      MAX_TAGS_PER_ARTICLE_LIMIT
+    )
     expect(increaseData.editArticle.revisionCount).toBe(3)
-
-    // out of limit tags can remain
-    const smallerLimit = limit - 2
-    globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = smallerLimit
-
-    // workaround revision limit for testing
-    const originalCheckRevisionCount =
-      globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT
-    globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT = 100
-
-    const { data: remainData } = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          tags: tags.slice(0, smallerLimit + 2),
-        },
-      },
-    })
-    expect(remainData.editArticle.tags.length).toBe(smallerLimit + 2)
-
-    // out of limit collection can not increase
-
-    const failedRes2 = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          tags: tags.slice(0, smallerLimit + 3),
-        },
-      },
-    })
-    expect(_get(failedRes2, 'errors.0.message')).toBe(
-      `Not allow more than ${smallerLimit} tags on an article`
-    )
-
-    // out of limit collection can decrease,  even to a amount still out of limit
-
-    const stillOutLimitRes = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          tags: tags.slice(0, smallerLimit + 1),
-        },
-      },
-    })
-    expect(_get(stillOutLimitRes, 'data.editArticle.tags.length')).toBe(
-      smallerLimit + 1
-    )
 
     // reset tags
     const resetResult1 = await server.executeOperation({
@@ -476,11 +416,9 @@ describe('edit article', () => {
       },
     })
     expect(resetResult2.data.editArticle.tags.length).toBe(0)
-
-    globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT = originalCheckRevisionCount
   })
 
-  test.skip('edit article connections', async () => {
+  test('edit article connections', async () => {
     const server = await testClient({
       isAuth: true,
       connections,
@@ -492,24 +430,25 @@ describe('edit article', () => {
       toGlobalId({ type: NODE_TYPES.Article, id: 6 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 7 }),
     ]
-    const limit = 2
-
     // set connections within limit
     const { data, errors } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(0, limit),
+          collection: collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
         },
       },
     })
     expect(errors).toBeUndefined()
-    expect(data.editArticle.collection.totalCount).toBe(limit)
+    expect(data.editArticle.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
+    )
     expect([
       data.editArticle.collection.edges[0].node.id,
       data.editArticle.collection.edges[1].node.id,
-    ]).toEqual(collection.slice(0, limit))
+      data.editArticle.collection.edges[2].node.id,
+    ]).toEqual(collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
     expect(data.editArticle.revisionCount).toBe(1)
 
     // set same connections
@@ -518,7 +457,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(0, limit),
+          collection: collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
         },
       },
     })
@@ -527,22 +466,24 @@ describe('edit article', () => {
     )
 
     // set connections out of limit
-    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
-    const failedRes = await server.executeOperation({
+    const { errors: failedErrors } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(0, limit + 1),
+          collection: collection.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
+          ),
         },
       },
     })
-    expect(_get(failedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in connection`
+    expect(failedErrors[0].extensions.code).toBe(
+      'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
-    // do not change collection when not in input
-    const otherRes = await server.executeOperation({
+    // do not change connections when not in input
+    const { data: otherData } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -550,58 +491,65 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(otherRes, 'data.editArticle.collection.totalCount')).toBe(limit)
-    expect([
-      _get(otherRes, 'data.editArticle.collection.edges.0.node.id'),
-      _get(otherRes, 'data.editArticle.collection.edges.1.node.id'),
-    ]).toEqual(collection.slice(0, limit))
-
-    // reorder collection
-    const reorderCollection = [...collection.slice(0, limit)].reverse()
-    expect(reorderCollection).not.toBe(collection.slice(0, limit))
-
-    const reorderRes = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          collection: reorderCollection,
-        },
-      },
-    })
-    expect(_get(reorderRes, 'data.editArticle.collection.totalCount')).toBe(
-      reorderCollection.length
+    expect(otherData.editArticle.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT
     )
     expect([
-      _get(reorderRes, 'data.editArticle.collection.edges.0.node.id'),
-      _get(reorderRes, 'data.editArticle.collection.edges.1.node.id'),
-    ]).toEqual(reorderCollection)
+      otherData.editArticle.collection.edges[0].node.id,
+      otherData.editArticle.collection.edges[1].node.id,
+      otherData.editArticle.collection.edges[2].node.id,
+    ]).toEqual(collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
+
+    // reorder connections
+    const reorderConnections = [
+      ...collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT),
+    ].reverse()
+    expect(reorderConnections).not.toBe(
+      collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT)
+    )
+
+    const { data: reorderData } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collection: reorderConnections,
+        },
+      },
+    })
+    expect(reorderData.editArticle.collection.totalCount).toBe(
+      reorderConnections.length
+    )
+    expect([
+      reorderData.editArticle.collection.edges[0].node.id,
+      reorderData.editArticle.collection.edges[1].node.id,
+      reorderData.editArticle.collection.edges[2].node.id,
+    ]).toEqual(reorderConnections)
 
     // decrease collection
-    const decreaseRes = await server.executeOperation({
+    const { data: decreaseData } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: articleGlobalId,
-          collection: collection.slice(0, limit - 1),
+          collection: collection.slice(
+            0,
+            MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
+          ),
         },
       },
     })
 
-    expect(_get(decreaseRes, 'data.editArticle.collection.totalCount')).toBe(
-      limit - 1
+    expect(decreaseData.editArticle.collection.totalCount).toBe(
+      MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
     )
     expect([
-      _get(decreaseRes, 'data.editArticle.collection.edges.0.node.id'),
-    ]).toEqual(collection.slice(0, limit - 1))
+      decreaseData.editArticle.collection.edges[0].node.id,
+      decreaseData.editArticle.collection.edges[1].node.id,
+    ]).toEqual(collection.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT - 1))
 
-    // workaround revision limit for testing
-    const originalCheckRevisionCount =
-      globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT
-    globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT = 100
-
-    // reset collection
-    const resetResult1 = await server.executeOperation({
+    // reset connections
+    const { data: resetData1 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -610,9 +558,9 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(resetResult1, 'data.editArticle.collection.totalCount')).toBe(0)
+    expect(resetData1.editArticle.collection.totalCount).toBe(0)
 
-    const resetResult2 = await server.executeOperation({
+    const { data: resetData2 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -621,78 +569,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(resetResult2, 'data.editArticle.collection.totalCount')).toBe(0)
-
-    // out of limit collection can remain
-    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = 10
-
-    const res1 = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          collection: collection.slice(0, limit + 2),
-        },
-      },
-    })
-    expect(_get(res1, 'data.editArticle.collection.totalCount')).toBe(limit + 2)
-
-    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
-    const remainRes = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          collection: collection.slice(0, limit + 2),
-        },
-      },
-    })
-    expect(_get(remainRes, 'data.editArticle.collection.totalCount')).toBe(
-      limit + 2
-    )
-
-    // out of limit collection can not increase
-    const failedRes2 = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          collection: collection.slice(0, limit + 3),
-        },
-      },
-    })
-    expect(_get(failedRes2, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in connection`
-    )
-
-    // out of limit collection can decrease,  even to a amount still out of limit
-    const stillOutLimitRes = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          collection: collection.slice(0, limit + 1),
-        },
-      },
-    })
-    expect(
-      _get(stillOutLimitRes, 'data.editArticle.collection.totalCount')
-    ).toBe(limit + 1)
-
-    const withinLimitRes = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          collection: collection.slice(0, limit - 1),
-        },
-      },
-    })
-    expect(_get(withinLimitRes, 'data.editArticle.collection.totalCount')).toBe(
-      limit - 1
-    )
-
-    globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT = originalCheckRevisionCount
+    expect(resetData2.editArticle.collection.totalCount).toBe(0)
   })
 
   test('toggle article pinned', async () => {

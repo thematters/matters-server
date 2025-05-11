@@ -709,6 +709,21 @@ export class ArticleService extends BaseService<Article> {
     return [records, +(records[0]?.totalCount ?? 0)]
   }
 
+  public validateArticle = async (articleId: string) => {
+    const article = await this.models.articleIdLoader.load(articleId)
+    if (!article) {
+      throw new ArticleNotFoundError('article does not exist')
+    }
+    if (article.state !== ARTICLE_STATE.active) {
+      throw new ForbiddenError('only active article is allowed to be edited.')
+    }
+    const articleVersion = await this.loadLatestArticleVersion(articleId)
+    if (!articleVersion) {
+      throw new ArticleNotFoundError('article version does not exist')
+    }
+    return [article, articleVersion] as const
+  }
+
   /*********************************
    *                               *
    *          Pinning              *
@@ -756,12 +771,18 @@ export class ArticleService extends BaseService<Article> {
   /**
    * Archive article
    */
-  public archive = async (id: string) =>
-    this.baseUpdate(id, {
-      state: ARTICLE_STATE.archived,
-      pinned: false,
-      updatedAt: new Date(),
+  public archive = async (id: string) => {
+    const notificationService = new NotificationService(this.connections)
+    notificationService.withdraw(`publication:${id}`)
+    return this.models.update({
+      table: 'article',
+      where: { id },
+      data: {
+        state: ARTICLE_STATE.archived,
+        pinned: false,
+      },
     })
+  }
 
   /*********************************
    *                               *
