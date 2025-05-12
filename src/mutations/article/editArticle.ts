@@ -319,14 +319,16 @@ const handleCollections = async ({
     return id
   })
 
-  const currentCollections = await collectionService.findByArticle(article.id)
+  const currentCollectionIds = (
+    await collectionService.findByArticle(article.id)
+  ).map(({ id }) => id)
 
   const collectionsToAdd = collectionIds.filter(
-    (collectionId) => !currentCollections.some((c) => c.id === collectionId)
+    (collectionId) => !currentCollectionIds.includes(collectionId)
   )
 
-  const collectionsToRemove = currentCollections.filter(
-    (collection) => !collectionIds.includes(collection.id)
+  const collectionsToRemove = currentCollectionIds.filter(
+    (collectionId) => !collectionIds.includes(collectionId)
   )
 
   // Add article to collections

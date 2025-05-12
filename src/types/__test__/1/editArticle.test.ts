@@ -6,6 +6,7 @@ import {
   AtomService,
   ArticleService,
   PaymentService,
+  CollectionService,
 } from '#connectors/index.js'
 import {
   ARTICLE_LICENSE_TYPE,
@@ -27,8 +28,12 @@ import {
 } from '../utils.js'
 
 let connections: Connections
+let atomService: AtomService
+let articleService: ArticleService
 beforeAll(async () => {
   connections = await genConnections()
+  atomService = new AtomService(connections)
+  articleService = new ArticleService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -70,6 +75,14 @@ const GET_ARTICLE = /* GraphQL */ `
         mediaHash
         shortHash
         revisionCount
+        collections(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
       }
     }
   }
@@ -116,6 +129,14 @@ const EDIT_ARTICLE = /* GraphQL */ `
           }
         }
       }
+      collections(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
       tags {
         id
         content
@@ -152,7 +173,6 @@ describe('edit article', () => {
   let articleId: string
   let articleGlobalId: string
   beforeEach(async () => {
-    const articleService = new ArticleService(connections)
     const [{ id: _articleId }] = await articleService.createArticle({
       title: titleOriginal,
       content: contentOriginal,
@@ -572,6 +592,164 @@ describe('edit article', () => {
     expect(resetData2.editArticle.collection.totalCount).toBe(0)
   })
 
+  test('edit article collections', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: {
+        viewer: await atomService.userIdLoader.load(authorId),
+      },
+    })
+
+    // Create test collections
+    const collectionService = new CollectionService(connections)
+    const collection1 = await collectionService.createCollection({
+      title: 'Test Collection 1',
+      description: 'Test Description 1',
+      authorId,
+    })
+    const collection2 = await collectionService.createCollection({
+      title: 'Test Collection 2',
+      description: 'Test Description 2',
+      authorId,
+    })
+    const collection3 = await collectionService.createCollection({
+      title: 'Test Collection 3',
+      description: 'Test Description 3',
+      authorId,
+    })
+
+    const collections = [
+      toGlobalId({ type: NODE_TYPES.Collection, id: collection3.id }),
+      toGlobalId({ type: NODE_TYPES.Collection, id: collection2.id }),
+      toGlobalId({ type: NODE_TYPES.Collection, id: collection1.id }),
+    ]
+
+    // Add article to collections
+    const { data, errors } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.editArticle.collections.totalCount).toBe(3)
+    expect([
+      data.editArticle.collections.edges[0].node.id,
+      data.editArticle.collections.edges[1].node.id,
+      data.editArticle.collections.edges[2].node.id,
+    ]).toEqual(collections)
+
+    // Set same collections should not change anything
+    const { data: unchangedData } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections,
+        },
+      },
+    })
+    expect(unchangedData.editArticle.collections.totalCount).toBe(3)
+    expect([
+      unchangedData.editArticle.collections.edges[0].node.id,
+      unchangedData.editArticle.collections.edges[1].node.id,
+      unchangedData.editArticle.collections.edges[2].node.id,
+    ]).toEqual(collections)
+
+    // Remove one collection
+    const { errors: removeErrors, data: removeData } =
+      await server.executeOperation({
+        query: EDIT_ARTICLE,
+        variables: {
+          input: {
+            id: articleGlobalId,
+            collections: collections.slice(0, 2),
+          },
+        },
+      })
+    expect(removeErrors).toBeUndefined()
+    expect(removeData.editArticle.collections.totalCount).toBe(2)
+    expect([
+      removeData.editArticle.collections.edges[0].node.id,
+      removeData.editArticle.collections.edges[1].node.id,
+    ]).toEqual(collections.slice(0, 2))
+
+    // Add back the removed collection
+    const { data: addData } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections,
+        },
+      },
+    })
+    expect(addData.editArticle.collections.totalCount).toBe(3)
+    expect([
+      addData.editArticle.collections.edges[0].node.id,
+      addData.editArticle.collections.edges[1].node.id,
+      addData.editArticle.collections.edges[2].node.id,
+    ]).toEqual(collections)
+
+    // Reset collections
+    const { data: resetData1 } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections: [],
+        },
+      },
+    })
+    expect(resetData1.editArticle.collections.totalCount).toBe(0)
+
+    const { data: resetData2 } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections: null,
+        },
+      },
+    })
+    expect(resetData2.editArticle.collections.totalCount).toBe(0)
+
+    // Test invalid collection ID
+    const { errors: invalidErrors } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(invalidErrors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    // Test collection not owned by user
+    const otherCollection = await collectionService.createCollection({
+      title: 'Other Collection',
+      description: 'Other Description',
+      authorId: '2', // Different author
+    })
+    const { errors: permissionErrors } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          collections: [
+            toGlobalId({ type: NODE_TYPES.Collection, id: otherCollection.id }),
+          ],
+        },
+      },
+    })
+    expect(permissionErrors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+
   test('toggle article pinned', async () => {
     const server = await testClient({
       isAuth: true,
@@ -782,7 +960,6 @@ describe('edit article', () => {
     expect(errors2).toBeDefined()
 
     // can turn on
-    const atomService = new AtomService(connections)
     await atomService.update({
       table: 'draft',
       where: { id: 1 },
@@ -883,8 +1060,6 @@ describe('edit article', () => {
     const articleDbId = fromGlobalId(articleId).id
 
     // create duplicate article with same content
-    const articleService = new ArticleService(connections)
-    const atomService = new AtomService(connections)
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: articleDbId },
