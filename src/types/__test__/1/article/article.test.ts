@@ -583,3 +583,139 @@ describe('query article campaigns', () => {
     expect(data.article.campaigns.length).toBe(1)
   })
 })
+
+describe('article connections', () => {
+  const GET_ARTICLE_CONNECTIONS = /* GraphQL */ `
+    query ($input: ArticleInput!) {
+      article(input: $input) {
+        id
+        connectedBy(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        connections(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        # Test deprecated fields still work
+        collectedBy(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        collection(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('query article connections', async () => {
+    // Create test articles
+    const [article1] = await articleService.createArticle({
+      title: 'Test Article 1',
+      content: 'Test content 1',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'Test Article 2',
+      content: 'Test content 2',
+      authorId: '1',
+    })
+    const [article3] = await articleService.createArticle({
+      title: 'Test Article 3',
+      content: 'Test content 3',
+      authorId: '1',
+    })
+
+    // Create connections
+    await atomService.create({
+      table: 'article_connection',
+      data: {
+        entranceId: article1.id,
+        articleId: article2.id,
+        order: 0,
+      },
+    })
+    await atomService.create({
+      table: 'article_connection',
+      data: {
+        entranceId: article1.id,
+        articleId: article3.id,
+        order: 1,
+      },
+    })
+
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTICLE_CONNECTIONS,
+      variables: {
+        input: {
+          shortHash: article1.shortHash,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+
+    // Test new fields
+    expect(data.article.connections.totalCount).toBe(2)
+    expect(data.article.connections.edges.length).toBe(2)
+    expect(data.article.connections.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
+    )
+    expect(data.article.connections.edges[1].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article3.id })
+    )
+
+    // Test deprecated fields still work
+    expect(data.article.collection.totalCount).toBe(2)
+    expect(data.article.collection.edges.length).toBe(2)
+    expect(data.article.collection.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
+    )
+    expect(data.article.collection.edges[1].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article3.id })
+    )
+
+    // Test connectedBy/collectedBy fields
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: GET_ARTICLE_CONNECTIONS,
+      variables: {
+        input: {
+          shortHash: article2.shortHash,
+        },
+      },
+    })
+
+    expect(errors2).toBeUndefined()
+    expect(data2.article.connectedBy.totalCount).toBe(1)
+    expect(data2.article.connectedBy.edges.length).toBe(1)
+    expect(data2.article.connectedBy.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article1.id })
+    )
+
+    // Test deprecated collectedBy field still works
+    expect(data2.article.collectedBy.totalCount).toBe(1)
+    expect(data2.article.collectedBy.edges.length).toBe(1)
+    expect(data2.article.collectedBy.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article1.id })
+    )
+  })
+})
