@@ -354,9 +354,12 @@ type Article implements Node & PinnableWork {
   collectedBy(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use connectedBy instead")
   connectedBy(input: ConnectionArgs!): ArticleConnection!
 
-  """List of articles added into this article' collection."""
+  """List of articles added into this article's connections."""
   collection(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use connections instead")
   connections(input: ConnectionArgs!): ArticleConnection!
+
+  """Collections of this article."""
+  collections(input: ConnectionArgs!): CollectionConnection!
 
   """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
@@ -701,6 +704,7 @@ input EditArticleInput {
   """Deprecated, use connections instead"""
   collection: [ID!]
   connections: [ID!]
+  collections: [ID!]
   circle: ID
   accessType: ArticleAccessType
   sensitive: Boolean

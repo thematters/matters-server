@@ -253,7 +253,7 @@ describe('publishArticle', () => {
 
     // Mock collection service to simulate capacity exceeded
     jest
-      .spyOn(collectionService, 'validateCollectionCapacity')
+      .spyOn(collectionService, 'validateCollection')
       .mockImplementationOnce(() => {
         throw new ActionLimitExceededError('Collection capacity exceeded')
       })

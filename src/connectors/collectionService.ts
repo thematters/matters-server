@@ -32,16 +32,16 @@ export class CollectionService extends BaseService<Collection> {
   public addArticles = async ({
     collectionId,
     articleIds,
-    user,
+    userId,
   }: {
     collectionId: string
     articleIds: readonly string[]
-    user: Pick<User, 'id'>
+    userId: string
   }) => {
     await this.validateAddArticles({
       collectionId,
       articleIds,
-      user,
+      userId,
     })
     const [{ max }] = await this.knexRO('collection_article')
       .where('collection_id', collectionId)
@@ -62,19 +62,32 @@ export class CollectionService extends BaseService<Collection> {
     })
   }
 
-  public validateAddArticles = async ({
+  public removeArticles = async ({
     collectionId,
     articleIds,
-    user,
   }: {
     collectionId: string
     articleIds: readonly string[]
-    user: Pick<User, 'id'>
   }) => {
-    const originalArticles = await this.validateCollectionCapacity({
+    await this.knex('collection_article')
+      .where('collection_id', collectionId)
+      .whereIn('article_id', articleIds)
+      .del()
+  }
+
+  public validateAddArticles = async ({
+    collectionId,
+    articleIds,
+    userId,
+  }: {
+    collectionId: string
+    articleIds: readonly string[]
+    userId: string
+  }) => {
+    const originalArticles = await this.validateCollection({
       collectionId,
       newArticlesCount: articleIds.length,
-      user,
+      userId,
     })
     const originalArticleIds = originalArticles.map((a) => a.id)
     const duplicatedArticleIds = originalArticleIds.filter((id) =>
@@ -89,26 +102,26 @@ export class CollectionService extends BaseService<Collection> {
       if (!article || article.state !== ARTICLE_STATE.active) {
         throw new ArticleNotFoundError('Article not found')
       }
-      if (article.authorId !== user.id) {
+      if (article.authorId !== userId) {
         throw new ForbiddenError('Viewer has no permission')
       }
     }
   }
 
-  public validateCollectionCapacity = async ({
+  public validateCollection = async ({
     collectionId,
     newArticlesCount,
-    user,
+    userId,
   }: {
     collectionId: string
     newArticlesCount: number
-    user: Pick<User, 'id'>
+    userId: string
   }) => {
     const collection = await this.models.collectionIdLoader.load(collectionId)
     if (!collection) {
       throw new EntityNotFoundError('Collection not found')
     }
-    if (collection.authorId !== user.id) {
+    if (collection.authorId !== userId) {
       throw new ForbiddenError('Viewer has no permission')
     }
     const [articles, count] = await this.findAndCountArticlesInCollection(
@@ -394,6 +407,16 @@ export class CollectionService extends BaseService<Collection> {
           builder.limit(take)
         }
       })
+
+  public findByArticle = (articleId: string) =>
+    this.knexRO('collection_article')
+      .select('collection.*')
+      .innerJoin(
+        'collection',
+        'collection.id',
+        'collection_article.collection_id'
+      )
+      .where({ articleId })
 
   public findPinnedByAuthor = async (authorId: string) =>
     this.models.findMany({

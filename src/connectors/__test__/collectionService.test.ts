@@ -133,7 +133,7 @@ describe('collection', () => {
     await collectionService.addArticles({
       collectionId: id2,
       articleIds: articles.slice(0, 2).map((a) => a.id),
-      user: { id: authorId },
+      userId: authorId,
     })
 
     const [records3] = await collectionService.findAndCountCollectionsByUser(
@@ -171,7 +171,7 @@ describe('collection', () => {
     await collectionService.addArticles({
       collectionId: id1,
       articleIds: articles.slice(0, 2).map((a) => a.id),
-      user: { id: authorId },
+      userId: authorId,
     })
     const result3 = await collectionService.deleteCollections([id1], authorId)
     expect(result3).toBe(true)
@@ -185,7 +185,7 @@ describe('collection', () => {
     await collectionService.addArticles({
       collectionId,
       articleIds: articles.slice(0, 2).map((a) => a.id),
-      user: { id: authorId },
+      userId: authorId,
     })
     await collectionService.deleteCollectionArticles(
       collectionId,
@@ -206,7 +206,7 @@ describe('collection', () => {
     await collectionService.addArticles({
       collectionId: collectionId2,
       articleIds: articles.slice(2, 3).map((a) => a.id),
-      user: { id: authorId },
+      userId: authorId,
     })
     await collectionService.deleteCollectionArticles(
       collectionId,
@@ -247,7 +247,7 @@ describe('collection', () => {
     await collectionService.addArticles({
       collectionId,
       articleIds: articles.slice(0, 2).map((a) => a.id),
-      user: { id: authorId },
+      userId: authorId,
     })
 
     // insert same articles again
@@ -255,7 +255,7 @@ describe('collection', () => {
       collectionService.addArticles({
         collectionId,
         articleIds: articles.slice(0, 2).map((a) => a.id),
-        user: { id: authorId },
+        userId: authorId,
       })
     ).rejects.toThrow(UserInputError)
 
@@ -263,7 +263,7 @@ describe('collection', () => {
     await collectionService.addArticles({
       collectionId,
       articleIds: articles.slice(2, 4).map((a) => a.id),
-      user: { id: authorId },
+      userId: authorId,
     })
 
     const [records, count] =
@@ -294,7 +294,7 @@ describe('collection', () => {
       await collectionService.addArticles({
         collectionId,
         articleIds,
-        user: { id: authorId },
+        userId: authorId,
       })
     })
     test('invalid article ids will throw', async () => {
@@ -458,7 +458,7 @@ describe('collection', () => {
       await collectionService.addArticles({
         collectionId: collection.id,
         articleIds: articles.slice(0, 1).map((a) => a.id),
-        user: { id: authorId },
+        userId: authorId,
       })
       const records2 = await collectionService.findByAuthor(
         authorId,
