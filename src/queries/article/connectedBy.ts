@@ -7,7 +7,7 @@ import {
   loadManyFilterError,
 } from '#common/utils/index.js'
 
-const resolver: GQLArticleResolvers['collectedBy'] = async (
+const resolver: GQLArticleResolvers['connectedBy'] = async (
   { id },
   { input },
   {

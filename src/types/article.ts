@@ -115,11 +115,13 @@ export default /* GraphQL */ `
     "Original language of content"
     language: String
 
-    "List of articles which added this article into their collections."
-    collectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    "List of articles which added this article into their connections."
+    collectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connectedBy instead")
+    connectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "List of articles added into this article' collection."
-    collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connections instead")
+    connections(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Related articles to this article."
     relatedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
