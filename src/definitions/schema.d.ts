@@ -244,10 +244,12 @@ export type GQLArticle = GQLNode &
      */
     collectedBy: GQLArticleConnection
     /**
-     * List of articles added into this article' collection.
+     * List of articles added into this article's connections.
      * @deprecated Use connections instead
      */
     collection: GQLArticleConnection
+    /** Collections of this article. */
+    collections: GQLCollectionConnection
     /** The counting number of comments. */
     commentCount: Scalars['Int']['output']
     /** List of comments of this article. */
@@ -372,6 +374,14 @@ export type GQLArticleCollectedByArgs = {
  * want information about article's comments. Please check Comment type.
  */
 export type GQLArticleCollectionArgs = {
+  input: GQLConnectionArgs
+}
+
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
+export type GQLArticleCollectionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -1627,6 +1637,7 @@ export type GQLEditArticleInput = {
   circle?: InputMaybe<Scalars['ID']['input']>
   /** Deprecated, use connections instead */
   collection?: InputMaybe<Array<Scalars['ID']['input']>>
+  collections?: InputMaybe<Array<Scalars['ID']['input']>>
   connections?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
@@ -6410,6 +6421,12 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLArticleCollectionArgs, 'input'>
+  >
+  collections?: Resolver<
+    GQLResolversTypes['CollectionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleCollectionsArgs, 'input'>
   >
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   comments?: Resolver<

@@ -119,9 +119,12 @@ export default /* GraphQL */ `
     collectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connectedBy instead")
     connectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    "List of articles added into this article' collection."
+    "List of articles added into this article's connections."
     collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connections instead")
     connections(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Collections of this article."
+    collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Related articles to this article."
     relatedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
@@ -444,6 +447,7 @@ export default /* GraphQL */ `
     "Deprecated, use connections instead"
     collection: [ID!]
     connections: [ID!]
+    collections: [ID!]
     circle: ID
     accessType: ArticleAccessType
     sensitive: Boolean

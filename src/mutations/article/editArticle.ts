@@ -31,6 +31,7 @@ import {
   AtomService,
   CampaignService,
   ArticleService,
+  CollectionService,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import pkg from 'lodash'
@@ -58,6 +59,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       cover,
       collection,
       connections,
+      collections,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -79,6 +81,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       atomService,
       systemService,
       campaignService,
+      collectionService,
       queues: { revisionQueue },
       connections: { redis },
     },
@@ -130,6 +133,18 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       atomService,
       campaignService,
       redis,
+    })
+  }
+
+  /**
+   * Collections
+   */
+  if (collections !== undefined) {
+    await handleCollections({
+      collections,
+      article,
+      viewerId: viewer.id,
+      collectionService,
     })
   }
 
@@ -277,6 +292,57 @@ const handleCampaigns = async ({
         redis,
       })
     }
+  }
+}
+
+const handleCollections = async ({
+  collections,
+  article,
+  viewerId,
+  collectionService,
+}: {
+  collections: GlobalId[] | null
+  article: Article
+  viewerId: string
+  collectionService: CollectionService
+}) => {
+  if (!collections) {
+    return
+  }
+
+  // Validate collection IDs and permissions
+  const collectionIds = collections.map((globalId) => {
+    const { id, type } = fromGlobalId(globalId)
+    if (type !== NODE_TYPES.Collection) {
+      throw new UserInputError('Invalid collection id')
+    }
+    return id
+  })
+
+  const currentCollections = await collectionService.findByArticle(article.id)
+
+  const collectionsToAdd = collectionIds.filter(
+    (collectionId) => !currentCollections.some((c) => c.id === collectionId)
+  )
+
+  const collectionsToRemove = currentCollections.filter(
+    (collection) => !collectionIds.includes(collection.id)
+  )
+
+  // Add article to collections
+  for (const collectionId of collectionsToAdd) {
+    await collectionService.addArticles({
+      collectionId,
+      articleIds: [article.id],
+      userId: viewerId,
+    })
+  }
+
+  for (const collectionId of collectionsToRemove) {
+    await collectionService.removeArticles({
+      collectionId,
+      articleIds: [article.id],
+    })
   }
 }
 

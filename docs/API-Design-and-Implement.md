@@ -27,6 +27,14 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Validate field formats and constraints
    - Throw Errors defined in `src/common/errors.js` for invalid inputs
    - Handle special validations (e.g., datetime ranges)
+   - Validate global IDs when used:
+     ```typescript
+     const { id, type } = fromGlobalId(globalId)
+     if (type !== NODE_TYPES.ExpectedType) {
+       throw new UserInputError('Invalid id type')
+     }
+     return id
+     ```
    - Use appropriate error codes:
      - `BAD_USER_INPUT` for validation errors
      - `ENTITY_NOT_FOUND` for not found errors
