@@ -231,7 +231,6 @@ describe('create or update writing challenges', () => {
           writingPeriod,
           stages,
           featuredDescription: translationsFeaturedDescription,
-          channelEnabled: true,
         },
       },
     })
@@ -248,7 +247,7 @@ describe('create or update writing challenges', () => {
     expect(data.putWritingChallenge.stages[1].description).toContain(
       'test stage description'
     )
-    expect(data.putWritingChallenge.channelEnabled).toBe(true)
+    expect(data.putWritingChallenge.channelEnabled).toBe(false)
 
     // create with only name
     const { data: data2, errors: errors2 } = await server.executeOperation({
@@ -394,6 +393,7 @@ describe('create or update writing challenges', () => {
       variables: {
         input: {
           id: data.putWritingChallenge.id,
+          state: CAMPAIGN_STATE.active,
           channelEnabled: true,
         },
       },
@@ -414,6 +414,38 @@ describe('create or update writing challenges', () => {
       })
     expect(errors2).toBeUndefined()
     expect(updatedData2.putWritingChallenge.channelEnabled).toBe(false)
+  })
+
+  test('cannot enable channel for pending campaign', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // Create a campaign in pending state
+    const { data } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          state: CAMPAIGN_STATE.pending,
+        },
+      },
+    })
+
+    // Attempt to enable channel for pending campaign
+    const { errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: data.putWritingChallenge.id,
+          channelEnabled: true,
+        },
+      },
+    })
+
+    expect(errors[0].extensions.code).toBe('ACTION_FAILED')
   })
 
   test('user without admin role can not create', async () => {
