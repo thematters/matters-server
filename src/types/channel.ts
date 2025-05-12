@@ -3,7 +3,7 @@ import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from '#common/enums/index.js'
 export default /* GraphQL */ `
   extend type Query {
     channel(input: ChannelInput!): Channel @logCache(type: "${NODE_TYPES.Channel}")
-    channels(input: ChannelsInput): [Channel!]! @logCache(type: "${NODE_TYPES.Channel}")
+    channels(input: ChannelsInput): [Channel!]! @logCache(type: "${NODE_TYPES.Channel}") @cacheControl(maxAge: ${CACHE_TTL.SHORT})
   }
 
   interface Channel {
