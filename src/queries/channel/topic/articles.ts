@@ -90,8 +90,8 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     query,
     args: input,
     orderBy,
-    maxTake: MAX_ITEM_COUNT,
-    // oss use offset based pagination
+    // OSS can see all articles and uses offset based pagination
+    maxTake: isAdmin ? undefined : MAX_ITEM_COUNT,
     cursorColumn: isAdmin ? undefined : 'id',
   })
 
