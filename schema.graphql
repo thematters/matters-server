@@ -368,7 +368,7 @@ type Article implements Node & PinnableWork {
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
-  """Total number of donation recieved of this aPublishedrticle."""
+  """Total number of donation recieved of this article."""
   donationCount: Int!
 
   """Total number of readers of this article."""

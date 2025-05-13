@@ -258,7 +258,7 @@ export type GQLArticle = GQLNode &
     dataHash: Scalars['String']['output']
     /** whether current viewer has donated to this article */
     donated: Scalars['Boolean']['output']
-    /** Total number of donation recieved of this aPublishedrticle. */
+    /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
     /** Donations of this article, grouped by sender */
     donations: GQLArticleDonationConnection
