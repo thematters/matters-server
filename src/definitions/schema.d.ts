@@ -3939,9 +3939,6 @@ export type GQLTranslationModel =
   | 'google_gemini_2_0_flash_001'
   | 'google_gemini_2_5_flash_preview'
   | 'google_translation_v2'
-  | 'openai_gpt_4_1_nano'
-  | 'openai_gpt_4o_mini'
-  | 'xai_grok_3_mini_beta'
 
 export type GQLUnbindLikerIdInput = {
   id: Scalars['ID']['input']
