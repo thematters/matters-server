@@ -11,9 +11,6 @@ const logger = getLogger('service-openrouter')
 type TranslationModel =
   | 'google/gemini-2.5-flash-preview'
   | 'google/gemini-2.0-flash-001'
-  | 'openai/gpt-4.1-nano'
-  | 'openai/gpt-4o-mini'
-  | 'x-ai/grok-3-mini-beta'
 
 type OpenRouterResponse = {
   id: string
@@ -40,13 +37,10 @@ export class OpenRouter {
   public constructor() {
     this.apiKey = environment.openRouterApiKey
 
-    this.defaultModel = 'google/gemini-2.5-flash-preview'
+    this.defaultModel = 'google/gemini-2.0-flash-001'
     this.availableModels = [
       'google/gemini-2.5-flash-preview',
       'google/gemini-2.0-flash-001',
-      'openai/gpt-4.1-nano',
-      'openai/gpt-4o-mini',
-      'x-ai/grok-3-mini-beta',
     ]
   }
 
@@ -54,9 +48,6 @@ export class OpenRouter {
     const modelMap: { [key: string]: GQLTranslationModel } = {
       'google/gemini-2.5-flash-preview': 'google_gemini_2_5_flash_preview',
       'google/gemini-2.0-flash-001': 'google_gemini_2_0_flash_001',
-      'openai/gpt-4.1-nano': 'openai_gpt_4_1_nano',
-      'openai/gpt-4o-mini': 'openai_gpt_4o_mini',
-      'x-ai/grok-3-mini-beta': 'xai_grok_3_mini_beta',
     }
     return modelMap[model]
   }
@@ -65,9 +56,6 @@ export class OpenRouter {
     const modelMap: { [key: string]: TranslationModel } = {
       google_gemini_2_5_flash_preview: 'google/gemini-2.5-flash-preview',
       google_gemini_2_0_flash_001: 'google/gemini-2.0-flash-001',
-      openai_gpt_4_1_nano: 'openai/gpt-4.1-nano',
-      openai_gpt_4o_mini: 'openai/gpt-4o-mini',
-      xai_grok_3_mini_beta: 'x-ai/grok-3-mini-beta',
     }
     return modelMap[model]
   }

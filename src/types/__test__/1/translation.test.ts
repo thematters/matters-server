@@ -49,7 +49,7 @@ describe('article translations', () => {
 
   test('query article translations with valid translation model', async () => {
     const articleId = '1'
-    const model = 'google_gemini_2_5_flash_preview'
+    const model = 'google_gemini_2_0_flash_001'
 
     // Get article versions to link translations
     const articleVersions = await atomService.findMany({
@@ -125,7 +125,7 @@ describe('article translations', () => {
           language: 'en',
           title: LLM_TRANSLATION,
           content: LLM_TRANSLATION,
-          model: 'google_gemini_2_5_flash_preview',
+          model: 'google_gemini_2_0_flash_001',
         },
       })
     }
@@ -138,7 +138,7 @@ describe('article translations', () => {
         nodeInput: { id },
         translationInput: {
           language: 'en',
-          model: 'google_gemini_2_5_flash_preview',
+          model: 'google_gemini_2_0_flash_001',
         },
       },
     })
@@ -146,7 +146,7 @@ describe('article translations', () => {
     expect(error).toBeUndefined()
     expect(data.node.translation.title).toBe(LLM_TRANSLATION)
     expect(data.node.translation.content).toBe(LLM_TRANSLATION)
-    expect(data.node.translation.model).toBe('google_gemini_2_5_flash_preview')
+    expect(data.node.translation.model).toBe('google_gemini_2_0_flash_001')
   })
 })
 
@@ -220,7 +220,7 @@ describe('article version translations', () => {
 
   test('query translations with specific LLM model', async () => {
     const articleVersionId = '1'
-    const model = 'openai_gpt_4_1_nano'
+    const model = 'google_gemini_2_0_flash_001'
 
     const { articleId } = await atomService.findUnique({
       table: 'article_version',
@@ -330,7 +330,7 @@ describe('article version translations', () => {
   test('query paywalled article version', async () => {
     const articleVersionId = '1'
     const authorId = '1'
-    const model = 'google_gemini_2_5_flash_preview'
+    const model = 'google_gemini_2_0_flash_001'
 
     const { articleId } = await atomService.findUnique({
       table: 'article_version',

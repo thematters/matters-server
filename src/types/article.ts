@@ -353,9 +353,6 @@ export default /* GraphQL */ `
     google_translation_v2
     google_gemini_2_5_flash_preview
     google_gemini_2_0_flash_001
-    openai_gpt_4_1_nano
-    openai_gpt_4o_mini
-    xai_grok_3_mini_beta
   }
 
   type ArticleTranslation {
