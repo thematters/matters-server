@@ -2419,9 +2419,12 @@ export class ArticleService extends BaseService<Article> {
     })
   }
 
-  public findScheduledAndPublish = async (date: Date) => {
+  public findScheduledAndPublish = async (date: Date, lastHours = 1) => {
     const draftService = new DraftService(this.connections)
-    const drafts = await draftService.findUnpublishedByPublishAt(date)
+    const drafts = await draftService.findUnpublishedByPublishAt({
+      start: new Date(date.getTime() - 1000 * 60 * 60 * lastHours),
+      end: date,
+    })
     await Promise.all(
       drafts.map(async (draft) => {
         await this.models.update({

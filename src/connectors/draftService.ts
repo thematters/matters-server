@@ -34,12 +34,13 @@ export class DraftService extends BaseService<Draft> {
     return query
   }
 
-  public findUnpublishedByPublishAt = (date: Date) =>
+  public findUnpublishedByPublishAt = (range: { start: Date; end: Date }) =>
     this.knexRO
       .select()
       .from(this.table)
       .where({ publishState: PUBLISH_STATE.unpublished })
-      .where('publish_at', '<=', date)
+      .where('publish_at', '<=', range.end)
+      .where('publish_at', '>=', range.start)
 
   public findUnpublishedByAuthor = (authorId: string) =>
     this.knex
