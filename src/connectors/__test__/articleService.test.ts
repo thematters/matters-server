@@ -10,6 +10,7 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   FEATURE_NAME,
   FEATURE_FLAG,
+  PUBLISH_STATE,
 } from '#common/enums/index.js'
 import {
   ArticleService,
@@ -961,5 +962,74 @@ describe('addReadCountColumn', () => {
     expect(results[0].readCount).toBe('2')
     expect(results[1].readCount).toBe('1')
     expect(results[2].readCount).toBe('0')
+  })
+})
+
+describe('findScheduledAndPublish', () => {
+  test('publishes scheduled drafts', async () => {
+    // Create a test draft with publish_at set
+    const now = new Date()
+    const pastDate = new Date(now.getTime() - 1000 * 60 * 60) // 1 hour in past
+
+    // Insert test draft
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Test Scheduled Draft',
+        content: 'Test content',
+        publishState: 'unpublished',
+        publishAt: pastDate,
+      },
+    })
+
+    // Test publishing scheduled drafts
+    await articleService.findScheduledAndPublish(now)
+
+    // Verify the draft was updated to pending state
+    const updatedDraft = await atomService.findUnique({
+      table: 'draft',
+      where: { id: draft.id },
+    })
+    expect(updatedDraft?.publishState).toBe(PUBLISH_STATE.published)
+  })
+
+  test('handles failed publishing', async () => {
+    // Create a test draft with publish_at set
+    const now = new Date()
+    const pastDate = new Date(now.getTime() - 1000 * 60 * 60) // 1 hour in past
+
+    // Insert test draft
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Test Failed Draft',
+        content: 'Test content',
+        publishState: 'unpublished',
+        publishAt: pastDate,
+      },
+    })
+
+    // Mock the publishArticle method to simulate failure
+    const originalPublishArticle = articleService.publishArticle
+    articleService.publishArticle = jest
+      .fn()
+      .mockImplementation(async (draftId: any) => {
+        throw new Error('Publish failed')
+      }) as any
+
+    // Test publishing scheduled drafts
+    await articleService.findScheduledAndPublish(now)
+
+    // Verify the draft was updated to unpublished state after failure
+    const updatedDraft = await atomService.findUnique({
+      table: 'draft',
+      where: { id: draft.id },
+    })
+    expect(updatedDraft?.publishState).toBe(PUBLISH_STATE.unpublished)
+
+    // Restore original method
+    articleService.publishArticle = originalPublishArticle
   })
 })

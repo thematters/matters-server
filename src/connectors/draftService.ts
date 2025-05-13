@@ -16,7 +16,7 @@ export class DraftService extends BaseService<Draft> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  public findByPublishState = async ({
+  public findByPublishState = ({
     articleIdIsNull,
     publishState,
   }: {
@@ -33,6 +33,13 @@ export class DraftService extends BaseService<Draft> {
     }
     return query
   }
+
+  public findUnpublishedByPublishAt = (date: Date) =>
+    this.knexRO
+      .select()
+      .from(this.table)
+      .where({ publishState: PUBLISH_STATE.unpublished })
+      .where('publish_at', '<=', date)
 
   public findUnpublishedByAuthor = (authorId: string) =>
     this.knex

@@ -2,7 +2,7 @@ const table = 'draft'
 
 export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
-    t.timestamp('publish_at')
+    t.timestamp('publish_at').index()
   })
 }
 

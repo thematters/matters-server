@@ -71,6 +71,7 @@ import {
   LanguageDetector,
   CampaignService,
   aws,
+  DraftService,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
@@ -2416,6 +2417,30 @@ export class ArticleService extends BaseService<Article> {
       node: { type: NODE_TYPES.Article, id: article.id },
       redis: this.connections.redis,
     })
+  }
+
+  public findScheduledAndPublish = async (date: Date) => {
+    const draftService = new DraftService(this.connections)
+    const drafts = await draftService.findUnpublishedByPublishAt(date)
+    await Promise.all(
+      drafts.map(async (draft) => {
+        await this.models.update({
+          table: 'draft',
+          where: { id: draft.id },
+          data: { publishState: PUBLISH_STATE.pending },
+        })
+        try {
+          await this.publishArticle(draft.id)
+        } catch (err) {
+          logger.error(`Failed to publish draft ${draft.id}: ${err}`)
+          await this.models.update({
+            table: 'draft',
+            where: { id: draft.id },
+            data: { publishState: PUBLISH_STATE.unpublished },
+          })
+        }
+      })
+    )
   }
 
   private handleConnections = async (

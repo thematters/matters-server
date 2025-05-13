@@ -115,8 +115,8 @@ const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   }
 `
 
-const PUBLISH_ARTICLE = /* GraphQL */`
-  mutation($input: PublishArticleInput!) {
+const PUBLISH_ARTICLE = /* GraphQL */ `
+  mutation ($input: PublishArticleInput!) {
     publishArticle(input: $input) {
       id
       publishState
@@ -124,7 +124,11 @@ const PUBLISH_ARTICLE = /* GraphQL */`
       content
       createdAt
       iscnPublish
-      article { id iscnId content }
+      article {
+        id
+        iscnId
+        content
+      }
       publishAt
     }
   }
