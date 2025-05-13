@@ -2417,6 +2417,8 @@ export class ArticleService extends BaseService<Article> {
       node: { type: NODE_TYPES.Article, id: article.id },
       redis: this.connections.redis,
     })
+
+    return article
   }
 
   public findScheduledAndPublish = async (date: Date, lastHours = 1) => {
@@ -2425,7 +2427,7 @@ export class ArticleService extends BaseService<Article> {
       start: new Date(date.getTime() - 1000 * 60 * 60 * lastHours),
       end: date,
     })
-    await Promise.all(
+    return Promise.all(
       drafts.map(async (draft) => {
         await this.models.update({
           table: 'draft',

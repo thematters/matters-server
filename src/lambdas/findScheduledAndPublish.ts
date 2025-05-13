@@ -10,9 +10,15 @@ export const handler = async () => {
     const now = new Date()
 
     // Find and publish scheduled articles from the last hour
-    await articleService.findScheduledAndPublish(now, 1)
+    const articles = await articleService.findScheduledAndPublish(now, 1)
 
-    console.log('Successfully processed scheduled articles')
+    if (articles.length > 0) {
+      console.log(
+        `Successfully processed ${articles.length} scheduled articles`
+      )
+    } else {
+      console.log(`No scheduled drafts found`)
+    }
 
     return {
       statusCode: 200,
