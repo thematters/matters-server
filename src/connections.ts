@@ -4,7 +4,7 @@ import knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
 // @ts-expect-error #explicit-any
-import knexConfig from '../../knexfile.js'
+import knexConfig from '../knexfile.js'
 
 // init connections
 const mainKnex = knex({

@@ -18,7 +18,7 @@ import { Redis } from 'ioredis'
 import _capitalize from 'lodash/capitalize.js'
 import NP from 'number-precision'
 
-import { connections } from '../connections.js'
+import { connections } from '../../connections.js'
 
 const logger = getLogger('route-likecoin')
 
