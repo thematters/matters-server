@@ -133,7 +133,7 @@ export default /* GraphQL */ `
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
 
-    "Total number of donation recieved of this article."
+    "Total number of donation recieved of this aPublishedrticle."
     donationCount: Int! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
     "Total number of readers of this article."
@@ -425,6 +425,9 @@ export default /* GraphQL */ `
 
     "whether publish to ISCN"
     iscnPublish: Boolean
+
+    "Scheduled publish date of the article."
+    publishAt: DateTime
   }
 
   input EditArticleInput {

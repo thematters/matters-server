@@ -115,7 +115,7 @@ const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   }
 `
 
-const PUBLISH_ARTICLE = `
+const PUBLISH_ARTICLE = /* GraphQL */`
   mutation($input: PublishArticleInput!) {
     publishArticle(input: $input) {
       id
@@ -125,6 +125,7 @@ const PUBLISH_ARTICLE = `
       createdAt
       iscnPublish
       article { id iscnId content }
+      publishAt
     }
   }
 `
@@ -324,6 +325,38 @@ describe('publish article', () => {
     expect(errors?.[0].message).toContain(
       'Article cannot be added to campaign or circle at the same time'
     )
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
+  test('should schedule publication in the future with publishAt', async () => {
+    const draft = {
+      title: Math.random().toString(),
+      content: Math.random().toString(),
+    }
+    const { id } = await putDraft({ draft }, connections)
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day in the future
+    const server = await testClient({ isAuth: true, connections })
+    const { data, errors } = await server.executeOperation({
+      query: PUBLISH_ARTICLE,
+      variables: { input: { id, publishAt: futureDate } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.publishArticle.publishState).not.toBe(PUBLISH_STATE.published)
+    expect(data.publishArticle.publishAt).toEqual(futureDate)
+  })
+
+  test('should throw error if publishAt is in the past', async () => {
+    const draft = {
+      title: Math.random().toString(),
+      content: Math.random().toString(),
+    }
+    const { id } = await putDraft({ draft }, connections)
+    const pastDate = new Date(Date.now() - 1000) // 1 second in the past
+    const server = await testClient({ isAuth: true, connections })
+    const { errors } = await server.executeOperation({
+      query: PUBLISH_ARTICLE,
+      variables: { input: { id, publishAt: pastDate } },
+    })
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })

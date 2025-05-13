@@ -368,7 +368,7 @@ type Article implements Node & PinnableWork {
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
-  """Total number of donation recieved of this article."""
+  """Total number of donation recieved of this aPublishedrticle."""
   donationCount: Int!
 
   """Total number of readers of this article."""
@@ -681,6 +681,9 @@ input PublishArticleInput {
 
   """whether publish to ISCN"""
   iscnPublish: Boolean
+
+  """Scheduled publish date of the article."""
+  publishAt: DateTime
 }
 
 input EditArticleInput {
@@ -1672,6 +1675,9 @@ type Draft implements Node {
 
   """State of draft during publihsing."""
   publishState: PublishState!
+
+  """Scheduled publish date of the article."""
+  publishAt: DateTime
 
   """List of assets are belonged to this draft."""
   assets: [Asset!]!

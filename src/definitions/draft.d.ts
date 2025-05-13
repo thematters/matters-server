@@ -34,4 +34,5 @@ export interface Draft {
   indentFirstLine: boolean
   createdAt: Date
   updatedAt: Date
+  publishAt: Date | null
 }
