@@ -21,7 +21,6 @@ import type {
   ChannelService,
 } from '#connectors/index.js'
 import type {
-  PublicationQueue,
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
@@ -194,7 +193,6 @@ export interface DataSources {
   exchangeRate: ExchangeRate
   connections: Connections
   queues: {
-    publicationQueue: PublicationQueue
     revisionQueue: RevisionQueue
     assetQueue: AssetQueue
     migrationQueue: MigrationQueue

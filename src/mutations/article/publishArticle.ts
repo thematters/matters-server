@@ -25,13 +25,7 @@ const {
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
   { input: { id: globalId, iscnPublish } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      queues: { publicationQueue },
-    },
-  }
+  { viewer, dataSources: { atomService, articleService } }
 ) => {
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
@@ -94,7 +88,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   })
 
   // add job to queue
-  publicationQueue.publishArticle({ draftId: draft.id, iscnPublish })
+  await articleService.publishArticle(draft.id)
   auditLog({
     actorId: viewer.id,
     action: AUDIT_LOG_ACTION.addPublishArticleJob,
