@@ -2102,7 +2102,7 @@ export type GQLMutation = {
   toggleFollowTag: GQLTag
   /** Follow or Unfollow current user. */
   toggleFollowUser: GQLUser
-  togglePinChannelArticles: GQLChannel
+  togglePinChannelArticles: Array<GQLChannel>
   /** Pin or Unpin a comment. */
   togglePinComment: GQLComment
   toggleSeedingUsers: Array<Maybe<GQLUser>>
@@ -3745,7 +3745,7 @@ export type GQLToggleItemInput = {
 export type GQLTogglePinChannelArticlesInput = {
   articles: Array<Scalars['ID']['input']>
   /** id of TopicChannel or CurationChannel */
-  channel: Scalars['ID']['input']
+  channels: Array<Scalars['ID']['input']>
   pinned: Scalars['Boolean']['input']
 }
 
@@ -8605,7 +8605,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationToggleFollowUserArgs, 'input'>
   >
   togglePinChannelArticles?: Resolver<
-    GQLResolversTypes['Channel'],
+    Array<GQLResolversTypes['Channel']>,
     ParentType,
     ContextType,
     RequireFields<GQLMutationTogglePinChannelArticlesArgs, 'input'>

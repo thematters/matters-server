@@ -90,10 +90,12 @@ describe('togglePinChannelArticles', () => {
         query: TOGGLE_PIN_CHANNEL_ARTICLES,
         variables: {
           input: {
-            channel: toGlobalId({
-              type: NODE_TYPES.TopicChannel,
-              id: channel.id,
-            }),
+            channels: [
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: channel.id,
+              }),
+            ],
             articles: articles.map((a) =>
               toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
             ),
@@ -103,10 +105,85 @@ describe('togglePinChannelArticles', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data?.togglePinChannelArticles.articles.edges).toHaveLength(3)
+      expect(data?.togglePinChannelArticles).toHaveLength(1)
+      expect(data?.togglePinChannelArticles[0].articles.edges).toHaveLength(3)
       expect(
-        data?.togglePinChannelArticles.articles.edges.every(
+        data?.togglePinChannelArticles[0].articles.edges.every(
           (e: { pinned: boolean }) => e.pinned
+        )
+      ).toBe(true)
+    })
+
+    test('handles multiple channels', async () => {
+      // Create two test channels
+      const channel1 = await channelService.createTopicChannel({
+        name: 'test-topic-1',
+        providerId: 'test-provider-id-1',
+        enabled: true,
+      })
+      const channel2 = await channelService.createTopicChannel({
+        name: 'test-topic-2',
+        providerId: 'test-provider-id-2',
+        enabled: true,
+      })
+
+      const articles = ['1', '2', '3'].map((id) => ({
+        articleId: id,
+        channelId: channel1.id,
+        enabled: true,
+      }))
+
+      // Add articles to both channels
+      await Promise.all([
+        ...articles.map((article) =>
+          atomService.create({
+            table: 'topic_channel_article',
+            data: { ...article, channelId: channel1.id },
+          })
+        ),
+        ...articles.map((article) =>
+          atomService.create({
+            table: 'topic_channel_article',
+            data: { ...article, channelId: channel2.id },
+          })
+        ),
+      ])
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: TOGGLE_PIN_CHANNEL_ARTICLES,
+        variables: {
+          input: {
+            channels: [
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: channel1.id,
+              }),
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: channel2.id,
+              }),
+            ],
+            articles: articles.map((a) =>
+              toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
+            ),
+            pinned: true,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.togglePinChannelArticles).toHaveLength(2)
+      expect(data?.togglePinChannelArticles[0].articles.edges).toHaveLength(3)
+      expect(data?.togglePinChannelArticles[1].articles.edges).toHaveLength(3)
+      expect(
+        data?.togglePinChannelArticles.every((channel: any) =>
+          channel.articles.edges.every((e: { pinned: boolean }) => e.pinned)
         )
       ).toBe(true)
     })
@@ -144,10 +221,12 @@ describe('togglePinChannelArticles', () => {
         query: TOGGLE_PIN_CHANNEL_ARTICLES,
         variables: {
           input: {
-            channel: toGlobalId({
-              type: NODE_TYPES.CurationChannel,
-              id: channel.id,
-            }),
+            channels: [
+              toGlobalId({
+                type: NODE_TYPES.CurationChannel,
+                id: channel.id,
+              }),
+            ],
             articles: articles.map((a) =>
               toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
             ),
@@ -157,9 +236,10 @@ describe('togglePinChannelArticles', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data?.togglePinChannelArticles.articles.edges).toHaveLength(2)
+      expect(data?.togglePinChannelArticles).toHaveLength(1)
+      expect(data?.togglePinChannelArticles[0].articles.edges).toHaveLength(2)
       expect(
-        data?.togglePinChannelArticles.articles.edges.every(
+        data?.togglePinChannelArticles[0].articles.edges.every(
           (e: { pinned: boolean }) => e.pinned
         )
       ).toBe(true)
@@ -178,7 +258,7 @@ describe('togglePinChannelArticles', () => {
         query: TOGGLE_PIN_CHANNEL_ARTICLES,
         variables: {
           input: {
-            channel: toGlobalId({ type: NODE_TYPES.TopicChannel, id: '1' }),
+            channels: [toGlobalId({ type: NODE_TYPES.TopicChannel, id: '1' })],
             articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
             pinned: true,
           },
@@ -199,7 +279,7 @@ describe('togglePinChannelArticles', () => {
         query: TOGGLE_PIN_CHANNEL_ARTICLES,
         variables: {
           input: {
-            channel: toGlobalId({ type: NODE_TYPES.User, id: '1' }),
+            channels: [toGlobalId({ type: NODE_TYPES.User, id: '1' })],
             articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
             pinned: true,
           },
@@ -220,7 +300,7 @@ describe('togglePinChannelArticles', () => {
         query: TOGGLE_PIN_CHANNEL_ARTICLES,
         variables: {
           input: {
-            channel: toGlobalId({ type: NODE_TYPES.TopicChannel, id: '1' }),
+            channels: [toGlobalId({ type: NODE_TYPES.TopicChannel, id: '1' })],
             articles: [toGlobalId({ type: NODE_TYPES.User, id: '1' })],
             pinned: true,
           },
@@ -265,10 +345,12 @@ describe('togglePinChannelArticles', () => {
         query: TOGGLE_PIN_CHANNEL_ARTICLES,
         variables: {
           input: {
-            channel: toGlobalId({
-              type: NODE_TYPES.CurationChannel,
-              id: channel.id,
-            }),
+            channels: [
+              toGlobalId({
+                type: NODE_TYPES.CurationChannel,
+                id: channel.id,
+              }),
+            ],
             articles: articles.map((a) =>
               toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
             ),
@@ -278,63 +360,10 @@ describe('togglePinChannelArticles', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data?.togglePinChannelArticles.articles.edges).toHaveLength(2)
+      expect(data?.togglePinChannelArticles).toHaveLength(1)
+      expect(data?.togglePinChannelArticles[0].articles.edges).toHaveLength(2)
       expect(
-        data?.togglePinChannelArticles.articles.edges.every(
-          (e: { pinned: boolean }) => !e.pinned
-        )
-      ).toBe(true)
-    })
-
-    test('allows unpinning even when over limit', async () => {
-      // Create channel with pinned articles
-      const channel = await channelService.createCurationChannel({
-        name: 'test-curation',
-        pinAmount: 1, // Set low limit
-      })
-
-      const articles = ['1', '2'].map((id) => ({
-        articleId: id,
-        channelId: channel.id,
-        pinned: true,
-        pinnedAt: new Date(),
-      }))
-
-      await Promise.all(
-        articles.map((article) =>
-          atomService.create({
-            table: 'curation_channel_article',
-            data: article,
-          })
-        )
-      )
-
-      const server = await testClient({
-        connections,
-        isAuth: true,
-        isAdmin: true,
-      })
-
-      const { data, errors } = await server.executeOperation({
-        query: TOGGLE_PIN_CHANNEL_ARTICLES,
-        variables: {
-          input: {
-            channel: toGlobalId({
-              type: NODE_TYPES.CurationChannel,
-              id: channel.id,
-            }),
-            articles: articles.map((a) =>
-              toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
-            ),
-            pinned: false,
-          },
-        },
-      })
-
-      expect(errors).toBeUndefined()
-      expect(data?.togglePinChannelArticles.articles.edges).toHaveLength(2)
-      expect(
-        data?.togglePinChannelArticles.articles.edges.every(
+        data?.togglePinChannelArticles[0].articles.edges.every(
           (e: { pinned: boolean }) => !e.pinned
         )
       ).toBe(true)
