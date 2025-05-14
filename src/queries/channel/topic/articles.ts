@@ -32,6 +32,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     spamThreshold: spamThreshold ?? undefined,
     datetimeRange: input.filter?.datetimeRange,
     addOrderColumn: input.sort === undefined ? true : false,
+    filterFlood: true,
   })
 
   let query: Knex.QueryBuilder = baseQuery
