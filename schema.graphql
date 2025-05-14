@@ -281,7 +281,7 @@ type Mutation {
   setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article!
   addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel!
   deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel!
-  togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel!
+  togglePinChannelArticles(input: TogglePinChannelArticlesInput!): [Channel!]!
   reorderChannels(input: ReorderChannelsInput!): Boolean!
   classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean!
 }
@@ -3977,7 +3977,7 @@ input DeleteCurationChannelArticlesInput {
 
 input TogglePinChannelArticlesInput {
   """id of TopicChannel or CurationChannel"""
-  channel: ID!
+  channels: [ID!]!
   articles: [ID!]!
   pinned: Boolean!
 }

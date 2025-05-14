@@ -77,7 +77,7 @@ export default /* GraphQL */ `
     setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
     deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
-    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): Channel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
+    togglePinChannelArticles(input: TogglePinChannelArticlesInput!): [Channel!]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Channel}")
     reorderChannels(input: ReorderChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     classifyArticlesChannels(input: ClassifyArticlesChannelsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
@@ -94,7 +94,7 @@ export default /* GraphQL */ `
 
   input TogglePinChannelArticlesInput {
     "id of TopicChannel or CurationChannel"
-    channel: ID!
+    channels: [ID!]!
     articles: [ID!]!
     pinned: Boolean!
   }

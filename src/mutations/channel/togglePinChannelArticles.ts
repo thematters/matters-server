@@ -6,17 +6,9 @@ import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
   _,
-  { input: { channel: channelGlobalId, articles: articleGlobalIds, pinned } },
+  { input: { channels: channelGlobalIds, articles: articleGlobalIds, pinned } },
   { dataSources: { channelService } }
 ) => {
-  // Validate and extract channel ID
-  const { id: channelId, type: channelType } = fromGlobalId(channelGlobalId)
-  if (
-    ![NODE_TYPES.TopicChannel, NODE_TYPES.CurationChannel].includes(channelType)
-  ) {
-    throw new UserInputError('Invalid channel ID')
-  }
-
   // Validate and extract article IDs
   const articleIds = articleGlobalIds.map((globalId) => {
     const { id, type } = fromGlobalId(globalId)
@@ -26,17 +18,25 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
     return id
   })
 
-  // Use channel service to handle pin/unpin logic
-  const result = await channelService.togglePinChannelArticles({
-    channelId,
-    channelType: channelType as
-      | NODE_TYPES.TopicChannel
-      | NODE_TYPES.CurationChannel,
-    articleIds,
-    pinned,
-  })
-
-  return { ...result, __type: channelType }
+  return Promise.all(
+    channelGlobalIds.map(async (globalId) => {
+      const { id, type } = fromGlobalId(globalId)
+      if (
+        ![NODE_TYPES.TopicChannel, NODE_TYPES.CurationChannel].includes(type)
+      ) {
+        throw new UserInputError('Invalid channel ID')
+      }
+      const channel = await channelService.togglePinChannelArticles({
+        channelId: id,
+        channelType: type as
+          | NODE_TYPES.TopicChannel
+          | NODE_TYPES.CurationChannel,
+        articleIds,
+        pinned,
+      })
+      return { ...channel, __type: type }
+    })
+  )
 }
 
 export default resolver
