@@ -229,6 +229,12 @@ describe('TopicChannel.articles', () => {
         table: 'article',
         where: {},
         take: 4,
+        orderBy: [
+          {
+            column: 'createdAt',
+            order: 'asc',
+          },
+        ],
       })
 
       // Create channel articles with different creation times
@@ -270,9 +276,37 @@ describe('TopicChannel.articles', () => {
 
       expect(errors).toBeUndefined()
       expect(data?.channel.articles.edges).toHaveLength(4)
-      // Should be in newest to oldest order
+      // Should be in order by 'order' column ascending
       expect(data?.channel.articles.edges[0].node.id).toBe(
         toGlobalId({ type: NODE_TYPES.Article, id: articles[0].id })
+      )
+    })
+
+    test('newest sort returns articles in descending order by createdAt', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            sort: 'newest',
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.channel.articles.edges).toHaveLength(4)
+      // Should be in newest to oldest order by createdAt
+      expect(data?.channel.articles.edges[0].node.id).toBe(
+        toGlobalId({ type: NODE_TYPES.Article, id: articles[3].id })
       )
     })
 

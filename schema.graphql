@@ -3936,7 +3936,7 @@ type CurationChannel implements Channel {
 input ChannelArticlesInput {
   after: String
   first: Int
-  sort: ArticlesSort = newest
+  sort: ArticlesSort
   filter: ChannelArticlesFilter
 }
 
