@@ -99,7 +99,7 @@ export default /* GraphQL */ `
     features: [Feature!]!
 
     "Announcements"
-    announcements(input: AnnouncementsInput!): [Announcement!] @logCache(type: "${NODE_TYPES.Announcement}")
+    announcements(input: AnnouncementsInput!): [Announcement!] @logCache(type: "${NODE_TYPES.Announcement}") @cacheControl(maxAge: ${CACHE_TTL.SHORT})
   }
 
   type Feature {
