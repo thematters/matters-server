@@ -37,7 +37,7 @@ export class OpenRouter {
   public constructor() {
     this.apiKey = environment.openRouterApiKey
 
-    this.defaultModel = 'google/gemini-2.0-flash-001'
+    this.defaultModel = 'google/gemini-2.5-flash-preview'
     this.availableModels = [
       'google/gemini-2.5-flash-preview',
       'google/gemini-2.0-flash-001',
