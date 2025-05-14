@@ -252,14 +252,17 @@ describe('announcement', () => {
     await atomService.deleteMany({ table: 'channel_announcement' })
     await atomService.deleteMany({ table: 'announcement' })
   })
-  const createAnnouncement = async (expiredAt?: Date) => {
+  const createAnnouncement = async ({
+    expiredAt,
+    visible,
+  }: { expiredAt?: Date; visible?: boolean } = {}) => {
     return await atomService.create({
       table: 'announcement',
       data: {
         title: 'test',
         content: 'test',
         link: 'https://example.com',
-        visible: true,
+        visible: visible ?? true,
         order: 1,
         type: 'product',
         expiredAt: expiredAt ?? null,
@@ -301,9 +304,9 @@ describe('announcement', () => {
 
   test('findAnnouncement with expired announcement', async () => {
     // Create an expired announcement
-    const expiredAnnouncement = await createAnnouncement(
-      new Date(Date.now() - 1000)
-    )
+    const expiredAnnouncement = await createAnnouncement({
+      expiredAt: new Date(Date.now() - 1000),
+    })
 
     const result = await systemService.findAnnouncement({
       id: expiredAnnouncement.id,
@@ -320,7 +323,7 @@ describe('announcement', () => {
   })
 
   test('findAnnouncements with channel filter', async () => {
-    const createdAnnouncement = await createAnnouncement()
+    const createdAnnouncement = await createAnnouncement({ visible: false })
     const channel = await channelService.createTopicChannel({
       name: 'test',
       providerId: 'test',
@@ -333,11 +336,12 @@ describe('announcement', () => {
     expect(announcements1.length).toBe(0)
 
     // Verify all announcements are associated with the channel
-    await atomService.create({
+    const channelAnnouncement = await atomService.create({
       table: 'channel_announcement',
       data: {
         channelId: channel.id,
         announcementId: createdAnnouncement.id,
+        visible: false,
       },
     })
 
@@ -346,6 +350,27 @@ describe('announcement', () => {
     })
     expect(announcements2.length).toBe(1)
     expect(announcements2[0].id).toBe(createdAnnouncement.id)
+
+    const announcements3 = await systemService.findAnnouncements({
+      channelId: channel.id,
+      visible: true,
+    })
+    expect(announcements3.length).toBe(0)
+
+    await atomService.update({
+      table: 'channel_announcement',
+      where: {
+        id: channelAnnouncement.id,
+      },
+      data: { visible: true },
+    })
+
+    const announcements4 = await systemService.findAnnouncements({
+      channelId: channel.id,
+      visible: true,
+    })
+    expect(announcements4.length).toBe(1)
+    expect(announcements4[0].id).toBe(createdAnnouncement.id)
   })
 
   test('findAnnouncements with visibility filter', async () => {

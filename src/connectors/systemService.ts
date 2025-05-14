@@ -711,25 +711,29 @@ export class SystemService extends BaseService<BaseDBSchema> {
     channelId?: string
     visible?: boolean
   }) => {
-    let ids: string[] = []
     if (channelId) {
-      const relations = await this.models.findMany({
-        table: 'channel_announcement',
-        where: {
+      return this.knexRO('channel_announcement')
+        .leftJoin(
+          'announcement',
+          'channel_announcement.announcementId',
+          'announcement.id'
+        )
+        .where({
           channelId,
-        },
-      })
-      ids = relations.map((relation) => relation.announcementId)
-      if (ids.length === 0) {
-        return []
-      }
+        })
+        .where((builder) => {
+          if (visible !== undefined) {
+            builder.where('channel_announcement.visible', visible)
+          }
+        })
+        .select('announcement.*')
+        .orderBy('channel_announcement.createdAt', 'desc')
     }
     return this.models.findMany({
       table: 'announcement',
       where: {
         ...(visible !== undefined ? { visible } : {}),
       },
-      whereIn: ids.length > 0 ? ['id', ids] : undefined,
       modifier: (builder: Knex.QueryBuilder) => {
         builder.whereRaw(
           `(expired_at IS NULL OR expired_at >= CURRENT_TIMESTAMP)`
