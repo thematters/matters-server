@@ -3,7 +3,6 @@ import type {
   GQLMutationResolvers,
   Draft,
   GlobalId,
-  User,
 } from '#definitions/index.js'
 
 import {
@@ -19,17 +18,14 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
-  USER_STATE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
   ArticleCollectionReachLimitError,
   ArticleNotFoundError,
-  AuthenticationError,
   CircleNotFoundError,
   DraftNotFoundError,
   DraftVersionConflictError,
-  ForbiddenByStateError,
   ForbiddenError,
   TooManyTagsForArticleError,
   UserInputError,
@@ -76,9 +72,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       lastUpdatedAt,
     },
   },
-  { viewer, dataSources: { atomService, systemService, campaignService } }
+  {
+    viewer,
+    dataSources: { userService, atomService, systemService, campaignService },
+  }
 ) => {
-  validateUserState(viewer)
+  userService.validateUserState(viewer)
 
   const oldDraft = globalId
     ? await validateDraft({
@@ -96,7 +95,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       title: title && normalizeAndValidateTitle(title),
       summary: summary && normalizeAndValidateSummary(summary),
       content: content && normalizeAndValidateContent(content),
-      license: license && validateLicense(license),
+      license:
+        license === undefined || license === null
+          ? undefined
+          : validateLicense(license),
       tags:
         tags &&
         (await validateTags({
@@ -239,23 +241,6 @@ const validateDraft = async ({
   }
 
   return draft
-}
-
-const validateUserState = (viewer: User) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  if (
-    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
-      viewer.state as
-        | typeof USER_STATE.archived
-        | typeof USER_STATE.banned
-        | typeof USER_STATE.frozen
-    )
-  ) {
-    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
-  }
 }
 
 const validateTags = async ({

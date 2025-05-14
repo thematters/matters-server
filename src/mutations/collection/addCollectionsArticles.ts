@@ -55,7 +55,7 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
       await collectionService.addArticles({
         collectionId,
         articleIds,
-        user: viewer,
+        userId: viewer.id,
       })
 
       articleIds.map((articleId) =>

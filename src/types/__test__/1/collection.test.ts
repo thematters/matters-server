@@ -758,7 +758,7 @@ describe('get collection articles', () => {
     await collectionService.addArticles({
       collectionId: collection.id,
       articleIds: articleIds.slice(0, 1),
-      user: { id: authorId },
+      userId: authorId,
     })
     const collectionGlobalId = toGlobalId({
       type: NODE_TYPES.Collection,
@@ -787,7 +787,7 @@ describe('get collection articles', () => {
     await collectionService.addArticles({
       collectionId: collection.id,
       articleIds: articleIds.slice(0, 3),
-      user: { id: authorId },
+      userId: authorId,
     })
     const collectionGlobalId = toGlobalId({
       type: NODE_TYPES.Collection,

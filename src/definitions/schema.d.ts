@@ -238,14 +238,20 @@ export type GQLArticle = GQLNode &
     canComment: Scalars['Boolean']['output']
     /** This value determines if current viewer can SuperLike or not. */
     canSuperLike: Scalars['Boolean']['output']
-    /** List of articles which added this article into their collections. */
-    collectedBy: GQLArticleConnection
-    /** List of articles added into this article' collection. */
+    /**
+     * List of articles added into this article's connections.
+     * @deprecated Use connections instead
+     */
     collection: GQLArticleConnection
+    /** Collections of this article. */
+    collections: GQLCollectionConnection
     /** The counting number of comments. */
     commentCount: Scalars['Int']['output']
     /** List of comments of this article. */
     comments: GQLCommentConnection
+    /** List of articles which added this article into their connections. */
+    connectedBy: GQLArticleConnection
+    connections: GQLArticleConnection
     /** Content (HTML) of this article. */
     content: Scalars['String']['output']
     /** Different foramts of content. */
@@ -355,7 +361,7 @@ export type GQLArticleAppreciationsReceivedArgs = {
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
  */
-export type GQLArticleCollectedByArgs = {
+export type GQLArticleCollectionArgs = {
   input: GQLConnectionArgs
 }
 
@@ -363,7 +369,7 @@ export type GQLArticleCollectedByArgs = {
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
  */
-export type GQLArticleCollectionArgs = {
+export type GQLArticleCollectionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -373,6 +379,22 @@ export type GQLArticleCollectionArgs = {
  */
 export type GQLArticleCommentsArgs = {
   input: GQLCommentsInput
+}
+
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
+export type GQLArticleConnectedByArgs = {
+  input: GQLConnectionArgs
+}
+
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
+export type GQLArticleConnectionsArgs = {
+  input: GQLConnectionArgs
 }
 
 /**
@@ -1601,7 +1623,10 @@ export type GQLEditArticleInput = {
   /** whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
+  /** Deprecated, use connections instead */
   collection?: InputMaybe<Array<Scalars['ID']['input']>>
+  collections?: InputMaybe<Array<Scalars['ID']['input']>>
+  connections?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   /** revision description */
@@ -6373,17 +6398,17 @@ export type GQLArticleResolvers<
   >
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   canSuperLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  collectedBy?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLArticleCollectedByArgs, 'input'>
-  >
   collection?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLArticleCollectionArgs, 'input'>
+  >
+  collections?: Resolver<
+    GQLResolversTypes['CollectionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleCollectionsArgs, 'input'>
   >
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   comments?: Resolver<
@@ -6391,6 +6416,18 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLArticleCommentsArgs, 'input'>
+  >
+  connectedBy?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleConnectedByArgs, 'input'>
+  >
+  connections?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleConnectionsArgs, 'input'>
   >
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   contents?: Resolver<

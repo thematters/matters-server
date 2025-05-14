@@ -6,7 +6,7 @@ import {
   fromConnectionArgs,
 } from '#common/utils/index.js'
 
-const resolver: GQLArticleResolvers['collection'] = async (
+const resolver: GQLArticleResolvers['connections'] = async (
   { id },
   { input },
   {

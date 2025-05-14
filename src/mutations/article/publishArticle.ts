@@ -72,10 +72,10 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   if (draft.collections) {
     await Promise.all(
       draft.collections.map((collectionId) =>
-        collectionService.validateCollectionCapacity({
+        collectionService.validateCollection({
           collectionId,
           newArticlesCount: 1,
-          user: { id: draft.authorId },
+          userId: draft.authorId,
         })
       )
     )

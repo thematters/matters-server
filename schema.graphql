@@ -350,11 +350,15 @@ type Article implements Node & PinnableWork {
   """Original language of content"""
   language: String
 
-  """List of articles which added this article into their collections."""
-  collectedBy(input: ConnectionArgs!): ArticleConnection!
+  """List of articles which added this article into their connections."""
+  connectedBy(input: ConnectionArgs!): ArticleConnection!
 
-  """List of articles added into this article' collection."""
-  collection(input: ConnectionArgs!): ArticleConnection!
+  """List of articles added into this article's connections."""
+  collection(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use connections instead")
+  connections(input: ConnectionArgs!): ArticleConnection!
+
+  """Collections of this article."""
+  collections(input: ConnectionArgs!): CollectionConnection!
 
   """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
@@ -695,7 +699,11 @@ input EditArticleInput {
   tags: [String!]
   content: String
   cover: ID
+
+  """Deprecated, use connections instead"""
   collection: [ID!]
+  connections: [ID!]
+  collections: [ID!]
   circle: ID
   accessType: ArticleAccessType
   sensitive: Boolean

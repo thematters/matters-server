@@ -553,6 +553,12 @@ export class ArticleService extends BaseService<Article> {
     delete data.description
     delete data.createdAt
     delete data.updatedAt
+    const newContent = newData.content
+
+    if (newData.title) {
+      data = { ...data, title: newData.title }
+      delete newData.title
+    }
 
     if (newData.content) {
       const { id: contentId } = await this.getOrCreateArticleContent(
@@ -573,8 +579,8 @@ export class ArticleService extends BaseService<Article> {
           _contentMd
         )
         data = { ...data, contentMdId: _contentMdId }
-        delete newData.content
       }
+      delete newData.content
     } else {
       data = {
         ...data,
@@ -641,12 +647,12 @@ export class ArticleService extends BaseService<Article> {
       data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
 
-    if (newData.content) {
+    if (newContent) {
       this.postArticleCreation({
         articleId,
         articleVersionId: articleVersion.id,
         title: articleVersion.title,
-        content: newData.content,
+        content: newContent,
         summary: articleVersion.summaryCustomized
           ? articleVersion.summary
           : undefined,
@@ -709,6 +715,21 @@ export class ArticleService extends BaseService<Article> {
     return [records, +(records[0]?.totalCount ?? 0)]
   }
 
+  public validateArticle = async (articleId: string) => {
+    const article = await this.models.articleIdLoader.load(articleId)
+    if (!article) {
+      throw new ArticleNotFoundError('article does not exist')
+    }
+    if (article.state !== ARTICLE_STATE.active) {
+      throw new ForbiddenError('only active article is allowed to be edited.')
+    }
+    const articleVersion = await this.loadLatestArticleVersion(articleId)
+    if (!articleVersion) {
+      throw new ArticleNotFoundError('article version does not exist')
+    }
+    return [article, articleVersion] as const
+  }
+
   /*********************************
    *                               *
    *          Pinning              *
@@ -756,12 +777,18 @@ export class ArticleService extends BaseService<Article> {
   /**
    * Archive article
    */
-  public archive = async (id: string) =>
-    this.baseUpdate(id, {
-      state: ARTICLE_STATE.archived,
-      pinned: false,
-      updatedAt: new Date(),
+  public archive = async (id: string) => {
+    const notificationService = new NotificationService(this.connections)
+    notificationService.withdraw(`publication:${id}`)
+    return this.models.update({
+      table: 'article',
+      where: { id },
+      data: {
+        state: ARTICLE_STATE.archived,
+        pinned: false,
+      },
     })
+  }
 
   /*********************************
    *                               *
