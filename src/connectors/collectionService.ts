@@ -38,18 +38,21 @@ export class CollectionService extends BaseService<Collection> {
     articleIds: readonly string[]
     user: Pick<User, 'id'>
   }) => {
-    await this.validateAddArticles({
+    const articles = await this.validateAddArticles({
       collectionId,
       articleIds,
       user,
     })
+    if (articles.length === 0) {
+      return
+    }
     const [{ max }] = await this.knexRO('collection_article')
       .where('collection_id', collectionId)
       .max('order')
     const initOrder = max ? parseFloat(max) + 1 : 1
     await this.knex('collection_article').insert(
-      articleIds.map((articleId, index) => ({
-        articleId,
+      articles.map((article, index) => ({
+        articleId: article.id,
         collectionId,
         order: initOrder + index,
       }))
@@ -80,11 +83,11 @@ export class CollectionService extends BaseService<Collection> {
     const duplicatedArticleIds = originalArticleIds.filter((id) =>
       articleIds.includes(id)
     )
-    if (duplicatedArticleIds.length > 0) {
-      throw new UserInputError('Duplicated Article ids')
-    }
-
+    const articles: Article[] = []
     for (const articleId of articleIds) {
+      if (duplicatedArticleIds.includes(articleId)) {
+        continue
+      }
       const article = await this.models.articleIdLoader.load(articleId)
       if (!article || article.state !== ARTICLE_STATE.active) {
         throw new ArticleNotFoundError('Article not found')
@@ -92,7 +95,9 @@ export class CollectionService extends BaseService<Collection> {
       if (article.authorId !== user.id) {
         throw new ForbiddenError('Viewer has no permission')
       }
+      articles.push(article)
     }
+    return articles
   }
 
   public validateCollectionCapacity = async ({

@@ -6,11 +6,7 @@ import {
   UserService,
 } from '#connectors/index.js'
 import { USER_STATE } from '#common/enums/index.js'
-import {
-  ForbiddenByStateError,
-  ForbiddenError,
-  UserInputError,
-} from '#common/errors.js'
+import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
@@ -250,14 +246,12 @@ describe('collection', () => {
       user: { id: authorId },
     })
 
-    // insert same articles again
-    await expect(
-      collectionService.addArticles({
-        collectionId,
-        articleIds: articles.slice(0, 2).map((a) => a.id),
-        user: { id: authorId },
-      })
-    ).rejects.toThrow(UserInputError)
+    // insert same articles again - should skip duplicates instead of throwing error
+    await collectionService.addArticles({
+      collectionId,
+      articleIds: articles.slice(0, 2).map((a) => a.id),
+      user: { id: authorId },
+    })
 
     // insert different articles
     await collectionService.addArticles({
