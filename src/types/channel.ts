@@ -41,7 +41,7 @@ export default /* GraphQL */ `
   input ChannelArticlesInput {
     after: String
     first: Int
-    sort: ArticlesSort = newest
+    sort: ArticlesSort
     filter: ChannelArticlesFilter
   }
 
