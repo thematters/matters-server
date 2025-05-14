@@ -351,7 +351,6 @@ type Article implements Node & PinnableWork {
   language: String
 
   """List of articles which added this article into their connections."""
-  collectedBy(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use connectedBy instead")
   connectedBy(input: ConnectionArgs!): ArticleConnection!
 
   """List of articles added into this article's connections."""

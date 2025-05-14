@@ -239,11 +239,6 @@ export type GQLArticle = GQLNode &
     /** This value determines if current viewer can SuperLike or not. */
     canSuperLike: Scalars['Boolean']['output']
     /**
-     * List of articles which added this article into their connections.
-     * @deprecated Use connectedBy instead
-     */
-    collectedBy: GQLArticleConnection
-    /**
      * List of articles added into this article's connections.
      * @deprecated Use connections instead
      */
@@ -254,6 +249,7 @@ export type GQLArticle = GQLNode &
     commentCount: Scalars['Int']['output']
     /** List of comments of this article. */
     comments: GQLCommentConnection
+    /** List of articles which added this article into their connections. */
     connectedBy: GQLArticleConnection
     connections: GQLArticleConnection
     /** Content (HTML) of this article. */
@@ -358,14 +354,6 @@ export type GQLArticle = GQLNode &
  * want information about article's comments. Please check Comment type.
  */
 export type GQLArticleAppreciationsReceivedArgs = {
-  input: GQLConnectionArgs
-}
-
-/**
- * This type contains metadata, content, hash and related data of an article. If you
- * want information about article's comments. Please check Comment type.
- */
-export type GQLArticleCollectedByArgs = {
   input: GQLConnectionArgs
 }
 
@@ -6410,12 +6398,6 @@ export type GQLArticleResolvers<
   >
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   canSuperLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  collectedBy?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLArticleCollectedByArgs, 'input'>
-  >
   collection?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,

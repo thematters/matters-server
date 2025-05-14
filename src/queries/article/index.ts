@@ -92,7 +92,6 @@ const schema: GQLResolvers = {
     collection: connections,
     connections,
     collections,
-    collectedBy: connectedBy,
     connectedBy,
     hasAppreciate,
     canSuperLike,

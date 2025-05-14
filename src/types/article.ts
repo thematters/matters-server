@@ -116,7 +116,6 @@ export default /* GraphQL */ `
     language: String
 
     "List of articles which added this article into their connections."
-    collectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connectedBy instead")
     connectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "List of articles added into this article's connections."
