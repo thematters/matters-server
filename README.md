@@ -43,6 +43,7 @@
 - [Audit Logging](docs/Audit-Logging.md) - Documentation for implementing audit logging, including purpose, usage patterns, and integration with analytics
 - [Unit Testing Guidelines](docs/Unittest.md) - Comprehensive guide for writing unit tests, including test structure, patterns, and best practices
 - [Test Mode](docs/Test-Mode.md) - Information about test mode configurations, E2E testing patterns, and hardcoded test values
+- [Notification System](docs/Notification-System.md) - Comprehensive documentation of the notification system, including architecture, implementation details, and usage examples
 
 ## NOTE
 
