@@ -311,6 +311,7 @@ describe('channels query', () => {
               isLabeled
               enabled
               classicfiedAt
+              pinned
             }
           }
         }
@@ -379,6 +380,7 @@ describe('channels query', () => {
           enabled: true,
           isLabeled: true,
           score: 0.8,
+          pinned: true,
         },
       })
       await atomService.create({
@@ -389,6 +391,7 @@ describe('channels query', () => {
           enabled: true,
           isLabeled: false,
           score: 0.6,
+          pinned: false,
         },
       })
 
@@ -416,6 +419,7 @@ describe('channels query', () => {
       expect(channel1Result.isLabeled).toBe(true)
       expect(channel1Result.enabled).toBe(true)
       expect(channel1Result.classicfiedAt).toBeDefined()
+      expect(channel1Result.pinned).toBe(true)
 
       // Verify channel 2
       const channel2Result = data.article.oss.topicChannels.find(
@@ -429,6 +433,7 @@ describe('channels query', () => {
       expect(channel2Result.isLabeled).toBe(false)
       expect(channel2Result.enabled).toBe(true)
       expect(channel2Result.classicfiedAt).toBeDefined()
+      expect(channel2Result.pinned).toBe(false)
     })
   })
 })

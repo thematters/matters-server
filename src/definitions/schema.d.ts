@@ -589,6 +589,8 @@ export type GQLArticleTopicChannel = {
   enabled: Scalars['Boolean']['output']
   /** whether this article is labeled by human, null for not labeled yet.  */
   isLabeled: Scalars['Boolean']['output']
+  /** whether this article is pinned */
+  pinned: Scalars['Boolean']['output']
   /** confident score by machine */
   score?: Maybe<Scalars['Float']['output']>
 }
@@ -6721,6 +6723,7 @@ export type GQLArticleTopicChannelResolvers<
   >
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
