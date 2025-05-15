@@ -64,11 +64,11 @@ const notice: {
         // article
         article_published: NOTICE_TYPE.ArticleNotice,
         scheduled_article_published: NOTICE_TYPE.ArticleNotice,
-        scheduled_article_published_with_collections_failure:
+        scheduled_article_published_with_collection_failure:
           NOTICE_TYPE.ArticleNotice,
-        scheduled_article_published_with_campaigns_failure:
+        scheduled_article_published_with_campaign_failure:
           NOTICE_TYPE.ArticleNotice,
-        scheduled_article_published_with_connections_failure:
+        scheduled_article_published_with_connection_failure:
           NOTICE_TYPE.ArticleNotice,
         article_new_appreciation: NOTICE_TYPE.ArticleNotice,
         article_new_subscriber: NOTICE_TYPE.ArticleNotice,
@@ -146,12 +146,12 @@ const notice: {
           return 'ArticlePublished'
         case INNER_NOTICE_TYPE.scheduled_article_published:
           return 'ScheduledArticlePublished'
-        case INNER_NOTICE_TYPE.scheduled_article_published_with_collections_failure:
-          return 'ScheduledArticlePublishedWithCollectionsFailure'
-        case INNER_NOTICE_TYPE.scheduled_article_published_with_campaigns_failure:
-          return 'ScheduledArticlePublishedWithCampaignsFailure'
-        case INNER_NOTICE_TYPE.scheduled_article_published_with_connections_failure:
-          return 'ScheduledArticlePublishedWithConnectionsFailure'
+        case INNER_NOTICE_TYPE.scheduled_article_published_with_collection_failure:
+          return 'ScheduledArticlePublishedWithCollectionFailure'
+        case INNER_NOTICE_TYPE.scheduled_article_published_with_campaign_failure:
+          return 'ScheduledArticlePublishedWithCampaignFailure'
+        case INNER_NOTICE_TYPE.scheduled_article_published_with_connection_failure:
+          return 'ScheduledArticlePublishedWithConnectionFailure'
         case INNER_NOTICE_TYPE.article_new_appreciation:
           return 'ArticleNewAppreciation'
         case INNER_NOTICE_TYPE.article_new_subscriber:

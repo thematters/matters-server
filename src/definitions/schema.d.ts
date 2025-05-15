@@ -574,9 +574,9 @@ export type GQLArticleNoticeType =
   | 'RevisedArticleNotPublished'
   | 'RevisedArticlePublished'
   | 'ScheduledArticlePublished'
-  | 'ScheduledArticlePublishedWithCampaignsFailure'
-  | 'ScheduledArticlePublishedWithCollectionsFailure'
-  | 'ScheduledArticlePublishedWithConnectionsFailure'
+  | 'ScheduledArticlePublishedWithCampaignFailure'
+  | 'ScheduledArticlePublishedWithCollectionFailure'
+  | 'ScheduledArticlePublishedWithConnectionFailure'
 
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'

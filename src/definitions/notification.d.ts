@@ -63,21 +63,34 @@ interface NoticeArticlePublishedParams extends NotificationRequiredParams {
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-interface NoticeArticlePublishedWithFailureParams
+interface NoticeArticlePublishedWithCollectionFailureParams
   extends NotificationRequiredParams {
-  event:
-    | NOTICE_TYPE.scheduled_article_published_with_collections_failure
-    | NOTICE_TYPE.scheduled_article_published_with_campaigns_failure
-    | NOTICE_TYPE.scheduled_article_published_with_connections_failure
+  event: NOTICE_TYPE.scheduled_article_published_with_collection_failure
   recipientId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    (
-      | NotificationEntity<'collection', 'collection'>
-      | NotificationEntity<'campaign', 'campaign'>
-      | NotificationEntity<'connection', 'connection'>
-    )
-  ]
+  entities: Array<
+    | NotificationEntity<'target', 'article'>
+    | NotificationEntity<'collection', 'collection'>
+  >
+}
+
+interface NoticeArticlePublishedWithCampaignFailureParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.scheduled_article_published_with_campaign_failure
+  recipientId: string
+  entities: Array<
+    | NotificationEntity<'target', 'article'>
+    | NotificationEntity<'campaign', 'campaign'>
+  >
+}
+
+interface NoticeArticlePublishedWithConnectionFailureParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.scheduled_article_published_with_connection_failure
+  recipientId: string
+  entities: Array<
+    | NotificationEntity<'target', 'article'>
+    | NotificationEntity<'connection', 'connection'>
+  >
 }
 
 interface NoticeArticleNewAppreciationParams
