@@ -94,6 +94,10 @@ export default /* GraphQL */ `
 
   enum ArticleNoticeType {
     ArticlePublished
+    ScheduledArticlePublished
+    ScheduledArticlePublishedWithCollectionsFailure
+    ScheduledArticlePublishedWithCampaignsFailure
+    ScheduledArticlePublishedWithConnectionsFailure
     ArticleMentionedYou
     ArticleNewSubscriber
     ArticleNewAppreciation

@@ -573,6 +573,10 @@ export type GQLArticleNoticeType =
   | 'CircleNewArticle'
   | 'RevisedArticleNotPublished'
   | 'RevisedArticlePublished'
+  | 'ScheduledArticlePublished'
+  | 'ScheduledArticlePublishedWithCampaignsFailure'
+  | 'ScheduledArticlePublishedWithCollectionsFailure'
+  | 'ScheduledArticlePublishedWithConnectionsFailure'
 
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'

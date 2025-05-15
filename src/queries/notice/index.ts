@@ -63,6 +63,13 @@ const notice: {
 
         // article
         article_published: NOTICE_TYPE.ArticleNotice,
+        scheduled_article_published: NOTICE_TYPE.ArticleNotice,
+        scheduled_article_published_with_collections_failure:
+          NOTICE_TYPE.ArticleNotice,
+        scheduled_article_published_with_campaigns_failure:
+          NOTICE_TYPE.ArticleNotice,
+        scheduled_article_published_with_connections_failure:
+          NOTICE_TYPE.ArticleNotice,
         article_new_appreciation: NOTICE_TYPE.ArticleNotice,
         article_new_subscriber: NOTICE_TYPE.ArticleNotice,
         article_mentioned_you: NOTICE_TYPE.ArticleNotice,
@@ -137,6 +144,14 @@ const notice: {
       switch (type) {
         case INNER_NOTICE_TYPE.article_published:
           return 'ArticlePublished'
+        case INNER_NOTICE_TYPE.scheduled_article_published:
+          return 'ScheduledArticlePublished'
+        case INNER_NOTICE_TYPE.scheduled_article_published_with_collections_failure:
+          return 'ScheduledArticlePublishedWithCollectionsFailure'
+        case INNER_NOTICE_TYPE.scheduled_article_published_with_campaigns_failure:
+          return 'ScheduledArticlePublishedWithCampaignsFailure'
+        case INNER_NOTICE_TYPE.scheduled_article_published_with_connections_failure:
+          return 'ScheduledArticlePublishedWithConnectionsFailure'
         case INNER_NOTICE_TYPE.article_new_appreciation:
           return 'ArticleNewAppreciation'
         case INNER_NOTICE_TYPE.article_new_subscriber:
