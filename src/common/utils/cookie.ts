@@ -1,4 +1,4 @@
-import type { User } from '#root/src/definitions/index.js'
+import type { User } from '#definitions/index.js'
 
 import {
   COOKIE_LANGUAGE,
