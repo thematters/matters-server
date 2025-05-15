@@ -2351,7 +2351,7 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public publishArticle = async (draftId: string) => {
+  public publishArticle = async (draftId: string, scheduled = false) => {
     const systemService = new SystemService(this.connections)
     const notificationService = new NotificationService(this.connections)
 
@@ -2430,7 +2430,9 @@ export class ArticleService extends BaseService<Article> {
 
     // Step 7: trigger notifications
     notificationService.trigger({
-      event: NOTICE_TYPE.article_published,
+      event: scheduled
+        ? NOTICE_TYPE.scheduled_article_published
+        : NOTICE_TYPE.article_published,
       recipientId: article.authorId,
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
     })
@@ -2462,7 +2464,7 @@ export class ArticleService extends BaseService<Article> {
           data: { publishState: PUBLISH_STATE.pending },
         })
         try {
-          await this.publishArticle(draft.id)
+          await this.publishArticle(draft.id, true)
         } catch (err) {
           logger.error(`Failed to publish draft ${draft.id}: ${err}`)
           await this.models.update({
