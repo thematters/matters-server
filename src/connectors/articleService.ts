@@ -6,6 +6,8 @@ import type {
   ArticleVersion,
   ArticleBoost,
   Connections,
+  GQLTranslationModel,
+  LANGUAGES,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -48,7 +50,8 @@ import {
   genMD5,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
-  selectWithTotalCount as selectWithTotalCountModifier,
+  stripMentions,
+  stripHtml,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -56,18 +59,19 @@ import {
   UserWorkService,
   TagService,
   NotificationService,
-  PaymentService,
-  GCP,
   SpamDetector,
   ChannelService,
   aws,
+  PaymentService,
+  LanguageDetector,
 } from '#connectors/index.js'
-import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
 import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
+
+import { OpenRouter } from './openRouter/index.js'
 
 const { difference, isEqual, uniq } = _
 
@@ -81,6 +85,7 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
+  private openRouter = new OpenRouter()
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -113,8 +118,9 @@ export class ArticleService extends BaseService<Article> {
    *********************************/
 
   public findArticles = (filter?: {
-    isSpam: boolean
-    spamThreshold: number
+    isSpam?: boolean
+    spamThreshold?: number
+    datetimeRange?: { start: Date; end?: Date }
   }) => {
     const query = this.knexRO('article').select('*')
 
@@ -122,10 +128,16 @@ export class ArticleService extends BaseService<Article> {
       query.where((builder) => {
         builder.where('is_spam', '=', true).orWhere((orWhereBuilder) => {
           orWhereBuilder
-            .where('spam_score', '>=', filter.spamThreshold)
+            .whereRaw('spam_score >= ?', [filter.spamThreshold])
             .whereNull('is_spam')
         })
       })
+    }
+    if (filter?.datetimeRange) {
+      query.where('created_at', '>=', filter.datetimeRange.start)
+      if (filter.datetimeRange.end) {
+        query.where('created_at', '<=', filter.datetimeRange.end)
+      }
     }
     return query
   }
@@ -317,24 +329,14 @@ export class ArticleService extends BaseService<Article> {
         }
       })
 
-  public latestArticles = async ({
-    skip,
-    take,
-    maxTake,
-    oss,
-    excludeSpam,
+  public latestArticles = ({
+    spamThreshold,
     excludeChannelArticles,
   }: {
-    skip: number
-    take: number
-    maxTake: number
-    oss: boolean
-    excludeSpam: boolean
+    spamThreshold?: number
     excludeChannelArticles?: boolean
-  }): Promise<[Article[], number]> => {
-    const systemService = new SystemService(this.connections)
-    const spamThreshold = await systemService.getSpamThreshold()
-    const query = this.knexRO
+  } = {}): Knex.QueryBuilder<Article, Article[]> =>
+    this.knexRO
       .select('article_set.*')
       .from(
         this.knexRO
@@ -365,22 +367,10 @@ export class ArticleService extends BaseService<Article> {
           .as('article_set')
       )
       .where((builder) => {
-        if (!oss && excludeSpam) {
+        if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold, 'article_set')
         }
-      })
-      .as('newest')
-
-    const records = await this.knexRO
-      .select('*')
-      .modify(selectWithTotalCountModifier)
-      .from(oss ? query : query.limit(maxTake))
-      .orderBy('id', 'desc')
-      .offset(skip)
-      .limit(take)
-
-    return [records, parseInt(records[0]?.totalCount ?? '0', 10)]
-  }
+      }) as Knex.QueryBuilder<any>
 
   /**
    * Create article from draft
@@ -394,7 +384,7 @@ export class ArticleService extends BaseService<Article> {
     contentMd,
     cover,
     tags,
-    collection,
+    connections,
     circleId,
     access,
     license,
@@ -447,7 +437,7 @@ export class ArticleService extends BaseService<Article> {
           contentMdId,
           cover,
           tags: tags ?? [],
-          connections: collection ?? [],
+          connections: connections ?? [],
           wordCount,
           circleId,
           access: access ?? ARTICLE_ACCESS_TYPE.public,
@@ -461,7 +451,7 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this._postArticleCreation({
+      this.postArticleCreation({
         articleId: article.id,
         articleVersionId: articleVersion.id,
         title,
@@ -611,13 +601,13 @@ export class ArticleService extends BaseService<Article> {
         summaryCustomized: lastData.summaryCustomized,
       }
     }
-    if (newData.collection || newData.collection === null) {
-      data = { ...data, connections: newData.collection ?? [] }
+    if (newData.connections || newData.connections === null) {
+      data = { ...data, connections: newData.connections ?? [] }
       await this.updateArticleConnections({
         articleId,
-        connections: newData.collection ?? [],
+        connections: newData.connections ?? [],
       })
-      delete newData.collection
+      delete newData.connections
     }
 
     if (newData.circleId) {
@@ -653,7 +643,7 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (newData.content) {
-      this._postArticleCreation({
+      this.postArticleCreation({
         articleId,
         articleVersionId: articleVersion.id,
         title: articleVersion.title,
@@ -1410,13 +1400,49 @@ export class ArticleService extends BaseService<Article> {
     return { newRead: false }
   }
 
+  public addReadCountColumn = (
+    articlesQuery: Knex.QueryBuilder,
+    { start }: { start?: Date } = {}
+  ) => {
+    const knex = articlesQuery.client.queryBuilder()
+    const column = 'read_count'
+    return {
+      query: knex
+        .clone()
+        .from(articlesQuery.clone().as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('article_read_count')
+            .modify((builder) => {
+              if (start) {
+                builder.where('created_at', '>=', start)
+              }
+            })
+            .groupBy('article_id')
+            .select(
+              'article_id',
+              knex.client.raw('count(timed_count) as ??', [column])
+            )
+            .as('t2'),
+          't1.id',
+          't2.article_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
+  }
+
   public addReadTimeColumn = (articlesQuery: Knex.QueryBuilder) => {
     const knex = articlesQuery.client.queryBuilder()
     const column = 'sum_read_time'
     return {
       query: knex
         .clone()
-        .from(articlesQuery.as('t1'))
+        .from(articlesQuery.clone().as('t1'))
         .leftJoin(
           'article_read_time_materialized',
           't1.id',
@@ -2014,11 +2040,12 @@ export class ArticleService extends BaseService<Article> {
 
   public getOrCreateTranslation = async (
     articleVersion: ArticleVersion,
-    language: string,
-    actorId?: string
+    language: LANGUAGES,
+    actorId?: string,
+    model?: GQLTranslationModel
   ) => {
     // paywalled content
-    const { id, articleId } = articleVersion
+    const { id: articleVersionId, articleId, contentId } = articleVersion
     const { authorId } = await this.models.articleIdLoader.load(articleId)
     let isPaywalledContent = false
     const isAuthor = authorId === actorId
@@ -2044,111 +2071,93 @@ export class ArticleService extends BaseService<Article> {
       }
     }
 
-    const {
-      title: originTitle,
-      summary: originSummary,
-      language: storedLanguage,
-      contentId,
-    } = articleVersion
-    const { content: originContent } =
-      await this.models.articleContentIdLoader.load(contentId)
+    // Load article content
+    const { content } = await this.models.articleContentIdLoader.load(contentId)
 
-    // it's same as original language
-    if (language === storedLanguage) {
+    // check if language match article original language
+    if (articleVersion.language && articleVersion.language === language) {
+      // return original content directly
       return {
-        content: isPaywalledContent ? '' : originContent,
-        title: originTitle,
-        summary: originSummary,
+        title: articleVersion.title,
+        content: isPaywalledContent ? '' : content,
+        summary: articleVersion.summary,
         language,
       }
     }
 
-    // get translation
+    // return translation if exists
     const translation = await this.models.findFirst({
       table: 'article_translation',
-      where: { articleId, language, articleVersionId: id },
+      where: {
+        articleId,
+        articleVersionId,
+        language,
+        model:
+          model ||
+          this.openRouter.toDatabaseModel(this.openRouter.defaultModel),
+      },
     })
 
     if (translation) {
       return {
-        ...translation,
+        title: translation.title,
         content: isPaywalledContent ? '' : translation.content,
+        summary: translation.summary,
+        language: translation.language,
+        model: translation.model as GQLTranslationModel,
       }
     }
 
-    const gcp = new GCP()
+    // Otherwise, translate
+    let translatedTitle: string | null = null
+    let translatedContent: string | null = null
+    let translatedSummary: string | null = null
+    let translatedModel: GQLTranslationModel | null = null
 
-    // or translate and store to db
-    const [title, content, summary] = await Promise.all(
-      [originTitle, originContent, originSummary].map((text) =>
-        gcp.translate({
-          content: text,
-          target: language,
-        })
-      )
-    )
+    const [llmTitle, llmContent, llmSummary] = await Promise.all([
+      this.openRouter.translate(articleVersion.title, language, model),
+      this.openRouter.translate(content, language, model, true),
+      articleVersion.summary
+        ? this.openRouter.translate(articleVersion.summary, language, model)
+        : null,
+    ])
 
-    if (title && content) {
-      const data = {
-        articleId,
-        title,
-        content,
-        summary,
-        language,
-        articleVersionId: id,
-      }
-      await this.models.upsert({
+    if (
+      llmTitle &&
+      llmContent &&
+      (articleVersion.summary ? llmSummary : true)
+    ) {
+      await this.models.create({
         table: 'article_translation',
-        where: { articleId, language, articleVersionId: id },
-        create: data,
-        update: data,
+        data: {
+          articleId,
+          articleVersionId,
+          language,
+          title: llmTitle.text,
+          content: llmContent.text,
+          summary: llmSummary?.text,
+          model: llmTitle.model,
+        },
       })
 
-      // translate tags
-      const tagIds = await this.findTagIds({ id: articleId })
-      if (tagIds && tagIds.length > 0) {
-        try {
-          const tags = await this.models.tagIdLoader.loadMany(tagIds)
-          await Promise.all(
-            tags.map(async (tag) => {
-              if (tag instanceof Error) {
-                return
-              }
-              const translatedTag = await gcp.translate({
-                content: tag.content,
-                target: language,
-              })
-              const tagData = {
-                tagId: tag.id,
-                content: translatedTag ?? '',
-                language,
-              }
-              await this.models.upsert({
-                table: 'tag_translation',
-                where: { tagId: tag.id },
-                create: tagData,
-                update: tagData,
-              })
-            })
-          )
-        } catch (error) {
-          logger.error(error)
-        }
+      translatedTitle = llmTitle.text
+      translatedContent = llmContent.text
+      translatedModel = llmTitle.model
+      if (llmSummary) {
+        translatedSummary = llmSummary.text
       }
+    }
 
-      await invalidateFQC({
-        node: { type: NODE_TYPES.Article, id: articleId },
-        redis: this.redis,
-      })
-
-      return {
-        title,
-        content: isPaywalledContent ? '' : content,
-        summary,
-        language,
-      }
-    } else {
+    if (!translatedTitle || !translatedContent || !translatedModel) {
       return null
+    }
+
+    return {
+      title: translatedTitle,
+      content: isPaywalledContent ? '' : translatedContent,
+      summary: translatedSummary,
+      language,
+      model: translatedModel,
     }
   }
 
@@ -2202,7 +2211,20 @@ export class ArticleService extends BaseService<Article> {
     callback?.(score)
   }
 
-  private _postArticleCreation = async ({
+  public detectLanguage = async (articleVersionId: string) => {
+    const languageDetector = new LanguageDetector()
+
+    const { title, summary, contentId } =
+      await this.models.articleVersionIdLoader.load(articleVersionId)
+    const { content } = await this.models.articleContentIdLoader.load(contentId)
+    const excerpt = stripHtml(stripMentions(content), {
+      lineReplacement: ' ',
+    }).slice(0, 300)
+
+    return languageDetector.detect(`${title} ${summary} ${excerpt}`)
+  }
+
+  private postArticleCreation = async ({
     articleId,
     articleVersionId,
     title,
@@ -2231,6 +2253,19 @@ export class ArticleService extends BaseService<Article> {
         // infer article channels if not spam
         channelService.classifyArticlesChannels({ ids: [articleId] })
 
+        // detect language
+        this.detectLanguage(articleVersionId).then((language) => {
+          if (!language) {
+            return
+          }
+
+          this.models.update({
+            table: 'article_version',
+            where: { id: articleVersionId },
+            data: { language },
+          })
+        })
+
         // trigger IPFS publication
         aws.sqsSendMessage({
           messageBody: { articleId, articleVersionId },
@@ -2238,5 +2273,39 @@ export class ArticleService extends BaseService<Article> {
         })
       }
     )
+  }
+
+  /*********************************
+   *                               *
+   *         Authoring             *
+   *                               *
+   *********************************/
+
+  public addArticleCountColumn = (
+    authorsQuery: Knex.QueryBuilder,
+    { joinColumn = 'id' }: { joinColumn?: string } = {}
+  ) => {
+    const column = 'article_count'
+    const knex = authorsQuery.client.queryBuilder()
+    return {
+      query: knex
+        .clone()
+        .from(authorsQuery.clone().as('t1'))
+        .leftJoin(
+          knex
+            .clone()
+            .from('article')
+            .groupBy('author_id')
+            .select('author_id', knex.client.raw('count(*) as ??', [column]))
+            .as('t2'),
+          `t1.${joinColumn}`,
+          't2.author_id'
+        )
+        .select(
+          't1.*',
+          knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
+        ),
+      column,
+    }
   }
 }

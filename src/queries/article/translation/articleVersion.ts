@@ -6,6 +6,12 @@ const resolver: GQLArticleVersionResolvers['translation'] = async (
   { viewer, dataSources: { articleService } }
 ) => {
   const language = input && input.language ? input.language : viewer.language
-  return articleService.getOrCreateTranslation(root, language, viewer.id)
+  return articleService.getOrCreateTranslation(
+    root,
+    language,
+    viewer.id,
+    input?.model
+  )
 }
+
 export default resolver

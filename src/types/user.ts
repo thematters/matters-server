@@ -233,34 +233,32 @@ export default /* GraphQL */ `
     authors(input: RecommendInput!): UserConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
   }
 
-
-  input ChannelArticlesInput {
-    channelId: ID
-    shortHash: String
-    after: String
-    first: Int @constraint(min: 0)
-  }
-
   input RecommendInput {
     after: String
     first: Int @constraint(min: 0)
     oss: Boolean
-    filter: FilterInput
-    type: AuthorsType
+    filter: RecommendFilterInput
+    newAlgo: Boolean
+  }
+
+  input RecommendFilterInput {
+    channel: IdentityInput
+    "index of list, min: 0, max: 49"
+    random: Int @constraint(min: 0, max: 49)
+    "filter out followed users"
+    followed: Boolean
+  }
+
+  input IdentityInput {
+    id: ID
+    shortHash: String
   }
 
   input FilterInput {
-    "index of list, min: 0, max: 49"
-    random: Int @constraint(min: 0, max: 49)
-
-    "Used in RecommendInput"
-    followed: Boolean
-
     "Used in User Articles filter, by tags or by time range, or both"
     tagIds: [ID!]
     inRangeStart: DateTime
     inRangeEnd: DateTime
-    # inRange: [DateTime] # [min,max] can be 1 side null to mean open in 1 side; not both null
   }
 
   type UserInfo {

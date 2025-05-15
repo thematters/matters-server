@@ -22,8 +22,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
   }
 ) => {
   const isAdmin = viewer.hasRole('admin')
-  const sort = input.sort ?? 'newest'
-  if (sort !== 'newest' && !isAdmin) {
+  if (input.sort !== undefined && !isAdmin) {
     throw new ForbiddenError('Only admins can sort articles')
   }
   const channelThreshold = await systemService.getArticleChannelThreshold()
@@ -32,7 +31,8 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     channelThreshold: channelThreshold ?? undefined,
     spamThreshold: spamThreshold ?? undefined,
     datetimeRange: input.filter?.datetimeRange,
-    addOrderColumn: sort === 'newest' ? true : false,
+    addOrderColumn: input.sort === undefined ? true : false,
+    filterFlood: true,
   })
 
   let query: Knex.QueryBuilder = baseQuery
@@ -43,8 +43,9 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     column: 'order',
     order: 'asc',
   }
-  switch (sort) {
+  switch (input.sort) {
     case 'newest':
+      orderBy = { column: 'createdAt', order: 'desc' }
       break
     case 'mostAppreciations': {
       const { query: appreciationAmountQuery, column } =
@@ -90,8 +91,8 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     query,
     args: input,
     orderBy,
-    maxTake: MAX_ITEM_COUNT,
-    // oss use offset based pagination
+    // OSS can see all articles and uses offset based pagination
+    maxTake: isAdmin ? undefined : MAX_ITEM_COUNT,
     cursorColumn: isAdmin ? undefined : 'id',
   })
 

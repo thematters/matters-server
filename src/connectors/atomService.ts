@@ -18,6 +18,7 @@ import type {
   CampaignStage,
   TableTypeMap,
   TableTypeMapKey,
+  ChannelAnnouncement,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -194,6 +195,7 @@ export class AtomService {
   public assetUUIDLoader: AtomDataLoader<string, Asset>
   public campaignIdLoader: AtomDataLoader<string, Campaign>
   public campaignStageIdLoader: AtomDataLoader<string, CampaignStage>
+  public channelAnnouncementLoader: AtomDataLoader<string, ChannelAnnouncement>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -238,6 +240,10 @@ export class AtomService {
     this.campaignIdLoader = this.initLoader({ table: 'campaign', mode: 'id' })
     this.campaignStageIdLoader = this.initLoader({
       table: 'campaign_stage',
+      mode: 'id',
+    })
+    this.channelAnnouncementLoader = this.initLoader({
+      table: 'channel_announcement',
       mode: 'id',
     })
   }
@@ -620,4 +626,6 @@ const UPATEABLE_TABLES = [
   'topic_channel',
   'curation_channel_article',
   'curation_channel',
+  'article_read_count',
+  'channel_announcement',
 ]

@@ -254,18 +254,24 @@ export class ChannelService {
       spamThreshold,
       datetimeRange,
       addOrderColumn = false,
+      filterFlood = false,
     }: {
       channelThreshold?: number
       spamThreshold?: number
       datetimeRange?: { start: Date; end?: Date }
+      filterFlood?: boolean
       addOrderColumn?: boolean
     } = {
       addOrderColumn: false,
+      filterFlood: false,
     }
   ) => {
     const knexRO = this.connections.knexRO
     const pinnedQuery = knexRO
-      .select('article.*')
+      .select(
+        'article.*',
+        'topic_channel_article.created_at as channel_article_created_at'
+      )
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -276,7 +282,10 @@ export class ChannelService {
       })
 
     const unpinnedQuery = knexRO
-      .select('article.*')
+      .select(
+        'article.*',
+        'topic_channel_article.created_at as channel_article_created_at'
+      )
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
@@ -330,6 +339,32 @@ export class ChannelService {
       }
       return filteredQuery
     }
+
+    if (filterFlood) {
+      const floodFilteredQuery = knexRO
+        .with('base', query)
+        .with(
+          'time_grouped',
+          knexRO.raw(
+            `SELECT *,
+              ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY author_id ORDER BY created_at))/3600)::integer)/12 AS time_group
+            FROM base`
+          )
+        )
+        .with(
+          'ranked',
+          knexRO.raw(
+            `SELECT *,
+              row_number() OVER (PARTITION BY author_id, time_group ORDER BY created_at ASC) as rank
+            FROM time_grouped`
+          )
+        )
+        .select('*')
+        .from('ranked')
+        .where('rank', '<=', 2)
+      return floodFilteredQuery
+    }
+
     return query
   }
 

@@ -1,0 +1,119 @@
+import type { Connections, Article, TopicChannel } from '#definitions/index.js'
+
+import {
+  ChannelService,
+  AtomService,
+  ArticleService,
+} from '#connectors/index.js'
+import { genConnections, closeConnections } from '../utils.js'
+
+let connections: Connections
+let channelService: ChannelService
+let atomService: AtomService
+let articleService: ArticleService
+beforeAll(async () => {
+  connections = await genConnections()
+  channelService = new ChannelService(connections)
+  atomService = new AtomService(connections)
+  articleService = new ArticleService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
+
+let channel: TopicChannel
+let author1Articles: Article[]
+let author2Articles: Article[]
+
+beforeEach(async () => {
+  await atomService.deleteMany({ table: 'topic_channel_article' })
+  await atomService.deleteMany({ table: 'topic_channel' })
+
+  channel = await channelService.createTopicChannel({
+    name: 'test-channel',
+    providerId: 'test-provider-id',
+    enabled: true,
+  })
+
+  // Get test articles
+  const author1 = '1'
+  const author2 = '2'
+
+  await articleService.createArticle({
+    authorId: author1,
+    title: 'test-article-1',
+    content: 'test-content-1',
+  })
+  author1Articles = await atomService.findMany({
+    table: 'article',
+    where: {
+      authorId: author1,
+    },
+  })
+
+  expect(author1Articles.length).toBeGreaterThanOrEqual(4)
+
+  author2Articles = await atomService.findMany({
+    table: 'article',
+    where: {
+      authorId: author2,
+    },
+  })
+
+  const now = new Date().getTime()
+  const oneHourLater = new Date(now + 3600000)
+  const twoHoursLater = new Date(now + 7200000)
+  const oneDayLater = new Date(now + 86400000)
+
+  await atomService.update({
+    table: 'article',
+    where: { id: author1Articles[1].id },
+    data: { createdAt: oneHourLater },
+  })
+  await atomService.update({
+    table: 'article',
+    where: { id: author1Articles[2].id },
+    data: { createdAt: twoHoursLater },
+  })
+  await atomService.update({
+    table: 'article',
+    where: { id: author1Articles[3].id },
+    data: { createdAt: oneDayLater },
+  })
+
+  // Add articles to channel
+  for (const article of author1Articles) {
+    await channelService.setArticleTopicChannels({
+      articleId: article.id,
+      channelIds: [channel.id],
+    })
+  }
+  await channelService.setArticleTopicChannels({
+    articleId: author2Articles[0].id,
+    channelIds: [channel.id],
+  })
+})
+
+describe('flood filtering', () => {
+  test('limits articles from same author within time window', async () => {
+    const results = await channelService.findTopicChannelArticles(channel.id, {
+      filterFlood: true,
+    })
+
+    // Should only include 3 (2 today, and 1 tomorrow) articles from author1 (the first two chronologically)
+    // and 1 article from author2
+    expect(results).toHaveLength(4)
+
+    const author1Results = results.filter((a) => a.authorId === '1')
+    expect(author1Results).toHaveLength(3)
+    expect(author1Results.map((a) => a.id)).toEqual([
+      author1Articles[0].id,
+      author1Articles[1].id,
+      author1Articles[3].id,
+    ])
+
+    const author2Results = results.filter((a) => a.authorId === '2')
+    expect(author2Results).toHaveLength(1)
+  })
+})

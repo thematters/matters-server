@@ -98,6 +98,12 @@ export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
   return { score: spamScore, isSpam }
 }
 
+export const adStatus: GQLArticleOssResolvers['adStatus'] = async ({
+  isAd,
+}) => {
+  return { isAd }
+}
+
 export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
   { id: articleId },
   _,
@@ -127,5 +133,6 @@ export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
     score: ac.score,
     isLabeled: ac.isLabeled,
     enabled: ac.enabled,
+    classicfiedAt: ac.createdAt,
   }))
 }

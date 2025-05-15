@@ -199,6 +199,18 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 
   // create or update campaign channel
   if (channelEnabled !== undefined) {
+    if (
+      [
+        CAMPAIGN_STATE.pending as string,
+        CAMPAIGN_STATE.archived as string,
+      ].includes(campaign.state) &&
+      channelEnabled
+    ) {
+      throw new ActionFailedError(
+        'Cannot enable channel when campaign is pending or archived'
+      )
+    }
+
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: channelEnabled,

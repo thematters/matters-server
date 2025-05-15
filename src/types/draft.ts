@@ -58,8 +58,9 @@ export default /* GraphQL */ `
     "Published article"
     article: Article @logCache(type: "${NODE_TYPES.Article}")
 
-    "Collection list of this draft."
-    collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    "Connection articles of this draft."
+    connections(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Use connections instead")
 
     "Access related fields on circle"
     access: DraftAccess!
@@ -112,7 +113,9 @@ export default /* GraphQL */ `
     content: String
     tags: [String!]
     cover: ID
+    "Deprecated, use connections instead"
     collection: [ID]
+    connections: [ID!]
     circle: ID
     accessType: ArticleAccessType
     sensitive: Boolean

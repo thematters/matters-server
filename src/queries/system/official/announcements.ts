@@ -1,48 +1,46 @@
-import type { GQLOfficialResolvers } from '#definitions/index.js'
-import type { Knex } from 'knex'
+import type { GQLOfficialResolvers, Announcement } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
-import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
+import { fromGlobalId } from '#common/utils/index.js'
 
 export const announcements: GQLOfficialResolvers['announcements'] = async (
   _,
-  { input: { id, visible } },
-  { dataSources: { atomService, systemService }, viewer }
+  { input: { id: GlobalId, channel: channelInput, visible } },
+  { dataSources: { systemService, atomService }, viewer }
 ) => {
   const isAdmin = viewer.hasRole('admin')
-  const visibleFilter = !isAdmin
-    ? { visible: true }
-    : typeof visible === 'boolean'
-    ? { visible }
-    : {}
+  visible = !isAdmin ? true : visible
 
-  const { id: dbId } = id ? fromGlobalId(id) : { id: null }
-  const records = await atomService.findMany({
-    table: 'announcement',
-    where: {
-      ...(dbId ? { id: dbId } : {}),
-      ...visibleFilter,
-    },
-    modifier: (builder: Knex.QueryBuilder) => {
-      builder.whereRaw(
-        `(expired_at IS NULL OR expired_at <= CURRENT_TIMESTAMP)`
-      )
-    },
-    orderBy: [{ column: 'createdAt', order: 'desc' }],
-  })
+  const { id } = GlobalId ? fromGlobalId(GlobalId) : {}
+
+  let records: Announcement[] = []
+  if (id) {
+    const record = await systemService.findAnnouncement({ id, visible })
+    records = record ? [record] : []
+  } else {
+    let channelId = undefined
+    if (channelInput?.id) {
+      channelId = fromGlobalId(channelInput.id).id
+    } else if (channelInput?.shortHash) {
+      const channel = await atomService.findUnique({
+        table: 'topic_channel',
+        where: { shortHash: channelInput.shortHash },
+      })
+      channelId = channel?.id
+    }
+    records = await systemService.findAnnouncements({ channelId, visible })
+  }
 
   // re-format announcements
   const items = await Promise.all(
     records.map(async (record) => {
       const cover = record?.cover
-        ? systemService.findAssetUrl(record.cover)
-        : null
+        ? await systemService.findAssetUrl(record.cover)
+        : ''
       return {
         ...record,
-        id: toGlobalId({ type: NODE_TYPES.Announcement, id: record.id }),
         cover,
       }
     })
   )
-  return items as any
+  return items
 }

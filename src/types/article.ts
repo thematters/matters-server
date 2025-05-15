@@ -162,7 +162,7 @@ export default /* GraphQL */ `
     pinned: Boolean!
 
     "Translation of article title and content."
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: ArticleTranslationInput): ArticleTranslation
 
     "Available translation languages."
     availableTranslations: [UserLanguage!]
@@ -253,7 +253,7 @@ export default /* GraphQL */ `
     title: String!
     summary: String!
     contents: ArticleContents!
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: ArticleTranslationInput): ArticleTranslation
     createdAt: DateTime!
     description: String
   }
@@ -277,7 +277,7 @@ export default /* GraphQL */ `
     isFollower: Boolean
 
     "Tags recommended based on relations to current tag."
-    recommended(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
+    recommended(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Authors recommended based on relations to current tag."
     recommendedAuthors(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
@@ -316,6 +316,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+    adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
     topicChannels: [ArticleTopicChannel!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -325,6 +326,11 @@ export default /* GraphQL */ `
 
     "whether this article is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
+  }
+
+  type AdStatus {
+    "whether this article is labeled as ad by human, null for not labeled yet. "
+    isAd: Boolean
   }
 
   type ArticleTopicChannel {
@@ -338,6 +344,15 @@ export default /* GraphQL */ `
 
     "whether this article channel is enabled"
     enabled: Boolean!
+
+    "datetime when this article is classified"
+    classicfiedAt: DateTime!
+  }
+
+  enum TranslationModel {
+    google_translation_v2
+    google_gemini_2_5_flash_preview
+    google_gemini_2_0_flash_001
   }
 
   type ArticleTranslation {
@@ -345,6 +360,16 @@ export default /* GraphQL */ `
     content: String
     summary: String
     language: String
+    model: TranslationModel
+  }
+
+  input ArticleTranslationInput {
+    language: UserLanguage!
+    model: TranslationModel
+  }
+
+  input TranslationArgs {
+    language: UserLanguage!
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -498,10 +523,6 @@ export default /* GraphQL */ `
     first: Int @constraint(min: 0)
     purpose: TransactionPurpose!
     senderId: ID
-  }
-
-  input TranslationArgs {
-    language: UserLanguage!
   }
 
   input RelatedDonationArticlesInput {

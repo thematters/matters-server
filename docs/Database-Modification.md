@@ -5,7 +5,7 @@ This guide outlines the steps required to add a new table to the Matters server 
 
 ## 1. Create Migration File
 
-run `npm run db:migration:make create_new_table_name_table` to create migration files:
+run `npm run db:migration:make create_new_table_name_table` to create migration files in `db/migrations/` with a timestamp prefix:
 
 ```typescript
 import { baseDown } from '../utils.js'
@@ -15,6 +15,11 @@ const table = 'new_table_name'
 export const up = async (knex) => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
+    // Use bigIncrements for primary key
+    t.bigIncrements('id').primary()
+    
+    // Use bigInteger for foreign keys
+    t.bigInteger('foreign_key_id').references('id').inTable('related_table').notNullable()
     
     // Add your table columns here
     // Example:
@@ -27,9 +32,6 @@ export const up = async (knex) => {
     // Standard timestamp columns
     t.timestamp('created_at').notNullable().defaultTo(knex.fn.now())
     t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
-    
-    // Add any foreign keys
-    // t.uuid('user_id').references('id').inTable('user')
   })
 }
 
@@ -47,12 +49,11 @@ export const STATE = {
 
 ```
 
-Second, add the table type definition in `src/definitions/newTableName.ts`:
+Second, add the table type definition in the appropriate file:
+- If the table is related to an existing entity, add the interface to that entity's type file (e.g., `announcement.d.ts` for announcement-related tables)
+- Otherwise, create a new file `src/definitions/newTableName.ts`
+
 ```typescript
-import type { STATE } from '#common/enums/newTableName.js'
-import type { ValueOf } from './generic.js'
-
-
 export interface NewTableName {
   id: string
   // Add all required columns
@@ -67,6 +68,7 @@ export interface NewTableName {
 Third, add to TableTypeMap in src/definitions/index.d.ts
 ```typescript
 import type { NewTableName } from './newTableName.js'
+
 
 export interface TableTypeMap {
   // ... existing tables ...
@@ -119,10 +121,12 @@ npm run knex migrate:rollback
 
 1. **Column Naming**: Use snake_case for column names in the database schema
 2. **Timestamps**: Include `created_at` and `updated_at` columns for most tables
+3. **ID Types**: Use `bigIncrements` for primary keys and `bigInteger` for foreign keys
 4. **Foreign Keys**: Always add appropriate foreign key constraints
 5. **Indexes**: Add indexes for columns used in WHERE clauses or JOINs
 6. **Soft Delete**: Consider adding `deleted_at` for soft delete functionality
 7. **Type Safety**: Ensure TypeScript types match database schema exactly
+8. **Type Location**: Place related interfaces in the same file (e.g., announcement-related interfaces in `announcement.d.ts`)
 
 
 ## Testing Checklist

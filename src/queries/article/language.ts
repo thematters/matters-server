@@ -1,39 +1,57 @@
 import type { GQLArticleResolvers } from '#definitions/index.js'
 
-import { stripHtml, stripMentions } from '#common/utils/index.js'
-import { GCP } from '#connectors/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLArticleResolvers['language'] = async (
-  { id: articleId },
+  { id: articleId, isSpam, spamScore },
   _,
-  { dataSources: { articleService, atomService } }
+  {
+    dataSources: {
+      articleService,
+      atomService,
+      systemService,
+      connections: { redis },
+    },
+  }
 ) => {
-  const {
-    id: versionId,
-    language: storedLanguage,
-    contentId,
-  } = await articleService.loadLatestArticleVersion(articleId)
+  const { id: articleVersionId, language: storedLanguage } =
+    await articleService.loadLatestArticleVersion(articleId)
+
   if (storedLanguage) {
     return storedLanguage
   }
 
-  const gcp = new GCP()
+  // Skip if article is marked as spam by admin
+  if (isSpam === true) {
+    return null
+  }
 
-  const { content } = await atomService.articleContentIdLoader.load(contentId)
+  // Skip if article's spam score exceeds threshold
+  const spamThreshold = await systemService.getSpamThreshold()
+  if (spamThreshold && spamScore && spamScore >= spamThreshold) {
+    return null
+  }
 
-  const excerpt = stripHtml(stripMentions(content)).slice(0, 300)
-
-  gcp.detectLanguage(excerpt).then((language) => {
-    if (language) {
-      atomService.update({
-        table: 'article_version',
-        where: { id: versionId },
-        data: { language },
-      })
+  // Detect language
+  articleService.detectLanguage(articleVersionId).then((language) => {
+    if (!language) {
+      return
     }
+
+    atomService.update({
+      table: 'article_version',
+      where: { id: articleVersionId },
+      data: { language },
+    })
+
+    // invalidate article
+    invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: articleId },
+      redis,
+    })
   })
 
-  // return first to prevent blocking
   return null
 }
 

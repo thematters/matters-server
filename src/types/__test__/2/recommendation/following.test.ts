@@ -1,312 +1,41 @@
-import type { Connections, Article } from '#definitions/index.js'
+import type { Connections } from '#definitions/index.js'
 
 import _ from 'lodash'
 
 import {
   MATERIALIZED_VIEW,
   NODE_TYPES,
-  MATTERS_CHOICE_TOPIC_STATE,
-  USER_STATE,
-  ARTICLE_STATE,
-  PAYMENT_CURRENCY,
-  TRANSACTION_PURPOSE,
-  TRANSACTION_STATE,
   USER_RESTRICTION_TYPE,
-  FEATURE_NAME,
-  FEATURE_FLAG,
+  USER_STATE,
 } from '#common/enums/index.js'
 import {
-  RecommendationService,
   AtomService,
   ArticleService,
   MomentService,
   UserService,
-  PaymentService,
-  CampaignService,
-  SystemService,
 } from '#connectors/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 
-import { makeUserFollowUserActivityQuery } from '../../../queries/user/recommendation/following/sql.js'
-import { testClient, genConnections, closeConnections } from '../utils.js'
-import {
-  createTx,
-  refreshView,
-  createCampaign,
-} from '#connectors/__test__/utils.js'
+import { makeUserFollowUserActivityQuery } from '../../../../queries/user/recommendation/following/sql.js'
+import { testClient, genConnections, closeConnections } from '../../utils.js'
+import { refreshView } from '#connectors/__test__/utils.js'
 
 let connections: Connections
-let recommendationService: RecommendationService
 let atomService: AtomService
 let articleService: ArticleService
 let momentService: MomentService
 let userService: UserService
-let paymentService: PaymentService
-let campaignService: CampaignService
-let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
-  recommendationService = new RecommendationService(connections)
   articleService = new ArticleService(connections)
   atomService = new AtomService(connections)
   momentService = new MomentService(connections)
   userService = new UserService(connections)
-  paymentService = new PaymentService(connections)
-  campaignService = new CampaignService(connections)
-  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
-})
-
-describe('icymi', () => {
-  const GET_VIEWER_RECOMMENDATION_ICYMI = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
-      viewer {
-        recommendation {
-          icymi(input: $input) {
-            totalCount
-            edges {
-              node {
-                ... on Article {
-                  id
-                  author {
-                    id
-                  }
-                  slug
-                  state
-                  cover
-                  summary
-                  mediaHash
-                  dataHash
-                  iscnId
-                  createdAt
-                  revisedAt
-                  createdAt
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `
-  test('query', async () => {
-    const server = await testClient({ connections })
-    await atomService.create({
-      table: 'matters_choice',
-      data: { articleId: '1' },
-    })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_ICYMI,
-      variables: { input: { first: 10 } },
-    })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.icymi.totalCount).toBeGreaterThan(0)
-  })
-})
-
-describe('icymi topic', () => {
-  describe('oss', () => {
-    const PUT_ICYMI_TOPIC = /* GraphQL */ `
-      mutation ($input: PutIcymiTopicInput!) {
-        putIcymiTopic(input: $input) {
-          id
-          title
-          articles {
-            id
-          }
-          note
-          pinAmount
-          state
-          publishedAt
-          archivedAt
-        }
-      }
-    `
-    const GET_OSS_ICYMI_TOPIC = /* GraphQL */ `
-      query ($input: NodeInput!) {
-        node(input: $input) {
-          id
-          ... on IcymiTopic {
-            title
-            articles {
-              id
-            }
-            note
-            state
-            publishedAt
-            archivedAt
-          }
-        }
-      }
-    `
-    const GET_OSS_ICYMI_TOPICS = /* GraphQL */ `
-      query ($input: ConnectionArgs!) {
-        oss {
-          icymiTopics(input: $input) {
-            totalCount
-            edges {
-              node {
-                id
-                ... on IcymiTopic {
-                  title
-                  articles {
-                    id
-                  }
-                  note
-                  state
-                  publishedAt
-                  archivedAt
-                }
-              }
-            }
-          }
-        }
-      }
-    `
-    const title = 'test title'
-    const pinAmount = 3
-    const articles = ['1', '2', '3'].map((id) =>
-      toGlobalId({ type: NODE_TYPES.Article, id })
-    )
-    const note = 'test note'
-    test('only admin can mutate icymit topic', async () => {
-      const server = await testClient({ connections })
-      const { errors: errorsVisitor } = await server.executeOperation({
-        query: PUT_ICYMI_TOPIC,
-        variables: { input: { title, articles, pinAmount, note } },
-      })
-      expect(errorsVisitor).toBeDefined()
-
-      const authedServer = await testClient({ connections, isAuth: true })
-      const { errors: errorsAuthed } = await authedServer.executeOperation({
-        query: PUT_ICYMI_TOPIC,
-        variables: { input: { title, articles, pinAmount, note } },
-      })
-      expect(errorsAuthed).toBeDefined()
-
-      const adminServer = await testClient({
-        connections,
-        isAuth: true,
-        isAdmin: true,
-      })
-      const { errors, data } = await adminServer.executeOperation({
-        query: PUT_ICYMI_TOPIC,
-        variables: { input: { title, articles, pinAmount, note } },
-      })
-      expect(errors).toBeUndefined()
-      expect(data.putIcymiTopic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
-      expect(data.putIcymiTopic.pinAmount).toBe(3)
-      expect(data.putIcymiTopic.articles.length).toBe(3)
-      expect(data.putIcymiTopic.publishedAt).toBeNull()
-      expect(data.putIcymiTopic.archivedAt).toBeNull()
-
-      // only update fields provided
-      const { data: data2, errors: errors2 } =
-        await adminServer.executeOperation({
-          query: PUT_ICYMI_TOPIC,
-          variables: { input: { id: data.putIcymiTopic.id, pinAmount: 6 } },
-        })
-      expect(errors2).toBeUndefined()
-      expect(data2.putIcymiTopic.pinAmount).toBe(6)
-      expect(data2.putIcymiTopic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
-      expect(data2.putIcymiTopic.articles.length).toBe(3)
-      expect(data2.putIcymiTopic.publishedAt).toBeNull()
-      expect(data2.putIcymiTopic.archivedAt).toBeNull()
-    })
-    test('only admin can views icymit topics list', async () => {
-      const server = await testClient({ connections })
-      const { data: dataVisitor } = await server.executeOperation({
-        query: GET_OSS_ICYMI_TOPICS,
-        variables: { input: { first: 10 } },
-      })
-      expect(dataVisitor).toBeNull()
-
-      const authedServer = await testClient({ connections, isAuth: true })
-      const { data: dataAuthed } = await authedServer.executeOperation({
-        query: GET_OSS_ICYMI_TOPICS,
-        variables: { input: { first: 10 } },
-      })
-      expect(dataAuthed).toBe(null)
-
-      const adminServer = await testClient({
-        connections,
-        isAuth: true,
-        isAdmin: true,
-      })
-      const { errors, data } = await adminServer.executeOperation({
-        query: GET_OSS_ICYMI_TOPICS,
-        variables: { input: { first: 10 } },
-      })
-      expect(errors).toBeUndefined()
-      expect(data.oss.icymiTopics.totalCount).toBeGreaterThan(0)
-    })
-    test('query icymi topic', async () => {
-      const server = await testClient({ connections })
-      const { data } = await server.executeOperation({
-        query: GET_OSS_ICYMI_TOPIC,
-        variables: {
-          input: { id: toGlobalId({ type: NODE_TYPES.IcymiTopic, id: 1 }) },
-        },
-      })
-      expect(data).toBeDefined()
-    })
-  })
-
-  const GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC = /* GraphQL */ `
-    query {
-      viewer {
-        recommendation {
-          icymiTopic {
-            id
-            title
-            articles {
-              id
-            }
-            note
-            state
-            publishedAt
-            archivedAt
-          }
-        }
-      }
-    }
-  `
-  test('query null', async () => {
-    const server = await testClient({ connections })
-    await atomService.updateMany({
-      table: 'matters_choice_topic',
-      where: { state: MATTERS_CHOICE_TOPIC_STATE.published },
-      data: { state: MATTERS_CHOICE_TOPIC_STATE.archived },
-    })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC,
-    })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.icymiTopic).toBeNull()
-  })
-  test('query', async () => {
-    const title = 'test title 2'
-    const articleIds = ['1', '2', '3']
-    const topic = await recommendationService.createIcymiTopic({
-      title,
-      articleIds,
-      pinAmount: 3,
-    })
-    await recommendationService.publishIcymiTopic(topic.id)
-    const server = await testClient({ connections })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC,
-    })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.icymiTopic.title).toBe(title)
-    expect(data.viewer.recommendation.icymiTopic.articles.length).toBe(
-      articleIds.length
-    )
-  })
 })
 
 describe('following UserFollowUserActivity', () => {
@@ -658,143 +387,5 @@ describe('following UserPostMomentActivity', () => {
       })
     expect(emptyErrors).toBeUndefined()
     expect(emptyData.viewer.recommendation.following.totalCount).toBe(0)
-  })
-})
-
-describe('hottest articles', () => {
-  const GET_VIEWER_RECOMMENDATION_HOTTEST = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
-      viewer {
-        recommendation {
-          hottest(input: $input) {
-            totalCount
-            edges {
-              node {
-                ... on Article {
-                  id
-                  author {
-                    id
-                  }
-                  slug
-                  state
-                  cover
-                  summary
-                  mediaHash
-                  dataHash
-                  iscnId
-                  createdAt
-                  revisedAt
-                  createdAt
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `
-  let article: Article
-
-  beforeAll(async () => {
-    // make `max_efficiency` bigger than 0
-    article = await atomService.findFirst({
-      table: 'article',
-      where: { state: ARTICLE_STATE.active },
-    })
-    const senderId = '3'
-    expect(article.authorId).not.toBe(senderId)
-    await articleService.read({ articleId: article.id, userId: senderId })
-    // donate 1 HKD and `count_normal_transaction` (article_hottest_view internal value) will be 1
-    await createTx(
-      {
-        senderId,
-        recipientId: article.authorId,
-        purpose: TRANSACTION_PURPOSE.donation,
-        currency: PAYMENT_CURRENCY.HKD,
-        state: TRANSACTION_STATE.succeeded,
-        targetId: article.id,
-        amount: 1,
-      },
-      paymentService
-    )
-    await refreshView(
-      MATERIALIZED_VIEW.article_hottest_materialized,
-      connections.knex
-    )
-    const server = await testClient({ connections })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
-    })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.hottest.totalCount).toBe(1)
-  })
-
-  test('tag_boost works', async () => {
-    const { score, tagBoostEff, scorePrev } = await atomService.findFirst({
-      table: 'article_hottest_view',
-      where: { id: article.id },
-    })
-    expect(scorePrev * _.clamp(tagBoostEff, 0.5, 2)).toBe(score)
-  })
-  test('campaign_boost works', async () => {
-    const [campaign] = await createCampaign(campaignService, article)
-    const boost = 10
-    await connections
-      .knex('campaign_boost')
-      .insert({ campaignId: campaign.id, boost })
-
-    const { score, tagBoostEff, campaignBoostEff, scorePrev } =
-      await atomService.findFirst({
-        table: 'article_hottest_view',
-        where: { id: article.id },
-      })
-    expect(campaignBoostEff).toBe(boost)
-    expect(
-      scorePrev *
-        _.clamp(tagBoostEff, 0.5, 2) *
-        _.clamp(campaignBoostEff, 0.5, 2)
-    ).toBe(score)
-  })
-  // TODO: move hottest query to service and test spam filter logic there
-  test('spam are excluded', async () => {
-    const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
-
-    // both `is_spam` and `spam_score` are null, not excluded
-    const server = await testClient({ connections })
-    const { data: data1 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 1 } },
-    })
-    expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
-
-    // `spam_score` = `spam_threshold`, excluded
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { spamScore: spamThreshold },
-    })
-    const { data: data2 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 2 } },
-    })
-    expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
-
-    // `is_spam` = false, not excluded
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { isSpam: false },
-    })
-    const { data: data3 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 3 } },
-    })
-    expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
   })
 })

@@ -8,8 +8,15 @@ import {
   COMMENT_STATE,
   FEATURE_FLAG,
   FEATURE_NAME,
+  ASSET_TYPE,
 } from '#common/enums/index.js'
-import { SystemService, AtomService, MomentService } from '#connectors/index.js'
+import { AssetNotFoundError } from '#common/errors.js'
+import {
+  SystemService,
+  AtomService,
+  MomentService,
+  ChannelService,
+} from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
@@ -26,11 +33,12 @@ const assetValidation = {
 let connections: Connections
 let systemService: SystemService
 let atomService: AtomService
-
+let channelService: ChannelService
 beforeAll(async () => {
   connections = await genConnections()
   systemService = new SystemService(connections)
   atomService = new AtomService(connections)
+  channelService = new ChannelService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -237,4 +245,237 @@ test('setFeature', async () => {
 test('get spam threshold', async () => {
   const threshold = await systemService.getSpamThreshold()
   expect(threshold).toBe(0.5)
+})
+
+describe('announcement', () => {
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'channel_announcement' })
+    await atomService.deleteMany({ table: 'announcement' })
+  })
+  const createAnnouncement = async ({
+    expiredAt,
+    visible,
+  }: { expiredAt?: Date; visible?: boolean } = {}) => {
+    return await atomService.create({
+      table: 'announcement',
+      data: {
+        title: 'test',
+        content: 'test',
+        link: 'https://example.com',
+        visible: visible ?? true,
+        order: 1,
+        type: 'product',
+        expiredAt: expiredAt ?? null,
+      },
+    })
+  }
+  test('findAnnouncement by id', async () => {
+    // return null if announcement not found
+    const announcement0 = await systemService.findAnnouncement({
+      id: '1',
+    })
+    expect(announcement0).toBeNull()
+
+    // return announcement if found
+    const createdAnnouncement = await createAnnouncement()
+
+    const announcement1 = await systemService.findAnnouncement({
+      id: createdAnnouncement.id,
+    })
+    expect(announcement1).toBeDefined()
+    expect(announcement1?.id).toBe(createdAnnouncement.id)
+  })
+
+  test('findAnnouncement with visibility filter', async () => {
+    const createdAnnouncement = await createAnnouncement()
+    const visibleAnnouncement = await systemService.findAnnouncement({
+      id: createdAnnouncement.id,
+      visible: true,
+    })
+    expect(visibleAnnouncement).toBeDefined()
+    expect(visibleAnnouncement?.visible).toBe(true)
+
+    const invisibleAnnouncement = await systemService.findAnnouncement({
+      id: createdAnnouncement.id,
+      visible: false,
+    })
+    expect(invisibleAnnouncement).toBeNull()
+  })
+
+  test('findAnnouncement with expired announcement', async () => {
+    // Create an expired announcement
+    const expiredAnnouncement = await createAnnouncement({
+      expiredAt: new Date(Date.now() - 1000),
+    })
+
+    const result = await systemService.findAnnouncement({
+      id: expiredAnnouncement.id,
+    })
+    expect(result).toBeNull()
+  })
+
+  test('findAnnouncements without filters', async () => {
+    const createdAnnouncement = await createAnnouncement()
+    const announcements = await systemService.findAnnouncements({})
+    expect(Array.isArray(announcements)).toBe(true)
+    expect(announcements.length).toBe(1)
+    expect(announcements[0].id).toBe(createdAnnouncement.id)
+  })
+
+  test('findAnnouncements with channel filter', async () => {
+    const createdAnnouncement = await createAnnouncement({ visible: false })
+    const channel = await channelService.createTopicChannel({
+      name: 'test',
+      providerId: 'test',
+      enabled: true,
+    })
+
+    const announcements1 = await systemService.findAnnouncements({
+      channelId: channel.id,
+    })
+    expect(announcements1.length).toBe(0)
+
+    // Verify all announcements are associated with the channel
+    const channelAnnouncement = await atomService.create({
+      table: 'channel_announcement',
+      data: {
+        channelId: channel.id,
+        announcementId: createdAnnouncement.id,
+        visible: false,
+      },
+    })
+
+    const announcements2 = await systemService.findAnnouncements({
+      channelId: channel.id,
+    })
+    expect(announcements2.length).toBe(1)
+    expect(announcements2[0].id).toBe(createdAnnouncement.id)
+
+    const announcements3 = await systemService.findAnnouncements({
+      channelId: channel.id,
+      visible: true,
+    })
+    expect(announcements3.length).toBe(0)
+
+    await atomService.update({
+      table: 'channel_announcement',
+      where: {
+        id: channelAnnouncement.id,
+      },
+      data: { visible: true },
+    })
+
+    const announcements4 = await systemService.findAnnouncements({
+      channelId: channel.id,
+      visible: true,
+    })
+    expect(announcements4.length).toBe(1)
+    expect(announcements4[0].id).toBe(createdAnnouncement.id)
+  })
+
+  test('findAnnouncements with visibility filter', async () => {
+    const visibleAnnouncements = await systemService.findAnnouncements({
+      visible: true,
+    })
+    expect(Array.isArray(visibleAnnouncements)).toBe(true)
+    visibleAnnouncements.forEach((announcement) => {
+      expect(announcement.visible).toBe(true)
+    })
+
+    const invisibleAnnouncements = await systemService.findAnnouncements({
+      visible: false,
+    })
+    expect(Array.isArray(invisibleAnnouncements)).toBe(true)
+    invisibleAnnouncements.forEach((announcement) => {
+      expect(announcement.visible).toBe(false)
+    })
+  })
+})
+
+describe('validateArticleCover', () => {
+  test('validates cover asset successfully', async () => {
+    // Create a valid cover asset
+    const data = {
+      uuid: v4(),
+      authorId: '1',
+      type: ASSET_TYPE.cover,
+      path: 'path/to/cover.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should not throw error for valid cover
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).resolves.not.toThrow()
+  })
+
+  test('validates embed asset successfully', async () => {
+    // Create a valid embed asset
+    const data = {
+      uuid: v4(),
+      authorId: '1',
+      type: ASSET_TYPE.embed,
+      path: 'path/to/embed.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should not throw error for valid embed
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).resolves.not.toThrow()
+  })
+
+  test('throws error for non-existent asset', async () => {
+    // Should throw error for non-existent asset
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: v4(),
+        userId: '1',
+      })
+    ).rejects.toThrow(AssetNotFoundError)
+  })
+
+  test('throws error for invalid asset type', async () => {
+    // Create an asset with invalid type
+    const data = {
+      uuid: v4(),
+      authorId: '1',
+      type: ASSET_TYPE.avatar, // Invalid type for article cover
+      path: 'path/to/avatar.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should throw error for invalid asset type
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).rejects.toThrow(AssetNotFoundError)
+  })
+
+  test('throws error for asset owned by different user', async () => {
+    // Create an asset owned by user 2
+    const data = {
+      uuid: v4(),
+      authorId: '2',
+      type: ASSET_TYPE.cover,
+      path: 'path/to/cover.jpg',
+    }
+    const asset = await atomService.create({ table: 'asset', data })
+
+    // Should throw error when user 1 tries to use user 2's asset
+    await expect(
+      systemService.validateArticleCover({
+        coverUUID: asset.uuid,
+        userId: '1',
+      })
+    ).rejects.toThrow(AssetNotFoundError)
+  })
 })

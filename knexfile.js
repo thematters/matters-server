@@ -17,6 +17,7 @@ const baseConfig = {
     user: process.env.MATTERS_PG_USER,
     password: process.env.MATTERS_PG_PASSWORD,
     database: process.env.MATTERS_PG_DATABASE,
+    port: process.env.MATTERS_PG_PORT || 5432,
     application_name: `${name}/${version}`,
   },
   migrations: {

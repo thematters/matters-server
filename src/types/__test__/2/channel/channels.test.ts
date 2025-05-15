@@ -310,6 +310,7 @@ describe('channels query', () => {
               score
               isLabeled
               enabled
+              classicfiedAt
             }
           }
         }
@@ -414,6 +415,7 @@ describe('channels query', () => {
       expect(channel1Result.score).toBe(0.8)
       expect(channel1Result.isLabeled).toBe(true)
       expect(channel1Result.enabled).toBe(true)
+      expect(channel1Result.classicfiedAt).toBeDefined()
 
       // Verify channel 2
       const channel2Result = data.article.oss.topicChannels.find(
@@ -426,6 +428,7 @@ describe('channels query', () => {
       expect(channel2Result.score).toBe(0.6)
       expect(channel2Result.isLabeled).toBe(false)
       expect(channel2Result.enabled).toBe(true)
+      expect(channel2Result.classicfiedAt).toBeDefined()
     })
   })
 })

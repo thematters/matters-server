@@ -228,7 +228,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
 
     data = {
       ...data,
-      collection: connections,
+      connections,
     }
   }
 

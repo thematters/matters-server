@@ -128,7 +128,7 @@ const createPendingDraft = async () => {
         summary: 'test summary',
         content: contentHTML,
         publishState: PUBLISH_STATE.pending,
-        collection: connections,
+        connections,
         campaigns: JSON.stringify([
           { campaign: campaign.id, stage: stages[0].id },
         ]),

@@ -18,6 +18,7 @@ export interface Article {
   shortHash: string
   spamScore: number | null
   isSpam: boolean | null
+  isAd: boolean | null
 }
 
 export interface ArticleVersion {
@@ -108,6 +109,7 @@ export interface ArticleTranslation {
   title: string
   content: string
   summary: string | null
+  model: string
   createdAt: Date
   updatedAt: Date
 }
@@ -119,6 +121,20 @@ export interface ArticleCountView {
   commenters1d
   recentCommentSince
   score
+}
+
+export interface ArticleReadCount {
+  id: string
+  userId: string
+  articleId: string
+  count: string
+  archived: boolean
+  ip: string
+  createdAt: Date
+  updatedAt: Date
+  readTime: string
+  timedCount: string
+  lastRead: Date
 }
 
 export interface ArticleReadTimeMaterialized {

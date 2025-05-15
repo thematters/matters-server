@@ -96,6 +96,50 @@ describe('query oss articles', () => {
     expect(errors5).toBeUndefined()
     expect(data5.oss.articles.edges.length).toBeGreaterThan(1)
   })
+
+  test('query articles with datetimeRange filter', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    // Test with a future date range (should return no results)
+    const futureDate = new Date()
+    futureDate.setFullYear(futureDate.getFullYear() + 1)
+    const { data: futureData } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: {
+        input: {
+          filter: {
+            datetimeRange: {
+              start: futureDate,
+              end: new Date(futureDate.getTime() + 86400000), // next day
+            },
+          },
+        },
+      },
+    })
+    expect(futureData.oss.articles.edges.length).toBe(0)
+
+    // Test with a past date range
+    const pastDate = new Date()
+    pastDate.setFullYear(pastDate.getFullYear() - 1)
+    const { data: pastData } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: {
+        input: {
+          filter: {
+            datetimeRange: {
+              start: pastDate,
+              end: new Date(),
+            },
+          },
+        },
+      },
+    })
+    expect(pastData.oss.articles.edges.length).toBeGreaterThan(0)
+  })
 })
 
 describe('query article oss', () => {

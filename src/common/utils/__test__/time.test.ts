@@ -4,6 +4,7 @@ import {
   getUTCNextMonday,
   getUTCNextMonthDayOne,
   fromDatetimeRangeString,
+  daysToDatetimeRange,
 } from '#common/utils/index.js'
 
 const UTC_1975_08_19_16 = new Date('August 19, 1975 16:30:00 GMT+00:00')
@@ -218,4 +219,25 @@ describe('fromDatetimeRangeString', () => {
     expect(start.getTime()).toEqual(new Date(0).getTime())
     expect(end?.getTime()).toEqual(new Date(0).getTime())
   })
+})
+
+test('daysToDatetimeRange', async () => {
+  const date = new Date('2024-01-28T16:30:00+08:00')
+  // Test with 1 day
+  const oneDayRange = daysToDatetimeRange(1, date)
+  expect(oneDayRange.start.getTime()).toBe(
+    new Date('2024-01-27T00:00:00+08:00').getTime()
+  )
+  expect(oneDayRange.end.getTime()).toBe(
+    new Date('2024-01-28T00:00:00+08:00').getTime()
+  )
+
+  // Test with 7 days
+  const sevenDaysRange = daysToDatetimeRange(7, date)
+  expect(sevenDaysRange.start.getTime()).toBe(
+    new Date('2024-01-21T00:00:00+08:00').getTime()
+  )
+  expect(sevenDaysRange.end.getTime()).toBe(
+    new Date('2024-01-28T00:00:00+08:00').getTime()
+  )
 })
