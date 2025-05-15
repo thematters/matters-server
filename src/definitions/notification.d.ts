@@ -428,6 +428,9 @@ export type NotificationParams =
   | NoticeUserNewFollowerParams
   // Article
   | NoticeArticlePublishedParams
+  | NoticeArticlePublishedWithCollectionFailureParams
+  | NoticeArticlePublishedWithCampaignFailureParams
+  | NoticeArticlePublishedWithConnectionFailureParams
   | NoticeArticleNewConnectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams

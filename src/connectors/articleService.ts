@@ -2380,7 +2380,11 @@ export class ArticleService extends BaseService<Article> {
     // Note: the following steps won't affect the publication.
     try {
       // Step 4: handle collection, circles, tags & mentions
-      await this.handleConnections(article, articleVersion)
+      await this.handleConnections({
+        article,
+        articleVersion,
+        scheduled,
+      })
       await this.handleCircle({
         article,
         articleVersion,
@@ -2477,41 +2481,65 @@ export class ArticleService extends BaseService<Article> {
     )
   }
 
-  private handleConnections = async (
-    article: Article,
+  private handleConnections = async ({
+    article,
+    articleVersion,
+    scheduled,
+  }: {
+    article: Article
     articleVersion: ArticleVersion
-  ) => {
+    scheduled: boolean
+  }) => {
     if (articleVersion.connections.length <= 0) {
       return
     }
 
     const notificationService = new NotificationService(this.connections)
 
-    const items = articleVersion.connections.map(
-      (articleId: string, index: number) => ({
-        entranceId: article.id,
-        articleId,
-        order: index,
-      })
+    const connections: Array<
+      Pick<ArticleConnection, 'entranceId' | 'articleId' | 'order'>
+    > = []
+    const successed: Article[] = []
+    const faileded: Article[] = []
+    await Promise.all(
+      articleVersion.connections.map(
+        async (articleId: string, index: number) => {
+          const _article = await this.models.findUnique({
+            table: 'article',
+            where: { id: articleId },
+          })
+          if (!_article) {
+            logger.warn(`article connection not found: ${articleId}`)
+            return
+          }
+
+          if (_article.state !== ARTICLE_STATE.active) {
+            faileded.push(_article)
+            return
+          }
+          successed.push(_article)
+          connections.push({
+            entranceId: article.id,
+            articleId,
+            order: index,
+          })
+        }
+      )
     )
-    await this.baseBatchCreate<ArticleConnection>(items, 'article_connection')
+
+    await this.baseBatchCreate<ArticleConnection>(
+      connections,
+      'article_connection'
+    )
 
     // trigger notifications
-    articleVersion.connections.forEach(async (id: string) => {
-      const connection = await this.models.findUnique({
-        table: 'article',
-        where: { id },
-      })
-      if (!connection) {
-        logger.warn(`article connection not found: ${id}`)
-        return
-      }
+    successed.forEach(async (a: Article) => {
       notificationService.trigger({
         event: NOTICE_TYPE.article_new_collected,
-        recipientId: connection.authorId,
+        recipientId: a.authorId,
         actorId: article.authorId,
         entities: [
-          { type: 'target', entityTable: 'article', entity: connection },
+          { type: 'target', entityTable: 'article', entity: a },
           {
             // TODO: rename to 'connection' and migrate notice_entity table
             type: 'collection',
@@ -2521,6 +2549,21 @@ export class ArticleService extends BaseService<Article> {
         ],
       })
     })
+
+    if (scheduled) {
+      notificationService.trigger({
+        event: NOTICE_TYPE.scheduled_article_published_with_connection_failure,
+        recipientId: article.authorId,
+        entities: [
+          { type: 'target', entityTable: 'article', entity: article },
+          ...faileded.map((failedArticle: Article) => ({
+            type: 'connection' as const,
+            entityTable: 'connection' as const,
+            entity: failedArticle,
+          })),
+        ],
+      })
+    }
   }
 
   private handleCircle = async ({
