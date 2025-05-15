@@ -1,35 +1,58 @@
+import type { User } from '#root/src/definitions/index.js'
+
 import {
   COOKIE_LANGUAGE,
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
 } from '#common/enums/index.js'
-import { isProd, isTest } from '#common/environment.js'
+import { isTest } from '#common/environment.js'
 import { extractRootDomain, getUserGroup } from '#common/utils/index.js'
 import { CookieOptions, Request, Response } from 'express'
 
-const isDevOrigin = (url: string) =>
-  /(localhost|127\.0\.0\.1)(:\d+)?$/.test(url) || /\.vercel\.app$/.test(url)
+/**
+ * Provides standardized cookie configuration with security best practices:
+ * - httpOnly: Prevents JavaScript access to sensitive cookies
+ * - secure: Ensures cookies are only sent over HTTPS
+ * - domain: Controls cross-subdomain accessibility
+ * - sameSite: Manages cross-site request behavior
+ */
+const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
+  // e.g. server.matters.town
+  const hostname = req.hostname
+  const tld = extractRootDomain(hostname) // e.g. matters.town
 
-const getCookieOption = ({
-  req,
-  httpOnly,
-  sameSite,
-  domain,
-}: {
-  req: Request
-  httpOnly?: boolean
-  sameSite?: boolean | 'strict' | 'lax' | 'none'
-  domain?: string
-}) =>
-  ({
+  // Add dot prefix to enable cookie sharing across subdomains
+  // This allows cookies to be accessible by both matters.town (Next.js SSR)
+  // and server.matters.town (API server)
+  const domain = `.${tld}`
+
+  // Local env needs SameSite=None for cross-origin functionality
+  // Development & production envs use SameSite=Lax for
+  // security while allowing cookies on navigation
+  const localOrigin = /(localhost|127\.0\.0\.1)(:\d+)?$/.test(
+    req.headers.origin || ''
+  )
+
+  return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
-    httpOnly,
+    httpOnly: true,
     secure: true,
     domain,
-    sameSite,
-  } as CookieOptions)
+    sameSite: localOrigin ? 'none' : 'lax',
+  }
+}
 
+/**
+ * Sets authentication and user preference cookies with appropriate security settings.
+ *
+ * Cookie design addresses several requirements:
+ * 1. Cross-subdomain sharing: API (server.matters.town) and website (matters.town)
+ *    need to share cookies for Next.js SSR authentication
+ * 2. Development flexibility: Local environments need special handling
+ * 3. Security: Cookies use httpOnly and secure flags
+ * 4. CSRF protection: Uses SameSite=Lax in production
+ */
 export const setCookie = ({
   req,
   res,
@@ -39,90 +62,41 @@ export const setCookie = ({
   req: Request
   res: Response
   token?: string
-  user: any
+  user: User
 }) => {
   if (isTest) {
     // skip during testing
     return
   }
 
-  // e.g. server.matters.news / server-develop.matters.news
-  const hostname = req.hostname
-  const tld = extractRootDomain(hostname) // matters.news
-  const domain = isProd ? tld : hostname
+  const cookieOptions = getCookieOptions({ req })
 
-  // e.g. *.vercel.app / localhost
-  const devOrigin = isDevOrigin(req.headers.origin || '')
-
-  // cookie:token
+  // cookie:token - Contains user authentication JWT
   if (token) {
-    res.cookie(
-      COOKIE_TOKEN_NAME,
-      token,
-      getCookieOption({
-        req,
-        domain,
-        httpOnly: true,
-        sameSite: devOrigin ? 'none' : 'lax',
-      })
-    )
+    res.cookie(COOKIE_TOKEN_NAME, token, cookieOptions)
   }
 
-  // cookie:user group
-  res.cookie(
-    COOKIE_USER_GROUP,
-    getUserGroup(user),
-    getCookieOption({
-      req,
-      domain,
-      httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'lax',
-    })
-  )
+  // cookie:user_group - Used for feature targeting and analytics
+  res.cookie(COOKIE_USER_GROUP, getUserGroup(user), cookieOptions)
 
-  // cookie:language
-  res.cookie(
-    COOKIE_LANGUAGE,
-    user.language,
-    getCookieOption({
-      req,
-      domain,
-      httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'lax',
-    })
-  )
+  // cookie:language - Stores user language preference
+  res.cookie(COOKIE_LANGUAGE, user.language, cookieOptions)
 }
 
+/**
+ * Properly clears authentication cookies using the same settings
+ * used when creating them, which is required for cookie removal to work.
+ *
+ * Note: Language cookies could be preserved for anonymous users in future.
+ */
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
-  // e.g. server.matters.news / server-develop.matters.news
-  const hostname = req.hostname
-  const tld = extractRootDomain(hostname) // matters.news
-  const domain = isProd ? tld : hostname
-
-  // e.g. *.vercel.app / localhost
-  const devOrigin = isDevOrigin(req.headers.origin || '')
+  // Must use same cookie options when clearing as when setting
+  // clearCookie needs matching domain and path values
+  const cookieOptions = getCookieOptions({ req })
 
   // cookie:token
-  res.clearCookie(
-    COOKIE_TOKEN_NAME,
-    getCookieOption({
-      req,
-      domain,
-      httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'lax',
-    })
-  )
+  res.clearCookie(COOKIE_TOKEN_NAME, cookieOptions)
 
-  // cookie:user group
-  res.clearCookie(
-    COOKIE_USER_GROUP,
-    getCookieOption({
-      req,
-      domain,
-      httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'lax',
-    })
-  )
-
-  // TBD: keep language cookies for anonymous language settings
+  // cookie:user_group
+  res.clearCookie(COOKIE_USER_GROUP, cookieOptions)
 }
