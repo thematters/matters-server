@@ -38,7 +38,6 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
    */
   let notIn: string[] = id ? [id] : []
   if (filter?.followed === false && id) {
-    // TODO: move this logic to db layer
     const followees = await userService.findFollowees({
       userId: id,
       take: 999,
@@ -76,9 +75,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
       keys: {
         type: 'recommendationAuthors',
         args: {
-          viewerId: viewer.id,
           channelId,
-          take: _take,
         },
       },
       getter: async () => {
