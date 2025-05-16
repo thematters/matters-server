@@ -85,11 +85,14 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
         const { query } = await recommendationService.recommendAuthors(
           channelId
         )
-        return query.whereNotIn('author_id', notIn).limit(_take)
+        return query
       },
       expire: CACHE_TTL.LONG,
     })
-    const chunks = chunk(authorIds, draw)
+    const filtered = authorIds.filter(
+      ({ authorId }) => !notIn.includes(authorId)
+    )
+    const chunks = chunk(filtered, draw)
     const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
     const randomAuthorIds = chunks[index] || []
     const randomAuthors = await atomService.userIdLoader.loadMany(
