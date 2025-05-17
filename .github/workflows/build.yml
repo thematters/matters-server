@@ -128,7 +128,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build, tag, and push image to Amazon ECR for Server
         if: (inputs.environment == 'develop' || inputs.environment == 'production') && inputs.skip_docker != true
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
@@ -136,6 +136,16 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: matters-server
+          IMAGE_TAG: ${{ inputs.environment == 'develop' && 'develop' || 'prod' }}
+
+      - name: Build, tag, and push image to Amazon ECR for Lambda
+        if: (inputs.environment == 'develop' || inputs.environment == 'production') && inputs.skip_docker != true
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.lambda .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: lambda-handlers-image
           IMAGE_TAG: ${{ inputs.environment == 'develop' && 'develop' || 'prod' }}
 
       # Upload artifacts
