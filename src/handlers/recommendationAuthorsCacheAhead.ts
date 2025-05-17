@@ -4,13 +4,13 @@ import { RecommendationService, CacheService } from '#connectors/index.js'
 import { connections } from '../routes/connections.js'
 
 type Event = {
-  data: {
+  data?: {
     channelId?: string
   }
 }
 
 export const handler = async (event: Event) => {
-  const { channelId } = event.data
+  const channelId = event?.data?.channelId
   const cacheService = new CacheService(
     CACHE_PREFIX.RECOMMENDATION_AUTHORS,
     connections.objectCacheRedis

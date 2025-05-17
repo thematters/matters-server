@@ -36,8 +36,7 @@
     "gen:types": "graphql-codegen-esm --config codegen.json # detail docs see https://the-guild.dev/graphql/codegen/plugins/typescript/typescript",
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
-    "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql",
-    "prepare": "husky"
+    "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql"
   },
   "dependencies": {
     "@alchemy/aa-accounts": "^3.19.0",
@@ -199,6 +198,10 @@
     "#queries/*": {
       "dev-import": "./src/queries/*",
       "default": "./build/queries/*"
+    },
+    "#handlers/*": {
+      "dev-import": "./src/handlers/*",
+      "default": "./build/handlers/*"
     }
   },
   "prettier": {
