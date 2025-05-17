@@ -31,7 +31,7 @@ export const handler = async (event: Event) => {
   return {
     statusCode: 200,
     body: JSON.stringify({
-      message: 'Recommendation authors cached',
+      message: 'Recommendation tags cached',
     }),
   }
 }
