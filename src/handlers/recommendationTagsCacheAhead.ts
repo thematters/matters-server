@@ -12,7 +12,7 @@ type Event = {
 export const handler = async (event: Event) => {
   const channelId = event?.data?.channelId
   const cacheService = new CacheService(
-    CACHE_PREFIX.RECOMMENDATION_AUTHORS,
+    CACHE_PREFIX.RECOMMENDATION_TAGS,
     connections.objectCacheRedis
   )
   const recommendationService = new RecommendationService(connections)
