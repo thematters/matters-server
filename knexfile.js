@@ -3,6 +3,8 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { environment } from '#common/environment.js'
+
 const require = createRequire(import.meta.url)
 const { name, version } = require('./package.json')
 
@@ -11,13 +13,13 @@ dotenv.config()
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const baseConfig = {
-  client: 'postgresql',
+  client: 'pg',
   connection: {
-    host: process.env.MATTERS_PG_HOST,
-    user: process.env.MATTERS_PG_USER,
-    password: process.env.MATTERS_PG_PASSWORD,
-    database: process.env.MATTERS_PG_DATABASE,
-    port: process.env.MATTERS_PG_PORT || 5432,
+    host: environment.pgHost,
+    user: environment.pgUser,
+    password: environment.pgPassword,
+    database: environment.pgDatabase,
+    port: environment.pgPort,
     application_name: `${name}/${version}`,
   },
   migrations: {
@@ -41,8 +43,6 @@ export default {
   },
 
   development: baseConfig,
-
-  stage: baseConfig,
 
   production: {
     ...baseConfig,

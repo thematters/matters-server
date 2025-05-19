@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ steps.login-ecr.outputs.repository }}:${{ inputs.environment == 'develop' && 'develop' || 'prod' }}
-      function_postfix: ${{ inputs.environment == 'develop' && 'dev' || 'prod' }}
+      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ steps.login-ecr.outputs.repository }}:matters-server-${{ github.SHA }}
+      matters_env: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
 
     steps:
       - name: Download deployment package
@@ -54,36 +54,32 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: lambda-handlers-image
-          IMAGE_TAG: ${{ inputs.environment == 'develop' && 'develop' || 'prod' }}
+          IMAGE_TAG: matters-server-${{ github.SHA }}
 
-  update-recommendation-authors-cache-ahead:
+  deploy-recommendation-authors-cache-ahead:
     needs: build-lambda-image
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Update Lambda
-        run: |
-          aws lambda update-function-code --function-name $FUNCTION_NAME \
-            --image-uri $IMAGE_URL
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: recommendation-authors-cache-ahead-${{ inputs.environment }}
+          template: ./deployment/lambda/recommendation-cache-ahead.yml
+          parameter-overrides: mattersEnv=$MATTERS_ENV,imageUri=$IMAGE_URL,lambdaCMD=recommendationAuthorsCacheAhead.handler
         env:
-          FUNCTION_NAME: recommendation-authors-cache-ahead-${{ needs.build-lambda-image.outputs.function_postfix }}
+          MATTERS_ENV: ${{ needs.build-lambda-image.outputs.matters_env }}
           IMAGE_URL: ${{ needs.build-lambda-image.outputs.image_uri }}
 
-  update-recommendation-tags-cache-ahead:
+  deploy-recommendation-tags-cache-ahead:
     needs: build-lambda-image
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Update Lambda
-        run: |
-          aws lambda update-function-code --function-name $FUNCTION_NAME \
-            --image-uri $IMAGE_URL
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: recommendation-tags-cache-ahead-${{ inputs.environment }}
+          template: ./deployment/lambda/recommendation-cache-ahead.yml
+          parameter-overrides: mattersEnv=$MATTERS_ENV,imageUri=$IMAGE_URL,lambdaCMD=recommendationTagsCacheAhead.handler
         env:
-          FUNCTION_NAME: recommendation-tags-cache-ahead-${{ needs.build-lambda-image.outputs.function_postfix }}
+          MATTERS_ENV: ${{ needs.build-lambda-image.outputs.matters_env }}
           IMAGE_URL: ${{ needs.build-lambda-image.outputs.image_uri }}
