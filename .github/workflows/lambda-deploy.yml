@@ -1,0 +1,89 @@
+name: Lambda Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment (develop, production)'
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true
+
+jobs:
+  build-lambda-image:
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ steps.login-ecr.outputs.repository }}:${{ inputs.environment == 'develop' && 'develop' || 'prod' }}
+      function_postfix: ${{ inputs.environment == 'develop' && 'dev' || 'prod' }}
+
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-package-${{ inputs.environment }}
+          path: .
+
+      - name: unzip deployment package
+        run: |
+          unzip deploy.zip
+          rm deploy.zip
+
+      # AWS Deployment
+      - name: Setup AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR for Lambda
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.lambda .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: lambda-handlers-image
+          IMAGE_TAG: ${{ inputs.environment == 'develop' && 'develop' || 'prod' }}
+
+  update-recommendation-authors-cache-ahead:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Update Lambda
+        run: |
+          aws lambda update-function-code --function-name $FUNCTION_NAME \
+            --image-uri $IMAGE_URL
+        env:
+          FUNCTION_NAME: recommendation-authors-cache-ahead-${{ needs.build-lambda-image.outputs.function_postfix }}
+          IMAGE_URL: ${{ needs.build-lambda-image.outputs.image_uri }}
+
+  update-recommendation-tags-cache-ahead:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Update Lambda
+        run: |
+          aws lambda update-function-code --function-name $FUNCTION_NAME \
+            --image-uri $IMAGE_URL
+        env:
+          FUNCTION_NAME: recommendation-tags-cache-ahead-${{ needs.build-lambda-image.outputs.function_postfix }}
+          IMAGE_URL: ${{ needs.build-lambda-image.outputs.image_uri }}
