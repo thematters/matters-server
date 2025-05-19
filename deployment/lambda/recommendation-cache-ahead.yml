@@ -61,14 +61,8 @@ Resources:
               Service:
                 - lambda.amazonaws.com
       ManagedPolicyArns:
-        - !Join
-          - ""
-          - - "arn:"
-            - !Ref "AWS::Partition"
-            - ":iam::"
-            - !Ref "AWS::AccountId"
-            - ":policy/allow-create-vpc-in-lambda"
-        
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
   LambdaRolePolicy:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -78,33 +72,6 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Action:
-              - "logs:CreateLogGroup"
-            Effect: Allow
-            Resource: !Join
-              - ""
-              - - "arn:"
-                - !Ref "AWS::Partition"
-                - ":logs:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":*"
-          - Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
-            Effect: Allow
-            Resource: !Join
-              - ""
-              - - "arn:"
-                - !Ref "AWS::Partition"
-                - ":logs:"
-                - !Ref "AWS::Region"
-                - ":"
-                - !Ref "AWS::AccountId"
-                - ":log-group:/aws/lambda/"
-                - !Ref Lambda
-                - ":*"
           - Action:
               - "ssm:GetParameter"
               - "ssm:GetParametersByPath"
@@ -117,7 +84,7 @@ Resources:
                 - !Ref "AWS::Region"
                 - ":"
                 - !Ref "AWS::AccountId"
-                - !If 
+                - !If
                   - isProd
                   - ":parameter/prod/matters-server/"
                   - ":parameter/dev/matters-server/"
