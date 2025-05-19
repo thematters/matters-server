@@ -15,13 +15,16 @@ on:
       AWS_REGION:
         required: true
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: lambda-handlers-image
+  MATTERS_ENV: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
+
 jobs:
   build-lambda-image:
     runs-on: ubuntu-latest
-
-    outputs:
-      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ steps.login-ecr.outputs.repository }}:matters-server-${{ github.SHA }}
-      matters_env: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
 
     steps:
       - name: Download deployment package
@@ -60,6 +63,13 @@ jobs:
     needs: build-lambda-image
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Update Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -67,13 +77,19 @@ jobs:
           template: ./deployment/lambda/recommendation-cache-ahead.yml
           parameter-overrides: mattersEnv=$MATTERS_ENV,imageUri=$IMAGE_URL,lambdaCMD=recommendationAuthorsCacheAhead.handler
         env:
-          MATTERS_ENV: ${{ needs.build-lambda-image.outputs.matters_env }}
-          IMAGE_URL: ${{ needs.build-lambda-image.outputs.image_uri }}
+          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:matters-server-${{ github.SHA }}
 
   deploy-recommendation-tags-cache-ahead:
     needs: build-lambda-image
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Update Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -81,5 +97,4 @@ jobs:
           template: ./deployment/lambda/recommendation-cache-ahead.yml
           parameter-overrides: mattersEnv=$MATTERS_ENV,imageUri=$IMAGE_URL,lambdaCMD=recommendationTagsCacheAhead.handler
         env:
-          MATTERS_ENV: ${{ needs.build-lambda-image.outputs.matters_env }}
-          IMAGE_URL: ${{ needs.build-lambda-image.outputs.image_uri }}
+          IMAGE_URL: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:matters-server-${{ github.SHA }}
