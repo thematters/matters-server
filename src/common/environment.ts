@@ -1,3 +1,4 @@
+import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -7,6 +8,22 @@ export const isTest = process.env.MATTERS_ENV === 'test'
 export const isDev = process.env.MATTERS_ENV === 'development'
 export const isStage = process.env.MATTERS_ENV === 'stage'
 export const isProd = process.env.MATTERS_ENV === 'production'
+
+const isLambda = process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined
+
+if (isLambda) {
+  // write process.env by parameter store
+  const ssm = new SSMClient({})
+  const params = await ssm.send(
+    new GetParametersByPathCommand({
+      Path: isProd ? '/prod/matters-server/' : '/dev/matters-server/',
+      WithDecryption: true,
+    })
+  )
+  params.Parameters?.forEach((param) => {
+    process.env[param.Name?.split('/').pop() || ''] = param.Value
+  })
+}
 
 /**
  * Here are all environment variables that server needs. Please add prefix
