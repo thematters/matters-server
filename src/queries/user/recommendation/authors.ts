@@ -38,7 +38,6 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
    */
   let notIn: string[] = id ? [id] : []
   if (filter?.followed === false && id) {
-    // TODO: move this logic to db layer
     const followees = await userService.findFollowees({
       userId: id,
       take: 999,
@@ -76,26 +75,27 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
       keys: {
         type: 'recommendationAuthors',
         args: {
-          viewerId: viewer.id,
           channelId,
-          take: _take,
         },
       },
       getter: async () => {
         const { query } = await recommendationService.recommendAuthors(
           channelId
         )
-        return query.whereNotIn('author_id', notIn).limit(_take)
+        return query
       },
-      expire: CACHE_TTL.MEDIUM,
+      expire: CACHE_TTL.LONG,
     })
-    const chunks = chunk(authorIds, draw)
+    const filtered = authorIds.filter(
+      ({ authorId }) => !notIn.includes(authorId)
+    )
+    const chunks = chunk(filtered, draw)
     const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
     const randomAuthorIds = chunks[index] || []
     const randomAuthors = await atomService.userIdLoader.loadMany(
       randomAuthorIds.map(({ authorId }) => authorId)
     )
-    return connectionFromArray(randomAuthors, input, randomAuthors.length)
+    return connectionFromArray(randomAuthors, input, authorIds.length)
   }
 
   /**

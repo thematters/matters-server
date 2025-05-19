@@ -35,7 +35,6 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
 
   const draw = input.first || 5
   const limit = 50
-  const _take = limit * draw
 
   /**
    * new algo
@@ -60,13 +59,13 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     const tagIds = await cacheService.getObject({
       keys: {
         type: 'recommendationTags',
-        args: { channelId: channelId, take: _take },
+        args: { channelId: channelId },
       },
       getter: async () => {
         const { query } = await recommendationService.recommendTags(channelId)
-        return query.limit(_take)
+        return query.limit(limit)
       },
-      expire: CACHE_TTL.MEDIUM,
+      expire: CACHE_TTL.LONG,
     })
     const chunks = chunk(tagIds, draw)
     const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
@@ -74,7 +73,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     const randomTags = await atomService.tagIdLoader.loadMany(
       randomTagIds.map(({ tagId }) => tagId)
     )
-    return connectionFromArray(randomTags, input, randomTags.length)
+    return connectionFromArray(randomTags, input, tagIds.length)
   }
 
   /**
