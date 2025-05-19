@@ -93,7 +93,7 @@ jobs:
 
   # Deploy Lambda
   deploy-lambda-develop:
-    needs: build
+    needs: migrate-db-develop
     if: github.event.pull_request.merged == true && github.base_ref == 'develop'
     uses: ./.github/workflows/lambda-deploy.yml
     with:
@@ -104,7 +104,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy-lambda-production:
-    needs: build
+    needs: migrate-db-production
     if: github.event.pull_request.merged == true && (github.base_ref == 'master' || github.base_ref == 'main')
     uses: ./.github/workflows/lambda-deploy.yml
     with:
