@@ -70,7 +70,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Update Lambda
+      - name: Deploy Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: recommendation-authors-cache-ahead-${{ inputs.environment }}
@@ -90,7 +90,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Update Lambda
+      - name: Deploy Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: recommendation-tags-cache-ahead-${{ inputs.environment }}
