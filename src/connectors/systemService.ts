@@ -462,6 +462,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     ) {
       throw new AssetNotFoundError('Asset does not exists')
     }
+    return asset.id
   }
 
   /*********************************
