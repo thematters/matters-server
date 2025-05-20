@@ -6,6 +6,7 @@ import {
   PUBLISH_STATE,
   CAMPAIGN_STATE,
   NODE_TYPES,
+  ARTICLE_STATE,
 } from '#common/enums/index.js'
 import { ActionLimitExceededError } from '#common/errors.js'
 import { toGlobalId } from '#common/utils/index.js'
@@ -356,5 +357,132 @@ describe('publishArticle', () => {
       variables: { input: { id, publishAt: pastDate } },
     })
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
+  describe('article connections validation', () => {
+    test('should successfully publish article with valid connections', async () => {
+      // Create a draft with the connection
+      const draft = await atomService.create({
+        table: 'draft',
+        data: {
+          authorId: '1',
+          title: 'Test Draft',
+          content: 'Test content',
+          connections: ['1'],
+        },
+      })
+
+      const server = await testClient({
+        isAuth: true,
+        connections,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: PUBLISH_ARTICLE,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }),
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.pending)
+    })
+
+    test('should fail when connected article does not exist', async () => {
+      // Create a draft with a non-existent connection
+      const draft = await atomService.create({
+        table: 'draft',
+        data: {
+          authorId: '1',
+          title: 'Test Draft',
+          content: 'Test content',
+          connections: ['999999'], // Non-existent article ID
+        },
+      })
+
+      const server = await testClient({
+        isAuth: true,
+        connections,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: PUBLISH_ARTICLE,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }),
+          },
+        },
+      })
+
+      expect(errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
+    })
+
+    test('should fail when connected article is not active', async () => {
+      // Create a test article that will be used as a connection
+      await atomService.update({
+        table: 'article',
+        where: { id: '1' },
+        data: { state: ARTICLE_STATE.archived },
+      })
+
+      // Create a draft with the connection
+      const draft = await atomService.create({
+        table: 'draft',
+        data: {
+          authorId: '1',
+          title: 'Test Draft',
+          content: 'Test content',
+          connections: ['1'],
+        },
+      })
+
+      const server = await testClient({
+        isAuth: true,
+        connections,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: PUBLISH_ARTICLE,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }),
+          },
+        },
+      })
+
+      expect(errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
+    })
+
+    test('should handle multiple connections', async () => {
+      // Create a draft with multiple connections
+      const draft = await atomService.create({
+        table: 'draft',
+        data: {
+          authorId: '1',
+          title: 'Test Draft',
+          content: 'Test content',
+          connections: ['2', '3'],
+        },
+      })
+
+      const server = await testClient({
+        isAuth: true,
+        connections,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: PUBLISH_ARTICLE,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Draft, id: draft.id }),
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.pending)
+    })
   })
 })
