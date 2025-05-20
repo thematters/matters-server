@@ -6,11 +6,13 @@ import {
   NOTICE_TYPE,
   PUBLISH_STATE,
   ARTICLE_STATE,
+  CAMPAIGN_STATE,
 } from '#common/enums/index.js'
 import {
   AtomService,
   ArticleService,
   NotificationService,
+  CampaignService,
 } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from '../utils.js'
@@ -18,12 +20,14 @@ import { genConnections, closeConnections } from '../utils.js'
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let campaignService: CampaignService
 let notificationService: NotificationService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
+  campaignService = new CampaignService(connections)
   notificationService = new NotificationService(connections)
   // @ts-ignore
   articleService.notificationService = notificationService
@@ -336,6 +340,92 @@ describe('publishArticle', () => {
       event: NOTICE_TYPE.scheduled_article_published,
       recipientId: '1',
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
+    })
+  })
+
+  test('should handle campaigns when publishing', async () => {
+    const campaignData = {
+      name: 'test',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-05 15:00'),
+      ] as const,
+      creatorId: '1',
+    }
+    const activeCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const archivedCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    await campaignService.apply(activeCampaign, {
+      id: '1',
+      userName: 'test',
+      state: 'active',
+    })
+    await campaignService.apply(archivedCampaign, {
+      id: '1',
+      userName: 'test',
+      state: 'active',
+    })
+    await atomService.update({
+      table: 'campaign',
+      where: { id: archivedCampaign.id },
+      data: {
+        state: CAMPAIGN_STATE.archived,
+      },
+    })
+
+    // Create a draft with campaigns
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Test Draft with Campaigns',
+        content: 'Test content',
+        publishAt: new Date(),
+        publishState: PUBLISH_STATE.pending,
+        campaigns: JSON.stringify([
+          { campaign: activeCampaign.id },
+          { campaign: archivedCampaign.id },
+        ]),
+      },
+    })
+
+    const triggerSpy = jest.spyOn(notificationService, 'trigger')
+    const result = await articleService.publishArticle(draft.id)
+
+    // Verify article was created
+    expect(result.articleId).toBeDefined()
+
+    // Verify article was submitted to campaigns
+    const campaignArticles = await atomService.findMany({
+      table: 'campaign_article',
+      where: { articleId: result.articleId },
+    })
+    expect(campaignArticles).toHaveLength(1)
+
+    const article = await atomService.findFirst({
+      table: 'article',
+      where: { id: result?.articleId },
+    })
+    expect(triggerSpy).toHaveBeenCalledWith({
+      event: NOTICE_TYPE.scheduled_article_published_with_campaign_failure,
+      recipientId: '1',
+      entities: [
+        { type: 'target', entityTable: 'article', entity: article },
+        {
+          type: 'campaign',
+          entityTable: 'campaign',
+          entity: { ...archivedCampaign, state: CAMPAIGN_STATE.archived },
+        },
+      ],
     })
   })
 })

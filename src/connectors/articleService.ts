@@ -10,6 +10,7 @@ import type {
   Collection,
   GQLTranslationModel,
   LANGUAGES,
+  Campaign,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -2395,9 +2396,7 @@ export class ArticleService extends BaseService<Article> {
       })
       await this.handleTags({ article, articleVersion })
       await this.handleMentions({ article, content: draft.content })
-      if (draft.campaigns && draft.campaigns.length > 0) {
-        await this.handleCampaigns({ article, campaigns: draft.campaigns })
-      }
+      await this.handleCampaigns({ draft, article })
       /**
        * Step 5: Handle Assets
        *
@@ -2747,19 +2746,55 @@ export class ArticleService extends BaseService<Article> {
   }
 
   private handleCampaigns = async ({
+    draft,
     article,
-    campaigns,
   }: {
+    draft: Draft
     article: Article
-    campaigns: Array<{ campaign: string; stage?: string }>
   }) => {
-    const campaignService = new CampaignService(this.connections)
-    for (const { campaign, stage } of campaigns) {
-      await campaignService.submitArticleToCampaign(article, campaign, stage)
-      invalidateFQC({
-        node: { type: NODE_TYPES.Campaign, id: campaign },
-        redis: this.connections.redis,
-      })
+    if (draft.campaigns && draft.campaigns.length > 0) {
+      const campaignService = new CampaignService(this.connections)
+      const faileded: string[] = []
+      for (const { campaign, stage } of draft.campaigns) {
+        try {
+          await campaignService.submitArticleToCampaign(
+            article,
+            campaign,
+            stage
+          )
+          invalidateFQC({
+            node: { type: NODE_TYPES.Campaign, id: campaign },
+            redis: this.connections.redis,
+          })
+        } catch (err) {
+          logger.warn(
+            `Failed to submit article to campaign ${campaign}: ${err}`
+          )
+          faileded.push(campaign)
+        }
+      }
+      if (faileded.length > 0 && draft.publishAt) {
+        const failedCampaigns = await Promise.all(
+          faileded.map(async (failedCampaign: string) =>
+            this.models.findUnique({
+              table: 'campaign',
+              where: { id: failedCampaign },
+            })
+          )
+        )
+        await this.notificationService.trigger({
+          event: NOTICE_TYPE.scheduled_article_published_with_campaign_failure,
+          recipientId: article.authorId,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: article },
+            ...failedCampaigns.map((failedCampaign: Campaign) => ({
+              type: 'campaign' as const,
+              entityTable: 'campaign' as const,
+              entity: failedCampaign,
+            })),
+          ],
+        })
+      }
     }
   }
 
