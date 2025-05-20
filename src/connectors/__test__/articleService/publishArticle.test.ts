@@ -211,6 +211,101 @@ describe('publishArticle', () => {
     expect(articleTags).toHaveLength(2)
   })
 
+  test('should handle collections when publishing', async () => {
+    // Create collections first
+    const collection1 = await atomService.create({
+      table: 'collection',
+      data: {
+        title: 'Test Collection 1',
+        authorId: '1',
+      },
+    })
+    const collection2 = await atomService.create({
+      table: 'collection',
+      data: {
+        title: 'Test Collection 2',
+        authorId: '1',
+      },
+    })
+
+    // Create a draft with collections
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Test Draft with Collections',
+        content: 'Test content',
+        publishState: PUBLISH_STATE.pending,
+        collections: [collection1.id, collection2.id],
+      },
+    })
+
+    const result = await articleService.publishArticle(draft.id)
+
+    // Verify article was created
+    expect(result).toBeDefined()
+
+    // Verify article was added to collections
+    const articleCollections = await atomService.findMany({
+      table: 'collection_article',
+      where: { articleId: result?.articleId },
+    })
+    expect(articleCollections).toHaveLength(2)
+  })
+
+  test('should handle failed collections and notify correctly for scheduled articles', async () => {
+    // Create a invalid collection ID
+    const collection = await atomService.create({
+      table: 'collection',
+      data: {
+        title: 'Test Collection 1',
+        authorId: '2',
+      },
+    })
+
+    // Create a draft with a non-existent collection
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Test Draft with Failed Collection',
+        content: 'Test content',
+        publishState: PUBLISH_STATE.pending,
+        publishAt: new Date(),
+        collections: [collection.id],
+      },
+    })
+
+    // Mock notification trigger
+    const triggerSpy = jest.spyOn(notificationService, 'trigger')
+
+    const result = await articleService.publishArticle(draft.id)
+
+    // Verify article was created
+    expect(result).toBeDefined()
+
+    // Verify notification was triggered for collection failure
+    const article = await atomService.findFirst({
+      table: 'article',
+      where: { id: result?.articleId },
+    })
+
+    expect(triggerSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: NOTICE_TYPE.scheduled_article_published_with_collection_failure,
+        recipientId: '1',
+        entities: expect.arrayContaining([
+          { type: 'target', entityTable: 'article', entity: article },
+          {
+            type: 'collection' as const,
+            entityTable: 'collection' as const,
+            entity: collection,
+          },
+        ]),
+      })
+    )
+  })
+
   test('should handle scheduled publishing', async () => {
     // Create a draft in pending state
     const draft = await atomService.create({

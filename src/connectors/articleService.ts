@@ -7,6 +7,7 @@ import type {
   ArticleVersion,
   ArticleBoost,
   ArticleConnection,
+  Collection,
   GQLTranslationModel,
   LANGUAGES,
 } from '#definitions/index.js'
@@ -70,6 +71,7 @@ import {
   PaymentService,
   LanguageDetector,
   CampaignService,
+  CollectionService,
   aws,
   DraftService,
 } from '#connectors/index.js'
@@ -2378,12 +2380,15 @@ export class ArticleService extends BaseService<Article> {
     // Note: the following steps won't affect the publication.
     try {
       // Step 4: handle collection, circles, tags & mentions
+      await this.handleCollections({
+        draft,
+        article,
+      })
       await this.handleConnections({
         article,
         articleVersion,
         scheduled: !!draft.publishAt,
       })
-      await this.handleCollections(draft)
       await this.handleCircle({
         article,
         articleVersion,
@@ -2565,9 +2570,55 @@ export class ArticleService extends BaseService<Article> {
     }
   }
 
-  private handleCollections = async (draft: Draft) => {
-    if (!draft.collections || draft.collections.length <= 0) {
+  private handleCollections = async ({
+    draft,
+    article,
+  }: {
+    draft: Draft
+    article: Article
+  }) => {
+    if (!draft.collections || draft.collections.length === 0) {
       return
+    }
+    const faileded: string[] = []
+    const collectionService = new CollectionService(this.connections)
+    await Promise.all(
+      draft.collections.map(async (collectionId: string) => {
+        try {
+          await collectionService.addArticles({
+            collectionId,
+            articleIds: [article.id],
+            userId: article.authorId,
+          })
+        } catch (err) {
+          logger.warn(
+            `Failed to add article to collection ${collectionId}: ${err}`
+          )
+          faileded.push(collectionId)
+        }
+      })
+    )
+    if (faileded.length > 0 && draft.publishAt) {
+      const failedCollections = await Promise.all(
+        faileded.map(async (failedCollectionId: string) =>
+          this.models.findUnique({
+            table: 'collection',
+            where: { id: failedCollectionId },
+          })
+        )
+      )
+      await this.notificationService.trigger({
+        event: NOTICE_TYPE.scheduled_article_published_with_collection_failure,
+        recipientId: article.authorId,
+        entities: [
+          { type: 'target', entityTable: 'article', entity: article },
+          ...failedCollections.map((failedCollection: Collection) => ({
+            type: 'collection' as const,
+            entityTable: 'collection' as const,
+            entity: failedCollection,
+          })),
+        ],
+      })
     }
   }
 
