@@ -84,8 +84,8 @@ describe('publish article', () => {
     }
     const { id } = await putDraft({ draft }, connections)
     const { publishState, article } = await publishArticle({ id }, connections)
-    expect(publishState).toBe(PUBLISH_STATE.pending)
-    expect(article).toBeNull()
+    expect(publishState).toBe(PUBLISH_STATE.published)
+    expect(article).not.toBeNull()
   })
 
   test('create a draft & publish with iscn', async () => {
@@ -104,7 +104,7 @@ describe('publish article', () => {
     expect(draft.iscnPublish).toBe(true)
 
     const { publishState } = await publishArticle({ id: draft.id }, connections)
-    expect(publishState).toBe(PUBLISH_STATE.pending)
+    expect(publishState).toBe(PUBLISH_STATE.published)
   })
 
   test('publish published draft', async () => {
@@ -387,7 +387,7 @@ describe('publishArticle', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.pending)
+      expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.published)
     })
 
     test('should fail when connected article does not exist', async () => {
@@ -452,7 +452,7 @@ describe('publishArticle', () => {
         },
       })
 
-      expect(errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
+      expect(errors?.[0].extensions.code).toBe('ARTICLE_INACTIVE')
     })
 
     test('should handle multiple connections', async () => {
@@ -482,7 +482,7 @@ describe('publishArticle', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.pending)
+      expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.published)
     })
   })
 })

@@ -13,6 +13,7 @@ import {
   ForbiddenError,
   UserInputError,
   ArticleNotFoundError,
+  ArticleInactiveError,
 } from '#common/errors.js'
 import { auditLog } from '#common/logger.js'
 import { fromGlobalId } from '#common/utils/index.js'
@@ -142,7 +143,7 @@ const validateConnections = async (
         throw new ArticleNotFoundError('Article not found')
       }
       if (article.state !== ARTICLE_STATE.active) {
-        throw new ArticleNotFoundError('Article not found')
+        throw new ArticleInactiveError('Article to connect is inactive')
       }
     })
   )

@@ -192,6 +192,12 @@ export class CampaignStageNotFoundError extends GraphQLError {
   }
 }
 
+export class ArticleInactiveError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'ARTICLE_INACTIVE' } })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *
