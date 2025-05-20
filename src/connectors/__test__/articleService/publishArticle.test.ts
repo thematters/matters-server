@@ -142,6 +142,7 @@ describe('publishArticle', () => {
         title: 'Test Draft with Failed Connections',
         content: 'Test content',
         publishState: PUBLISH_STATE.pending,
+        publishAt: new Date(),
         connections: ['0', '1'],
       },
     })
@@ -158,7 +159,7 @@ describe('publishArticle', () => {
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id, true)
+    const result = await articleService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -219,13 +220,14 @@ describe('publishArticle', () => {
         title: 'Test Scheduled Draft',
         content: 'Test content',
         publishState: PUBLISH_STATE.pending,
+        publishAt: new Date(),
       },
     })
 
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id, true)
+    const result = await articleService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()

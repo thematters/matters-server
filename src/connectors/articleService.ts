@@ -2352,7 +2352,7 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public publishArticle = async (draftId: string, scheduled = false) => {
+  public publishArticle = async (draftId: string) => {
     let draft = await this.models.findUnique({
       table: 'draft',
       where: { id: draftId },
@@ -2381,8 +2381,9 @@ export class ArticleService extends BaseService<Article> {
       await this.handleConnections({
         article,
         articleVersion,
-        scheduled,
+        scheduled: !!draft.publishAt,
       })
+      await this.handleCollections(draft)
       await this.handleCircle({
         article,
         articleVersion,
@@ -2432,7 +2433,7 @@ export class ArticleService extends BaseService<Article> {
 
     // Step 7: trigger notifications
     this.notificationService.trigger({
-      event: scheduled
+      event: draft.publishAt
         ? NOTICE_TYPE.scheduled_article_published
         : NOTICE_TYPE.article_published,
       recipientId: article.authorId,
@@ -2466,7 +2467,7 @@ export class ArticleService extends BaseService<Article> {
           data: { publishState: PUBLISH_STATE.pending },
         })
         try {
-          return await this.publishArticle(draft.id, true)
+          return await this.publishArticle(draft.id)
         } catch (err) {
           logger.error(`Failed to publish draft ${draft.id}: ${err}`)
           return await this.models.update({
@@ -2561,6 +2562,12 @@ export class ArticleService extends BaseService<Article> {
           })),
         ],
       })
+    }
+  }
+
+  private handleCollections = async (draft: Draft) => {
+    if (!draft.collections || draft.collections.length <= 0) {
+      return
     }
   }
 
