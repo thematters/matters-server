@@ -1,0 +1,102 @@
+name: Lambda Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment (develop, production)'
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: lambda-handlers-image
+  MATTERS_ENV: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
+
+jobs:
+  build-lambda-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-package-${{ inputs.environment }}
+          path: .
+
+      - name: unzip deployment package
+        run: |
+          unzip deploy.zip
+          rm deploy.zip
+
+      # AWS Deployment
+      - name: Setup AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR for Lambda
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.lambda .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: lambda-handlers-image
+          IMAGE_TAG: matters-server-${{ github.SHA }}
+
+  deploy-recommendation-authors-cache-ahead:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: recommendation-authors-cache-ahead-${{ inputs.environment }}
+          template: ./deployment/lambda/recommendation-cache-ahead.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=recommendationAuthorsCacheAhead.handler
+
+  deploy-recommendation-tags-cache-ahead:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: recommendation-tags-cache-ahead-${{ inputs.environment }}
+          template: ./deployment/lambda/recommendation-cache-ahead.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=recommendationTagsCacheAhead.handler

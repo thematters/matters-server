@@ -17,6 +17,7 @@ export interface Draft {
   mediaHash: string | null
   circleId: string | null
   connections: string[] | null
+  collections: string[] | null
   tags: string[]
   language: LANGUAGES | null
   access: keyof typeof ARTICLE_ACCESS_TYPE

@@ -28,13 +28,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
         with:
-          node-version: '18'
+          name: deploy-package-${{ inputs.environment }}
+          path: .
+
+      - name: unzip deployment package
+        run: |
+          unzip deploy.zip
+          rm deploy.zip
 
       - name: Cache NPM dependencies
         uses: actions/cache@v4

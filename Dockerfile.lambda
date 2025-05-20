@@ -1,0 +1,16 @@
+FROM public.ecr.aws/lambda/nodejs:18 AS builder
+WORKDIR /usr/app
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+FROM public.ecr.aws/lambda/nodejs:18
+RUN yum update -y && \
+    yum install postgresql-libs -y
+WORKDIR ${LAMBDA_TASK_ROOT}
+COPY --from=builder /usr/app/node_modules/ ./node_modules/
+COPY knexfile.js package.json .
+COPY ./build ./build
+RUN node ./build/handlers/bin/gen-handlers-entry.js
+
+ENV NODE_OPTIONS="--no-experimental-fetch"
+CMD ["recommendationTagsCacheAhead.handler"]

@@ -20,6 +20,7 @@ export default async (database) => {
       host: process.env.MATTERS_PG_HOST,
       user: process.env.MATTERS_PG_USER,
       password: process.env.MATTERS_PG_PASSWORD,
+      port: process.env.MATTERS_PG_PORT || 5432,
       database: 'postgres', // set to database param below,
       application_name: 'initDatabase_' + database,
     },

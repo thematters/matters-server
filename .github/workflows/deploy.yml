@@ -63,7 +63,7 @@ jobs:
       VPN_AUTH: ${{ secrets.VPN_AUTH }}
 
   # Deploy to Elastic Beanstalk
-  deploy-develop:
+  deploy-eb-develop:
     needs: migrate-db-develop
     if: github.event.pull_request.merged == true && github.base_ref == 'develop'
     uses: ./.github/workflows/eb-deploy.yml
@@ -77,7 +77,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_EB_ENV_NAME: ${{ secrets.AWS_EB_ENV_NAME_DEV }}
 
-  deploy-production:
+  deploy-eb-production:
     needs: migrate-db-production
     if: github.event.pull_request.merged == true && (github.base_ref == 'master' || github.base_ref == 'main')
     uses: ./.github/workflows/eb-deploy.yml
@@ -91,9 +91,32 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_EB_ENV_NAME: ${{ secrets.AWS_EB_ENV_NAME_PROD }}
 
+  # Deploy Lambda
+  deploy-lambda-develop:
+    needs: migrate-db-develop
+    if: github.event.pull_request.merged == true && github.base_ref == 'develop'
+    uses: ./.github/workflows/lambda-deploy.yml
+    with:
+      environment: 'develop'
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION_PROD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  deploy-lambda-production:
+    needs: migrate-db-production
+    if: github.event.pull_request.merged == true && (github.base_ref == 'master' || github.base_ref == 'main')
+    uses: ./.github/workflows/lambda-deploy.yml
+    with:
+      environment: 'production'
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION_PROD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
   # Notify Slack
   notify-develop:
-    needs: [build, migrate-db-develop, deploy-develop]
+    needs: [build, migrate-db-develop, deploy-eb-develop, deploy-lambda-develop]
     if: always() && github.event.pull_request.merged == true && github.base_ref == 'develop'
     runs-on: ubuntu-latest
     steps:
@@ -105,7 +128,7 @@ jobs:
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
 
   notify-production:
-    needs: [build, migrate-db-production, deploy-production]
+    needs: [build, migrate-db-production, deploy-eb-production, deploy-lambda-production]
     if: always() && github.event.pull_request.merged == true && (github.base_ref == 'master' || github.base_ref == 'main')
     runs-on: ubuntu-latest
     steps:

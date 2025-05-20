@@ -10,12 +10,7 @@ import {
 } from '#common/enums/index.js'
 import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 
-import {
-  testClient,
-  putDraft,
-  genConnections,
-  closeConnections,
-} from '../utils.js'
+import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService
@@ -58,37 +53,122 @@ describe('query draft', () => {
 })
 
 describe('put draft', () => {
+  const PUT_DRAFT = `
+    mutation($input: PutDraftInput!) {
+      putDraft(input: $input) {
+        id
+        collection(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        connections(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        tags
+        cover
+        title
+        summary
+        summaryCustomized
+        content
+        createdAt
+        sensitiveByAuthor
+        license
+        requestForDonation
+        replyToDonator
+        iscnPublish
+        canComment
+        indentFirstLine
+        campaigns {
+           campaign {
+              id
+              name
+           }
+           stage {
+              id
+              name
+           }
+        }
+        collections(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        updatedAt
+      }
+    }
+  `
+  let server: any
+  beforeAll(async () => {
+    server = await testClient({
+      connections,
+      isAuth: true,
+    })
+  })
   test('edit draft summary', async () => {
-    const { id, errors } = await putDraft(
-      {
-        draft: {
+    const { data, errors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
+    })
     expect(errors).toBeUndefined()
 
     const summary = 'my customized summary'
-    const result = await putDraft({ draft: { id, summary } }, connections)
-    expect(result.summary).toBe(summary)
-    expect(result.summaryCustomized).toBe(true)
+    const {
+      data: { putDraft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: data.putDraft.id,
+          summary: summary,
+        },
+      },
+    })
+    expect(putDraft.summary).toBe(summary)
+    expect(putDraft.summaryCustomized).toBe(true)
 
     // reset summary
-    const resetResult1 = await putDraft(
-      {
-        draft: { id, summary: null as any },
+    const {
+      data: { putDraft: resetResult1 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: data.putDraft.id,
+          summary: null as any,
+        },
       },
-      connections
-    )
+    })
     expect(resetResult1.summary.length).toBeGreaterThan(0)
     expect(resetResult1.summaryCustomized).toBe(false)
 
-    const resetResult2 = await putDraft(
-      { draft: { id, summary: '' } },
-      connections
-    )
+    const {
+      data: { putDraft: resetResult2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: data.putDraft.id,
+          summary: '',
+        },
+      },
+    })
     expect(resetResult2.summaryCustomized).toBe(false)
   })
 
@@ -102,379 +182,512 @@ describe('put draft', () => {
     ]
 
     // create draft setting tags out of limit
-    const createFailedRes = await putDraft(
-      {
-        draft: {
+    const { errors: createFailedErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
           tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT + 1),
         },
       },
-      connections
-    )
-    expect(createFailedRes.errors[0].extensions.code).toBe(
+    })
+    expect(createFailedErrors[0].extensions.code).toBe(
       'TOO_MANY_TAGS_FOR_ARTICLE'
     )
 
     // create draft setting tags within limit
-    const draft = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
           tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT),
         },
       },
-      connections
-    )
+    })
     expect(draft.tags.length).toBe(MAX_TAGS_PER_ARTICLE_LIMIT)
     expect(draft.tags[0]).toBe(tags[0])
     expect(draft.tags[1]).toBe(tags[1])
     expect(draft.tags[2]).toBe(tags[2])
 
     // should retain the tags after setting something else, without changing tags
-    const tagsResult1 = await putDraft(
-      {
-        draft: { id: draft.id, summary: 'any-summary' },
+    const {
+      data: { putDraft: tagsResult1 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          summary: 'any-summary',
+        },
       },
-      connections
-    )
+    })
     expect(tagsResult1.tags.length).toBe(MAX_TAGS_PER_ARTICLE_LIMIT)
     expect(tagsResult1.tags[0]).toBe(tags[0])
     expect(tagsResult1.tags[1]).toBe(tags[1])
 
     // create draft setting tags out of limit
-    const editFailedRes = await putDraft(
-      {
-        draft: {
+    const { errors: editFailedErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: draft.id,
           tags: tags.slice(0, MAX_TAGS_PER_ARTICLE_LIMIT + 1),
         },
       },
-      connections
-    )
-    expect(editFailedRes.errors[0].extensions.code).toBe(
+    })
+    expect(editFailedErrors[0].extensions.code).toBe(
       'TOO_MANY_TAGS_FOR_ARTICLE'
     )
     // reset tags
-    const resetResult1 = await putDraft(
-      {
-        draft: { id: draft.id, tags: null as any },
+    const {
+      data: { putDraft: resetResult1 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          tags: null as any,
+        },
       },
-      connections
-    )
+    })
     expect(resetResult1.tags).toBeNull()
 
-    const resetResult2 = await putDraft(
-      { draft: { id: draft.id, tags: [] } },
-      connections
-    )
+    const {
+      data: { putDraft: resetResult2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          tags: [],
+        },
+      },
+    })
     expect(resetResult2.tags).toBeNull()
   })
 
   test('edit draft license', async () => {
-    const { id } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
-
-    const result = await putDraft({ draft: { id } }, connections)
+    })
 
     // default license
-    expect(result.license).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
+    expect(draft.license).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
 
     // set to CC0
-    const result2 = await putDraft(
-      {
-        draft: { id, license: ARTICLE_LICENSE_TYPE.cc_0 as any },
+    const {
+      data: { putDraft: result2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          license: ARTICLE_LICENSE_TYPE.cc_0 as any,
+        },
       },
-      connections
-    )
+    })
     expect(result2.license).toBe(ARTICLE_LICENSE_TYPE.cc_0)
 
     // change license to CC2 should throw error
-    const changeCC2Result = await putDraft(
-      {
-        draft: {
-          id,
+    const { errors: changeCC2Errors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2 as any,
         },
       },
-      connections
-    )
-    expect(changeCC2Result.errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    })
+    expect(changeCC2Errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
 
     // change license to ARR should succeed
-    const changeResult = await putDraft(
-      {
-        draft: { id, license: ARTICLE_LICENSE_TYPE.arr as any },
+    const {
+      data: { putDraft: changeResult },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          license: ARTICLE_LICENSE_TYPE.arr as any,
+        },
       },
-      connections
-    )
+    })
     expect(changeResult.license).toBe(ARTICLE_LICENSE_TYPE.arr)
 
     // after changing only tags, the license and accessType should remain unchanged
-    const changeTagsResult = await putDraft(
-      {
-        draft: { id, tags: ['arr license test'] },
+    const {
+      data: { putDraft: changeTagsResult },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          tags: ['arr license test'],
+        },
       },
-      connections
-    )
+    })
     expect(changeTagsResult.license).toBe(ARTICLE_LICENSE_TYPE.arr)
 
     // reset license
-    const resetResult1 = await putDraft(
-      {
-        draft: {
-          id,
+    const {
+      data: { putDraft: resetResult1 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4 as any,
         },
       },
-      connections
-    )
+    })
     expect(resetResult1.license).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
   })
 
   test('edit draft support settings', async () => {
-    const { id } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
-    const result = await putDraft({ draft: { id } }, connections)
+    })
 
     // default
-    expect(result.requestForDonation).toBe(null)
-    expect(result.replyToDonator).toBe(null)
+    expect(draft.requestForDonation).toBe(null)
+    expect(draft.replyToDonator).toBe(null)
 
     // set long texts (length > 140) will throw error
     const longText = 't'.repeat(141)
-    const result2 = await putDraft(
-      {
-        draft: { id, requestForDonation: longText },
+    const { errors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          requestForDonation: longText,
+        },
       },
-      connections
-    )
-    expect(result2.errors).toBeDefined()
-    const result3 = await putDraft(
-      {
-        draft: { id, replyToDonator: longText },
+    })
+    expect(errors).toBeDefined()
+
+    const { errors: replyToDonatorErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          replyToDonator: longText,
+        },
       },
-      connections
-    )
-    expect(result3.errors).toBeDefined()
+    })
+    expect(replyToDonatorErrors).toBeDefined()
 
     // set text
     const text = 't'.repeat(140)
-    const result4 = await putDraft(
-      {
-        draft: { id, requestForDonation: text, replyToDonator: text },
+    const {
+      data: { putDraft: result4 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          requestForDonation: text,
+          replyToDonator: text,
+        },
       },
-      connections
-    )
+    })
     expect(result4.requestForDonation).toBe(text)
     expect(result4.replyToDonator).toBe(text)
   })
 
   test('edit draft comment setting', async () => {
-    const { id, canComment } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
+    })
+
     // default
-    expect(canComment).toBeTruthy()
+    expect(draft.canComment).toBeTruthy()
 
     // turn off canComment
-    const result = await putDraft(
-      { draft: { id, canComment: false } },
-      connections
-    )
+    const {
+      data: { putDraft: result },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          canComment: false,
+        },
+      },
+    })
 
     expect(result.canComment).toBeFalsy()
 
     // turn on canComment
-    const result2 = await putDraft(
-      { draft: { id, canComment: true } },
-      connections
-    )
+    const {
+      data: { putDraft: result2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          canComment: true,
+        },
+      },
+    })
 
     expect(result2.canComment).toBeTruthy()
   })
 
   test('edit draft sensitive settings', async () => {
-    const { id, sensitiveByAuthor } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
+    })
 
     // default
-    expect(sensitiveByAuthor).toBeFalsy()
+    expect(draft.sensitiveByAuthor).toBeFalsy()
 
     // turn on by author
-    const result = await putDraft(
-      { draft: { id, sensitive: true } },
-      connections
-    )
+    const {
+      data: { putDraft: result },
+      errors,
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          sensitive: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
     expect(result.sensitiveByAuthor).toBeTruthy()
 
     // turn off by author
-    const result2 = await putDraft(
-      { draft: { id, sensitive: false } },
-      connections
-    )
+    const {
+      data: { putDraft: result2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          sensitive: false,
+        },
+      },
+    })
     expect(result2.sensitiveByAuthor).toBeFalsy()
   })
   test('edit indent', async () => {
-    const { id, indentFirstLine } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
-    expect(indentFirstLine).toBeFalsy()
+    })
+    expect(draft.indentFirstLine).toBeFalsy()
 
-    const { indentFirstLine: indentFirstLineUpdated } = await putDraft(
-      { draft: { id, indentFirstLine: true } },
-      connections
-    )
-    expect(indentFirstLineUpdated).toBeTruthy()
+    const {
+      data: { putDraft: result2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+          indentFirstLine: true,
+        },
+      },
+    })
+    expect(result2.indentFirstLine).toBeTruthy()
   })
 
   test('version conflict detection', async () => {
     // Create a new draft
-    const { id } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
+    })
 
     // Get the current version of the draft
-    const currentDraft = await putDraft({ draft: { id } }, connections)
+    const {
+      data: { putDraft: currentDraft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+        },
+      },
+    })
     const currentUpdateTime = currentDraft.updatedAt
 
     // Try to update with correct timestamp - should succeed
-    const updateResult = await putDraft(
-      {
-        draft: {
-          id,
+    const {
+      errors: updateErrors,
+      data: { putDraft: updateResult },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           title: 'Updated with correct timestamp',
           lastUpdatedAt: currentUpdateTime,
         },
       },
-      connections
-    )
+    })
     expect(updateResult.title).toBe('Updated with correct timestamp')
-    expect(updateResult.errors).toBeUndefined()
+    expect(updateErrors).toBeUndefined()
 
     // Try to update with incorrect timestamp - should fail with version conflict error
     const oldTimestamp = new Date(currentUpdateTime)
     oldTimestamp.setMinutes(oldTimestamp.getMinutes() - 5) // 5 minutes earlier
 
-    const conflictResult = await putDraft(
-      {
-        draft: {
-          id,
+    const { errors: conflictErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           title: 'This update should fail',
           lastUpdatedAt: oldTimestamp,
         },
       },
-      connections
-    )
+    })
 
-    expect(conflictResult.errors).toBeDefined()
-    expect(conflictResult.errors[0].message).toBe(
+    expect(conflictErrors).toBeDefined()
+    expect(conflictErrors[0].message).toBe(
       'Draft has been modified by another session'
     )
 
     // Update without timestamp should still work (no version checking)
-    const noTimestampResult = await putDraft(
-      {
-        draft: {
-          id,
+    const {
+      data: { putDraft: noTimestampResult },
+      errors: noTimestampErrors,
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           title: 'Update without timestamp check',
         },
       },
-      connections
-    )
+    })
     expect(noTimestampResult.title).toBe('Update without timestamp check')
-    expect(noTimestampResult.errors).toBeUndefined()
+    expect(noTimestampErrors).toBeUndefined()
   })
 
   test('version conflict with concurrent updates', async () => {
     // Create a new draft
-    const { id } = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: draft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
         },
       },
-      connections
-    )
+    })
 
     // Get the current version
-    const currentDraft = await putDraft({ draft: { id } }, connections)
+    const {
+      data: { putDraft: currentDraft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+        },
+      },
+    })
     const initialTimestamp = currentDraft.updatedAt
 
     // First update changes the draft and advances the version
-    const firstUpdate = await putDraft(
-      {
-        draft: {
-          id,
+    const {
+      data: { putDraft: firstUpdate },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           title: 'First concurrent update',
         },
       },
-      connections
-    )
+    })
     expect(firstUpdate.title).toBe('First concurrent update')
     expect(firstUpdate.updatedAt).not.toEqual(initialTimestamp)
 
     // Second update tries to use the original timestamp, but should fail
     // because the draft has already been modified
-    const secondUpdate = await putDraft(
-      {
-        draft: {
-          id,
+    const { errors: secondUpdateErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
           title: 'Second update with outdated timestamp',
           lastUpdatedAt: initialTimestamp,
         },
       },
-      connections
-    )
+    })
 
-    expect(secondUpdate.errors).toBeDefined()
-    expect(secondUpdate.errors[0].message).toBe(
+    expect(secondUpdateErrors).toBeDefined()
+    expect(secondUpdateErrors[0].message).toBe(
       'Draft has been modified by another session'
     )
 
     // Verify the title wasn't changed by the failed update
-    const finalDraft = await putDraft({ draft: { id } }, connections)
+    const {
+      data: { putDraft: finalDraft },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draft.id,
+        },
+      },
+    })
     expect(finalDraft.title).toBe('First concurrent update')
   })
 
@@ -512,9 +725,14 @@ describe('put draft', () => {
       type: NODE_TYPES.CampaignStage,
       id: stages[0].id,
     })
-    const { id: draftId, campaigns } = await putDraft(
-      {
-        draft: {
+    const {
+      data: {
+        putDraft: { id: draftId, campaigns },
+      },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           campaigns: [
             {
@@ -529,16 +747,24 @@ describe('put draft', () => {
           },
         },
       },
-      connections
-    )
+    })
     expect(campaigns[0].campaign.id).toBe(campaignGlobalId)
     expect(campaigns[0].stage.id).toBe(stageGlobalId)
 
     // remove stage
-    const { campaigns: campaigns2 } = await putDraft(
-      { draft: { id: draftId, campaigns: [{ campaign: campaignGlobalId }] } },
-      connections
-    )
+    const {
+      data: {
+        putDraft: { campaigns: campaigns2 },
+      },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draftId,
+          campaigns: [{ campaign: campaignGlobalId }],
+        },
+      },
+    })
     expect(campaigns2[0].stage).toBeNull()
   })
 
@@ -549,9 +775,10 @@ describe('put draft', () => {
     )
 
     // create draft setting connections out of limit
-    const createFailedRes = await putDraft(
-      {
-        draft: {
+    const { errors: createFailedErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
           connections: connectionGlobalIds.slice(
@@ -560,16 +787,18 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
-    expect(createFailedRes.errors[0].extensions.code).toBe(
+    })
+    expect(createFailedErrors[0].extensions.code).toBe(
       'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
     // create draft setting connections within limit
-    const createSucceedRes = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: createSucceedRes },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
           connections: connectionGlobalIds.slice(
@@ -578,8 +807,7 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
+    })
     expect(createSucceedRes.connections.totalCount).toBe(
       MAX_ARTICLES_PER_CONNECTION_LIMIT
     )
@@ -592,12 +820,19 @@ describe('put draft', () => {
     const draftId = createSucceedRes.id
 
     // should retain the connections after setting something else, without changing connections
-    const editRes = await putDraft(
-      {
-        draft: { id: draftId, summary: 'any-summary' },
+    const {
+      data: { putDraft: editRes },
+      errors: editErrors,
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draftId,
+          summary: 'any-summary',
+        },
       },
-      connections
-    )
+    })
+    expect(editErrors).toBeUndefined()
     expect(editRes.connections.totalCount).toBe(
       MAX_ARTICLES_PER_CONNECTION_LIMIT
     )
@@ -608,9 +843,10 @@ describe('put draft', () => {
     ]).toEqual(connectionGlobalIds.slice(0, MAX_ARTICLES_PER_CONNECTION_LIMIT))
 
     // edit draft setting connections out of limit
-    const editFailedRes = await putDraft(
-      {
-        draft: {
+    const { errors: editFailedErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: draftId,
           connections: connectionGlobalIds.slice(
             0,
@@ -618,16 +854,18 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
-    expect(editFailedRes.errors[0].extensions.code).toBe(
+    })
+    expect(editFailedErrors[0].extensions.code).toBe(
       'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
     // edit draft setting connections within limit
-    const editSucceedRes = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: editSucceedRes },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: draftId,
           connections: connectionGlobalIds.slice(
             0,
@@ -635,8 +873,7 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
+    })
     expect(editSucceedRes.connections.totalCount).toBe(
       MAX_ARTICLES_PER_CONNECTION_LIMIT
     )
@@ -657,9 +894,12 @@ describe('put draft', () => {
         ),
       },
     })
-    const remainRes = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: remainRes },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: draftId,
           connections: connectionGlobalIds.slice(
             0,
@@ -667,8 +907,7 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
+    })
 
     expect(remainRes.connections.totalCount).toBe(
       MAX_ARTICLES_PER_CONNECTION_LIMIT + 1
@@ -683,9 +922,10 @@ describe('put draft', () => {
     )
 
     // out of limit connections can not increase
-    const increaseRes = await putDraft(
-      {
-        draft: {
+    const { errors: increaseErrors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: draftId,
           connections: connectionGlobalIds.slice(
             0,
@@ -693,16 +933,18 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
-    expect(increaseRes.errors[0].extensions.code).toBe(
+    })
+    expect(increaseErrors[0].extensions.code).toBe(
       'ARTICLE_COLLECTION_REACH_LIMIT'
     )
 
     // out of limit connections can decrease
-    const decreaseRes = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: decreaseRes },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: draftId,
           connections: connectionGlobalIds.slice(
             0,
@@ -710,27 +952,36 @@ describe('put draft', () => {
           ),
         },
       },
-      connections
-    )
+    })
     expect(decreaseRes.connections.totalCount).toBe(
       MAX_ARTICLES_PER_CONNECTION_LIMIT - 1
     )
 
     // reset connections
-    const resetResult1 = await putDraft(
-      {
-        draft: { id: draftId, connections: [] },
+    const {
+      data: { putDraft: resetResult1 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draftId,
+          connections: [],
+        },
       },
-      connections
-    )
+    })
     expect(resetResult1.connections.totalCount).toBe(0)
 
-    const resetResult2 = await putDraft(
-      {
-        draft: { id: draftId, connections: null as any },
+    const {
+      data: { putDraft: resetResult2 },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          id: draftId,
+          connections: null as any,
+        },
       },
-      connections
-    )
+    })
     expect(resetResult2.connections.totalCount).toBe(0)
   })
 
@@ -741,16 +992,18 @@ describe('put draft', () => {
     )
 
     // create draft using deprecated collection field
-    const createRes = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: createRes },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
           collection: connectionGlobalIds,
         },
       },
-      connections
-    )
+    })
     expect(createRes.collection.totalCount).toBe(connectionIds.length)
     expect(createRes.connections.totalCount).toBe(connectionIds.length)
     expect([
@@ -760,15 +1013,17 @@ describe('put draft', () => {
     ]).toEqual(connectionGlobalIds)
 
     // edit draft using deprecated collection field
-    const editRes = await putDraft(
-      {
-        draft: {
+    const {
+      data: { putDraft: editRes },
+    } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           id: createRes.id,
           collection: connectionGlobalIds.slice(0, 2),
         },
       },
-      connections
-    )
+    })
     expect(editRes.collection.totalCount).toBe(2)
     expect(editRes.connections.totalCount).toBe(2)
     expect([
@@ -784,18 +1039,150 @@ describe('put draft', () => {
       id: '1',
     })
 
-    const result = await putDraft(
-      {
-        draft: {
+    const { errors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
           title: Math.random().toString(),
           content: Math.random().toString(),
           connections: [invalidConnectionId],
         },
       },
-      connections
-    )
+    })
 
-    expect(result.errors).toBeDefined()
-    expect(result.errors[0].extensions.code).toBe('BAD_USER_INPUT')
+    expect(errors).toBeDefined()
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  describe('collections', () => {
+    test('should add draft to collections', async () => {
+      const user = await atomService.userIdLoader.load('1')
+      // Create test collections
+      const collection1 = await atomService.create({
+        table: 'collection',
+        data: {
+          title: 'Test Collection 1',
+          authorId: user.id,
+        },
+      })
+      const collection2 = await atomService.create({
+        table: 'collection',
+        data: {
+          title: 'Test Collection 2',
+          authorId: user.id,
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        context: { viewer: user },
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: PUT_DRAFT,
+        variables: {
+          input: {
+            title: 'Test Draft',
+            content: 'Test content',
+            collections: [
+              toGlobalId({ type: NODE_TYPES.Collection, id: collection1.id }),
+              toGlobalId({ type: NODE_TYPES.Collection, id: collection2.id }),
+            ],
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.putDraft).toBeDefined()
+      expect(data?.putDraft.collections.edges).toHaveLength(2)
+      expect(data?.putDraft.collections.edges[0].node.id).toBe(
+        toGlobalId({ type: NODE_TYPES.Collection, id: collection1.id })
+      )
+      expect(data?.putDraft.collections.edges[1].node.id).toBe(
+        toGlobalId({ type: NODE_TYPES.Collection, id: collection2.id })
+      )
+    })
+
+    test('should not allow adding to collections owned by other users', async () => {
+      // Create test collection owned by another user
+      const author = await atomService.userIdLoader.load('1')
+      const user = await atomService.userIdLoader.load('2')
+      const collection = await atomService.create({
+        table: 'collection',
+        data: {
+          title: 'Test Collection',
+          authorId: author.id,
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        context: { viewer: user },
+      })
+
+      const { errors } = await server.executeOperation({
+        query: PUT_DRAFT,
+        variables: {
+          input: {
+            title: 'Test Draft',
+            content: 'Test content',
+            collections: [
+              toGlobalId({ type: NODE_TYPES.Collection, id: collection.id }),
+            ],
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    })
+
+    test('should handle non-existent collections', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: PUT_DRAFT,
+        variables: {
+          input: {
+            title: 'Test Draft',
+            content: 'Test content',
+            collections: [
+              toGlobalId({
+                type: NODE_TYPES.Collection,
+                id: '0',
+              }),
+            ],
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    })
+
+    test('should handle invalid collection type', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: PUT_DRAFT,
+        variables: {
+          input: {
+            title: 'Test Draft',
+            content: 'Test content',
+            collections: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    })
   })
 })

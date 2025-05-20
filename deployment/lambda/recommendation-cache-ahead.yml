@@ -1,0 +1,342 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: lambda to cache ahead recommendation-authors db query
+
+Parameters:
+  imageUri:
+    Type: String
+    Description: "The Amazon ECR image URI"
+  mattersEnv:
+    Type: String
+    Description: 'Lambda environment, which will determine the ssm parameter path to query'
+  lambdaCMD:
+    Type: String
+    Description: 'lambda CMD setting'
+
+Conditions:
+  isProd: !Equals
+    - !Ref mattersEnv
+    - "production"
+
+Resources:
+  Lambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        ImageUri: !Ref imageUri
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - !Ref lambdaCMD
+      Environment:
+        Variables:
+          MATTERS_ENV: !Ref mattersEnv
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Timeout: 900
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !If
+            - isProd
+            - sg-0a1928a3b07644413
+            - sg-08ca5c76639a365d3
+        SubnetIds:
+          - !If
+            - isProd
+            - subnet-0415147ddf68a48f2
+            - subnet-0c6a762428d442ec3
+
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  LambdaRolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref LambdaRole
+      PolicyName: "recommendationCacheAheadLambda"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "ssm:GetParameter"
+              - "ssm:GetParametersByPath"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:"
+                - !Ref "AWS::Partition"
+                - ":ssm:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - !If
+                  - isProd
+                  - ":parameter/prod/matters-server/"
+                  - ":parameter/dev/matters-server/"
+
+  CronEvent0:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(0 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent1LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": ""
+              }
+            }
+  CronEvent0Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent0.Arn
+
+  CronEvent1:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(2 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent1LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "1"
+              }
+            }
+  CronEvent1Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent1.Arn
+
+  CronEvent2:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(4 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent2LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "2"
+              }
+            }
+  CronEvent2Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent2.Arn
+
+  CronEvent3:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(6 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent3LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "3"
+              }
+            }
+  CronEvent3Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent3.Arn
+
+  CronEvent4:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(8 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent4LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "4"
+              }
+            }
+  CronEvent4Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent4.Arn
+
+  CronEvent5:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(10 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent5LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "5"
+              }
+            }
+  CronEvent5Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent5.Arn
+
+  CronEvent6:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(12 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent6LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "6"
+              }
+            }
+  CronEvent6Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent6.Arn
+
+  CronEvent7:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(14 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent7LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "7"
+              }
+            }
+  CronEvent7Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent7.Arn
+
+  CronEvent8:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(16 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent8LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "8"
+              }
+            }
+  CronEvent8Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent8.Arn
+
+  CronEvent9:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(18 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent9LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "9"
+              }
+            }
+  CronEvent9Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent9.Arn
+
+  CronEvent10:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(20 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent10LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "10"
+              }
+            }
+  CronEvent10Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent10.Arn
+
+  CronEvent11:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(22 * * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent11LambdaTarget
+          Input: |
+            {
+              "data": {
+                "channelId": "11"
+              }
+            }
+  CronEvent11Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent11.Arn

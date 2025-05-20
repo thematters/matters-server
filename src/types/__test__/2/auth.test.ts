@@ -837,7 +837,7 @@ describe('emailLogin', () => {
       })
 
       const server = await testClient({ connections })
-      const { data, errors } = await server.executeOperation({
+      const { data } = await server.executeOperation({
         query: EMAIL_LOGIN,
         variables: {
           input: {
@@ -846,7 +846,6 @@ describe('emailLogin', () => {
           },
         },
       })
-      console.dir(errors, { depth: null })
       expect(data?.emailLogin.auth).toBe(true)
       expect(data?.emailLogin.type).toBe('Signup')
       expect(data?.emailLogin.token).toBeDefined()

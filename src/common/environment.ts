@@ -1,3 +1,4 @@
+import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -7,6 +8,28 @@ export const isTest = process.env.MATTERS_ENV === 'test'
 export const isDev = process.env.MATTERS_ENV === 'development'
 export const isStage = process.env.MATTERS_ENV === 'stage'
 export const isProd = process.env.MATTERS_ENV === 'production'
+
+const isLambda = process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined
+
+if (isLambda) {
+  // write process.env by parameter store
+  const ssm = new SSMClient({})
+  let nextToken: string | undefined
+  do {
+    const params = await ssm.send(
+      new GetParametersByPathCommand({
+        Path: isProd ? '/prod/matters-server/' : '/dev/matters-server/',
+        WithDecryption: true,
+        Recursive: true,
+        NextToken: nextToken,
+      })
+    )
+    params.Parameters?.forEach((param) => {
+      process.env[param.Name?.split('/').pop() || ''] = param.Value
+    })
+    nextToken = params.NextToken
+  } while (nextToken !== undefined)
+}
 
 /**
  * Here are all environment variables that server needs. Please add prefix
@@ -49,6 +72,7 @@ export const environment = {
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
   pgDatabase: process.env.MATTERS_PG_DATABASE,
+  pgPort: process.env.MATTERS_PG_PORT || 5432,
   pgReadonlyConnectionString:
     process.env.MATTERS_PG_READONLY_CONNECTION_STRING ||
     'postgresql://no-exist@no-exist/no-exist',

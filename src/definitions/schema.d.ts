@@ -238,14 +238,20 @@ export type GQLArticle = GQLNode &
     canComment: Scalars['Boolean']['output']
     /** This value determines if current viewer can SuperLike or not. */
     canSuperLike: Scalars['Boolean']['output']
-    /** List of articles which added this article into their collections. */
-    collectedBy: GQLArticleConnection
-    /** List of articles added into this article' collection. */
+    /**
+     * List of articles added into this article's connections.
+     * @deprecated Use connections instead
+     */
     collection: GQLArticleConnection
+    /** Collections of this article. */
+    collections: GQLCollectionConnection
     /** The counting number of comments. */
     commentCount: Scalars['Int']['output']
     /** List of comments of this article. */
     comments: GQLCommentConnection
+    /** List of articles which added this article into their connections. */
+    connectedBy: GQLArticleConnection
+    connections: GQLArticleConnection
     /** Content (HTML) of this article. */
     content: Scalars['String']['output']
     /** Different foramts of content. */
@@ -355,7 +361,7 @@ export type GQLArticleAppreciationsReceivedArgs = {
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
  */
-export type GQLArticleCollectedByArgs = {
+export type GQLArticleCollectionArgs = {
   input: GQLConnectionArgs
 }
 
@@ -363,7 +369,7 @@ export type GQLArticleCollectedByArgs = {
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
  */
-export type GQLArticleCollectionArgs = {
+export type GQLArticleCollectionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -373,6 +379,22 @@ export type GQLArticleCollectionArgs = {
  */
 export type GQLArticleCommentsArgs = {
   input: GQLCommentsInput
+}
+
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
+export type GQLArticleConnectedByArgs = {
+  input: GQLConnectionArgs
+}
+
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
+export type GQLArticleConnectionsArgs = {
+  input: GQLConnectionArgs
 }
 
 /**
@@ -589,6 +611,8 @@ export type GQLArticleTopicChannel = {
   enabled: Scalars['Boolean']['output']
   /** whether this article is labeled by human, null for not labeled yet.  */
   isLabeled: Scalars['Boolean']['output']
+  /** whether this article is pinned */
+  pinned: Scalars['Boolean']['output']
   /** confident score by machine */
   score?: Maybe<Scalars['Float']['output']>
 }
@@ -1510,12 +1534,14 @@ export type GQLDraft = GQLNode & {
   article?: Maybe<GQLArticle>
   /** List of assets are belonged to this draft. */
   assets: Array<GQLAsset>
-  /** associated campaigns */
+  /** Associated campaigns */
   campaigns: Array<GQLArticleCampaign>
-  /** whether readers can comment */
+  /** Whether readers can comment */
   canComment: Scalars['Boolean']['output']
   /** @deprecated Use connections instead */
   collection: GQLArticleConnection
+  /** Collections of this draft. */
+  collections: GQLCollectionConnection
   /** Connection articles of this draft. */
   connections: GQLArticleConnection
   /** Content (HTML) of this draft. */
@@ -1526,9 +1552,9 @@ export type GQLDraft = GQLNode & {
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this draft. */
   id: Scalars['ID']['output']
-  /** whether the first line of paragraph should be indented */
+  /** Whether the first line of paragraph should be indented */
   indentFirstLine: Scalars['Boolean']['output']
-  /** whether publish to ISCN */
+  /** Whether publish to ISCN */
   iscnPublish?: Maybe<Scalars['Boolean']['output']>
   /** License Type */
   license: GQLArticleLicenseType
@@ -1538,11 +1564,11 @@ export type GQLDraft = GQLNode & {
   publishAt?: Maybe<Scalars['DateTime']['output']>
   /** State of draft during publihsing. */
   publishState: GQLPublishState
-  /** creator message after support */
+  /** Creator message after support */
   replyToDonator?: Maybe<Scalars['String']['output']>
-  /** creator message asking for support */
+  /** Creator message asking for support */
   requestForDonation?: Maybe<Scalars['String']['output']>
-  /** whether content is marked as sensitive by author */
+  /** Whether content is marked as sensitive by author */
   sensitiveByAuthor: Scalars['Boolean']['output']
   /** Slugified draft title. */
   slug: Scalars['String']['output']
@@ -1562,6 +1588,11 @@ export type GQLDraft = GQLNode & {
 
 /** This type contains content, collections, assets and related data of a draft. */
 export type GQLDraftCollectionArgs = {
+  input: GQLConnectionArgs
+}
+
+/** This type contains content, collections, assets and related data of a draft. */
+export type GQLDraftCollectionsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -1596,7 +1627,10 @@ export type GQLEditArticleInput = {
   /** whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
+  /** Deprecated, use connections instead */
   collection?: InputMaybe<Array<Scalars['ID']['input']>>
+  collections?: InputMaybe<Array<Scalars['ID']['input']>>
+  connections?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   /** revision description */
@@ -2983,21 +3017,23 @@ export type GQLPutCurationChannelInput = {
 
 export type GQLPutDraftInput = {
   accessType?: InputMaybe<GQLArticleAccessType>
-  /** which campaigns to attach */
+  /** Which campaigns to attach */
   campaigns?: InputMaybe<Array<GQLArticleCampaignInput>>
-  /** whether readers can comment */
+  /** Whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
   /** Deprecated, use connections instead */
   collection?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>
+  /** Add article to these collections when published */
+  collections?: InputMaybe<Array<Scalars['ID']['input']>>
   connections?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
   indentFirstLine?: InputMaybe<Scalars['Boolean']['input']>
-  /** whether publish to ISCN */
+  /** Whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>
-  /** last known update timestamp for version conflict detection */
+  /** Last known update timestamp for version conflict detection */
   lastUpdatedAt?: InputMaybe<Scalars['DateTime']['input']>
   license?: InputMaybe<GQLArticleLicenseType>
   replyToDonator?: InputMaybe<Scalars['String']['input']>
@@ -6365,17 +6401,17 @@ export type GQLArticleResolvers<
   >
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   canSuperLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  collectedBy?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLArticleCollectedByArgs, 'input'>
-  >
   collection?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLArticleCollectionArgs, 'input'>
+  >
+  collections?: Resolver<
+    GQLResolversTypes['CollectionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleCollectionsArgs, 'input'>
   >
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   comments?: Resolver<
@@ -6383,6 +6419,18 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLArticleCommentsArgs, 'input'>
+  >
+  connectedBy?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleConnectedByArgs, 'input'>
+  >
+  connections?: Resolver<
+    GQLResolversTypes['ArticleConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleConnectionsArgs, 'input'>
   >
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   contents?: Resolver<
@@ -6725,6 +6773,7 @@ export type GQLArticleTopicChannelResolvers<
   >
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isLabeled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -7654,6 +7703,12 @@ export type GQLDraftResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLDraftCollectionArgs, 'input'>
+  >
+  collections?: Resolver<
+    GQLResolversTypes['CollectionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLDraftCollectionsArgs, 'input'>
   >
   connections?: Resolver<
     GQLResolversTypes['ArticleConnection'],
