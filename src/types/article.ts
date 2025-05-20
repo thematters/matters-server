@@ -345,6 +345,9 @@ export default /* GraphQL */ `
     "whether this article channel is enabled"
     enabled: Boolean!
 
+    "whether this article is pinned"
+    pinned: Boolean!
+
     "datetime when this article is classified"
     classicfiedAt: DateTime!
   }
