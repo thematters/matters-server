@@ -605,15 +605,6 @@ describe('article connections', () => {
             }
           }
         }
-        # Test deprecated fields still work
-        collectedBy(input: { first: 10 }) {
-          totalCount
-          edges {
-            node {
-              id
-            }
-          }
-        }
         collection(input: { first: 10 }) {
           totalCount
           edges {
@@ -694,7 +685,7 @@ describe('article connections', () => {
       toGlobalId({ type: NODE_TYPES.Article, id: article3.id })
     )
 
-    // Test connectedBy/collectedBy fields
+    // Test connectedBy fields
     const { data: data2, errors: errors2 } = await server.executeOperation({
       query: GET_ARTICLE_CONNECTIONS,
       variables: {
@@ -708,13 +699,6 @@ describe('article connections', () => {
     expect(data2.article.connectedBy.totalCount).toBe(1)
     expect(data2.article.connectedBy.edges.length).toBe(1)
     expect(data2.article.connectedBy.edges[0].node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: article1.id })
-    )
-
-    // Test deprecated collectedBy field still works
-    expect(data2.article.collectedBy.totalCount).toBe(1)
-    expect(data2.article.collectedBy.edges.length).toBe(1)
-    expect(data2.article.collectedBy.edges[0].node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Article, id: article1.id })
     )
   })
