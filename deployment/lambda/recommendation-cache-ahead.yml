@@ -99,7 +99,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": ""
+                "channelId": ""
               }
             }
   CronEvent0Permission:
@@ -120,7 +120,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "1"
+                "channelId": "1"
               }
             }
   CronEvent1Permission:
@@ -141,7 +141,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "2"
+                "channelId": "2"
               }
             }
   CronEvent2Permission:
@@ -162,7 +162,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "3"
+                "channelId": "3"
               }
             }
   CronEvent3Permission:
@@ -183,7 +183,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "4"
+                "channelId": "4"
               }
             }
   CronEvent4Permission:
@@ -204,7 +204,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "5"
+                "channelId": "5"
               }
             }
   CronEvent5Permission:
@@ -225,7 +225,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "6"
+                "channelId": "6"
               }
             }
   CronEvent6Permission:
@@ -246,7 +246,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "7"
+                "channelId": "7"
               }
             }
   CronEvent7Permission:
@@ -267,7 +267,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "8"
+                "channelId": "8"
               }
             }
   CronEvent8Permission:
@@ -288,7 +288,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "9"
+                "channelId": "9"
               }
             }
   CronEvent9Permission:
@@ -309,7 +309,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "10"
+                "channelId": "10"
               }
             }
   CronEvent10Permission:
@@ -330,7 +330,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelID": "11"
+                "channelId": "11"
               }
             }
   CronEvent11Permission:
