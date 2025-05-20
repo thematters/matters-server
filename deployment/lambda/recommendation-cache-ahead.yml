@@ -98,9 +98,7 @@ Resources:
           Id: CronEvent1LambdaTarget
           Input: |
             {
-              "data": {
-                "channelId": ""
-              }
+              "data": {}
             }
   CronEvent0Permission:
     Type: "AWS::Lambda::Permission"
