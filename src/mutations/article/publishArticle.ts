@@ -111,7 +111,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   if (!publishAt) {
     // publish now
-    await articleService.publishArticle(draft.id)
+    const publishedDraft = await articleService.publishArticle(draft.id)
     auditLog({
       actorId: viewer.id,
       action: AUDIT_LOG_ACTION.addPublishArticleJob,
@@ -119,6 +119,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
       entityId: draft.id,
       status: 'succeeded',
     })
+    return publishedDraft
   }
 
   return updatedDraft

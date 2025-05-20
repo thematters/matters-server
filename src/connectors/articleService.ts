@@ -95,6 +95,8 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 export class ArticleService extends BaseService<Article> {
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
   private openRouter = new OpenRouter()
+  private systemService: SystemService
+  private notificationService: NotificationService
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -118,6 +120,9 @@ export class ArticleService extends BaseService<Article> {
     }
 
     this.latestArticleVersionLoader = new DataLoader(batchFn)
+
+    this.systemService = new SystemService(this.connections)
+    this.notificationService = new NotificationService(this.connections)
   }
 
   /*********************************
@@ -470,12 +475,11 @@ export class ArticleService extends BaseService<Article> {
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
-        const systemService = new SystemService(this.connections)
         const [draftEntity, articleEntity] = await Promise.all([
-          systemService.baseFindEntityTypeId('draft'),
-          systemService.baseFindEntityTypeId('article'),
+          this.systemService.baseFindEntityTypeId('draft'),
+          this.systemService.baseFindEntityTypeId('article'),
         ])
-        await systemService.copyAssetMapEntities({
+        await this.systemService.copyAssetMapEntities({
           source: { entityTypeId: draftEntity.id, entityId: draftId },
           target: { entityTypeId: articleEntity.id, entityId: article.id },
         })
@@ -1041,8 +1045,6 @@ export class ArticleService extends BaseService<Article> {
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = simplecc(key, 't2s')
     const keyTraditional = simplecc(key, 's2t')
-    // const systemService = new SystemService(this.connections)
-    // const spamThreshold = await systemService.getSpamThreshold()
     const q = this.knexRO('article')
       .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
       .whereIn(
@@ -2277,9 +2279,8 @@ export class ArticleService extends BaseService<Article> {
       { id: articleId, title, content, summary },
       undefined,
       async (score) => {
-        const systemService = new SystemService(this.connections)
         const channelService = new ChannelService(this.connections)
-        const spamThreshold = await systemService.getSpamThreshold()
+        const spamThreshold = await this.systemService.getSpamThreshold()
         const isSpam = spamThreshold && score && score >= spamThreshold
 
         if (isSpam) {
@@ -2352,23 +2353,20 @@ export class ArticleService extends BaseService<Article> {
    *********************************/
 
   public publishArticle = async (draftId: string, scheduled = false) => {
-    const systemService = new SystemService(this.connections)
-    const notificationService = new NotificationService(this.connections)
-
-    const draft = await this.models.findUnique({
+    let draft = await this.models.findUnique({
       table: 'draft',
       where: { id: draftId },
     })
 
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
-      return
+      return draft
     }
 
     // Step 2: create an article
     const [article, articleVersion] = await this.createArticle(draft)
 
-    await this.models.update({
+    draft = await this.models.update({
       table: 'draft',
       where: { id: draft.id },
       data: {
@@ -2406,20 +2404,20 @@ export class ArticleService extends BaseService<Article> {
        */
       const [{ id: draftEntityTypeId }, { id: articleEntityTypeId }] =
         await Promise.all([
-          systemService.baseFindEntityTypeId('draft'),
-          systemService.baseFindEntityTypeId('article'),
+          this.systemService.baseFindEntityTypeId('draft'),
+          this.systemService.baseFindEntityTypeId('article'),
         ])
 
       // Remove unused assets
       await this.deleteUnusedAssets({ draftEntityTypeId, draft })
 
       // Swap cover assets from draft to article
-      const coverAssets = await systemService.findAssetAndAssetMap({
+      const coverAssets = await this.systemService.findAssetAndAssetMap({
         entityTypeId: draftEntityTypeId,
         entityId: draft.id,
         assetType: 'cover',
       })
-      await systemService.swapAssetMapEntity(
+      await this.systemService.swapAssetMapEntity(
         coverAssets.map((ast: { id: string }) => ast.id),
         articleEntityTypeId,
         article.id
@@ -2433,7 +2431,7 @@ export class ArticleService extends BaseService<Article> {
     }
 
     // Step 7: trigger notifications
-    notificationService.trigger({
+    this.notificationService.trigger({
       event: scheduled
         ? NOTICE_TYPE.scheduled_article_published
         : NOTICE_TYPE.article_published,
@@ -2451,7 +2449,7 @@ export class ArticleService extends BaseService<Article> {
       redis: this.connections.redis,
     })
 
-    return article
+    return draft
   }
 
   public findScheduledAndPublish = async (date: Date, lastHours = 1) => {
@@ -2468,10 +2466,10 @@ export class ArticleService extends BaseService<Article> {
           data: { publishState: PUBLISH_STATE.pending },
         })
         try {
-          await this.publishArticle(draft.id, true)
+          return await this.publishArticle(draft.id, true)
         } catch (err) {
           logger.error(`Failed to publish draft ${draft.id}: ${err}`)
-          await this.models.update({
+          return await this.models.update({
             table: 'draft',
             where: { id: draft.id },
             data: { publishState: PUBLISH_STATE.unpublished },
@@ -2493,8 +2491,6 @@ export class ArticleService extends BaseService<Article> {
     if (articleVersion.connections.length <= 0) {
       return
     }
-
-    const notificationService = new NotificationService(this.connections)
 
     const connections: Array<
       Pick<ArticleConnection, 'entranceId' | 'articleId' | 'order'>
@@ -2534,7 +2530,7 @@ export class ArticleService extends BaseService<Article> {
 
     // trigger notifications
     successed.forEach(async (a: Article) => {
-      notificationService.trigger({
+      this.notificationService.trigger({
         event: NOTICE_TYPE.article_new_collected,
         recipientId: a.authorId,
         actorId: article.authorId,
@@ -2551,7 +2547,7 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (scheduled) {
-      notificationService.trigger({
+      this.notificationService.trigger({
         event: NOTICE_TYPE.scheduled_article_published_with_connection_failure,
         recipientId: article.authorId,
         entities: [
@@ -2580,7 +2576,6 @@ export class ArticleService extends BaseService<Article> {
     }
 
     const userService = new UserService(this.connections)
-    const notificationService = new NotificationService(this.connections)
 
     if (articleVersion.access) {
       const data = {
@@ -2606,7 +2601,7 @@ export class ArticleService extends BaseService<Article> {
     )
 
     recipients.forEach((recipientId: string) => {
-      notificationService.trigger({
+      this.notificationService.trigger({
         event: NOTICE_TYPE.circle_new_article,
         recipientId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
@@ -2676,13 +2671,12 @@ export class ArticleService extends BaseService<Article> {
   }) => {
     const mentionIds = extractMentionIds(content)
 
-    const notificationService = new NotificationService(this.connections)
     mentionIds.forEach((id: string) => {
       if (!id) {
         return false
       }
 
-      notificationService.trigger({
+      this.notificationService.trigger({
         event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId: id,
@@ -2719,10 +2713,9 @@ export class ArticleService extends BaseService<Article> {
     draftEntityTypeId: string
     draft: Draft
   }) => {
-    const systemService = new SystemService(this.connections)
     try {
       const [assets, uuids] = await Promise.all([
-        systemService.findAssetAndAssetMap({
+        this.systemService.findAssetAndAssetMap({
           entityTypeId: draftEntityTypeId,
           entityId: draft.id,
         }),
@@ -2740,7 +2733,7 @@ export class ArticleService extends BaseService<Article> {
       })
 
       if (Object.keys(unusedAssetPaths).length > 0) {
-        await systemService.deleteAssetAndAssetMap(unusedAssetPaths)
+        await this.systemService.deleteAssetAndAssetMap(unusedAssetPaths)
       }
     } catch (e) {
       logger.error(e)
