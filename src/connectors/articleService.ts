@@ -2506,10 +2506,12 @@ export class ArticleService extends BaseService<Article> {
           })
           if (!_article) {
             logger.warn(`article connection not found: ${articleId}`)
+            // should not added to faileded, as _article is undefined
             return
           }
 
           if (_article.state !== ARTICLE_STATE.active) {
+            logger.warn(`article connection not active: ${articleId}`)
             faileded.push(_article)
             return
           }
@@ -2553,8 +2555,8 @@ export class ArticleService extends BaseService<Article> {
         entities: [
           { type: 'target', entityTable: 'article', entity: article },
           ...faileded.map((failedArticle: Article) => ({
-            type: 'connection' as const,
-            entityTable: 'connection' as const,
+            type: 'article' as const,
+            entityTable: 'article' as const,
             entity: failedArticle,
           })),
         ],

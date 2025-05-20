@@ -89,7 +89,7 @@ interface NoticeArticlePublishedWithConnectionFailureParams
   recipientId: string
   entities: Array<
     | NotificationEntity<'target', 'article'>
-    | NotificationEntity<'connection', 'connection'>
+    | NotificationEntity<'article', 'article'>
   >
 }
 

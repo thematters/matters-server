@@ -2,7 +2,11 @@ import type { Connections } from '#definitions/index.js'
 
 import { jest } from '@jest/globals'
 
-import { NOTICE_TYPE, PUBLISH_STATE } from '#common/enums/index.js'
+import {
+  NOTICE_TYPE,
+  PUBLISH_STATE,
+  ARTICLE_STATE,
+} from '#common/enums/index.js'
 import {
   AtomService,
   ArticleService,
@@ -125,6 +129,58 @@ describe('publishArticle', () => {
       expect.objectContaining({
         event: NOTICE_TYPE.article_new_collected,
         recipientId: '3',
+      })
+    )
+  })
+
+  test('should handle failed article connections and notify correctly', async () => {
+    // Create a draft with connections to non-existent and inactive articles
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Test Draft with Failed Connections',
+        content: 'Test content',
+        publishState: PUBLISH_STATE.pending,
+        connections: ['0', '1'],
+      },
+    })
+
+    // Create an inactive article
+    const inactiveArticle = await atomService.update({
+      table: 'article',
+      where: { id: '1' },
+      data: {
+        state: ARTICLE_STATE.archived,
+      },
+    })
+
+    // Mock notification trigger
+    const triggerSpy = jest.spyOn(notificationService, 'trigger')
+
+    const result = await articleService.publishArticle(draft.id, true)
+
+    // Verify article was created
+    expect(result).toBeDefined()
+
+    // Verify notification was triggered with correct entity types
+    const article = await atomService.findFirst({
+      table: 'article',
+      where: { id: result?.articleId },
+    })
+
+    expect(triggerSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: NOTICE_TYPE.scheduled_article_published_with_connection_failure,
+        recipientId: '1',
+        entities: expect.arrayContaining([
+          { type: 'target', entityTable: 'article', entity: article },
+          {
+            type: 'article',
+            entityTable: 'article',
+            entity: inactiveArticle,
+          },
+        ]),
       })
     )
   })
