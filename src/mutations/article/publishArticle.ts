@@ -29,6 +29,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     viewer,
     dataSources: {
       atomService,
+      collectionService,
       queues: { publicationQueue },
     },
   }
@@ -65,6 +66,18 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   if (draft.circleId && draft.campaigns?.length > 0) {
     throw new UserInputError(
       'Article cannot be added to campaign or circle at the same time'
+    )
+  }
+
+  if (draft.collections) {
+    await Promise.all(
+      draft.collections.map((collectionId) =>
+        collectionService.validateCollection({
+          collectionId,
+          newArticlesCount: 1,
+          userId: draft.authorId,
+        })
+      )
     )
   }
 

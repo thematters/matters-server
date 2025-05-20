@@ -1,7 +1,6 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import {
-  ARTICLE_STATE,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
   NODE_TYPES,
@@ -10,8 +9,6 @@ import {
 import {
   ForbiddenError,
   UserInputError,
-  EntityNotFoundError,
-  ArticleNotFoundError,
   ActionLimitExceededError,
 } from '#common/errors.js'
 import { auditLog } from '#common/logger.js'
@@ -20,7 +17,7 @@ import { fromGlobalId } from '#common/utils/index.js'
 const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   _,
   { input: { collections: rawCollections, articles: rawArticles } },
-  { dataSources: { collectionService, articleService, atomService }, viewer }
+  { dataSources: { collectionService, atomService }, viewer }
 ) => {
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
@@ -45,58 +42,21 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   }
 
   const collectionIds = collections.map((id) => fromGlobalId(id).id)
-  for (const collectionId of collectionIds) {
-    const collection = await collectionService.baseFindById(collectionId)
-    if (!collection) {
-      throw new EntityNotFoundError('Collection not found')
-    }
-    if (collection.authorId !== viewer.id) {
-      throw new ForbiddenError('Viewer has no permission')
-    }
-  }
 
   const articleIds = articles.map((id) => fromGlobalId(id).id)
-
-  for (const articleId of articleIds) {
-    const article = await articleService.baseFindById(articleId)
-    if (!article || article.state !== ARTICLE_STATE.active) {
-      throw new ArticleNotFoundError('Article not found')
-    }
-    if (article.authorId !== viewer.id) {
-      throw new ForbiddenError('Viewer has no permission')
-    }
-  }
 
   if (collections.length === 0) {
     return []
   }
 
-  // check if collection has reached max articles limit and if there are duplicated articles
-  for (const collectionId of collectionIds) {
-    if (articles.length > 0) {
-      const [originalArticles, count] =
-        await collectionService.findAndCountArticlesInCollection(collectionId, {
-          take: MAX_ARTICLES_PER_COLLECTION_LIMIT,
-        })
-      if (count + articles.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
-        throw new ActionLimitExceededError('Action limit exceeded')
-      }
-      if (originalArticles.length > 0) {
-        const originalArticleIds = originalArticles.map((a) => a.id)
-        const duplicatedArticleIds = originalArticleIds.filter((id) =>
-          articleIds.includes(id)
-        )
-        if (duplicatedArticleIds.length > 0) {
-          throw new UserInputError('Duplicated Article ids')
-        }
-      }
-    }
-  }
-
   // add articles to collection
   for (const collectionId of collectionIds) {
     if (articles.length > 0) {
-      await collectionService.addArticles(collectionId, articleIds)
+      await collectionService.addArticles({
+        collectionId,
+        articleIds,
+        userId: viewer.id,
+      })
 
       articleIds.map((articleId) =>
         auditLog({

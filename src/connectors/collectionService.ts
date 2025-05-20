@@ -10,10 +10,12 @@ import {
   ARTICLE_STATE,
   MAX_PINNED_WORKS_LIMIT,
   USER_STATE,
+  MAX_ARTICLES_PER_COLLECTION_LIMIT,
 } from '#common/enums/index.js'
 import {
   ForbiddenError,
   EntityNotFoundError,
+  ArticleNotFoundError,
   ServerError,
   UserInputError,
   ActionLimitExceededError,
@@ -27,22 +29,119 @@ export class CollectionService extends BaseService<Collection> {
     super('collection', connections)
   }
 
-  public addArticles = async (
-    collectionId: string,
+  public addArticles = async ({
+    collectionId,
+    articleIds,
+    userId,
+  }: {
+    collectionId: string
     articleIds: readonly string[]
-  ) => {
-    const res = await this.knex('collection_article')
+    userId: string
+  }) => {
+    const articles = await this.validateAddArticles({
+      collectionId,
+      articleIds,
+      userId,
+    })
+    if (articles.length === 0) {
+      return
+    }
+    const [{ max }] = await this.knexRO('collection_article')
       .where('collection_id', collectionId)
       .max('order')
-    const initOrder = res[0].max ? parseFloat(res[0].max) + 1 : 1
+    const initOrder = max ? parseFloat(max) + 1 : 1
     await this.knex('collection_article').insert(
-      articleIds.map((articleId, index) => ({
-        articleId,
+      articles.map((article, index) => ({
+        articleId: article.id,
         collectionId,
         order: initOrder + index,
       }))
     )
-    await this.baseUpdate(collectionId, {})
+    // update timestamp
+    this.models.update({
+      table: 'collection',
+      where: { id: collectionId },
+      data: {},
+    })
+  }
+
+  public removeArticles = async ({
+    collectionId,
+    articleIds,
+  }: {
+    collectionId: string
+    articleIds: readonly string[]
+  }) => {
+    await this.knex('collection_article')
+      .where('collection_id', collectionId)
+      .whereIn('article_id', articleIds)
+      .del()
+  }
+
+  public validateAddArticles = async ({
+    collectionId,
+    articleIds,
+    userId,
+  }: {
+    collectionId: string
+    articleIds: readonly string[]
+    userId: string
+  }) => {
+    const originalArticles = await this.validateCollection({
+      collectionId,
+      newArticlesCount: articleIds.length,
+      userId,
+    })
+    const originalArticleIds = originalArticles.map((a) => a.id)
+    const duplicatedArticleIds = originalArticleIds.filter((id) =>
+      articleIds.includes(id)
+    )
+    const articles: Article[] = []
+    for (const articleId of articleIds) {
+      if (duplicatedArticleIds.includes(articleId)) {
+        continue
+      }
+      const article = await this.models.articleIdLoader.load(articleId)
+      if (!article || article.state !== ARTICLE_STATE.active) {
+        throw new ArticleNotFoundError('Article not found')
+      }
+      if (article.authorId !== userId) {
+        throw new ForbiddenError('Viewer has no permission')
+      }
+      articles.push(article)
+    }
+    return articles
+  }
+
+  public validateCollection = async ({
+    collectionId,
+    newArticlesCount,
+    userId,
+  }: {
+    collectionId: string
+    newArticlesCount: number
+    userId: string
+  }) => {
+    const collection = await this.models.collectionIdLoader.load(collectionId)
+    if (!collection) {
+      throw new EntityNotFoundError('Collection not found')
+    }
+    if (collection.authorId !== userId) {
+      throw new ForbiddenError('Viewer has no permission')
+    }
+    const [articles, count] = await this.findAndCountArticlesInCollection(
+      collectionId,
+      {
+        take: MAX_ARTICLES_PER_COLLECTION_LIMIT,
+      }
+    )
+    if (count + newArticlesCount > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+      throw new ActionLimitExceededError(
+        `Collection ${collection.id} capacity exceeded`
+      )
+    }
+
+    return articles
   }
 
   public createCollection = async ({
@@ -183,6 +282,12 @@ export class CollectionService extends BaseService<Collection> {
     await this.baseUpdate(collectionId, {})
   }
 
+  /**
+   * Reorder articles in a collection
+   * @param collectionId - The id of the collection
+   * @param moves - The moves to be made, newPosition is 0-based and order by "order" desc
+   * @returns void
+   */
   public reorderArticles = async (
     collectionId: string,
     moves: Array<{ articleId: string; newPosition: number }>
@@ -307,6 +412,16 @@ export class CollectionService extends BaseService<Collection> {
           builder.limit(take)
         }
       })
+
+  public findByArticle = (articleId: string) =>
+    this.knexRO('collection_article')
+      .select('collection.*')
+      .innerJoin(
+        'collection',
+        'collection.id',
+        'collection_article.collection_id'
+      )
+      .where({ articleId })
 
   public findPinnedByAuthor = async (authorId: string) =>
     this.models.findMany({
