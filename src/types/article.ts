@@ -432,6 +432,9 @@ export default /* GraphQL */ `
 
     "whether publish to ISCN"
     iscnPublish: Boolean
+
+    "Scheduled publish date of the article."
+    publishAt: DateTime
   }
 
   input EditArticleInput {

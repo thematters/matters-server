@@ -52,6 +52,9 @@ export default /* GraphQL */ `
     "State of draft during publihsing."
     publishState: PublishState!
 
+    "Scheduled publish date of the article."
+    publishAt: DateTime
+
     "List of assets are belonged to this draft."
     assets: [Asset!]!
 

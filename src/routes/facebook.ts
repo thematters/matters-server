@@ -5,7 +5,7 @@ import { UserService } from '#connectors/index.js'
 import crypto from 'crypto'
 import { Router, urlencoded } from 'express'
 
-import { connections } from './connections.js'
+import { connections } from '../connections.js'
 
 type Data = {
   algorithm: string

@@ -1560,6 +1560,8 @@ export type GQLDraft = GQLNode & {
   license: GQLArticleLicenseType
   /** Media hash, composed of cid encoding, of this draft. */
   mediaHash?: Maybe<Scalars['String']['output']>
+  /** Scheduled publish date of the article. */
+  publishAt?: Maybe<Scalars['DateTime']['output']>
   /** State of draft during publihsing. */
   publishState: GQLPublishState
   /** Creator message after support */
@@ -2939,6 +2941,8 @@ export type GQLPublishArticleInput = {
   id: Scalars['ID']['input']
   /** whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>
+  /** Scheduled publish date of the article. */
+  publishAt?: InputMaybe<Scalars['DateTime']['input']>
 }
 
 /** Enums for publishing state. */
@@ -7737,6 +7741,11 @@ export type GQLDraftResolvers<
   >
   mediaHash?: Resolver<
     Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  publishAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
     ParentType,
     ContextType
   >

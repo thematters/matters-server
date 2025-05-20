@@ -24,15 +24,8 @@ const {
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
-  { input: { id: globalId, iscnPublish } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      collectionService,
-      queues: { publicationQueue },
-    },
-  }
+  { input: { id: globalId, iscnPublish, publishAt } },
+  { viewer, dataSources: { atomService, articleService, collectionService } }
 ) => {
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
@@ -44,6 +37,10 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
+  }
+
+  if (publishAt && publishAt < new Date()) {
+    throw new UserInputError('publishAt must be in the future')
   }
 
   // retrieve data from draft
@@ -88,7 +85,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     return draft
   }
 
-  const draftPending = await atomService.update({
+  const updatedDraft = await atomService.update({
     table: 'draft',
     where: { id: draft.id },
     data: {
@@ -101,22 +98,25 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
           },
         }
       ),
-      publishState: PUBLISH_STATE.pending,
+      publishState: publishAt ? undefined : PUBLISH_STATE.pending,
       iscnPublish,
+      publishAt,
     },
   })
 
-  // add job to queue
-  publicationQueue.publishArticle({ draftId: draft.id, iscnPublish })
-  auditLog({
-    actorId: viewer.id,
-    action: AUDIT_LOG_ACTION.addPublishArticleJob,
-    entity: 'draft',
-    entityId: draft.id,
-    status: 'succeeded',
-  })
+  if (!publishAt) {
+    // publish now
+    await articleService.publishArticle(draft.id)
+    auditLog({
+      actorId: viewer.id,
+      action: AUDIT_LOG_ACTION.addPublishArticleJob,
+      entity: 'draft',
+      entityId: draft.id,
+      status: 'succeeded',
+    })
+  }
 
-  return draftPending
+  return updatedDraft
 }
 
 export default resolver

@@ -10,7 +10,7 @@ import { Redis } from 'ioredis'
 import get from 'lodash/get.js'
 import passport from 'passport'
 
-import { connections } from '../connections.js'
+import { connections } from '../../connections.js'
 
 const logger = getLogger('route-auth')
 

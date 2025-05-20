@@ -1,5 +1,4 @@
 export * from './migration.js'
-export * from './publication.js'
 export * from './user.js'
 export * from './payout.js'
 export * from './payTo/index.js'

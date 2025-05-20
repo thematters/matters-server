@@ -6,7 +6,7 @@ import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
-import { connections } from '../../../connections.js'
+import { connections } from '../../../../connections.js'
 
 import { updateAccount } from './account.js'
 

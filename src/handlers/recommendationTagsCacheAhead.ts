@@ -1,7 +1,7 @@
 import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
 import { RecommendationService, CacheService } from '#connectors/index.js'
 
-import { connections } from '../routes/connections.js'
+import { connections } from '../connections.js'
 
 type Event = {
   data?: {

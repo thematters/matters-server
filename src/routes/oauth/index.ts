@@ -12,7 +12,7 @@ import { Request, RequestHandler, Response, Router } from 'express'
 import passport from 'passport'
 import querystring from 'querystring'
 
-import { connections } from '../connections.js'
+import { connections } from '../../connections.js'
 
 import OAuthServer from './express-oauth-server.js'
 import initPassportStrategies from './strategies.js'
