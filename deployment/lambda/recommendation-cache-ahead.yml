@@ -95,7 +95,7 @@ Resources:
       ScheduleExpression: "cron(0 * * * ? *)"
       Targets:
         - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent1LambdaTarget
+          Id: CronEvent0LambdaTarget
           Input: |
             {
               "data": {}
