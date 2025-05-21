@@ -19,9 +19,10 @@ import {
   SystemService,
   ChannelService,
   UserService,
+  CampaignService,
 } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from '../utils.js'
+import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
 let connections: Connections
 let articleService: ArticleService
@@ -29,6 +30,7 @@ let channelService: ChannelService
 let atomService: AtomService
 let systemService: SystemService
 let userService: UserService
+let campaignService: CampaignService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -37,6 +39,7 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
   userService = new UserService(connections)
+  campaignService = new CampaignService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -631,6 +634,42 @@ describe('latestArticles', () => {
     )
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
+  })
+
+  test('writing challenge articles are excluded', async () => {
+    // Create test articles
+    const [article1] = await articleService.createArticle({
+      title: 'test',
+      content: 'test content 1',
+      authorId: '1',
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test2',
+      content: 'test content 2',
+      authorId: '1',
+    })
+
+    // Create writing challenge campaign
+    await createCampaign(campaignService, article1)
+
+    // Test without exclusion
+    const articles = await articleService.latestArticles({
+      excludeWritingChallengeArticles: false,
+    })
+    expect(articles.map(({ id }) => id)).toContain(article1.id)
+    expect(articles.map(({ id }) => id)).toContain(article2.id)
+
+    // Test with exclusion
+    const articlesExcluded = await articleService.latestArticles({
+      excludeWritingChallengeArticles: true,
+    })
+    expect(articlesExcluded.map(({ id }) => id)).not.toContain(article1.id)
+    expect(articlesExcluded.map(({ id }) => id)).toContain(article2.id)
+
+    await atomService.deleteMany({ table: 'campaign_article' })
+    await atomService.deleteMany({ table: 'campaign_user' })
+    await atomService.deleteMany({ table: 'campaign_stage' })
+    await atomService.deleteMany({ table: 'campaign' })
   })
 })
 
