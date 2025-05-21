@@ -1,6 +1,6 @@
 import type { Knex } from 'knex'
 
-import { USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
+import { CAMPAIGN_TYPE, USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
 
 /**
  * Exclude spam articles
@@ -53,6 +53,21 @@ export const excludeRestricted = (
       .select('user_id')
       .from('user_restriction')
       .where('type', 'articleNewest')
+  )
+}
+
+export const excludeWritingChallenge = (
+  builder: Knex.QueryBuilder,
+  table = 'article'
+) => {
+  builder.whereNotIn(
+    `${table}.id`,
+    builder.client
+      .queryBuilder()
+      .select('article_id')
+      .from('campaign_article')
+      .join('campaign', 'campaign_article.campaign_id', 'campaign.id')
+      .where('campaign.type', CAMPAIGN_TYPE.writingChallenge)
   )
 }
 

@@ -1,5 +1,9 @@
 import type { Connections, Article } from '#definitions/index.js'
-import { USER_FEATURE_FLAG_TYPE, NODE_TYPES } from '#common/enums/index.js'
+import {
+  USER_FEATURE_FLAG_TYPE,
+  NODE_TYPES,
+  CAMPAIGN_TYPE,
+} from '#common/enums/index.js'
 
 import { ChannelService, AtomService } from '#connectors/index.js'
 import { genConnections, closeConnections } from '../utils.js'
@@ -484,5 +488,36 @@ describe('findTopicChannelArticles', () => {
       // Should still include the pinned article from restricted author
       expect(results.map((a) => a.id)).toContain(articles[0].id)
     })
+  })
+
+  test('excludes articles that are part of a writing challenge', async () => {
+    const before = await channelService.findTopicChannelArticles(channel.id)
+
+    const campaign = await atomService.create({
+      table: 'campaign',
+      data: {
+        type: CAMPAIGN_TYPE.writingChallenge,
+        name: 'Test Writing Challenge',
+        shortHash: 'test-hash',
+        state: 'active',
+        creatorId: '1',
+      },
+    })
+
+    // Add an article to the writing challenge
+    await atomService.create({
+      table: 'campaign_article',
+      data: {
+        campaignId: campaign.id,
+        articleId: before[0].id,
+      },
+    })
+
+    const after = await channelService.findTopicChannelArticles(channel.id)
+
+    expect(after.map((a) => a.id)).not.toContain(before[0].id)
+
+    await atomService.deleteMany({ table: 'campaign_article' })
+    await atomService.deleteMany({ table: 'campaign' })
   })
 })

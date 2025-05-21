@@ -24,6 +24,7 @@ import {
   toDatetimeRangeString,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
+  excludeWritingChallenge,
 } from '#common/utils/index.js'
 import {
   ArticleService,
@@ -288,6 +289,7 @@ export class ChannelService {
         'article.state': ARTICLE_STATE.active,
       })
       .modify(excludeRestrictedModifier)
+      .modify(excludeWritingChallenge)
       .where((builder) => {
         if (channelThreshold) {
           builder.where((qb) => {
