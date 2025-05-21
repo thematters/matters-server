@@ -88,6 +88,45 @@ describe('article translations', () => {
     expect(data.node.translation.model).toBe(model)
   })
 
+  test('non-admin cannot query article translations with model', async () => {
+    const articleId = '1'
+    const model = 'google_gemini_2_0_flash'
+
+    // Get article versions to link translations
+    const articleVersions = await atomService.findMany({
+      table: 'article_version',
+      where: { articleId },
+    })
+
+    // Create translation records directly
+    for (const version of articleVersions) {
+      await atomService.create({
+        table: 'article_translation',
+        data: {
+          articleId,
+          articleVersionId: version.id,
+          language: 'en',
+          title: LLM_TRANSLATION,
+          content: LLM_TRANSLATION,
+          model,
+        },
+      })
+    }
+
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
+    const server = await testClient({ connections })
+
+    const { errors } = await server.executeOperation({
+      query: GET_ARTICLE_TRANSLATION,
+      variables: {
+        nodeInput: { id },
+        translationInput: { language: 'en', model },
+      },
+    })
+    expect(errors).toBeDefined()
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
   test('admin can query article translations with specific LLM model', async () => {
     const articleId = '1'
 
@@ -140,22 +179,6 @@ describe('article translations', () => {
     expect(data.node.translation.title).toBe(LLM_TRANSLATION)
     expect(data.node.translation.content).toBe(LLM_TRANSLATION)
     expect(data.node.translation.model).toBe('google_gemini_2_5_flash')
-  })
-
-  test('non-admin cannot query article translations with model', async () => {
-    const articleId = '1'
-    const id = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
-    const server = await testClient({ connections })
-
-    const { error } = await server.executeOperation({
-      query: GET_ARTICLE_TRANSLATION,
-      variables: {
-        nodeInput: { id },
-        translationInput: { language: 'en', model: 'google_gemini_2_5_flash' },
-      },
-    })
-    expect(error).toBeDefined()
-    expect(error?.message).toBe('Not allowed to provide `model`')
   })
 })
 
@@ -325,7 +348,6 @@ describe('article version translations', () => {
         nodeInput: { id: id2 },
         translationInput: {
           language: 'en',
-          model: 'google_gemini_2_5_flash',
         },
       },
     })
@@ -333,7 +355,6 @@ describe('article version translations', () => {
     expect(error2).toBeUndefined()
     expect(data2.node.translation.title).toBe(LLM_TRANSLATION)
     expect(data2.node.translation.content).toBe(LLM_TRANSLATION)
-    expect(data2.node.translation.model).toBe('google_gemini_2_5_flash')
   })
 
   test('query paywalled article version', async () => {
