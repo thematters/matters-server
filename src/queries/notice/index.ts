@@ -161,6 +161,40 @@ const notice: {
       }
       return atomService.articleIdLoader.load(entities.target.id)
     },
+    entities: async ({ entities }, _, { dataSources: { atomService } }) => {
+      if (!entities) {
+        return []
+      }
+      const nodes = []
+      if (entities.collection) {
+        const node = await atomService.collectionIdLoader.load(
+          entities.collection.id
+        )
+        nodes.push({
+          ...node,
+          __type: 'Collection',
+        })
+      }
+      if (entities.connection) {
+        const node = await atomService.articleIdLoader.load(
+          entities.connection.id
+        )
+        nodes.push({
+          ...node,
+          __type: 'Article',
+        })
+      }
+      if (entities.campaign) {
+        const node = await atomService.campaignIdLoader.load(
+          entities.campaign.id
+        )
+        nodes.push({
+          ...node,
+          __type: 'WritingChallenge',
+        })
+      }
+      return nodes
+    },
   },
   ArticleArticleNotice: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),

@@ -23,6 +23,7 @@ type NoticeEntityType =
   | 'article'
   | 'circle'
   | 'campaign'
+  | 'connection'
 
 type NotificationType =
   | BaseNoticeType
@@ -508,4 +509,12 @@ export interface NoticeDetail {
   message: string
   data: any
   createdAt: Date
+}
+
+export interface NoticeEntity {
+  id: string
+  type: NoticeEntityType
+  noticeId: string
+  entityTypeId: string
+  entityId: string
 }
