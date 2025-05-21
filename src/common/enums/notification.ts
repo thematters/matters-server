@@ -5,9 +5,6 @@ export enum NOTICE_TYPE {
   // article
   article_published = 'article_published',
   scheduled_article_published = 'scheduled_article_published',
-  scheduled_article_published_with_collection_failure = 'scheduled_article_published_with_collection_failure',
-  scheduled_article_published_with_campaign_failure = 'scheduled_article_published_with_campaign_failure',
-  scheduled_article_published_with_connection_failure = 'scheduled_article_published_with_connection_failure',
   article_new_appreciation = 'article_new_appreciation',
   article_new_subscriber = 'article_new_subscriber',
   article_mentioned_you = 'article_mentioned_you',

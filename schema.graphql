@@ -1851,14 +1851,12 @@ type ArticleNotice implements Notice {
   actors: [User!]
   type: ArticleNoticeType!
   target: Article!
+  entities: [Node!]!
 }
 
 enum ArticleNoticeType {
   ArticlePublished
   ScheduledArticlePublished
-  ScheduledArticlePublishedWithCollectionFailure
-  ScheduledArticlePublishedWithCampaignFailure
-  ScheduledArticlePublishedWithConnectionFailure
   ArticleMentionedYou
   ArticleNewSubscriber
   ArticleNewAppreciation

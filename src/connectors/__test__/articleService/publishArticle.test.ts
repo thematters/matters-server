@@ -176,12 +176,12 @@ describe('publishArticle', () => {
 
     expect(triggerSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        event: NOTICE_TYPE.scheduled_article_published_with_connection_failure,
+        event: NOTICE_TYPE.scheduled_article_published,
         recipientId: '1',
         entities: expect.arrayContaining([
           { type: 'target', entityTable: 'article', entity: article },
           {
-            type: 'article',
+            type: 'connection',
             entityTable: 'article',
             entity: inactiveArticle,
           },
@@ -296,7 +296,7 @@ describe('publishArticle', () => {
 
     expect(triggerSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        event: NOTICE_TYPE.scheduled_article_published_with_collection_failure,
+        event: NOTICE_TYPE.scheduled_article_published,
         recipientId: '1',
         entities: expect.arrayContaining([
           { type: 'target', entityTable: 'article', entity: article },
@@ -416,7 +416,7 @@ describe('publishArticle', () => {
       where: { id: result?.articleId },
     })
     expect(triggerSpy).toHaveBeenCalledWith({
-      event: NOTICE_TYPE.scheduled_article_published_with_campaign_failure,
+      event: NOTICE_TYPE.scheduled_article_published,
       recipientId: '1',
       entities: [
         { type: 'target', entityTable: 'article', entity: article },

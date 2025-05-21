@@ -2379,24 +2379,24 @@ export class ArticleService extends BaseService<Article> {
     })
 
     // Note: the following steps won't affect the publication.
+    let failed = false
     try {
       // Step 4: handle collection, circles, tags & mentions
-      await this.handleCollections({
+      const failedCollections = await this.handleCollections({
         draft,
         article,
       })
-      await this.handleConnections({
+      const failedConnections = await this.handleConnections({
         article,
         articleVersion,
-        scheduled: !!draft.publishAt,
       })
+      const failedCampaigns = await this.handleCampaigns({ draft, article })
       await this.handleCircle({
         article,
         articleVersion,
       })
       await this.handleTags({ article, articleVersion })
       await this.handleMentions({ article, content: draft.content })
-      await this.handleCampaigns({ draft, article })
       /**
        * Step 5: Handle Assets
        *
@@ -2427,6 +2427,54 @@ export class ArticleService extends BaseService<Article> {
         articleEntityTypeId,
         article.id
       )
+      // notify any failed steps for scheduled publication
+      if (draft.publishAt) {
+        if (failedCollections && failedCollections.length > 0) {
+          this.notificationService.trigger({
+            event: NOTICE_TYPE.scheduled_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              ...failedCollections.map((failedCollection: Collection) => ({
+                type: 'collection' as const,
+                entityTable: 'collection' as const,
+                entity: failedCollection,
+              })),
+            ],
+          })
+          failed = true
+        }
+        if (failedConnections && failedConnections.length > 0) {
+          this.notificationService.trigger({
+            event: NOTICE_TYPE.scheduled_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              ...failedConnections.map((failedArticle: Article) => ({
+                type: 'connection' as const,
+                entityTable: 'article' as const,
+                entity: failedArticle,
+              })),
+            ],
+          })
+          failed = true
+        }
+        if (failedCampaigns && failedCampaigns.length > 0) {
+          await this.notificationService.trigger({
+            event: NOTICE_TYPE.scheduled_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              ...failedCampaigns.map((failedCampaign: Campaign) => ({
+                type: 'campaign' as const,
+                entityTable: 'campaign' as const,
+                entity: failedCampaign,
+              })),
+            ],
+          })
+          failed = true
+        }
+      }
     } catch (err) {
       // ignore errors caused by these steps
       logger.warn('optional step failed: %j', {
@@ -2436,13 +2484,23 @@ export class ArticleService extends BaseService<Article> {
     }
 
     // Step 7: trigger notifications
-    this.notificationService.trigger({
-      event: draft.publishAt
-        ? NOTICE_TYPE.scheduled_article_published
-        : NOTICE_TYPE.article_published,
-      recipientId: article.authorId,
-      entities: [{ type: 'target', entityTable: 'article', entity: article }],
-    })
+    if (draft.publishAt) {
+      if (!failed) {
+        this.notificationService.trigger({
+          event: NOTICE_TYPE.scheduled_article_published,
+          recipientId: article.authorId,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: article },
+          ],
+        })
+      }
+    } else {
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.article_published,
+        recipientId: article.authorId,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      })
+    }
 
     // Step 8: invalidate cache
     invalidateFQC({
@@ -2487,11 +2545,9 @@ export class ArticleService extends BaseService<Article> {
   private handleConnections = async ({
     article,
     articleVersion,
-    scheduled,
   }: {
     article: Article
     articleVersion: ArticleVersion
-    scheduled: boolean
   }) => {
     if (articleVersion.connections.length <= 0) {
       return
@@ -2553,20 +2609,7 @@ export class ArticleService extends BaseService<Article> {
       })
     })
 
-    if (scheduled) {
-      this.notificationService.trigger({
-        event: NOTICE_TYPE.scheduled_article_published_with_connection_failure,
-        recipientId: article.authorId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: article },
-          ...faileded.map((failedArticle: Article) => ({
-            type: 'article' as const,
-            entityTable: 'article' as const,
-            entity: failedArticle,
-          })),
-        ],
-      })
-    }
+    return faileded
   }
 
   private handleCollections = async ({
@@ -2598,7 +2641,7 @@ export class ArticleService extends BaseService<Article> {
       })
     )
     if (faileded.length > 0 && draft.publishAt) {
-      const failedCollections = await Promise.all(
+      return Promise.all(
         faileded.map(async (failedCollectionId: string) =>
           this.models.findUnique({
             table: 'collection',
@@ -2606,18 +2649,6 @@ export class ArticleService extends BaseService<Article> {
           })
         )
       )
-      await this.notificationService.trigger({
-        event: NOTICE_TYPE.scheduled_article_published_with_collection_failure,
-        recipientId: article.authorId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: article },
-          ...failedCollections.map((failedCollection: Collection) => ({
-            type: 'collection' as const,
-            entityTable: 'collection' as const,
-            entity: failedCollection,
-          })),
-        ],
-      })
     }
   }
 
@@ -2773,28 +2804,14 @@ export class ArticleService extends BaseService<Article> {
           faileded.push(campaign)
         }
       }
-      if (faileded.length > 0 && draft.publishAt) {
-        const failedCampaigns = await Promise.all(
-          faileded.map(async (failedCampaign: string) =>
-            this.models.findUnique({
-              table: 'campaign',
-              where: { id: failedCampaign },
-            })
-          )
+      return Promise.all(
+        faileded.map(async (failedCampaign: string) =>
+          this.models.findUnique({
+            table: 'campaign',
+            where: { id: failedCampaign },
+          })
         )
-        await this.notificationService.trigger({
-          event: NOTICE_TYPE.scheduled_article_published_with_campaign_failure,
-          recipientId: article.authorId,
-          entities: [
-            { type: 'target', entityTable: 'article', entity: article },
-            ...failedCampaigns.map((failedCampaign: Campaign) => ({
-              type: 'campaign' as const,
-              entityTable: 'campaign' as const,
-              entity: failedCampaign,
-            })),
-          ],
-        })
-      }
+      )
     }
   }
 

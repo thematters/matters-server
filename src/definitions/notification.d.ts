@@ -60,36 +60,11 @@ interface NoticeUserNewFollowerParams extends NotificationRequiredParams {
 interface NoticeArticlePublishedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_published | NOTICE_TYPE.scheduled_article_published
   recipientId: string
-  entities: [NotificationEntity<'target', 'article'>]
-}
-
-interface NoticeArticlePublishedWithCollectionFailureParams
-  extends NotificationRequiredParams {
-  event: NOTICE_TYPE.scheduled_article_published_with_collection_failure
-  recipientId: string
   entities: Array<
     | NotificationEntity<'target', 'article'>
     | NotificationEntity<'collection', 'collection'>
-  >
-}
-
-interface NoticeArticlePublishedWithCampaignFailureParams
-  extends NotificationRequiredParams {
-  event: NOTICE_TYPE.scheduled_article_published_with_campaign_failure
-  recipientId: string
-  entities: Array<
-    | NotificationEntity<'target', 'article'>
     | NotificationEntity<'campaign', 'campaign'>
-  >
-}
-
-interface NoticeArticlePublishedWithConnectionFailureParams
-  extends NotificationRequiredParams {
-  event: NOTICE_TYPE.scheduled_article_published_with_connection_failure
-  recipientId: string
-  entities: Array<
-    | NotificationEntity<'target', 'article'>
-    | NotificationEntity<'article', 'article'>
+    | NotificationEntity<'connection', 'article'>
   >
 }
 
@@ -428,9 +403,6 @@ export type NotificationParams =
   | NoticeUserNewFollowerParams
   // Article
   | NoticeArticlePublishedParams
-  | NoticeArticlePublishedWithCollectionFailureParams
-  | NoticeArticlePublishedWithCampaignFailureParams
-  | NoticeArticlePublishedWithConnectionFailureParams
   | NoticeArticleNewConnectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
