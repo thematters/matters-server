@@ -1,22 +1,25 @@
 import type { Connections, Article } from '#definitions/index.js'
-import {
-  USER_FEATURE_FLAG_TYPE,
-  NODE_TYPES,
-  CAMPAIGN_TYPE,
-} from '#common/enums/index.js'
+import { USER_FEATURE_FLAG_TYPE, NODE_TYPES } from '#common/enums/index.js'
 
-import { ChannelService, AtomService } from '#connectors/index.js'
-import { genConnections, closeConnections } from '../utils.js'
+import {
+  ChannelService,
+  AtomService,
+  CampaignService,
+} from '#connectors/index.js'
+import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
 let channel: any
 let articles: Article[]
+let campaignService: CampaignService
+
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
+  campaignService = new CampaignService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -493,31 +496,15 @@ describe('findTopicChannelArticles', () => {
   test('excludes articles that are part of a writing challenge', async () => {
     const before = await channelService.findTopicChannelArticles(channel.id)
 
-    const campaign = await atomService.create({
-      table: 'campaign',
-      data: {
-        type: CAMPAIGN_TYPE.writingChallenge,
-        name: 'Test Writing Challenge',
-        shortHash: 'test-hash',
-        state: 'active',
-        creatorId: '1',
-      },
-    })
-
-    // Add an article to the writing challenge
-    await atomService.create({
-      table: 'campaign_article',
-      data: {
-        campaignId: campaign.id,
-        articleId: before[0].id,
-      },
-    })
+    await createCampaign(campaignService, before[0])
 
     const after = await channelService.findTopicChannelArticles(channel.id)
 
     expect(after.map((a) => a.id)).not.toContain(before[0].id)
 
     await atomService.deleteMany({ table: 'campaign_article' })
+    await atomService.deleteMany({ table: 'campaign_user' })
+    await atomService.deleteMany({ table: 'campaign_stage' })
     await atomService.deleteMany({ table: 'campaign' })
   })
 })
