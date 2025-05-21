@@ -3976,8 +3976,8 @@ export type GQLTranslationInput = {
 }
 
 export type GQLTranslationModel =
-  | 'google_gemini_2_0_flash_001'
-  | 'google_gemini_2_5_flash_preview'
+  | 'google_gemini_2_0_flash'
+  | 'google_gemini_2_5_flash'
   | 'google_translation_v2'
 
 export type GQLUnbindLikerIdInput = {

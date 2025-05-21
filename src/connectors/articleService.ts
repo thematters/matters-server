@@ -2128,9 +2128,7 @@ export class ArticleService extends BaseService<Article> {
         articleId,
         articleVersionId,
         language,
-        model:
-          model ||
-          this.openRouter.toDatabaseModel(this.openRouter.defaultModel),
+        ...(model ? { model } : {}),
       },
     })
 

@@ -47,9 +47,9 @@ describe('article translations', () => {
     })
   })
 
-  test('query article translations with valid translation model', async () => {
+  test('non-admin can query article translations', async () => {
     const articleId = '1'
-    const model = 'google_gemini_2_0_flash_001'
+    const model = 'google_gemini_2_0_flash'
 
     // Get article versions to link translations
     const articleVersions = await atomService.findMany({
@@ -78,7 +78,7 @@ describe('article translations', () => {
       query: GET_ARTICLE_TRANSLATION,
       variables: {
         nodeInput: { id },
-        translationInput: { language: 'en', model },
+        translationInput: { language: 'en' },
       },
     })
 
@@ -88,25 +88,7 @@ describe('article translations', () => {
     expect(data.node.translation.model).toBe(model)
   })
 
-  test('query article translations with deprecated model throws error', async () => {
-    const articleId = '1'
-    const id = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
-    const server = await testClient({ connections })
-    const { errors } = await server.executeOperation({
-      query: GET_ARTICLE_TRANSLATION,
-      variables: {
-        nodeInput: { id },
-        translationInput: { language: 'en', model: 'google_translation_v2' },
-      },
-    })
-
-    expect(errors).toBeDefined()
-    expect(errors?.[0].message).toContain(
-      'google_translation_v2" is no longer supported'
-    )
-  })
-
-  test('query article translations with specific LLM model', async () => {
+  test('admin can query article translations with specific LLM model', async () => {
     const articleId = '1'
 
     // Get article versions to link translations
@@ -125,20 +107,31 @@ describe('article translations', () => {
           language: 'en',
           title: LLM_TRANSLATION,
           content: LLM_TRANSLATION,
-          model: 'google_gemini_2_0_flash_001',
+          model: 'google_gemini_2_0_flash',
+        },
+      })
+      await atomService.create({
+        table: 'article_translation',
+        data: {
+          articleId,
+          articleVersionId: version.id,
+          language: 'en',
+          title: LLM_TRANSLATION,
+          content: LLM_TRANSLATION,
+          model: 'google_gemini_2_5_flash',
         },
       })
     }
 
     const id = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
-    const server = await testClient({ connections })
+    const server = await testClient({ connections, isAdmin: true })
     const { error, data } = await server.executeOperation({
       query: GET_ARTICLE_TRANSLATION,
       variables: {
         nodeInput: { id },
         translationInput: {
           language: 'en',
-          model: 'google_gemini_2_0_flash_001',
+          model: 'google_gemini_2_5_flash',
         },
       },
     })
@@ -146,7 +139,23 @@ describe('article translations', () => {
     expect(error).toBeUndefined()
     expect(data.node.translation.title).toBe(LLM_TRANSLATION)
     expect(data.node.translation.content).toBe(LLM_TRANSLATION)
-    expect(data.node.translation.model).toBe('google_gemini_2_0_flash_001')
+    expect(data.node.translation.model).toBe('google_gemini_2_5_flash')
+  })
+
+  test('non-admin cannot query article translations with model', async () => {
+    const articleId = '1'
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
+    const server = await testClient({ connections })
+
+    const { error } = await server.executeOperation({
+      query: GET_ARTICLE_TRANSLATION,
+      variables: {
+        nodeInput: { id },
+        translationInput: { language: 'en', model: 'google_gemini_2_5_flash' },
+      },
+    })
+    expect(error).toBeDefined()
+    expect(error?.message).toBe('Not allowed to provide `model`')
   })
 })
 
@@ -220,7 +229,7 @@ describe('article version translations', () => {
 
   test('query translations with specific LLM model', async () => {
     const articleVersionId = '1'
-    const model = 'google_gemini_2_0_flash_001'
+    const model = 'google_gemini_2_0_flash'
 
     const { articleId } = await atomService.findUnique({
       table: 'article_version',
@@ -244,7 +253,7 @@ describe('article version translations', () => {
       type: NODE_TYPES.ArticleVersion,
       id: articleVersionId,
     })
-    const server = await testClient({ connections })
+    const server = await testClient({ connections, isAdmin: true })
     const { error, data } = await server.executeOperation({
       query: GET_ARTICLE_VERSION_TRANSLATION,
       variables: {
@@ -288,7 +297,7 @@ describe('article version translations', () => {
         language: 'en',
         title: LLM_TRANSLATION,
         content: LLM_TRANSLATION,
-        model: 'google_gemini_2_0_flash_001',
+        model: 'google_gemini_2_0_flash',
       },
     })
 
@@ -301,7 +310,7 @@ describe('article version translations', () => {
         language: 'en',
         title: LLM_TRANSLATION,
         content: LLM_TRANSLATION,
-        model: 'google_gemini_2_5_flash_preview',
+        model: 'google_gemini_2_5_flash',
       },
     })
 
@@ -316,7 +325,7 @@ describe('article version translations', () => {
         nodeInput: { id: id2 },
         translationInput: {
           language: 'en',
-          model: 'google_gemini_2_5_flash_preview',
+          model: 'google_gemini_2_5_flash',
         },
       },
     })
@@ -324,13 +333,13 @@ describe('article version translations', () => {
     expect(error2).toBeUndefined()
     expect(data2.node.translation.title).toBe(LLM_TRANSLATION)
     expect(data2.node.translation.content).toBe(LLM_TRANSLATION)
-    expect(data2.node.translation.model).toBe('google_gemini_2_5_flash_preview')
+    expect(data2.node.translation.model).toBe('google_gemini_2_5_flash')
   })
 
   test('query paywalled article version', async () => {
     const articleVersionId = '1'
     const authorId = '1'
-    const model = 'google_gemini_2_0_flash_001'
+    const model = 'google_gemini_2_0_flash'
 
     const { articleId } = await atomService.findUnique({
       table: 'article_version',
@@ -376,7 +385,7 @@ describe('article version translations', () => {
       query: GET_ARTICLE_VERSION_TRANSLATION,
       variables: {
         nodeInput: { id },
-        translationInput: { language: 'en', model },
+        translationInput: { language: 'en' },
       },
     })
 
@@ -394,7 +403,7 @@ describe('article version translations', () => {
       query: GET_ARTICLE_VERSION_TRANSLATION,
       variables: {
         nodeInput: { id },
-        translationInput: { language: 'en', model },
+        translationInput: { language: 'en' },
       },
     })
 

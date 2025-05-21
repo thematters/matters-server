@@ -358,8 +358,8 @@ export default /* GraphQL */ `
 
   enum TranslationModel {
     google_translation_v2
-    google_gemini_2_5_flash_preview
-    google_gemini_2_0_flash_001
+    google_gemini_2_5_flash
+    google_gemini_2_0_flash
   }
 
   type ArticleTranslation {
