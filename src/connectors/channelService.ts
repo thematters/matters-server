@@ -81,13 +81,6 @@ export class ChannelService {
     campaignId,
     enabled,
   }: Pick<CampaignChannel, 'campaignId' | 'enabled'>) => {
-    if (enabled) {
-      await this.models.updateMany({
-        table: 'campaign_channel',
-        where: {},
-        data: { enabled: false },
-      })
-    }
     return this.models.upsert({
       table: 'campaign_channel',
       where: { campaignId },
