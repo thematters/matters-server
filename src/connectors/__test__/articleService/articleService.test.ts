@@ -22,7 +22,7 @@ import {
   CampaignService,
 } from '#connectors/index.js'
 
-import { genConnections, closeConnections, createCampaign } from './utils.js'
+import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
 let connections: Connections
 let articleService: ArticleService

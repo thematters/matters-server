@@ -5,15 +5,19 @@ import {
   PUBLISH_STATE,
   USER_STATE,
   AUDIT_LOG_ACTION,
+  ARTICLE_STATE,
 } from '#common/enums/index.js'
 import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
+  ArticleNotFoundError,
+  ArticleInactiveError,
 } from '#common/errors.js'
 import { auditLog } from '#common/logger.js'
 import { fromGlobalId } from '#common/utils/index.js'
+import { AtomService } from '#connectors/index.js'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
@@ -78,6 +82,8 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     )
   }
 
+  await validateConnections(draft.connections, atomService)
+
   if (
     draft.publishState === PUBLISH_STATE.pending ||
     (draft.archived && isPublished)
@@ -106,7 +112,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   if (!publishAt) {
     // publish now
-    await articleService.publishArticle(draft.id)
+    const publishedDraft = await articleService.publishArticle(draft.id)
     auditLog({
       actorId: viewer.id,
       action: AUDIT_LOG_ACTION.addPublishArticleJob,
@@ -114,9 +120,33 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
       entityId: draft.id,
       status: 'succeeded',
     })
+    return publishedDraft
   }
 
   return updatedDraft
+}
+
+const validateConnections = async (
+  connections: string[] | null,
+  atomService: AtomService
+) => {
+  if (!connections) {
+    return
+  }
+  await Promise.all(
+    connections.map(async (connectionId) => {
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: connectionId },
+      })
+      if (!article) {
+        throw new ArticleNotFoundError('Article not found')
+      }
+      if (article.state !== ARTICLE_STATE.active) {
+        throw new ArticleInactiveError('Article to connect is inactive')
+      }
+    })
+  )
 }
 
 export default resolver

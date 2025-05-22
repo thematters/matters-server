@@ -97,7 +97,7 @@ import type {
   SearchHistory,
 } from './misc.js'
 import type { Moment, MomentAsset } from './moment.js'
-import type { Notice } from './notification.js'
+import type { Notice, NoticeDetail, NoticeEntity } from './notification.js'
 import type { UserOauthLikecoinDB } from './oauth.js'
 import type {
   BlockchainSyncRecord,
@@ -261,6 +261,8 @@ export interface TableTypeMap {
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
   notice: Notice
+  notice_detail: NoticeDetail
+  notice_entity: NoticeEntity
   payout_account: PayoutAccount
   punish_record: PunishRecord
   recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized

@@ -11,6 +11,7 @@ type BundledNoticeType = keyof typeof BUNDLED_NOTICE_TYPE
 
 type OfficialNoticeExtendType = keyof typeof OFFICIAL_NOTICE_EXTEND_TYPE
 
+// DB: notice_entity.type; API: ArticleNotice.Target, ArticleArticleNotice.Target, ArticleArticleNotice.Article etc.
 type NoticeEntityType =
   // primary target
   | 'target'
@@ -22,6 +23,7 @@ type NoticeEntityType =
   | 'article'
   | 'circle'
   | 'campaign'
+  | 'connection'
 
 type NotificationType =
   | BaseNoticeType
@@ -49,6 +51,7 @@ interface NoticeUserNewFollowerParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.user_new_follower
   recipientId: string
   actorId: string
+  // used to group and management notices, like withdraw notices
   tag: string
 }
 
@@ -56,9 +59,14 @@ interface NoticeUserNewFollowerParams extends NotificationRequiredParams {
  * Article
  */
 interface NoticeArticlePublishedParams extends NotificationRequiredParams {
-  event: NOTICE_TYPE.article_published
+  event: NOTICE_TYPE.article_published | NOTICE_TYPE.scheduled_article_published
   recipientId: string
-  entities: [NotificationEntity<'target', 'article'>]
+  entities: Array<
+    | NotificationEntity<'target', 'article'>
+    | NotificationEntity<'collection', 'collection'>
+    | NotificationEntity<'campaign', 'campaign'>
+    | NotificationEntity<'connection', 'article'>
+  >
 }
 
 interface NoticeArticleNewAppreciationParams
@@ -501,4 +509,12 @@ export interface NoticeDetail {
   message: string
   data: any
   createdAt: Date
+}
+
+export interface NoticeEntity {
+  id: string
+  type: NoticeEntityType
+  noticeId: string
+  entityTypeId: string
+  entityId: string
 }

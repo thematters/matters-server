@@ -557,6 +557,7 @@ export type GQLArticleNotice = GQLNotice & {
   actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
+  entities: Array<GQLNode>
   /** Unique ID of this notice. */
   id: Scalars['ID']['output']
   target: GQLArticle
@@ -573,6 +574,7 @@ export type GQLArticleNoticeType =
   | 'CircleNewArticle'
   | 'RevisedArticleNotPublished'
   | 'RevisedArticlePublished'
+  | 'ScheduledArticlePublished'
 
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'
@@ -6697,6 +6699,7 @@ export type GQLArticleNoticeResolvers<
     ContextType
   >
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  entities?: Resolver<Array<GQLResolversTypes['Node']>, ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   target?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
   type?: Resolver<
