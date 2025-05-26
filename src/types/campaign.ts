@@ -39,6 +39,8 @@ export default /* GraphQL */ `
     state: CampaignState
     featuredDescription: [TranslationInput!]
     channelEnabled: Boolean
+    "exclude articles of this campaign in topic channels and newest"
+    exclusive: Boolean
     managers: [ID!]
   }
 
@@ -130,6 +132,7 @@ export default /* GraphQL */ `
   type CampaignOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     managers: [User!]!
     boost: Float!
+    exclusive: Boolean!
   }
 
   type CampaignApplication {

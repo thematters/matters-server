@@ -865,6 +865,9 @@ input PutWritingChallengeInput {
   state: CampaignState
   featuredDescription: [TranslationInput!]
   channelEnabled: Boolean
+
+  """exclude articles of this campaign in topic channels and newest"""
+  exclusive: Boolean
   managers: [ID!]
 }
 
@@ -950,6 +953,7 @@ type WritingChallenge implements Node & Campaign & Channel {
 type CampaignOSS {
   managers: [User!]!
   boost: Float!
+  exclusive: Boolean!
 }
 
 type CampaignApplication {
