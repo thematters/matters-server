@@ -33,6 +33,9 @@ export default /* GraphQL */ `
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
 
+    "Feedback on topic channel classification"
+    sumbitTopicChannelFeedback(input: SubmitTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.oauth}")
+
 
     ##############
     #     Tag    #
@@ -189,44 +192,63 @@ export default /* GraphQL */ `
     "whether content is marked as sensitive by author"
     sensitiveByAuthor: Boolean!
 
-    "whether content is marked as sensitive by admin"
+    "Whether content is marked as sensitive by admin"
     sensitiveByAdmin: Boolean!
 
     "License Type"
     license: ArticleLicenseType!
 
-    "whether current viewer has donated to this article"
+    "Whether current viewer has donated to this article"
     donated: Boolean! @privateCache
 
-    "creator message asking for support"
+    "Creator message asking for support"
     requestForDonation: String
 
-    "creator message after support"
+    "Creator message after support"
     replyToDonator: String
 
-    "the iscnId if published to ISCN"
+    "The iscnId if published to ISCN"
     iscnId: String
 
-    "whether readers can comment"
+    "Whether readers can comment"
     canComment: Boolean!
 
-    "whether the first line of paragraph should be indented"
+    "Whether the first line of paragraph should be indented"
     indentFirstLine: Boolean!
 
-    "history versions"
+    "History versions"
     versions(input: ArticleVersionsInput!): ArticleVersionsConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    "associated campaigns"
+    "Associated campaigns"
     campaigns: [ArticleCampaign!]!
 
-    "whether this article is noindex"
+    "Whether this article is noindex"
     noindex: Boolean!
 
+    "Classifications status"
+    classification: ArticleClassification @auth(mode: "${AUTH_MODE.oauth}")
     ##############
     #     OSS    #
     ##############
     oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  type ArticleClassification {
+    topicChannel: TopicChannelClassification!
+  }
+
+  type TopicChannelClassification {
+    "Which channels this article is in, null for not classified, empty for not in any channel"
+    channels: [ArticleTopicChannel!]
+    "Feedback from author"
+    feedback: TopicChannelFeedback
+  }
+
+  input SubmitTopicChannelFeedbackInput {
+    article: ID!
+    type: TopicChannelFeedbackType!
+    channels: [ID!]
   }
 
   type ArticleCampaign {
@@ -325,35 +347,38 @@ export default /* GraphQL */ `
   }
 
   type SpamStatus {
-    "spam confident score by machine, null for not checked yet. "
+    "Spam confident score by machine, null for not checked yet. "
     score: Float
 
-    "whether this article is labeled as spam by human, null for not labeled yet. "
+    "Whether this article is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
   }
 
   type AdStatus {
-    "whether this article is labeled as ad by human, null for not labeled yet. "
+    "Whether this article is labeled as ad by human, null for not labeled yet. "
     isAd: Boolean
   }
 
   type ArticleTopicChannel {
     channel: TopicChannel!
 
-    "confident score by machine"
-    score: Float
+    "Confident score by machine"
+    score: Float @auth(mode: "${AUTH_MODE.admin}")
 
-    "whether this article is labeled by human, null for not labeled yet. "
-    isLabeled: Boolean!
+    "Whether this article is labeled by human, null for not labeled yet. "
+    isLabeled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
 
-    "whether this article channel is enabled"
-    enabled: Boolean!
+    "Whether this article channel is enabled"
+    enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
 
-    "whether this article is pinned"
-    pinned: Boolean!
+    "Whether this article is pinned"
+    pinned: Boolean! @auth(mode: "${AUTH_MODE.admin}")
 
-    "datetime when this article is classified"
-    classicfiedAt: DateTime!
+    "Datetime when this article is classified"
+    classicfiedAt: DateTime! @auth(mode: "${AUTH_MODE.admin}")
+
+    "Whether this article is anti flood in this channel"
+    antiFlood: Boolean!
   }
 
   enum TranslationModel {

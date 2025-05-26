@@ -135,5 +135,6 @@ export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
     enabled: ac.enabled,
     classicfiedAt: ac.createdAt,
     pinned: ac.pinned,
+    antiFlood: false,
   }))
 }

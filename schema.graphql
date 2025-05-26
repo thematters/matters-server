@@ -55,6 +55,9 @@ type Mutation {
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
+  """Feedback on topic channel classification"""
+  sumbitTopicChannelFeedback(input: SubmitTopicChannelFeedbackInput!): TopicChannelFeedback!
+
   """Bookmark or unbookmark tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag! @deprecated(reason: "Use toggleBookmarkTag instead")
   toggleBookmarkTag(input: ToggleItemInput!): Tag!
@@ -149,6 +152,7 @@ type Mutation {
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Article!
   setAdStatus(input: SetAdStatusInput!): Article!
+  reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -426,38 +430,41 @@ type Article implements Node & PinnableWork {
   """whether content is marked as sensitive by author"""
   sensitiveByAuthor: Boolean!
 
-  """whether content is marked as sensitive by admin"""
+  """Whether content is marked as sensitive by admin"""
   sensitiveByAdmin: Boolean!
 
   """License Type"""
   license: ArticleLicenseType!
 
-  """whether current viewer has donated to this article"""
+  """Whether current viewer has donated to this article"""
   donated: Boolean!
 
-  """creator message asking for support"""
+  """Creator message asking for support"""
   requestForDonation: String
 
-  """creator message after support"""
+  """Creator message after support"""
   replyToDonator: String
 
-  """the iscnId if published to ISCN"""
+  """The iscnId if published to ISCN"""
   iscnId: String
 
-  """whether readers can comment"""
+  """Whether readers can comment"""
   canComment: Boolean!
 
-  """whether the first line of paragraph should be indented"""
+  """Whether the first line of paragraph should be indented"""
   indentFirstLine: Boolean!
 
-  """history versions"""
+  """History versions"""
   versions(input: ArticleVersionsInput!): ArticleVersionsConnection!
 
-  """associated campaigns"""
+  """Associated campaigns"""
   campaigns: [ArticleCampaign!]!
 
-  """whether this article is noindex"""
+  """Whether this article is noindex"""
   noindex: Boolean!
+
+  """Classifications status"""
+  classification: ArticleClassification
   oss: ArticleOSS!
   remark: String
 
@@ -484,6 +491,26 @@ type Article implements Node & PinnableWork {
 
   """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
+}
+
+type ArticleClassification {
+  topicChannel: TopicChannelClassification!
+}
+
+type TopicChannelClassification {
+  """
+  Which channels this article is in, null for not classified, empty for not in any channel
+  """
+  channels: [ArticleTopicChannel!]
+
+  """Feedback from author"""
+  feedback: TopicChannelFeedback
+}
+
+input SubmitTopicChannelFeedbackInput {
+  article: ID!
+  type: TopicChannelFeedbackType!
+  channels: [ID!]
 }
 
 type ArticleCampaign {
@@ -577,18 +604,18 @@ type ArticleOSS {
 }
 
 type SpamStatus {
-  """spam confident score by machine, null for not checked yet. """
+  """Spam confident score by machine, null for not checked yet. """
   score: Float
 
   """
-  whether this article is labeled as spam by human, null for not labeled yet. 
+  Whether this article is labeled as spam by human, null for not labeled yet. 
   """
   isSpam: Boolean
 }
 
 type AdStatus {
   """
-  whether this article is labeled as ad by human, null for not labeled yet. 
+  Whether this article is labeled as ad by human, null for not labeled yet. 
   """
   isAd: Boolean
 }
@@ -596,20 +623,23 @@ type AdStatus {
 type ArticleTopicChannel {
   channel: TopicChannel!
 
-  """confident score by machine"""
+  """Confident score by machine"""
   score: Float
 
-  """whether this article is labeled by human, null for not labeled yet. """
+  """Whether this article is labeled by human, null for not labeled yet. """
   isLabeled: Boolean!
 
-  """whether this article channel is enabled"""
+  """Whether this article channel is enabled"""
   enabled: Boolean!
 
-  """whether this article is pinned"""
+  """Whether this article is pinned"""
   pinned: Boolean!
 
-  """datetime when this article is classified"""
+  """Datetime when this article is classified"""
   classicfiedAt: DateTime!
+
+  """Whether this article is anti flood in this channel"""
+  antiFlood: Boolean!
 }
 
 enum TranslationModel {
@@ -1867,6 +1897,7 @@ enum ArticleNoticeType {
   RevisedArticlePublished
   RevisedArticleNotPublished
   CircleNewArticle
+  TopicChannelFeedbackAccepted
 }
 
 type ArticleArticleNotice implements Notice {
@@ -2155,6 +2186,7 @@ type OSS {
   restrictedUsers(input: ConnectionArgs!): UserConnection!
   reports(input: ConnectionArgs!): ReportConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
+  topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2564,6 +2596,59 @@ type IcymiTopicConnection implements Connection {
 type IcymiTopicEdge {
   cursor: String!
   node: IcymiTopic!
+}
+
+type TopicChannelFeedbackConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TopicChannelFeedbackEdge!]!
+}
+
+type TopicChannelFeedbackEdge {
+  cursor: String!
+  node: TopicChannelFeedback!
+}
+
+type TopicChannelFeedback {
+  id: ID!
+  type: TopicChannelFeedbackType!
+  article: Article!
+
+  """Which channels author want to be in, empty for no channels"""
+  channels: [TopicChannel!]
+  state: TopicChannelFeedbackState!
+}
+
+input ReviewTopicChannelFeedbackInput {
+  feedback: ID!
+  action: TopicChannelFeedbackAction!
+}
+
+enum TopicChannelFeedbackType {
+  positive
+  negative
+}
+
+enum TopicChannelFeedbackAction {
+  accept
+  reject
+}
+
+enum TopicChannelFeedbackState {
+  pending
+  accepted
+  rejected
+}
+
+input TopicChannelFeedbacksInput {
+  after: String
+  first: Int!
+  filter: TopicChannelFeedbacksFilterInput
+}
+
+input TopicChannelFeedbacksFilterInput {
+  state: TopicChannelFeedbackState
+  type: TopicChannelFeedbackType
 }
 
 input PutIcymiTopicInput {
