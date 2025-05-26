@@ -20,7 +20,8 @@ const baseConfig = {
     password: environment.pgPassword,
     database: environment.pgDatabase,
     port: environment.pgPort,
-    application_name: `${name}/${version}`,
+    application_name:
+      process.env.AWS_LAMBDA_FUNCTION_NAME || `${name}/${version}`,
   },
   migrations: {
     tableName: 'knex_migrations',
