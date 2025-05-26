@@ -848,6 +848,7 @@ export type GQLCampaignInput = {
 export type GQLCampaignOss = {
   __typename?: 'CampaignOSS'
   boost: Scalars['Float']['output']
+  exclusive: Scalars['Boolean']['output']
   managers: Array<GQLUser>
 }
 
@@ -3110,6 +3111,8 @@ export type GQLPutWritingChallengeInput = {
   channelEnabled?: InputMaybe<Scalars['Boolean']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Array<GQLTranslationInput>>
+  /** exclude articles of this campaign in topic channels and newest */
+  exclusive?: InputMaybe<Scalars['Boolean']['input']>
   featuredDescription?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>
@@ -7027,6 +7030,7 @@ export type GQLCampaignOssResolvers<
   ParentType extends GQLResolversParentTypes['CampaignOSS'] = GQLResolversParentTypes['CampaignOSS']
 > = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  exclusive?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   managers?: Resolver<Array<GQLResolversTypes['User']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>

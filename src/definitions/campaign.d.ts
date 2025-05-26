@@ -19,6 +19,7 @@ export interface Campaign {
   state: ValueOf<typeof CAMPAIGN_STATE>
   creatorId: string
   managerIds: string[] | null
+  exclusive: boolean
   createdAt: Date
   updatedAt: Date
 }

@@ -54,7 +54,7 @@ import {
   genMD5,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
-  excludeWritingChallenge as excludeWritingChallengeModifier,
+  excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
   stripMentions,
   stripHtml,
   normalizeTagInput,
@@ -350,11 +350,11 @@ export class ArticleService extends BaseService<Article> {
   public latestArticles = ({
     spamThreshold,
     excludeChannelArticles,
-    excludeWritingChallengeArticles,
+    excludeExclusiveCampaignArticles,
   }: {
     spamThreshold?: number
     excludeChannelArticles?: boolean
-    excludeWritingChallengeArticles?: boolean
+    excludeExclusiveCampaignArticles?: boolean
   } = {}): Knex.QueryBuilder<Article, Article[]> =>
     this.knexRO
       .select('article_set.*')
@@ -365,8 +365,8 @@ export class ArticleService extends BaseService<Article> {
           .where({ 'article.state': ARTICLE_STATE.active })
           .modify(excludeRestrictedModifier)
           .modify((builder) => {
-            if (excludeWritingChallengeArticles) {
-              builder.modify(excludeWritingChallengeModifier)
+            if (excludeExclusiveCampaignArticles) {
+              builder.modify(excludeExclusiveCampaignArticlesModifier)
             }
             if (excludeChannelArticles) {
               builder

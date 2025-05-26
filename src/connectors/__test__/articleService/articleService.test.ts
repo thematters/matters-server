@@ -654,14 +654,14 @@ describe('latestArticles', () => {
 
     // Test without exclusion
     const articles = await articleService.latestArticles({
-      excludeWritingChallengeArticles: false,
+      excludeExclusiveCampaignArticles: false,
     })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
     expect(articles.map(({ id }) => id)).toContain(article2.id)
 
     // Test with exclusion
     const articlesExcluded = await articleService.latestArticles({
-      excludeWritingChallengeArticles: true,
+      excludeExclusiveCampaignArticles: true,
     })
     expect(articlesExcluded.map(({ id }) => id)).not.toContain(article1.id)
     expect(articlesExcluded.map(({ id }) => id)).toContain(article2.id)
