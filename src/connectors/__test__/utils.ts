@@ -154,6 +154,7 @@ export const createCampaign = async (
     writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
     creatorId: '1',
     state: CAMPAIGN_STATE.active,
+    exclusive: true,
   })
   const stages = await campaignService.updateStages(campaign.id, [
     { name: 'stage1' },

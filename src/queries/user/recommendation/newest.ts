@@ -23,7 +23,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   const query = articleService.latestArticles({
     spamThreshold: spamThreshold ?? undefined,
     excludeChannelArticles,
-    excludeWritingChallengeArticles: excludeChannelArticles,
+    excludeExclusiveCampaignArticles: excludeChannelArticles,
   })
 
   return connectionFromQuery({
