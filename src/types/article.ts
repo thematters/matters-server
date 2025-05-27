@@ -343,7 +343,7 @@ export default /* GraphQL */ `
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
     adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
-    topicChannels: [ArticleTopicChannel!]! @auth(mode: "${AUTH_MODE.admin}")
+    topicChannels: [ArticleTopicChannel!] @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type SpamStatus {

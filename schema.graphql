@@ -600,7 +600,7 @@ type ArticleOSS {
   inSearch: Boolean!
   spamStatus: SpamStatus!
   adStatus: AdStatus!
-  topicChannels: [ArticleTopicChannel!]!
+  topicChannels: [ArticleTopicChannel!]
 }
 
 type SpamStatus {

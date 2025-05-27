@@ -595,7 +595,7 @@ export type GQLArticleOss = {
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
   spamStatus: GQLSpamStatus
-  topicChannels: Array<GQLArticleTopicChannel>
+  topicChannels?: Maybe<Array<GQLArticleTopicChannel>>
 }
 
 export type GQLArticleRecommendationActivity = {
@@ -4982,11 +4982,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleCampaignInput: GQLArticleCampaignInput
-  ArticleClassification: ResolverTypeWrapper<
-    Omit<GQLArticleClassification, 'topicChannel'> & {
-      topicChannel: GQLResolversTypes['TopicChannelClassification']
-    }
-  >
+  ArticleClassification: ResolverTypeWrapper<ArticleModel>
   ArticleConnection: ResolverTypeWrapper<
     Omit<GQLArticleConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
@@ -5542,12 +5538,7 @@ export type GQLResolversTypes = ResolversObject<{
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
   TopicChannel: ResolverTypeWrapper<TopicChannelModel>
-  TopicChannelClassification: ResolverTypeWrapper<
-    Omit<GQLTopicChannelClassification, 'channels' | 'feedback'> & {
-      channels?: Maybe<Array<GQLResolversTypes['ArticleTopicChannel']>>
-      feedback?: Maybe<GQLResolversTypes['TopicChannelFeedback']>
-    }
-  >
+  TopicChannelClassification: ResolverTypeWrapper<ArticleModel>
   TopicChannelFeedback: ResolverTypeWrapper<TopicChannelFeedbackModel>
   TopicChannelFeedbackAction: GQLTopicChannelFeedbackAction
   TopicChannelFeedbackConnection: ResolverTypeWrapper<
@@ -5731,9 +5722,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     stage?: Maybe<GQLResolversParentTypes['CampaignStage']>
   }
   ArticleCampaignInput: GQLArticleCampaignInput
-  ArticleClassification: Omit<GQLArticleClassification, 'topicChannel'> & {
-    topicChannel: GQLResolversParentTypes['TopicChannelClassification']
-  }
+  ArticleClassification: ArticleModel
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
@@ -6146,13 +6135,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
   TopicChannel: TopicChannelModel
-  TopicChannelClassification: Omit<
-    GQLTopicChannelClassification,
-    'channels' | 'feedback'
-  > & {
-    channels?: Maybe<Array<GQLResolversParentTypes['ArticleTopicChannel']>>
-    feedback?: Maybe<GQLResolversParentTypes['TopicChannelFeedback']>
-  }
+  TopicChannelClassification: ArticleModel
   TopicChannelFeedback: TopicChannelFeedbackModel
   TopicChannelFeedbackConnection: Omit<
     GQLTopicChannelFeedbackConnection,
@@ -6909,7 +6892,7 @@ export type GQLArticleOssResolvers<
     ContextType
   >
   topicChannels?: Resolver<
-    Array<GQLResolversTypes['ArticleTopicChannel']>,
+    Maybe<Array<GQLResolversTypes['ArticleTopicChannel']>>,
     ParentType,
     ContextType
   >

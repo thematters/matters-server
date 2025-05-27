@@ -1,7 +1,4 @@
-import type {
-  GQLArticleOssResolvers,
-  TopicChannel,
-} from '#definitions/index.js'
+import type { GQLArticleOssResolvers } from '#definitions/index.js'
 
 export const boost: GQLArticleOssResolvers['boost'] = async (
   { id: articleId },
@@ -102,39 +99,4 @@ export const adStatus: GQLArticleOssResolvers['adStatus'] = async ({
   isAd,
 }) => {
   return { isAd }
-}
-
-export const topicChannels: GQLArticleOssResolvers['topicChannels'] = async (
-  { id: articleId },
-  _,
-  { dataSources: { atomService } }
-) => {
-  const articleChannels = await atomService.findMany({
-    table: 'topic_channel_article',
-    where: { articleId },
-  })
-
-  if (!articleChannels.length) {
-    return []
-  }
-
-  const channels = await atomService.findMany({
-    table: 'topic_channel',
-    whereIn: ['id', articleChannels.map((ac) => ac.channelId)],
-  })
-
-  const channelMap = new Map(channels.map((channel) => [channel.id, channel]))
-
-  return articleChannels.map((ac) => ({
-    channel: {
-      ...(channelMap.get(ac.channelId) as TopicChannel),
-      __type: 'TopicChannel',
-    },
-    score: ac.score,
-    isLabeled: ac.isLabeled,
-    enabled: ac.enabled,
-    classicfiedAt: ac.createdAt,
-    pinned: ac.pinned,
-    antiFlood: false,
-  }))
 }

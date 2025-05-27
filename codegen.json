@@ -36,6 +36,8 @@
           "Article": "./article.js#Article",
           "ArticleAccess": "./article.js#Article",
           "ArticleOSS": "./article.js#Article",
+          "ArticleClassification": "./article.js#Article",
+          "TopicChannelClassification": "./article.js#Article",
           "ArticleVersion": "./article.js#ArticleVersion",
           "ArticleContents": "./article.js#ArticleVersion",
           "Draft": "./draft.js#Draft",
