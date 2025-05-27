@@ -301,17 +301,19 @@ describe('channels query', () => {
       query ArticleTopicChannels($input: ArticleInput!) {
         article(input: $input) {
           id
-          oss {
-            topicChannels {
-              channel {
-                id
-                name
+          classification {
+            topicChannel {
+              channels {
+                channel {
+                  id
+                  name
+                }
+                score
+                isLabeled
+                enabled
+                classicfiedAt
+                pinned
               }
-              score
-              isLabeled
-              enabled
-              classicfiedAt
-              pinned
             }
           }
         }
@@ -342,7 +344,7 @@ describe('channels query', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data.article.oss.topicChannels).toHaveLength(0)
+      expect(data.article.classification.topicChannel.channels).toHaveLength(0)
     })
 
     test('returns article channels with correct mapping', async () => {
@@ -405,14 +407,15 @@ describe('channels query', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data.article.oss.topicChannels).toHaveLength(2)
+      expect(data.article.classification.topicChannel.channels).toHaveLength(2)
 
       // Verify channel 1
-      const channel1Result = data.article.oss.topicChannels.find(
-        (c: any) =>
-          c.channel.id ===
-          toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel1.id })
-      )
+      const channel1Result =
+        data.article.classification.topicChannel.channels.find(
+          (c: any) =>
+            c.channel.id ===
+            toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel1.id })
+        )
       expect(channel1Result).toBeDefined()
       expect(channel1Result.channel.name).toBe('channel-1')
       expect(channel1Result.score).toBe(0.8)
@@ -422,11 +425,12 @@ describe('channels query', () => {
       expect(channel1Result.pinned).toBe(true)
 
       // Verify channel 2
-      const channel2Result = data.article.oss.topicChannels.find(
-        (c: any) =>
-          c.channel.id ===
-          toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel2.id })
-      )
+      const channel2Result =
+        data.article.classification.topicChannel.channels.find(
+          (c: any) =>
+            c.channel.id ===
+            toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel2.id })
+        )
       expect(channel2Result).toBeDefined()
       expect(channel2Result.channel.name).toBe('channel-2')
       expect(channel2Result.score).toBe(0.6)
