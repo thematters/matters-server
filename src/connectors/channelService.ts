@@ -800,6 +800,27 @@ export class ChannelService {
     })
   }
 
+  public resolveArticleFeedback = async (articleId: string) => {
+    const feedback = await this.models.findFirst({
+      table: 'topic_channel_feedback',
+      where: { articleId },
+    })
+    if (
+      feedback &&
+      feedback.state === TOPIC_CHANNEL_FEEDBACK_STATE.PENDING &&
+      (await this.isFeedbackResolved({
+        articleId,
+        channelIds: feedback.channelIds,
+      }))
+    ) {
+      await this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
+      })
+    }
+  }
+
   public isFeedbackResolved = async ({
     articleId,
     channelIds,

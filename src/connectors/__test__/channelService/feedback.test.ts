@@ -364,4 +364,72 @@ describe('feedback methods', () => {
       expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED)
     })
   })
+
+  describe('resolveArticleFeedback', () => {
+    test('resolves feedback when conditions are met', async () => {
+      // Create test article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      // Create feedback
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([channel1.id]) as unknown as string[],
+        },
+      })
+
+      await channelService.resolveArticleFeedback('1')
+
+      // Verify feedback state is updated
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+    })
+
+    test('does not resolve feedback when state is not pending', async () => {
+      // Create feedback with non-pending state
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED,
+          channelIds: JSON.stringify([channel1.id]) as unknown as string[],
+        },
+      })
+
+      await channelService.resolveArticleFeedback('1')
+
+      // Verify feedback state remains unchanged
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+    })
+
+    test('does not resolve feedback when feedback is not found', async () => {
+      await channelService.resolveArticleFeedback('2')
+      // No feedback should be created or updated
+      const feedbacks = await atomService.findMany({
+        table: 'topic_channel_feedback',
+        where: { articleId: '2' },
+      })
+      expect(feedbacks).toHaveLength(0)
+    })
+  })
 })

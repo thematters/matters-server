@@ -1,6 +1,5 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { TOPIC_CHANNEL_FEEDBACK_STATE } from '#common/enums/index.js'
 import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
@@ -24,25 +23,7 @@ const resolver: GQLMutationResolvers['setArticleTopicChannels'] = async (
     articleId,
     channelIds,
   })
-
-  const feedback = await atomService.findFirst({
-    table: 'topic_channel_feedback',
-    where: { articleId },
-  })
-  if (
-    feedback &&
-    feedback.state === TOPIC_CHANNEL_FEEDBACK_STATE.PENDING &&
-    (await channelService.isFeedbackResolved({
-      articleId,
-      channelIds: feedback.channelIds,
-    }))
-  ) {
-    await atomService.update({
-      table: 'topic_channel_feedback',
-      where: { id: feedback.id },
-      data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
-    })
-  }
+  await channelService.resolveArticleFeedback(articleId)
 
   return article
 }
