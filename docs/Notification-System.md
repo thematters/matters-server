@@ -357,7 +357,7 @@ To add a new notice type to the system, follow these steps:
        {
          type: 'target',
          entityTable: 'article',
-         entity: articleId,
+         entity: article,
        },
      ],
    })
