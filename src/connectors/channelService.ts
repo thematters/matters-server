@@ -651,6 +651,14 @@ export class ChannelService {
       throw new ForbiddenError('Only author can submit feedbacks')
     }
 
+    const feedback = await this.models.findFirst({
+      table: 'topic_channel_feedback',
+      where: { articleId },
+    })
+    if (feedback) {
+      throw new ActionLimitExceededError('Feedback already exists')
+    }
+
     return this.models.create({
       table: 'topic_channel_feedback',
       data: {
@@ -676,6 +684,14 @@ export class ChannelService {
     })
     if (article?.authorId !== userId) {
       throw new ForbiddenError('Only author can submit feedbacks')
+    }
+
+    const feedback = await this.models.findFirst({
+      table: 'topic_channel_feedback',
+      where: { articleId },
+    })
+    if (feedback) {
+      throw new ActionLimitExceededError('Feedback already exists')
     }
 
     let state: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE> =

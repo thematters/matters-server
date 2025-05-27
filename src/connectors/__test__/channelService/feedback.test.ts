@@ -7,6 +7,7 @@ import {
 
 import { ChannelService, AtomService } from '#connectors/index.js'
 import { genConnections } from '../utils.js'
+import { ActionLimitExceededError } from '#common/errors.js'
 
 let connections: Connections
 let channelService: ChannelService
@@ -59,6 +60,25 @@ describe('feedback methods', () => {
       expect(feedback?.userId).toBe(userId)
       expect(feedback?.state).toBeNull()
       expect(feedback?.channelIds).toBeNull()
+    })
+
+    test('throws error when feedback already exists', async () => {
+      const articleId = '1'
+      const userId = '1'
+
+      // Create initial feedback
+      await channelService.createPositiveFeedback({
+        articleId,
+        userId,
+      })
+
+      // Attempt to create duplicate feedback
+      await expect(
+        channelService.createPositiveFeedback({
+          articleId,
+          userId,
+        })
+      ).rejects.toThrow(ActionLimitExceededError)
     })
   })
 
@@ -171,6 +191,28 @@ describe('feedback methods', () => {
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([channel2.id])
       expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+    })
+
+    test('throws error when feedback already exists', async () => {
+      const articleId = '1'
+      const userId = '1'
+      const channelIds = [channel1.id]
+
+      // Create initial feedback
+      await channelService.createNegativeFeedback({
+        articleId,
+        userId,
+        channelIds,
+      })
+
+      // Attempt to create duplicate feedback
+      await expect(
+        channelService.createNegativeFeedback({
+          articleId,
+          userId,
+          channelIds,
+        })
+      ).rejects.toThrow(ActionLimitExceededError)
     })
   })
 })
