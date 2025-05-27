@@ -660,6 +660,29 @@ export class ChannelService {
     userId: string
     channelIds: string[]
   }) => {
+    let state: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE> =
+      TOPIC_CHANNEL_FEEDBACK_STATE.PENDING
+
+    // remove channels do not need review
+    if (channelIds.length === 0) {
+      state = TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED
+      await this.models.updateMany({
+        table: 'topic_channel_article',
+        where: { articleId },
+        data: { enabled: false },
+      })
+    } else {
+      // feedback in line with current classification do not need review
+      const articleChannels = await this.models.findMany({
+        table: 'topic_channel_article',
+        where: { articleId },
+      })
+      const currentChannelIds = articleChannels.map((c) => c.channelId)
+      if (channelIds.every((id) => currentChannelIds.includes(id))) {
+        state = TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED
+      }
+    }
+
     return this.models.create({
       table: 'topic_channel_feedback',
       data: {
@@ -667,7 +690,7 @@ export class ChannelService {
         articleId,
         userId,
         channelIds: JSON.stringify(channelIds),
-        state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+        state,
       },
     })
   }

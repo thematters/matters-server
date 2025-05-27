@@ -36,6 +36,7 @@ describe('feedback methods', () => {
 
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'topic_channel_feedback' })
+    await atomService.deleteMany({ table: 'topic_channel_article' })
   })
 
   describe('createPositiveFeedback', () => {
@@ -83,6 +84,16 @@ describe('feedback methods', () => {
     test('creates negative feedback with empty channelIds', async () => {
       const articleId = '1'
       const userId = '1'
+
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId,
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
       const feedback = await channelService.createNegativeFeedback({
         articleId,
         userId,
@@ -92,6 +103,74 @@ describe('feedback methods', () => {
       expect(feedback).toBeDefined()
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([])
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+
+      // Verify article channels are disabled
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId },
+      })
+      expect(articleChannels.every((channel) => !channel.enabled)).toBe(true)
+    })
+
+    test('creates negative feedback with matching channelIds', async () => {
+      const articleId = '1'
+      const userId = '1'
+
+      // First create article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId,
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId,
+          channelId: channel2.id,
+          enabled: true,
+        },
+      })
+
+      const feedback = await channelService.createNegativeFeedback({
+        articleId,
+        userId,
+        channelIds: [channel1.id, channel2.id],
+      })
+
+      expect(feedback).toBeDefined()
+      expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
+      expect(feedback?.channelIds).toEqual([channel1.id, channel2.id])
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+    })
+
+    test('creates negative feedback with non-matching channelIds', async () => {
+      const articleId = '1'
+      const userId = '1'
+
+      // Create article channel with different channel
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId,
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      const feedback = await channelService.createNegativeFeedback({
+        articleId,
+        userId,
+        channelIds: [channel2.id], // Different from article channel
+      })
+
+      expect(feedback).toBeDefined()
+      expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
+      expect(feedback?.channelIds).toEqual([channel2.id])
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
     })
   })
 })
