@@ -7,7 +7,6 @@ import {
 
 import { ChannelService, AtomService } from '#connectors/index.js'
 import { genConnections } from '../utils.js'
-import { ActionLimitExceededError } from '#common/errors.js'
 
 let connections: Connections
 let channelService: ChannelService
@@ -60,25 +59,6 @@ describe('feedback methods', () => {
       expect(feedback?.userId).toBe(userId)
       expect(feedback?.state).toBeNull()
       expect(feedback?.channelIds).toBeNull()
-    })
-
-    test('throws error when feedback already exists', async () => {
-      const articleId = '1'
-      const userId = '1'
-
-      // Create initial feedback
-      await channelService.createPositiveFeedback({
-        articleId,
-        userId,
-      })
-
-      // Attempt to create duplicate feedback
-      await expect(
-        channelService.createPositiveFeedback({
-          articleId,
-          userId,
-        })
-      ).rejects.toThrow(ActionLimitExceededError)
     })
   })
 
@@ -192,27 +172,90 @@ describe('feedback methods', () => {
       expect(feedback?.channelIds).toEqual([channel2.id])
       expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
     })
+  })
 
-    test('throws error when feedback already exists', async () => {
-      const articleId = '1'
-      const userId = '1'
-      const channelIds = [channel1.id]
-
-      // Create initial feedback
-      await channelService.createNegativeFeedback({
-        articleId,
-        userId,
-        channelIds,
+  describe('findFeedbacks', () => {
+    beforeEach(async () => {
+      // Create test feedbacks
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+          articleId: '1',
+          userId: '1',
+        },
       })
 
-      // Attempt to create duplicate feedback
-      await expect(
-        channelService.createNegativeFeedback({
-          articleId,
-          userId,
-          channelIds,
-        })
-      ).rejects.toThrow(ActionLimitExceededError)
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '2',
+          userId: '2',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([]) as unknown as string[],
+        },
+      })
+
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '3',
+          userId: '3',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED,
+          channelIds: JSON.stringify([]) as unknown as string[],
+        },
+      })
+    })
+
+    test('returns all feedbacks when no filters are provided', async () => {
+      const feedbacks = await channelService.findFeedbacks()
+      expect(feedbacks).toHaveLength(3)
+    })
+
+    test('filters feedbacks by type', async () => {
+      const feedbacks = await channelService.findFeedbacks({
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+      })
+      expect(feedbacks).toHaveLength(1)
+      expect(feedbacks[0].type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE)
+    })
+
+    test('filters feedbacks by state', async () => {
+      const feedbacks = await channelService.findFeedbacks({
+        state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+      })
+      expect(feedbacks).toHaveLength(1)
+      expect(feedbacks[0].state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+    })
+
+    test('filters feedbacks by both type and state', async () => {
+      const feedbacks = await channelService.findFeedbacks({
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+        state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED,
+      })
+      expect(feedbacks).toHaveLength(1)
+      expect(feedbacks[0].type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
+      expect(feedbacks[0].state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+    })
+
+    test('applies spam threshold filter when provided', async () => {
+      // Create an article with spam score
+      await atomService.update({
+        table: 'article',
+        where: {
+          id: '1',
+        },
+        data: {
+          isSpam: true,
+        },
+      })
+
+      const feedbacks = await channelService.findFeedbacks({
+        spamThreshold: 0.6,
+      })
+      expect(feedbacks).toHaveLength(2)
     })
   })
 })

@@ -728,4 +728,30 @@ export class ChannelService {
       },
     })
   }
+
+  public findFeedbacks = ({
+    type,
+    state,
+    spamThreshold,
+  }: {
+    type?: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_TYPE>
+    state?: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE>
+    spamThreshold?: number
+  } = {}) => {
+    const knexRO = this.connections.knexRO
+    const query = knexRO('topic_channel_feedback')
+    if (type !== undefined) {
+      query.where({ type })
+    }
+    if (state !== undefined) {
+      query.where({ state })
+    }
+    if (spamThreshold) {
+      query
+        .leftJoin('article', 'topic_channel_feedback.article_id', 'article.id')
+        .modify(excludeSpamModifier, spamThreshold)
+        .modify(excludeRestrictedModifier)
+    }
+    return query
+  }
 }
