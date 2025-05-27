@@ -19,6 +19,7 @@ import {
 import {
   EntityNotFoundError,
   ActionLimitExceededError,
+  ForbiddenError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
@@ -641,8 +642,16 @@ export class ChannelService {
   }: {
     articleId: string
     userId: string
-  }) =>
-    this.models.create({
+  }) => {
+    const article = await this.models.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    if (article?.authorId !== userId) {
+      throw new ForbiddenError('Only author can submit feedbacks')
+    }
+
+    return this.models.create({
       table: 'topic_channel_feedback',
       data: {
         type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
@@ -650,6 +659,7 @@ export class ChannelService {
         userId,
       },
     })
+  }
 
   public createNegativeFeedback = async ({
     articleId,
@@ -660,6 +670,14 @@ export class ChannelService {
     userId: string
     channelIds: string[]
   }) => {
+    const article = await this.models.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    if (article?.authorId !== userId) {
+      throw new ForbiddenError('Only author can submit feedbacks')
+    }
+
     let state: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE> =
       TOPIC_CHANNEL_FEEDBACK_STATE.PENDING
 
@@ -689,7 +707,7 @@ export class ChannelService {
         type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
         articleId,
         userId,
-        channelIds: JSON.stringify(channelIds),
+        channelIds: JSON.stringify(channelIds) as unknown as string[],
         state,
       },
     })

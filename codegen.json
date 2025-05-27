@@ -80,7 +80,8 @@
           "CampaignStage": "./campaign.js#CampaignStage",
           "TopicChannel": "./channel.js#TopicChannel",
           "CurationChannel": "./channel.js#CurationChannel",
-          "Announcement": "./announcement.js#Announcement"
+          "Announcement": "./announcement.js#Announcement",
+          "TopicChannelFeedback": "./feedback.js#TopicChannelFeedback"
         },
         "scalars": {
           "ID": {

@@ -10,6 +10,7 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
 
 1. Update files in `./types/` according to API design then run `npm run gen` to update `schema.graphql` and graphql Types for resolvers
    - Add directives accordingly for caching / authorization / ratelimit
+   - Add Type Mapper config in `./codegen.json` for new type in schema
 
 2. Create the resolver file
    - Create a new file in the appropriate directory (e.g., mutations/ or queries/)
@@ -27,7 +28,7 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Validate field formats and constraints
    - Throw Errors defined in `src/common/errors.js` for invalid inputs
    - Handle special validations (e.g., datetime ranges)
-   - Validate global IDs when used:
+   - Validate global IDs:
      ```typescript
      const { id, type } = fromGlobalId(globalId)
      if (type !== NODE_TYPES.ExpectedType) {

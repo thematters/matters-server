@@ -43,6 +43,7 @@ import {
   CurationChannel as CurationChannelModel,
 } from './channel.js'
 import { Announcement as AnnouncementModel } from './announcement.js'
+import { TopicChannelFeedback as TopicChannelFeedbackModel } from './feedback.js'
 import { GlobalId } from './nominal.js'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
@@ -5542,12 +5543,7 @@ export type GQLResolversTypes = ResolversObject<{
       feedback?: Maybe<GQLResolversTypes['TopicChannelFeedback']>
     }
   >
-  TopicChannelFeedback: ResolverTypeWrapper<
-    Omit<GQLTopicChannelFeedback, 'article' | 'channels'> & {
-      article: GQLResolversTypes['Article']
-      channels?: Maybe<Array<GQLResolversTypes['TopicChannel']>>
-    }
-  >
+  TopicChannelFeedback: ResolverTypeWrapper<TopicChannelFeedbackModel>
   TopicChannelFeedbackAction: GQLTopicChannelFeedbackAction
   TopicChannelFeedbackConnection: ResolverTypeWrapper<
     Omit<GQLTopicChannelFeedbackConnection, 'edges'> & {
@@ -6152,13 +6148,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     channels?: Maybe<Array<GQLResolversParentTypes['ArticleTopicChannel']>>
     feedback?: Maybe<GQLResolversParentTypes['TopicChannelFeedback']>
   }
-  TopicChannelFeedback: Omit<
-    GQLTopicChannelFeedback,
-    'article' | 'channels'
-  > & {
-    article: GQLResolversParentTypes['Article']
-    channels?: Maybe<Array<GQLResolversParentTypes['TopicChannel']>>
-  }
+  TopicChannelFeedback: TopicChannelFeedbackModel
   TopicChannelFeedbackConnection: Omit<
     GQLTopicChannelFeedbackConnection,
     'edges'
