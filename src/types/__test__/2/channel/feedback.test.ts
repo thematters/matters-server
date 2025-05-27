@@ -505,4 +505,88 @@ describe('feedback resolvers', () => {
       expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
     })
   })
+
+  describe('TopicChannelClassification.feedback resolver', () => {
+    const GET_ARTICLE_FEEDBACK = /* GraphQL */ `
+      query GetArticleFeedback($input: NodeInput!) {
+        node(input: $input) {
+          ... on Article {
+            classification {
+              topicChannel {
+                feedback {
+                  id
+                  type
+                  state
+                  article {
+                    id
+                  }
+                  channels {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `
+
+    test('returns null when no feedback exists', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_ARTICLE_FEEDBACK,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Article, id: article.id }),
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.node.classification.topicChannel.feedback).toBeNull()
+    })
+
+    test('returns feedback when it exists', async () => {
+      // Create test feedback
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+          articleId: article.id,
+          userId: user.id,
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_ARTICLE_FEEDBACK,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Article, id: article.id }),
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.node.classification.topicChannel.feedback).toBeDefined()
+      expect(data?.node.classification.topicChannel.feedback.id).toBe(
+        toGlobalId({ type: NODE_TYPES.TopicChannelFeedback, id: feedback.id })
+      )
+      expect(data?.node.classification.topicChannel.feedback.type).toBe(
+        TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE
+      )
+      expect(data?.node.classification.topicChannel.feedback.state).toBeNull()
+      expect(data?.node.classification.topicChannel.feedback.article.id).toBe(
+        toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+      )
+    })
+  })
 })

@@ -15,7 +15,8 @@ import bookmarked from './bookmarked.js'
 import campaigns from './campaigns.js'
 import canComment from './canComment.js'
 import canSuperLike from './canSuperLike.js'
-import topicChannels from './classification/topicChannel.js'
+import topicChannels from './classification/channels.js'
+import feedback from './classification/feedback.js'
 import collections from './collections.js'
 import connectedBy from './connectedBy.js'
 import connections from './connections.js'
@@ -140,6 +141,7 @@ const schema: GQLResolvers = {
   },
   TopicChannelClassification: {
     channels: topicChannels,
+    feedback,
   },
   Tag: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
