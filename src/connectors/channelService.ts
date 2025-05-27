@@ -4,6 +4,7 @@ import type {
   CurationChannel,
   Connections,
   ValueOf,
+  TopicChannelFeedback,
 } from '#definitions/index.js'
 
 import {
@@ -686,47 +687,41 @@ export class ChannelService {
       throw new ForbiddenError('Only author can submit feedbacks')
     }
 
-    const feedback = await this.models.findFirst({
+    const existingFeedback = await this.models.findFirst({
       table: 'topic_channel_feedback',
       where: { articleId },
     })
-    if (feedback) {
+    if (existingFeedback) {
       throw new ActionLimitExceededError('Feedback already exists')
     }
 
-    let state: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE> =
-      TOPIC_CHANNEL_FEEDBACK_STATE.PENDING
-
-    // remove channels do not need review
-    if (channelIds.length === 0) {
-      state = TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED
-      await this.models.updateMany({
-        table: 'topic_channel_article',
-        where: { articleId },
-        data: { enabled: false },
-      })
-    } else {
-      // feedback in line with current classification do not need review
-      const articleChannels = await this.models.findMany({
-        table: 'topic_channel_article',
-        where: { articleId },
-      })
-      const currentChannelIds = articleChannels.map((c) => c.channelId)
-      if (channelIds.every((id) => currentChannelIds.includes(id))) {
-        state = TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED
-      }
-    }
-
-    return this.models.create({
+    const feedback = await this.models.create({
       table: 'topic_channel_feedback',
       data: {
         type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
         articleId,
         userId,
         channelIds: JSON.stringify(channelIds) as unknown as string[],
-        state,
+        state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
       },
     })
+
+    // auto accept feedback if it is remove all channels or in line with current classification
+    if (
+      feedback.channelIds.length === 0 ||
+      (await this.isFeedbackResolved({
+        articleId,
+        channelIds: feedback.channelIds,
+      }))
+    ) {
+      await this.acceptFeedback(feedback, true)
+      return await this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+      })
+    }
+    return feedback
   }
 
   public findFeedbacks = ({
@@ -753,5 +748,53 @@ export class ChannelService {
         .modify(excludeRestrictedModifier)
     }
     return query
+  }
+
+  public acceptFeedback = async (
+    feedback: TopicChannelFeedback,
+    autoAccept: boolean = false
+  ) => {
+    if (feedback.channelIds.length === 0 && autoAccept) {
+      await this.models.updateMany({
+        table: 'topic_channel_article',
+        where: { articleId: feedback.articleId },
+        data: { enabled: false },
+      })
+    }
+    await this.setArticleTopicChannels({
+      articleId: feedback.articleId,
+      channelIds: feedback.channelIds,
+    })
+    return this.models.update({
+      table: 'topic_channel_feedback',
+      where: { id: feedback.id },
+      data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+    })
+  }
+
+  public rejectFeedback = async (feedback: TopicChannelFeedback) => {
+    return this.models.update({
+      table: 'topic_channel_feedback',
+      where: { id: feedback.id },
+      data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED },
+    })
+  }
+
+  public isFeedbackResolved = async ({
+    articleId,
+    channelIds,
+  }: {
+    articleId: string
+    channelIds: string[]
+  }) => {
+    const articleChannels = await this.models.findMany({
+      table: 'topic_channel_article',
+      where: { articleId },
+    })
+    const currentChannelIds = articleChannels.map((c) => c.channelId)
+    if (channelIds.every((id) => currentChannelIds.includes(id))) {
+      return true
+    }
+    return false
   }
 }
