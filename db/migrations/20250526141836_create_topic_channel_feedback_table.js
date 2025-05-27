@@ -15,7 +15,7 @@ export const up = async (knex) => {
     t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
 
     // Add indexes
-    t.index(['article_id'])
+    t.unique(['article_id'])
     t.index(['user_id'])
     t.index(['state'])
   })

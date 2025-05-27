@@ -2134,10 +2134,10 @@ export type GQLMutation = {
   socialLogin: GQLAuthResult
   /** Submit inappropriate content report */
   submitReport: GQLReport
+  /** Feedback on topic channel classification */
+  submitTopicChannelFeedback: GQLTopicChannelFeedback
   /** Subscribe a Circle. */
   subscribeCircle: GQLSubscribeCircleResult
-  /** Feedback on topic channel classification */
-  sumbitTopicChannelFeedback: GQLTopicChannelFeedback
   toggleArticleRecommend: GQLArticle
   /** Block or Unblock a given user. */
   toggleBlockUser: GQLUser
@@ -2506,12 +2506,12 @@ export type GQLMutationSubmitReportArgs = {
   input: GQLSubmitReportInput
 }
 
-export type GQLMutationSubscribeCircleArgs = {
-  input: GQLSubscribeCircleInput
+export type GQLMutationSubmitTopicChannelFeedbackArgs = {
+  input: GQLSubmitTopicChannelFeedbackInput
 }
 
-export type GQLMutationSumbitTopicChannelFeedbackArgs = {
-  input: GQLSubmitTopicChannelFeedbackInput
+export type GQLMutationSubscribeCircleArgs = {
+  input: GQLSubscribeCircleInput
 }
 
 export type GQLMutationToggleArticleRecommendArgs = {
@@ -3917,7 +3917,7 @@ export type GQLTopicChannelFeedback = {
   /** Which channels author want to be in, empty for no channels */
   channels?: Maybe<Array<GQLTopicChannel>>
   id: Scalars['ID']['output']
-  state: GQLTopicChannelFeedbackState
+  state?: Maybe<GQLTopicChannelFeedbackState>
   type: GQLTopicChannelFeedbackType
 }
 
@@ -8796,17 +8796,17 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSubmitReportArgs, 'input'>
   >
+  submitTopicChannelFeedback?: Resolver<
+    GQLResolversTypes['TopicChannelFeedback'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSubmitTopicChannelFeedbackArgs, 'input'>
+  >
   subscribeCircle?: Resolver<
     GQLResolversTypes['SubscribeCircleResult'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationSubscribeCircleArgs, 'input'>
-  >
-  sumbitTopicChannelFeedback?: Resolver<
-    GQLResolversTypes['TopicChannelFeedback'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationSumbitTopicChannelFeedbackArgs, 'input'>
   >
   toggleArticleRecommend?: Resolver<
     GQLResolversTypes['Article'],
@@ -9998,7 +9998,7 @@ export type GQLTopicChannelFeedbackResolvers<
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   state?: Resolver<
-    GQLResolversTypes['TopicChannelFeedbackState'],
+    Maybe<GQLResolversTypes['TopicChannelFeedbackState']>,
     ParentType,
     ContextType
   >

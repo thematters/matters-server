@@ -9,11 +9,13 @@ const resolver: GQLTopicChannelFeedbackResolvers = {
   state: ({ state }) => state,
   article: async ({ articleId }, _, { dataSources: { atomService } }) =>
     atomService.articleIdLoader.load(articleId),
-  channels: async ({ channelIds }, _, { dataSources: { atomService } }) =>
-    atomService.findMany({
+  channels: async ({ channelIds }, _, { dataSources: { atomService } }) => {
+    if (channelIds === null) return null
+    return atomService.findMany({
       table: 'topic_channel',
       whereIn: ['id', channelIds],
-    }),
+    })
+  },
 }
 
 export default resolver

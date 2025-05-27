@@ -34,7 +34,7 @@ export default /* GraphQL */ `
     readArticle(input: ReadArticleInput!): Article!
 
     "Feedback on topic channel classification"
-    sumbitTopicChannelFeedback(input: SubmitTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.oauth}")
+    submitTopicChannelFeedback(input: SubmitTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.oauth}")
 
 
     ##############

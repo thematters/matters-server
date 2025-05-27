@@ -56,7 +56,7 @@ type Mutation {
   readArticle(input: ReadArticleInput!): Article!
 
   """Feedback on topic channel classification"""
-  sumbitTopicChannelFeedback(input: SubmitTopicChannelFeedbackInput!): TopicChannelFeedback!
+  submitTopicChannelFeedback(input: SubmitTopicChannelFeedbackInput!): TopicChannelFeedback!
 
   """Bookmark or unbookmark tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag! @deprecated(reason: "Use toggleBookmarkTag instead")
@@ -2616,7 +2616,7 @@ type TopicChannelFeedback {
 
   """Which channels author want to be in, empty for no channels"""
   channels: [TopicChannel!]
-  state: TopicChannelFeedbackState!
+  state: TopicChannelFeedbackState
 }
 
 input ReviewTopicChannelFeedbackInput {

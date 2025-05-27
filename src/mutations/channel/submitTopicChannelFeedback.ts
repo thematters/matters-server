@@ -4,7 +4,7 @@ import { NODE_TYPES, TOPIC_CHANNEL_FEEDBACK_TYPE } from '#common/enums/index.js'
 import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-const resolver: GQLMutationResolvers['sumbitTopicChannelFeedback'] = async (
+const resolver: GQLMutationResolvers['submitTopicChannelFeedback'] = async (
   _,
   { input: { article: articleGlobalId, channels: channelGlobalIds, type } },
   { viewer, dataSources: { channelService } }
