@@ -70,6 +70,7 @@ const notice: {
         revised_article_published: NOTICE_TYPE.ArticleNotice,
         revised_article_not_published: NOTICE_TYPE.ArticleNotice,
         circle_new_article: NOTICE_TYPE.ArticleNotice, // deprecated
+        topic_channel_feedback_accepted: NOTICE_TYPE.ArticleNotice,
 
         // article-article
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
@@ -152,6 +153,8 @@ const notice: {
           return 'RevisedArticleNotPublished'
         case INNER_NOTICE_TYPE.circle_new_article:
           return 'CircleNewArticle'
+        case INNER_NOTICE_TYPE.topic_channel_feedback_accepted:
+          return 'TopicChannelFeedbackAccepted'
       }
       throw new ServerError(`Unknown ArticleNotice type: ${type}`)
     },

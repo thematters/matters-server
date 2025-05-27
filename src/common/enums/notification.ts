@@ -11,6 +11,7 @@ export enum NOTICE_TYPE {
   revised_article_published = 'revised_article_published',
   revised_article_not_published = 'revised_article_not_published',
   circle_new_article = 'circle_new_article',
+  topic_channel_feedback_accepted = 'topic_channel_feedback_accepted',
 
   // article-article
   article_new_collected = 'article_new_collected',

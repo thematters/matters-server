@@ -2,11 +2,12 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import { UserInputError, EntityNotFoundError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
+import { NOTICE_TYPE } from '#root/src/common/enums/notification.js'
 
 const resolver: GQLMutationResolvers['reviewTopicChannelFeedback'] = async (
   _,
   { input: { feedback: feebackGlobalId, action } },
-  { dataSources: { atomService, channelService } }
+  { dataSources: { atomService, channelService, notificationService } }
 ) => {
   const { id, type } = fromGlobalId(feebackGlobalId)
 
@@ -23,7 +24,19 @@ const resolver: GQLMutationResolvers['reviewTopicChannelFeedback'] = async (
   }
 
   if (action === 'accept') {
-    return channelService.acceptFeedback(feedback)
+    const accepted = await channelService.acceptFeedback(feedback)
+    notificationService.trigger({
+      event: NOTICE_TYPE.topic_channel_feedback_accepted,
+      recipientId: feedback.userId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'article',
+          entity: await atomService.articleIdLoader.load(feedback.articleId),
+        },
+      ],
+    })
+    return accepted
   } else if (action === 'reject') {
     return channelService.rejectFeedback(feedback)
   }
