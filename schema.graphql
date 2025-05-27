@@ -600,7 +600,7 @@ type ArticleOSS {
   inSearch: Boolean!
   spamStatus: SpamStatus!
   adStatus: AdStatus!
-  topicChannels: [ArticleTopicChannel!]
+  topicChannels: [ArticleTopicChannel!] @deprecated(reason: "Use classification.topicChannel.channels instead")
 }
 
 type SpamStatus {
@@ -638,8 +638,8 @@ type ArticleTopicChannel {
   """Datetime when this article is classified"""
   classicfiedAt: DateTime!
 
-  """Whether this article is anti flood in this channel"""
-  antiFlood: Boolean!
+  """Whether this article is filtered out by anti-flood in this channel"""
+  antiFlooded: Boolean!
 }
 
 enum TranslationModel {

@@ -377,8 +377,8 @@ export default /* GraphQL */ `
     "Datetime when this article is classified"
     classicfiedAt: DateTime! @auth(mode: "${AUTH_MODE.admin}")
 
-    "Whether this article is anti flood in this channel"
-    antiFlood: Boolean!
+    "Whether this article is filtered out by anti-flood in this channel"
+    antiFlooded: Boolean!
   }
 
   enum TranslationModel {

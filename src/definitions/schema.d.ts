@@ -595,6 +595,7 @@ export type GQLArticleOss = {
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
   spamStatus: GQLSpamStatus
+  /** @deprecated Use classification.topicChannel.channels instead */
   topicChannels?: Maybe<Array<GQLArticleTopicChannel>>
 }
 
@@ -615,8 +616,8 @@ export type GQLArticleState = 'active' | 'archived' | 'banned'
 
 export type GQLArticleTopicChannel = {
   __typename?: 'ArticleTopicChannel'
-  /** Whether this article is anti flood in this channel */
-  antiFlood: Scalars['Boolean']['output']
+  /** Whether this article is filtered out by anti-flood in this channel */
+  antiFlooded: Scalars['Boolean']['output']
   channel: GQLTopicChannel
   /** Datetime when this article is classified */
   classicfiedAt: Scalars['DateTime']['output']
@@ -6920,7 +6921,7 @@ export type GQLArticleTopicChannelResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleTopicChannel'] = GQLResolversParentTypes['ArticleTopicChannel']
 > = ResolversObject<{
-  antiFlood?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  antiFlooded?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   channel?: Resolver<GQLResolversTypes['TopicChannel'], ParentType, ContextType>
   classicfiedAt?: Resolver<
     GQLResolversTypes['DateTime'],

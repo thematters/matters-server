@@ -5,7 +5,7 @@ import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
   { id: articleId },
   _,
-  { dataSources: { atomService } }
+  { dataSources: { atomService, channelService } }
 ) => {
   const articleChannels = await atomService.findMany({
     table: 'topic_channel_article',
@@ -31,7 +31,7 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
   const channelMap = new Map(channels.map((channel) => [channel.id, channel]))
 
   // Map article channels to ArticleTopicChannel type
-  return articleChannels.map((ac) => ({
+  return articleChannels.map(async (ac) => ({
     channel: {
       ...(channelMap.get(ac.channelId) as any),
       __type: 'TopicChannel',
@@ -41,7 +41,10 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
     enabled: ac.enabled,
     classicfiedAt: ac.createdAt,
     pinned: ac.pinned,
-    antiFlood: false,
+    antiFlooded: await channelService.isFlood({
+      articleId,
+      channelId: ac.channelId,
+    }),
   }))
 }
 
