@@ -736,7 +736,7 @@ export class ChannelService {
   }: {
     type?: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_TYPE>
     state?: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE>
-    spamThreshold?: number
+    spamThreshold?: number | null
   } = {}) => {
     const knexRO = this.connections.knexRO
     const query = knexRO('topic_channel_feedback')
