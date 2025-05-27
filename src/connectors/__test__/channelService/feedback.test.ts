@@ -258,4 +258,110 @@ describe('feedback methods', () => {
       expect(feedbacks).toHaveLength(2)
     })
   })
+
+  describe('acceptFeedback', () => {
+    test('accepts feedback and updates article channels when autoAccept is true and channelIds is empty', async () => {
+      // Create test article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      // Create feedback
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([]) as unknown as string[],
+        },
+      })
+
+      await channelService.acceptFeedback(feedback, true)
+
+      // Verify feedback state is updated
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+
+      // Verify article channels are disabled
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1' },
+      })
+      expect(articleChannels.every((channel) => !channel.enabled)).toBe(true)
+    })
+
+    test('accepts feedback and updates article channels with specific channelIds', async () => {
+      // Create test article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      // Create feedback
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([channel2.id]) as unknown as string[],
+        },
+      })
+
+      await channelService.acceptFeedback(feedback)
+
+      // Verify feedback state is updated
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+
+      // Verify article channels are updated
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1', enabled: true },
+      })
+      expect(articleChannels).toHaveLength(1)
+      expect(articleChannels[0].channelId).toBe(channel2.id)
+    })
+  })
+
+  describe('rejectFeedback', () => {
+    test('rejects feedback and updates state', async () => {
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([channel1.id]) as unknown as string[],
+        },
+      })
+
+      await channelService.rejectFeedback(feedback)
+
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED)
+    })
+  })
 })

@@ -754,13 +754,33 @@ export class ChannelService {
     feedback: TopicChannelFeedback,
     autoAccept: boolean = false
   ) => {
+    // will not set isLabeled to true if autoAccept is true
     if (feedback.channelIds.length === 0 && autoAccept) {
       await this.models.updateMany({
         table: 'topic_channel_article',
         where: { articleId: feedback.articleId },
         data: { enabled: false },
       })
+      return this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+      })
     }
+
+    if (
+      await this.isFeedbackResolved({
+        articleId: feedback.articleId,
+        channelIds: feedback.channelIds,
+      })
+    ) {
+      return this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+      })
+    }
+
     await this.setArticleTopicChannels({
       articleId: feedback.articleId,
       channelIds: feedback.channelIds,
@@ -780,7 +800,7 @@ export class ChannelService {
     })
   }
 
-  public isFeedbackResolved = async ({
+  private isFeedbackResolved = async ({
     articleId,
     channelIds,
   }: {
