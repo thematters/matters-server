@@ -339,8 +339,8 @@ export class ChannelService {
       return filteredQuery
     }
 
-    if (flood === false) {
-      const floodFilteredQuery = knexRO
+    if (flood !== undefined) {
+      const floodBaseQuery = knexRO
         .with('base', query)
         .with(
           'time_grouped',
@@ -360,8 +360,11 @@ export class ChannelService {
         )
         .select('*')
         .from('ranked')
-        .where('rank', '<=', 2)
-      return floodFilteredQuery
+      if (flood === true) {
+        return floodBaseQuery.where('rank', '>', 2)
+      } else {
+        return floodBaseQuery.where('rank', '<=', 2)
+      }
     }
 
     return query

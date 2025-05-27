@@ -45,14 +45,14 @@ beforeEach(async () => {
     title: 'test-article-1',
     content: 'test-content-1',
   })
-  author1Articles = await atomService.findMany({
-    table: 'article',
-    where: {
-      authorId: author1,
-    },
-  })
-
-  expect(author1Articles.length).toBeGreaterThanOrEqual(4)
+  author1Articles = (
+    await atomService.findMany({
+      table: 'article',
+      where: {
+        authorId: author1,
+      },
+    })
+  ).slice(0, 4)
 
   author2Articles = await atomService.findMany({
     table: 'article',
@@ -115,5 +115,12 @@ describe('filter out flood articles', () => {
 
     const author2Results = results.filter((a) => a.authorId === '2')
     expect(author2Results).toHaveLength(1)
+  })
+  test('returns flood articles when flood is true', async () => {
+    const results = await channelService.findTopicChannelArticles(channel.id, {
+      flood: true,
+    })
+    expect(results).toHaveLength(1)
+    expect(results[0].id).toBe(author1Articles[2].id)
   })
 })
