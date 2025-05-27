@@ -3941,6 +3941,7 @@ export type GQLTopicChannelFeedbackState = 'accepted' | 'pending' | 'rejected'
 export type GQLTopicChannelFeedbackType = 'negative' | 'positive'
 
 export type GQLTopicChannelFeedbacksFilterInput = {
+  spam?: InputMaybe<Scalars['Boolean']['input']>
   state?: InputMaybe<GQLTopicChannelFeedbackState>
   type?: InputMaybe<GQLTopicChannelFeedbackType>
 }

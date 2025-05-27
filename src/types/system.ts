@@ -618,6 +618,7 @@ export default /* GraphQL */ `
   input TopicChannelFeedbacksFilterInput {
     state: TopicChannelFeedbackState
     type: TopicChannelFeedbackType
+    spam: Boolean
   }
 
   input PutIcymiTopicInput {
