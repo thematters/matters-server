@@ -40,7 +40,7 @@ const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
     httpOnly: true,
     secure: true,
     ...(isVercelPreview ? {} : { domain }), // Only set domain if it's defined
-    sameSite: localOrigin ? 'none' : 'lax',
+    sameSite: localOrigin || isVercelPreview ? 'none' : 'lax',
   }
 }
 
