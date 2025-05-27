@@ -317,4 +317,192 @@ describe('feedback resolvers', () => {
       )
     })
   })
+
+  describe('reviewTopicChannelFeedback mutation', () => {
+    const REVIEW_FEEDBACK = /* GraphQL */ `
+      mutation ReviewTopicChannelFeedback(
+        $input: ReviewTopicChannelFeedbackInput!
+      ) {
+        reviewTopicChannelFeedback(input: $input) {
+          id
+          type
+          state
+          article {
+            id
+          }
+          channels {
+            id
+          }
+        }
+      }
+    `
+
+    test('accepts feedback successfully', async () => {
+      // Create a pending feedback first
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          articleId: article.id,
+          userId: user.id,
+          channelIds: JSON.stringify([
+            channel1.id,
+            channel2.id,
+          ]) as unknown as string[],
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: REVIEW_FEEDBACK,
+        variables: {
+          input: {
+            feedback: toGlobalId({
+              type: NODE_TYPES.TopicChannelFeedback,
+              id: feedback.id,
+            }),
+            action: 'accept',
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.reviewTopicChannelFeedback).toBeDefined()
+      expect(data?.reviewTopicChannelFeedback.state).toBe(
+        TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED
+      )
+    })
+
+    test('rejects feedback successfully', async () => {
+      // Create a pending feedback first
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          articleId: article.id,
+          userId: user.id,
+          channelIds: JSON.stringify([
+            channel1.id,
+            channel2.id,
+          ]) as unknown as string[],
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: REVIEW_FEEDBACK,
+        variables: {
+          input: {
+            feedback: toGlobalId({
+              type: NODE_TYPES.TopicChannelFeedback,
+              id: feedback.id,
+            }),
+            action: 'reject',
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.reviewTopicChannelFeedback).toBeDefined()
+      expect(data?.reviewTopicChannelFeedback.state).toBe(
+        TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED
+      )
+    })
+
+    test('returns error for invalid feedback id', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: REVIEW_FEEDBACK,
+        variables: {
+          input: {
+            feedback: toGlobalId({ type: NODE_TYPES.Article, id: '1' }),
+            action: 'accept',
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    })
+
+    test('returns error for non-existent feedback', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: REVIEW_FEEDBACK,
+        variables: {
+          input: {
+            feedback: toGlobalId({
+              type: NODE_TYPES.TopicChannelFeedback,
+              id: '999999',
+            }),
+            action: 'accept',
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('ENTITY_NOT_FOUND')
+    })
+
+    test('returns error for non-admin user', async () => {
+      // Create a pending feedback first
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          articleId: article.id,
+          userId: user.id,
+          channelIds: JSON.stringify([
+            channel1.id,
+            channel2.id,
+          ]) as unknown as string[],
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: false,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: REVIEW_FEEDBACK,
+        variables: {
+          input: {
+            feedback: toGlobalId({
+              type: NODE_TYPES.TopicChannelFeedback,
+              id: feedback.id,
+            }),
+            action: 'accept',
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    })
+  })
 })

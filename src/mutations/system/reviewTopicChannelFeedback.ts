@@ -8,7 +8,7 @@ const resolver: GQLMutationResolvers['reviewTopicChannelFeedback'] = async (
   { input: { feedback: feebackGlobalId, action } },
   { dataSources: { atomService, channelService } }
 ) => {
-  const {id, type} = fromGlobalId(feebackGlobalId)
+  const { id, type } = fromGlobalId(feebackGlobalId)
 
   if (type !== 'TopicChannelFeedback') {
     throw new UserInputError('Invalid feedback id')
