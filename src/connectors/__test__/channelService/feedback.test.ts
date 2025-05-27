@@ -290,7 +290,7 @@ describe('feedback methods', () => {
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
       })
-      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
 
       // Verify article channels are disabled
       const articleChannels = await atomService.findMany({

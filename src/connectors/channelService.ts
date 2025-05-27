@@ -752,10 +752,10 @@ export class ChannelService {
 
   public acceptFeedback = async (
     feedback: TopicChannelFeedback,
-    autoAccept: boolean = false
+    autoResolve: boolean = false
   ) => {
-    // will not set isLabeled to true if autoAccept is true
-    if (feedback.channelIds.length === 0 && autoAccept) {
+    // will not set isLabeled to true if autoResolve is true
+    if (feedback.channelIds.length === 0 && autoResolve) {
       await this.models.updateMany({
         table: 'topic_channel_article',
         where: { articleId: feedback.articleId },
@@ -764,7 +764,7 @@ export class ChannelService {
       return this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
     }
 
@@ -777,7 +777,7 @@ export class ChannelService {
       return this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
     }
 

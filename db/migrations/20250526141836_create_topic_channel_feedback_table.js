@@ -10,7 +10,7 @@ export const up = async (knex) => {
     t.bigInteger('user_id').references('id').inTable('user').notNullable()
     t.jsonb('channel_ids')
     t.enu('type', ['positive', 'negative']).notNullable()
-    t.enu('state', ['pending', 'accepted', 'rejected'])
+    t.enu('state', ['pending', 'accepted', 'rejected', 'resolved'])
     t.timestamp('created_at').notNullable().defaultTo(knex.fn.now())
     t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
 

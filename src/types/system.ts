@@ -607,6 +607,7 @@ export default /* GraphQL */ `
     pending
     accepted
     rejected
+    resolved
   }
 
   input TopicChannelFeedbacksInput {

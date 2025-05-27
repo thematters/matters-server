@@ -3936,7 +3936,11 @@ export type GQLTopicChannelFeedbackEdge = {
   node: GQLTopicChannelFeedback
 }
 
-export type GQLTopicChannelFeedbackState = 'accepted' | 'pending' | 'rejected'
+export type GQLTopicChannelFeedbackState =
+  | 'accepted'
+  | 'pending'
+  | 'rejected'
+  | 'resolved'
 
 export type GQLTopicChannelFeedbackType = 'negative' | 'positive'
 

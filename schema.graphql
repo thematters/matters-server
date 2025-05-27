@@ -2638,6 +2638,7 @@ enum TopicChannelFeedbackState {
   pending
   accepted
   rejected
+  resolved
 }
 
 input TopicChannelFeedbacksInput {
