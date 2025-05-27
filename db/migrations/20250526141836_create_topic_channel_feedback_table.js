@@ -8,11 +8,9 @@ export const up = async (knex) => {
     t.bigIncrements('id').primary()
     t.bigInteger('article_id').references('id').inTable('article').notNullable()
     t.bigInteger('user_id').references('id').inTable('user').notNullable()
-    t.jsonb('channel_ids').notNullable()
+    t.jsonb('channel_ids')
     t.enu('type', ['positive', 'negative']).notNullable()
     t.enu('state', ['pending', 'accepted', 'rejected'])
-      .notNullable()
-      .defaultTo('pending')
     t.timestamp('created_at').notNullable().defaultTo(knex.fn.now())
     t.timestamp('updated_at').notNullable().defaultTo(knex.fn.now())
 

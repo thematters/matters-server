@@ -8,7 +8,7 @@ export interface TopicChannelFeedback {
   id: string
   articleId: string
   userId: string
-  channelIds: string[]
+  channelIds: string
   type: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_TYPE>
   state: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE>
   createdAt: Date

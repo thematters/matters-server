@@ -14,6 +14,7 @@ import {
   NODE_TYPES,
   TOPIC_CHANNEL_PIN_LIMIT,
   TOPIC_CHANNEL_FEEDBACK_TYPE,
+  TOPIC_CHANNEL_FEEDBACK_STATE,
 } from '#common/enums/index.js'
 import {
   EntityNotFoundError,
@@ -640,13 +641,33 @@ export class ChannelService {
   }: {
     articleId: string
     userId: string
-  }) => {
-    await this.models.create({
+  }) =>
+    this.models.create({
       table: 'topic_channel_feedback',
       data: {
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
         articleId,
         userId,
-        type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+      },
+    })
+
+  public createNegativeFeedback = async ({
+    articleId,
+    userId,
+    channelIds,
+  }: {
+    articleId: string
+    userId: string
+    channelIds: string[]
+  }) => {
+    return this.models.create({
+      table: 'topic_channel_feedback',
+      data: {
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+        articleId,
+        userId,
+        channelIds: JSON.stringify(channelIds),
+        state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
       },
     })
   }
