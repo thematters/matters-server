@@ -115,6 +115,12 @@ describe('filter out flood articles', () => {
 
     const author2Results = results.filter((a) => a.authorId === '2')
     expect(author2Results).toHaveLength(1)
+
+    const isFlood = await channelService.isFlood({
+      articleId: author1Articles[0].id,
+      channelId: channel.id,
+    })
+    expect(isFlood).toBe(false)
   })
   test('returns flood articles when flood is true', async () => {
     const results = await channelService.findTopicChannelArticles(channel.id, {
@@ -122,5 +128,11 @@ describe('filter out flood articles', () => {
     })
     expect(results).toHaveLength(1)
     expect(results[0].id).toBe(author1Articles[2].id)
+
+    const isFlood = await channelService.isFlood({
+      articleId: author1Articles[2].id,
+      channelId: channel.id,
+    })
+    expect(isFlood).toBe(true)
   })
 })

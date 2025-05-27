@@ -16,6 +16,8 @@ import {
   TOPIC_CHANNEL_PIN_LIMIT,
   TOPIC_CHANNEL_FEEDBACK_TYPE,
   TOPIC_CHANNEL_FEEDBACK_STATE,
+  CACHE_PREFIX,
+  CACHE_TTL,
 } from '#common/enums/index.js'
 import {
   EntityNotFoundError,
@@ -33,6 +35,7 @@ import {
 import {
   ArticleService,
   AtomService,
+  CacheService,
   ChannelClassifier,
 } from '#connectors/index.js'
 
@@ -370,13 +373,32 @@ export class ChannelService {
     return query
   }
 
-  // public isAntiFlood = async (articleId: string, channelId: string) => {
-  //  const article = await this.models.findUnique({
-  //    table: 'article',
-  //    where: { id: articleId },
-  //  })
-  //  return article?.isAntiFlood
-  // }
+  public isFlood = async ({
+    articleId,
+    channelId,
+  }: {
+    articleId: string
+    channelId: string
+  }) => {
+    const cacheService = new CacheService(
+      CACHE_PREFIX.CHANNEL_FLOOD,
+      this.connections.objectCacheRedis
+    )
+    const articleIds = await cacheService.getObject({
+      keys: {
+        type: 'channelFlood',
+        args: { channelId },
+      },
+      getter: async () => {
+        const articles = await this.findTopicChannelArticles(channelId, {
+          flood: true,
+        })
+        return articles.map((a) => a.id)
+      },
+      expire: CACHE_TTL.MEDIUM,
+    })
+    return articleIds.includes(articleId)
+  }
 
   public classifyArticlesChannels = async ({
     ids,
