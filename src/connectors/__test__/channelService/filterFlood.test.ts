@@ -95,10 +95,10 @@ beforeEach(async () => {
   })
 })
 
-describe('flood filtering', () => {
+describe('filter out flood articles', () => {
   test('limits articles from same author within time window', async () => {
     const results = await channelService.findTopicChannelArticles(channel.id, {
-      filterFlood: true,
+      flood: false,
     })
 
     // Should only include 3 (2 today, and 1 tomorrow) articles from author1 (the first two chronologically)

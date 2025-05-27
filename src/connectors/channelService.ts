@@ -252,16 +252,16 @@ export class ChannelService {
       spamThreshold,
       datetimeRange,
       addOrderColumn = false,
-      filterFlood = false,
+      // false to exclude flood articles, true to query flood articles.
+      flood,
     }: {
       channelThreshold?: number
       spamThreshold?: number
       datetimeRange?: { start: Date; end?: Date }
-      filterFlood?: boolean
+      flood?: boolean
       addOrderColumn?: boolean
     } = {
       addOrderColumn: false,
-      filterFlood: false,
     }
   ) => {
     const knexRO = this.connections.knexRO
@@ -339,7 +339,7 @@ export class ChannelService {
       return filteredQuery
     }
 
-    if (filterFlood) {
+    if (flood === false) {
       const floodFilteredQuery = knexRO
         .with('base', query)
         .with(
@@ -366,6 +366,14 @@ export class ChannelService {
 
     return query
   }
+
+  // public isAntiFlood = async (articleId: string, channelId: string) => {
+  //  const article = await this.models.findUnique({
+  //    table: 'article',
+  //    where: { id: articleId },
+  //  })
+  //  return article?.isAntiFlood
+  // }
 
   public classifyArticlesChannels = async ({
     ids,
