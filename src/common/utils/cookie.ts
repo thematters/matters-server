@@ -33,12 +33,13 @@ const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
   const localOrigin = /(localhost|127\.0\.0\.1)(:\d+)?$/.test(
     req.headers.origin || ''
   )
+  const isVercelPreview = hostname.includes('.vercel.app')
 
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
     secure: true,
-    domain,
+    ...(isVercelPreview ? {} : { domain }), // Only set domain if it's defined
     sameSite: localOrigin ? 'none' : 'lax',
   }
 }
