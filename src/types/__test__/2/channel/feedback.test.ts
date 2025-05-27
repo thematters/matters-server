@@ -199,4 +199,122 @@ describe('feedback resolvers', () => {
       expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
     })
   })
+
+  describe('topicChannelFeedbacks query', () => {
+    const GET_TOPIC_CHANNEL_FEEDBACKS = /* GraphQL */ `
+      query GetTopicChannelFeedbacks($input: TopicChannelFeedbacksInput!) {
+        oss {
+          topicChannelFeedbacks(input: $input) {
+            edges {
+              node {
+                id
+                type
+                state
+                article {
+                  id
+                }
+                channels {
+                  id
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            totalCount
+          }
+        }
+      }
+    `
+    beforeAll(async () => {
+      await atomService.deleteMany({ table: 'topic_channel_feedback' })
+    })
+
+    test('returns empty connection when no feedbacks exist', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const {
+        data: { oss },
+        errors,
+      } = await server.executeOperation({
+        query: GET_TOPIC_CHANNEL_FEEDBACKS,
+        variables: {
+          input: {
+            first: 10,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(oss?.topicChannelFeedbacks.edges).toHaveLength(0)
+      expect(oss?.topicChannelFeedbacks.totalCount).toBe(0)
+      expect(oss?.topicChannelFeedbacks.pageInfo.hasNextPage).toBe(false)
+    })
+
+    test('filters feedbacks by type and state', async () => {
+      // Create test feedbacks
+      const feedback1 = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          articleId: '1',
+          userId: '1',
+        },
+      })
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED,
+          articleId: '2',
+          userId: '2',
+          channelIds: JSON.stringify([]) as unknown as string[],
+        },
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const {
+        data: { oss },
+        errors,
+      } = await server.executeOperation({
+        query: GET_TOPIC_CHANNEL_FEEDBACKS,
+        variables: {
+          input: {
+            first: 10,
+            filter: {
+              type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+              state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+            },
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(oss?.topicChannelFeedbacks.edges).toHaveLength(1)
+      expect(oss?.topicChannelFeedbacks.totalCount).toBe(1)
+      expect(oss?.topicChannelFeedbacks.edges[0].node.id).toBe(
+        toGlobalId({
+          type: NODE_TYPES.TopicChannelFeedback,
+          id: feedback1.id,
+        })
+      )
+      expect(oss?.topicChannelFeedbacks.edges[0].node.article.id).toBe(
+        toGlobalId({
+          type: NODE_TYPES.Article,
+          id: article.id,
+        })
+      )
+    })
+  })
 })
