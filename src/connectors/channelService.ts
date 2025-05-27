@@ -800,7 +800,7 @@ export class ChannelService {
     })
   }
 
-  private isFeedbackResolved = async ({
+  public isFeedbackResolved = async ({
     articleId,
     channelIds,
   }: {
@@ -809,10 +809,13 @@ export class ChannelService {
   }) => {
     const articleChannels = await this.models.findMany({
       table: 'topic_channel_article',
-      where: { articleId },
+      where: { articleId, enabled: true },
     })
     const currentChannelIds = articleChannels.map((c) => c.channelId)
     if (channelIds.every((id) => currentChannelIds.includes(id))) {
+      return true
+    }
+    if (channelIds.length === 0 && articleChannels.length === 0) {
       return true
     }
     return false
