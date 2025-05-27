@@ -1,5 +1,7 @@
 import type { GQLTopicChannelClassificationResolvers } from '#definitions/index.js'
 
+import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+
 const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
   { id: articleId },
   _,
@@ -10,8 +12,13 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
     where: { articleId },
   })
 
+  const jobs = await atomService.findMany({
+    table: 'article_channel_job',
+    where: { articleId, state: ARTICLE_CHANNEL_JOB_STATE.finished },
+  })
+
   if (!articleChannels.length) {
-    return []
+    return jobs.length > 0 ? [] : null
   }
 
   // Get all topic channels
