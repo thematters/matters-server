@@ -13,6 +13,7 @@ import {
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
   TOPIC_CHANNEL_PIN_LIMIT,
+  TOPIC_CHANNEL_FEEDBACK_TYPE,
 } from '#common/enums/index.js'
 import {
   EntityNotFoundError,
@@ -631,5 +632,22 @@ export class ChannelService {
     })
 
     return channel
+  }
+
+  public createPositiveFeedback = async ({
+    articleId,
+    userId,
+  }: {
+    articleId: string
+    userId: string
+  }) => {
+    await this.models.create({
+      table: 'topic_channel_feedback',
+      data: {
+        articleId,
+        userId,
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+      },
+    })
   }
 }

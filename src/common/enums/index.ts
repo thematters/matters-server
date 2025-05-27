@@ -31,6 +31,7 @@ export * from './badges.js'
 export * from './moment.js'
 export * from './campaign.js'
 export * from './channel.js'
+export * from './feedback.js'
 
 export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
