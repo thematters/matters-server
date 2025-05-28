@@ -39,7 +39,7 @@ const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
     secure: true,
-    ...(isVercelPreview ? {} : { domain }), // Only set domain if it's defined
+    ...(localOrigin || isVercelPreview ? {} : { domain }), // Only set domain if it's defined
     sameSite: localOrigin || isVercelPreview ? 'none' : 'lax',
   }
 }
