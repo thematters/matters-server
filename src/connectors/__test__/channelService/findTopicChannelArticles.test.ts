@@ -452,7 +452,7 @@ describe('findTopicChannelArticles', () => {
     })
 
     test('includes articles from non-restricted authors', async () => {
-      const excludedAuthorId = '2'
+      const excludedAuthorId = '3'
       expect(articles[0].authorId).not.toBe(excludedAuthorId)
       // Restrict an author
       await atomService.create({
