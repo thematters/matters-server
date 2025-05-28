@@ -5,6 +5,10 @@ const resolver: GQLArticleResolvers['classification'] = async (
   _,
   { viewer }
 ) => {
+  if (viewer.hasRole('admin')) {
+    return root
+  }
+
   if (viewer.id !== root.authorId) {
     return null
   }
