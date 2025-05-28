@@ -240,7 +240,7 @@ export type GQLArticle = GQLNode &
     /** This value determines if current viewer can SuperLike or not. */
     canSuperLike: Scalars['Boolean']['output']
     /** Classifications status */
-    classification?: Maybe<GQLArticleClassification>
+    classification: GQLArticleClassification
     /**
      * List of articles added into this article's connections.
      * @deprecated Use connections instead
@@ -6540,7 +6540,7 @@ export type GQLArticleResolvers<
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   canSuperLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   classification?: Resolver<
-    Maybe<GQLResolversTypes['ArticleClassification']>,
+    GQLResolversTypes['ArticleClassification'],
     ParentType,
     ContextType
   >

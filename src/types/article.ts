@@ -226,7 +226,7 @@ export default /* GraphQL */ `
     noindex: Boolean!
 
     "Classifications status"
-    classification: ArticleClassification
+    classification: ArticleClassification!
     ##############
     #     OSS    #
     ##############

@@ -625,7 +625,7 @@ describe('feedback resolvers', () => {
       })
 
       expect(errors).toBeUndefined()
-      expect(data?.node.classification).toBeNull()
+      expect(data?.node.classification.topicChannel.feedback).toBeNull()
     })
   })
 })

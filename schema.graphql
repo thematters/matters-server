@@ -464,7 +464,7 @@ type Article implements Node & PinnableWork {
   noindex: Boolean!
 
   """Classifications status"""
-  classification: ArticleClassification
+  classification: ArticleClassification!
   oss: ArticleOSS!
   remark: String
 
