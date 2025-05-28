@@ -1,8 +1,8 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
+import { NOTICE_TYPE } from '#common/enums/notification.js'
 import { UserInputError, EntityNotFoundError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
-import { NOTICE_TYPE } from '#root/src/common/enums/notification.js'
 
 const resolver: GQLMutationResolvers['reviewTopicChannelFeedback'] = async (
   _,
