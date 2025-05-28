@@ -215,6 +215,11 @@ export class ChannelService {
 
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
+      await this.models.update({
+        table: 'article',
+        where: { id: articleId },
+        data: { isSpam: false },
+      })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
         data: toAdd.map((channelId) => ({
