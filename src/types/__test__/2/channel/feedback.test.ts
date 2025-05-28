@@ -564,6 +564,7 @@ describe('feedback resolvers', () => {
       const server = await testClient({
         connections,
         isAuth: true,
+        context: { viewer: user },
       })
 
       const { data, errors } = await server.executeOperation({
@@ -587,6 +588,44 @@ describe('feedback resolvers', () => {
       expect(data?.node.classification.topicChannel.feedback.article.id).toBe(
         toGlobalId({ type: NODE_TYPES.Article, id: article.id })
       )
+    })
+
+    test('returns null when it is not the author', async () => {
+      // Create test feedback
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+          articleId: article.id,
+          userId: user.id,
+        },
+      })
+
+      const nonAuthorUser = await atomService.findFirst({
+        table: 'user',
+        where: {
+          id: '2',
+        },
+      })
+      expect(nonAuthorUser?.id).not.toBe(user.id)
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        context: { viewer: nonAuthorUser },
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_ARTICLE_FEEDBACK,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Article, id: article.id }),
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.node.classification).toBeNull()
     })
   })
 })

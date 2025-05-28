@@ -17,6 +17,7 @@ import canComment from './canComment.js'
 import canSuperLike from './canSuperLike.js'
 import topicChannels from './classification/channels.js'
 import feedback from './classification/feedback.js'
+import classification from './classification.js'
 import collections from './collections.js'
 import connectedBy from './connectedBy.js'
 import connections from './connections.js'
@@ -134,7 +135,7 @@ const schema: GQLResolvers = {
     versions,
     campaigns,
     noindex,
-    classification: (root) => root,
+    classification,
   },
   ArticleClassification: {
     topicChannel: (root) => root,
