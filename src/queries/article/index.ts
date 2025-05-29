@@ -15,8 +15,9 @@ import bookmarked from './bookmarked.js'
 import campaigns from './campaigns.js'
 import canComment from './canComment.js'
 import canSuperLike from './canSuperLike.js'
-import collectedBy from './collectedBy.js'
-import collection from './collection.js'
+import collections from './collections.js'
+import connectedBy from './connectedBy.js'
+import connections from './connections.js'
 import content from './content.js'
 import * as contents from './contents/index.js'
 import articleCover from './cover.js'
@@ -88,8 +89,10 @@ const schema: GQLResolvers = {
     author,
     cover: articleCover,
     assets,
-    collection,
-    collectedBy,
+    collection: connections,
+    connections,
+    collections,
+    connectedBy,
     hasAppreciate,
     canSuperLike,
     language,

@@ -57,6 +57,7 @@ const schema: GQLResolvers = {
   CampaignOSS: {
     managers,
     boost,
+    exclusive: ({ exclusive }) => exclusive,
   },
 
   CampaignStage: {

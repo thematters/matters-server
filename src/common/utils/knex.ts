@@ -56,6 +56,21 @@ export const excludeRestricted = (
   )
 }
 
+export const excludeExclusiveCampaignArticles = (
+  builder: Knex.QueryBuilder,
+  table = 'article'
+) => {
+  builder.whereNotIn(
+    `${table}.id`,
+    builder.client
+      .queryBuilder()
+      .select('article_id')
+      .from('campaign_article')
+      .join('campaign', 'campaign_article.campaign_id', 'campaign.id')
+      .where('campaign.exclusive', true)
+  )
+}
+
 export const selectWithTotalCount = (builder: Knex.QueryBuilder) =>
   builder.select(builder.client.raw('count(1) OVER() ::integer AS total_count'))
 

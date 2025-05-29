@@ -1,13 +1,16 @@
 import type {
+  Connections,
   GQLSearchExclude,
   GQLSearchFilter,
   Draft,
   Article,
   ArticleVersion,
   ArticleBoost,
-  Connections,
+  ArticleConnection,
+  Collection,
   GQLTranslationModel,
   LANGUAGES,
+  Campaign,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -31,6 +34,7 @@ import {
   USER_STATE,
   NODE_TYPES,
   QUEUE_URL,
+  PUBLISH_STATE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -50,8 +54,12 @@ import {
   genMD5,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
+  excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
   stripMentions,
   stripHtml,
+  normalizeTagInput,
+  extractMentionIds,
+  extractAssetDataFromHtml,
 } from '#common/utils/index.js'
 import {
   BaseService,
@@ -60,11 +68,16 @@ import {
   TagService,
   NotificationService,
   SpamDetector,
+  UserService,
   ChannelService,
-  aws,
   PaymentService,
   LanguageDetector,
+  CampaignService,
+  CollectionService,
+  aws,
+  DraftService,
 } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
@@ -86,6 +99,8 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 export class ArticleService extends BaseService<Article> {
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
   private openRouter = new OpenRouter()
+  private systemService: SystemService
+  private notificationService: NotificationService
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -109,6 +124,9 @@ export class ArticleService extends BaseService<Article> {
     }
 
     this.latestArticleVersionLoader = new DataLoader(batchFn)
+
+    this.systemService = new SystemService(this.connections)
+    this.notificationService = new NotificationService(this.connections)
   }
 
   /*********************************
@@ -332,9 +350,11 @@ export class ArticleService extends BaseService<Article> {
   public latestArticles = ({
     spamThreshold,
     excludeChannelArticles,
+    excludeExclusiveCampaignArticles,
   }: {
     spamThreshold?: number
     excludeChannelArticles?: boolean
+    excludeExclusiveCampaignArticles?: boolean
   } = {}): Knex.QueryBuilder<Article, Article[]> =>
     this.knexRO
       .select('article_set.*')
@@ -345,6 +365,9 @@ export class ArticleService extends BaseService<Article> {
           .where({ 'article.state': ARTICLE_STATE.active })
           .modify(excludeRestrictedModifier)
           .modify((builder) => {
+            if (excludeExclusiveCampaignArticles) {
+              builder.modify(excludeExclusiveCampaignArticlesModifier)
+            }
             if (excludeChannelArticles) {
               builder
                 .leftJoin(
@@ -461,12 +484,11 @@ export class ArticleService extends BaseService<Article> {
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
-        const systemService = new SystemService(this.connections)
         const [draftEntity, articleEntity] = await Promise.all([
-          systemService.baseFindEntityTypeId('draft'),
-          systemService.baseFindEntityTypeId('article'),
+          this.systemService.baseFindEntityTypeId('draft'),
+          this.systemService.baseFindEntityTypeId('article'),
         ])
-        await systemService.copyAssetMapEntities({
+        await this.systemService.copyAssetMapEntities({
           source: { entityTypeId: draftEntity.id, entityId: draftId },
           target: { entityTypeId: articleEntity.id, entityId: article.id },
         })
@@ -554,6 +576,12 @@ export class ArticleService extends BaseService<Article> {
     delete data.description
     delete data.createdAt
     delete data.updatedAt
+    const newContent = newData.content
+
+    if (newData.title) {
+      data = { ...data, title: newData.title }
+      delete newData.title
+    }
 
     if (newData.content) {
       const { id: contentId } = await this.getOrCreateArticleContent(
@@ -574,8 +602,8 @@ export class ArticleService extends BaseService<Article> {
           _contentMd
         )
         data = { ...data, contentMdId: _contentMdId }
-        delete newData.content
       }
+      delete newData.content
     } else {
       data = {
         ...data,
@@ -642,12 +670,12 @@ export class ArticleService extends BaseService<Article> {
       data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
 
-    if (newData.content) {
+    if (newContent) {
       this.postArticleCreation({
         articleId,
         articleVersionId: articleVersion.id,
         title: articleVersion.title,
-        content: newData.content,
+        content: newContent,
         summary: articleVersion.summaryCustomized
           ? articleVersion.summary
           : undefined,
@@ -710,6 +738,21 @@ export class ArticleService extends BaseService<Article> {
     return [records, +(records[0]?.totalCount ?? 0)]
   }
 
+  public validateArticle = async (articleId: string) => {
+    const article = await this.models.articleIdLoader.load(articleId)
+    if (!article) {
+      throw new ArticleNotFoundError('article does not exist')
+    }
+    if (article.state !== ARTICLE_STATE.active) {
+      throw new ForbiddenError('only active article is allowed to be edited.')
+    }
+    const articleVersion = await this.loadLatestArticleVersion(articleId)
+    if (!articleVersion) {
+      throw new ArticleNotFoundError('article version does not exist')
+    }
+    return [article, articleVersion] as const
+  }
+
   /*********************************
    *                               *
    *          Pinning              *
@@ -757,12 +800,18 @@ export class ArticleService extends BaseService<Article> {
   /**
    * Archive article
    */
-  public archive = async (id: string) =>
-    this.baseUpdate(id, {
-      state: ARTICLE_STATE.archived,
-      pinned: false,
-      updatedAt: new Date(),
+  public archive = async (id: string) => {
+    const notificationService = new NotificationService(this.connections)
+    notificationService.withdraw(`publication:${id}`)
+    return this.models.update({
+      table: 'article',
+      where: { id },
+      data: {
+        state: ARTICLE_STATE.archived,
+        pinned: false,
+      },
     })
+  }
 
   /*********************************
    *                               *
@@ -1005,8 +1054,6 @@ export class ArticleService extends BaseService<Article> {
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = simplecc(key, 't2s')
     const keyTraditional = simplecc(key, 's2t')
-    // const systemService = new SystemService(this.connections)
-    // const spamThreshold = await systemService.getSpamThreshold()
     const q = this.knexRO('article')
       .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
       .whereIn(
@@ -2092,9 +2139,7 @@ export class ArticleService extends BaseService<Article> {
         articleId,
         articleVersionId,
         language,
-        model:
-          model ||
-          this.openRouter.toDatabaseModel(this.openRouter.defaultModel),
+        ...(model ? { model } : {}),
       },
     })
 
@@ -2241,9 +2286,8 @@ export class ArticleService extends BaseService<Article> {
       { id: articleId, title, content, summary },
       undefined,
       async (score) => {
-        const systemService = new SystemService(this.connections)
         const channelService = new ChannelService(this.connections)
-        const spamThreshold = await systemService.getSpamThreshold()
+        const spamThreshold = await this.systemService.getSpamThreshold()
         const isSpam = spamThreshold && score && score >= spamThreshold
 
         if (isSpam) {
@@ -2306,6 +2350,509 @@ export class ArticleService extends BaseService<Article> {
           knex.client.raw('COALESCE(t2.??, 0) as ??', [column, column])
         ),
       column,
+    }
+  }
+
+  /*********************************
+   *                               *
+   *         Publication           *
+   *                               *
+   *********************************/
+
+  public publishArticle = async (draftId: string) => {
+    let draft = await this.models.findUnique({
+      table: 'draft',
+      where: { id: draftId },
+    })
+
+    // Step 1: checks
+    if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
+      return draft
+    }
+
+    // Step 2: create an article
+    const [article, articleVersion] = await this.createArticle(draft)
+
+    draft = await this.models.update({
+      table: 'draft',
+      where: { id: draft.id },
+      data: {
+        publishState: PUBLISH_STATE.published,
+        articleId: article.id,
+      },
+    })
+
+    // Note: the following steps won't affect the publication.
+    let failed = false
+    try {
+      // Step 4: handle collection, circles, tags & mentions
+      const failedCollections = await this.handleCollections({
+        draft,
+        article,
+      })
+      const failedConnections = await this.handleConnections({
+        article,
+        articleVersion,
+      })
+      const failedCampaigns = await this.handleCampaigns({ draft, article })
+      await this.handleCircle({
+        article,
+        articleVersion,
+      })
+      await this.handleTags({ article, articleVersion })
+      await this.handleMentions({ article, content: draft.content })
+      /**
+       * Step 5: Handle Assets
+       *
+       * Relationship between asset_map and entity:
+       *
+       * cover -> article
+       * embed -> draft
+       *
+       * @see {@url https://github.com/thematters/matters-server/pull/1510}
+       */
+      const [{ id: draftEntityTypeId }, { id: articleEntityTypeId }] =
+        await Promise.all([
+          this.systemService.baseFindEntityTypeId('draft'),
+          this.systemService.baseFindEntityTypeId('article'),
+        ])
+
+      // Remove unused assets
+      await this.deleteUnusedAssets({ draftEntityTypeId, draft })
+
+      // Swap cover assets from draft to article
+      const coverAssets = await this.systemService.findAssetAndAssetMap({
+        entityTypeId: draftEntityTypeId,
+        entityId: draft.id,
+        assetType: 'cover',
+      })
+      await this.systemService.swapAssetMapEntity(
+        coverAssets.map((ast: { id: string }) => ast.id),
+        articleEntityTypeId,
+        article.id
+      )
+      // notify any failed steps for scheduled publication
+      if (draft.publishAt) {
+        if (failedCollections && failedCollections.length > 0) {
+          this.notificationService.trigger({
+            event: NOTICE_TYPE.scheduled_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              ...failedCollections.map((failedCollection: Collection) => ({
+                type: 'collection' as const,
+                entityTable: 'collection' as const,
+                entity: failedCollection,
+              })),
+            ],
+          })
+          failed = true
+        }
+        if (failedConnections && failedConnections.length > 0) {
+          this.notificationService.trigger({
+            event: NOTICE_TYPE.scheduled_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              ...failedConnections.map((failedArticle: Article) => ({
+                type: 'connection' as const,
+                entityTable: 'article' as const,
+                entity: failedArticle,
+              })),
+            ],
+          })
+          failed = true
+        }
+        if (failedCampaigns && failedCampaigns.length > 0) {
+          await this.notificationService.trigger({
+            event: NOTICE_TYPE.scheduled_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              ...failedCampaigns.map((failedCampaign: Campaign) => ({
+                type: 'campaign' as const,
+                entityTable: 'campaign' as const,
+                entity: failedCampaign,
+              })),
+            ],
+          })
+          failed = true
+        }
+      }
+    } catch (err) {
+      // ignore errors caused by these steps
+      logger.warn('optional step failed: %j', {
+        err,
+        draftId: draft.id,
+      })
+    }
+
+    // Step 7: trigger notifications
+    if (draft.publishAt) {
+      if (!failed) {
+        this.notificationService.trigger({
+          event: NOTICE_TYPE.scheduled_article_published,
+          recipientId: article.authorId,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: article },
+          ],
+        })
+      }
+    } else {
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.article_published,
+        recipientId: article.authorId,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      })
+    }
+
+    // Step 8: invalidate cache
+    invalidateFQC({
+      node: { type: NODE_TYPES.User, id: article.authorId },
+      redis: this.connections.redis,
+    })
+    invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: article.id },
+      redis: this.connections.redis,
+    })
+
+    return draft
+  }
+
+  public findScheduledAndPublish = async (date: Date, lastHours = 1) => {
+    const draftService = new DraftService(this.connections)
+    const drafts = await draftService.findUnpublishedByPublishAt({
+      start: new Date(date.getTime() - 1000 * 60 * 60 * lastHours),
+      end: date,
+    })
+    return Promise.all(
+      drafts.map(async (draft) => {
+        await this.models.update({
+          table: 'draft',
+          where: { id: draft.id },
+          data: { publishState: PUBLISH_STATE.pending },
+        })
+        try {
+          return await this.publishArticle(draft.id)
+        } catch (err) {
+          logger.error(`Failed to publish draft ${draft.id}: ${err}`)
+          return await this.models.update({
+            table: 'draft',
+            where: { id: draft.id },
+            data: { publishState: PUBLISH_STATE.unpublished },
+          })
+        }
+      })
+    )
+  }
+
+  private handleConnections = async ({
+    article,
+    articleVersion,
+  }: {
+    article: Article
+    articleVersion: ArticleVersion
+  }) => {
+    if (articleVersion.connections.length <= 0) {
+      return
+    }
+
+    const connections: Array<
+      Pick<ArticleConnection, 'entranceId' | 'articleId' | 'order'>
+    > = []
+    const successed: Article[] = []
+    const faileded: Article[] = []
+    await Promise.all(
+      articleVersion.connections.map(
+        async (articleId: string, index: number) => {
+          const _article = await this.models.findUnique({
+            table: 'article',
+            where: { id: articleId },
+          })
+          if (!_article) {
+            logger.warn(`article connection not found: ${articleId}`)
+            // should not added to faileded, as _article is undefined
+            return
+          }
+
+          if (_article.state !== ARTICLE_STATE.active) {
+            logger.warn(`article connection not active: ${articleId}`)
+            faileded.push(_article)
+            return
+          }
+          successed.push(_article)
+          connections.push({
+            entranceId: article.id,
+            articleId,
+            order: index,
+          })
+        }
+      )
+    )
+
+    await this.baseBatchCreate<ArticleConnection>(
+      connections,
+      'article_connection'
+    )
+
+    // trigger notifications
+    successed.forEach(async (a: Article) => {
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.article_new_collected,
+        recipientId: a.authorId,
+        actorId: article.authorId,
+        entities: [
+          { type: 'target', entityTable: 'article', entity: a },
+          {
+            // TODO: rename to 'connection' and migrate notice_entity table
+            type: 'collection',
+            entityTable: 'article',
+            entity: article,
+          },
+        ],
+      })
+    })
+
+    return faileded
+  }
+
+  private handleCollections = async ({
+    draft,
+    article,
+  }: {
+    draft: Draft
+    article: Article
+  }) => {
+    if (!draft.collections || draft.collections.length === 0) {
+      return
+    }
+    const faileded: string[] = []
+    const collectionService = new CollectionService(this.connections)
+    await Promise.all(
+      draft.collections.map(async (collectionId: string) => {
+        try {
+          await collectionService.addArticles({
+            collectionId,
+            articleIds: [article.id],
+            userId: article.authorId,
+          })
+        } catch (err) {
+          logger.warn(
+            `Failed to add article to collection ${collectionId}: ${err}`
+          )
+          faileded.push(collectionId)
+        }
+      })
+    )
+    if (faileded.length > 0 && draft.publishAt) {
+      return Promise.all(
+        faileded.map(async (failedCollectionId: string) =>
+          this.models.findUnique({
+            table: 'collection',
+            where: { id: failedCollectionId },
+          })
+        )
+      )
+    }
+  }
+
+  private handleCircle = async ({
+    article,
+    articleVersion,
+    secret,
+  }: {
+    article: Article
+    articleVersion: ArticleVersion
+    secret?: string
+  }) => {
+    if (!articleVersion.circleId) {
+      return
+    }
+
+    const userService = new UserService(this.connections)
+
+    if (articleVersion.access) {
+      const data = {
+        articleId: articleVersion.articleId,
+        circleId: articleVersion.circleId,
+        ...(secret ? { secret } : {}),
+      }
+
+      await this.models.upsert({
+        table: 'article_circle',
+        where: data,
+        create: { ...data, access: articleVersion.access },
+        update: {
+          ...data,
+          access: articleVersion.access,
+        },
+      })
+    }
+
+    // handle 'circle_new_article' notification
+    const recipients = await userService.findCircleRecipients(
+      articleVersion.circleId
+    )
+
+    recipients.forEach((recipientId: string) => {
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.circle_new_article,
+        recipientId,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      })
+    })
+
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Circle, id: articleVersion.circleId },
+      redis: this.connections.redis,
+    })
+  }
+
+  private handleTags = async ({
+    article,
+    articleVersion,
+  }: {
+    article: Article
+    articleVersion: ArticleVersion
+  }) => {
+    const tagService = new TagService(this.connections)
+    const tags = articleVersion.tags as string[]
+
+    if (!tags?.length) {
+      return []
+    }
+
+    // create tag records, return tag record if already exists
+    const dbTags = (
+      (await Promise.all(
+        tags.filter(Boolean).map((content: string) =>
+          tagService.create(
+            { content, creator: article.authorId },
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content,
+            }
+          )
+        )
+      )) as unknown as [{ id: string; content: string }]
+    ).filter(Boolean)
+
+    // create article_tag record
+    await tagService.createArticleTags({
+      articleIds: [article.id],
+      creator: article.authorId,
+      tagIds: dbTags.map(({ id }) => id),
+    })
+
+    await Promise.all(
+      dbTags.map((tag) =>
+        invalidateFQC({
+          node: { type: NODE_TYPES.Tag, id: tag.id },
+          redis: this.connections.redis,
+        })
+      )
+    )
+
+    return tags
+  }
+
+  private handleMentions = async ({
+    article,
+    content,
+  }: {
+    article: Article
+    content: string
+  }) => {
+    const mentionIds = extractMentionIds(content)
+
+    mentionIds.forEach((id: string) => {
+      if (!id) {
+        return false
+      }
+
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.article_mentioned_you,
+        actorId: article.authorId,
+        recipientId: id,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+        tag: `publication:${article.id}`,
+      })
+    })
+  }
+
+  private handleCampaigns = async ({
+    draft,
+    article,
+  }: {
+    draft: Draft
+    article: Article
+  }) => {
+    if (draft.campaigns && draft.campaigns.length > 0) {
+      const campaignService = new CampaignService(this.connections)
+      const faileded: string[] = []
+      for (const { campaign, stage } of draft.campaigns) {
+        try {
+          await campaignService.submitArticleToCampaign(
+            article,
+            campaign,
+            stage
+          )
+          invalidateFQC({
+            node: { type: NODE_TYPES.Campaign, id: campaign },
+            redis: this.connections.redis,
+          })
+        } catch (err) {
+          logger.warn(
+            `Failed to submit article to campaign ${campaign}: ${err}`
+          )
+          faileded.push(campaign)
+        }
+      }
+      return Promise.all(
+        faileded.map(async (failedCampaign: string) =>
+          this.models.findUnique({
+            table: 'campaign',
+            where: { id: failedCampaign },
+          })
+        )
+      )
+    }
+  }
+
+  /**
+   * Delete unused assets from S3 and DB, skip if error is thrown.
+   */
+  private deleteUnusedAssets = async ({
+    draftEntityTypeId,
+    draft,
+  }: {
+    draftEntityTypeId: string
+    draft: Draft
+  }) => {
+    try {
+      const [assets, uuids] = await Promise.all([
+        this.systemService.findAssetAndAssetMap({
+          entityTypeId: draftEntityTypeId,
+          entityId: draft.id,
+        }),
+        extractAssetDataFromHtml(draft.content),
+      ])
+
+      const unusedAssetPaths: { [id: string]: string } = {}
+      assets.forEach((asset: any) => {
+        const isCover = draft.cover === asset.assetId
+        const isEmbed = uuids && uuids.includes(asset.uuid)
+
+        if (!isCover && !isEmbed) {
+          unusedAssetPaths[`${asset.assetId}`] = asset.path
+        }
+      })
+
+      if (Object.keys(unusedAssetPaths).length > 0) {
+        await this.systemService.deleteAssetAndAssetMap(unusedAssetPaths)
+      }
+    } catch (e) {
+      logger.error(e)
     }
   }
 }

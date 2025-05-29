@@ -24,6 +24,7 @@ import {
   toDatetimeRangeString,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
+  excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import {
   ArticleService,
@@ -81,13 +82,6 @@ export class ChannelService {
     campaignId,
     enabled,
   }: Pick<CampaignChannel, 'campaignId' | 'enabled'>) => {
-    if (enabled) {
-      await this.models.updateMany({
-        table: 'campaign_channel',
-        where: {},
-        data: { enabled: false },
-      })
-    }
     return this.models.upsert({
       table: 'campaign_channel',
       where: { campaignId },
@@ -221,6 +215,11 @@ export class ChannelService {
 
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
+      await this.models.update({
+        table: 'article',
+        where: { id: articleId },
+        data: { isSpam: false },
+      })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
         data: toAdd.map((channelId) => ({
@@ -295,6 +294,7 @@ export class ChannelService {
         'article.state': ARTICLE_STATE.active,
       })
       .modify(excludeRestrictedModifier)
+      .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {
         if (channelThreshold) {
           builder.where((qb) => {

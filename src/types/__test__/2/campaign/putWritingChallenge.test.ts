@@ -63,6 +63,7 @@ describe('create or update writing challenges', () => {
             id
             userName
           }
+          exclusive
         }
         state
         channelEnabled
@@ -231,6 +232,7 @@ describe('create or update writing challenges', () => {
           writingPeriod,
           stages,
           featuredDescription: translationsFeaturedDescription,
+          exclusive: true,
         },
       },
     })
@@ -248,6 +250,7 @@ describe('create or update writing challenges', () => {
       'test stage description'
     )
     expect(data.putWritingChallenge.channelEnabled).toBe(false)
+    expect(data.putWritingChallenge.oss.exclusive).toBe(true)
 
     // create with only name
     const { data: data2, errors: errors2 } = await server.executeOperation({
@@ -546,5 +549,74 @@ describe('create or update writing challenges', () => {
       },
     })
     expect(invalidErrors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
+  test('update exclusive status', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+          exclusive: false,
+        },
+      },
+    })
+
+    expect(data.putWritingChallenge.oss.exclusive).toBe(false)
+
+    // update exclusive to true
+    const { data: updatedData, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: data.putWritingChallenge.id,
+          exclusive: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(updatedData.putWritingChallenge.oss.exclusive).toBe(true)
+
+    // update exclusive to false
+    const { data: updatedData2, errors: errors2 } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            id: data.putWritingChallenge.id,
+            exclusive: false,
+          },
+        },
+      })
+    expect(errors2).toBeUndefined()
+    expect(updatedData2.putWritingChallenge.oss.exclusive).toBe(false)
+  })
+
+  test('default exclusive value is false', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putWritingChallenge.oss.exclusive).toBe(false)
   })
 })

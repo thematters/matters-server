@@ -33,7 +33,6 @@ import {
   ExchangeRate,
 } from '#connectors/index.js'
 import {
-  PublicationQueue,
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
@@ -66,9 +65,8 @@ import Keyv from 'keyv'
 import omit from 'lodash/omit.js'
 import { createRequire } from 'node:module'
 
+import { connections } from '../connections.js'
 import schema from '../schema.js'
-
-import { connections } from './connections.js'
 
 const require = createRequire(import.meta.url)
 const {
@@ -99,7 +97,6 @@ const cacheBackend = new ErrorsAreMissesCache(
   new KeyvAdapter(new Keyv({ store: new KeyvRedis(connections.redis) }))
 ) as KeyValueCache<string>
 
-const publicationQueue = new PublicationQueue(connections)
 const revisionQueue = new RevisionQueue(connections)
 const assetQueue = new AssetQueue(connections)
 const migrationQueue = new MigrationQueue(connections)
@@ -108,7 +105,6 @@ const payoutQueue = new PayoutQueue(connections)
 const userQueue = new UserQueue(connections)
 
 const queues = {
-  publicationQueue,
   revisionQueue,
   assetQueue,
   migrationQueue,

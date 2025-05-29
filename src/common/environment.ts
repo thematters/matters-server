@@ -73,9 +73,9 @@ export const environment = {
   pgPassword: process.env.MATTERS_PG_PASSWORD,
   pgDatabase: process.env.MATTERS_PG_DATABASE,
   pgPort: process.env.MATTERS_PG_PORT || 5432,
-  pgReadonlyConnectionString:
-    process.env.MATTERS_PG_READONLY_CONNECTION_STRING ||
-    'postgresql://no-exist@no-exist/no-exist',
+  pgReadonlyConnectionString: isLambda
+    ? process.env.MATTERS_PG_LAMBDA_CONNECTION_STRING
+    : process.env.MATTERS_PG_READONLY_CONNECTION_STRING,
   searchPgConnectionString:
     process.env.MATTERS_SEARCH_PG_CONNECTION_STRING ||
     // fallback to primary DB for test'ing

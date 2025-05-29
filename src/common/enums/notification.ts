@@ -4,6 +4,7 @@ export enum NOTICE_TYPE {
 
   // article
   article_published = 'article_published',
+  scheduled_article_published = 'scheduled_article_published',
   article_new_appreciation = 'article_new_appreciation',
   article_new_subscriber = 'article_new_subscriber',
   article_mentioned_you = 'article_mentioned_you',

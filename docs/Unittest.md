@@ -224,3 +224,4 @@ beforeEach(async () => {
 - Always check GraphQL schema for required fields in inputs
 - Verify input types match schema definitions
 - Use service methods for data creation when available
+- Prefer using existing user IDs when possible

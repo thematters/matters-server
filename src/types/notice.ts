@@ -90,10 +90,12 @@ export default /* GraphQL */ `
     type: ArticleNoticeType!
 
     target: Article! @logCache(type: "${NODE_TYPES.Article}")
+    entities: [Node!]! @logCache(type: "${NODE_TYPES.Node}")
   }
 
   enum ArticleNoticeType {
     ArticlePublished
+    ScheduledArticlePublished
     ArticleMentionedYou
     ArticleNewSubscriber
     ArticleNewAppreciation

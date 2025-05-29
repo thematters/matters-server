@@ -3,7 +3,6 @@ import type {
   GQLMutationResolvers,
   Draft,
   GlobalId,
-  User,
 } from '#definitions/index.js'
 
 import {
@@ -19,17 +18,14 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
-  USER_STATE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
   ArticleCollectionReachLimitError,
   ArticleNotFoundError,
-  AuthenticationError,
   CircleNotFoundError,
   DraftNotFoundError,
   DraftVersionConflictError,
-  ForbiddenByStateError,
   ForbiddenError,
   TooManyTagsForArticleError,
   UserInputError,
@@ -62,6 +58,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       cover,
       connections,
       collection,
+      collections,
       circle: circleGlobalId,
       accessType,
       sensitive,
@@ -75,9 +72,12 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       lastUpdatedAt,
     },
   },
-  { viewer, dataSources: { atomService, systemService, campaignService } }
+  {
+    viewer,
+    dataSources: { userService, atomService, systemService, campaignService },
+  }
 ) => {
-  validateUserState(viewer)
+  userService.validateUserState(viewer)
 
   const oldDraft = globalId
     ? await validateDraft({
@@ -95,7 +95,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       title: title && normalizeAndValidateTitle(title),
       summary: summary && normalizeAndValidateSummary(summary),
       content: content && normalizeAndValidateContent(content),
-      license: license && validateLicense(license),
+      license:
+        license === undefined || license === null
+          ? undefined
+          : validateLicense(license),
       tags:
         tags &&
         (await validateTags({
@@ -115,6 +118,13 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
         (await validateConnections({
           connectionGlobalIds: compact(connectionsGlobalIds),
           draft: oldDraft,
+          atomService,
+        })),
+      collections:
+        collections &&
+        (await validateCollections({
+          collectionGlobalIds: collections,
+          viewerId: viewer.id,
           atomService,
         })),
       circleId:
@@ -233,23 +243,6 @@ const validateDraft = async ({
   return draft
 }
 
-const validateUserState = (viewer: User) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  if (
-    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
-      viewer.state as
-        | typeof USER_STATE.archived
-        | typeof USER_STATE.banned
-        | typeof USER_STATE.frozen
-    )
-  ) {
-    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
-  }
-}
-
 const validateTags = async ({
   viewerId,
   tags,
@@ -356,6 +349,49 @@ const validateConnections = async ({
         throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
       }
       return articleId
+    })
+  )
+}
+
+const validateCollections = async ({
+  collectionGlobalIds,
+  viewerId,
+  atomService,
+}: {
+  collectionGlobalIds: GlobalId[]
+  viewerId: string
+  atomService: AtomService
+}) => {
+  if (collectionGlobalIds.length === 0) {
+    return null
+  }
+
+  const collections = uniq(
+    collectionGlobalIds.map((_id) => {
+      const { id, type } = fromGlobalId(_id)
+      if (type !== NODE_TYPES.Collection) {
+        throw new UserInputError(`Invalid collection type: ${type}`)
+      }
+      return id
+    })
+  ).filter((collectionId) => !!collectionId)
+
+  return Promise.all(
+    collections.map(async (collectionId) => {
+      const collection = await atomService.findUnique({
+        table: 'collection',
+        where: { id: collectionId },
+      })
+
+      if (!collection) {
+        throw new UserInputError(`Cannot find collection ${collectionId}`)
+      }
+
+      if (collection.authorId !== viewerId) {
+        throw new ForbiddenError(`Collection ${collectionId} cannot be added.`)
+      }
+
+      return collectionId
     })
   )
 }

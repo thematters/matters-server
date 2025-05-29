@@ -80,6 +80,7 @@ import {
   ForbiddenError,
   ActionFailedError,
   ForbiddenByStateError,
+  AuthenticationError,
 } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
 import {
@@ -2992,5 +2993,22 @@ export class UserService extends BaseService<User> {
     const domains = res.rows.map((r: { domain: string }) => r.domain)
     logger.info('email domain whitelist:', domains)
     return domains
+  }
+
+  public validateUserState = (user: User) => {
+    if (!user.id) {
+      throw new AuthenticationError('Visitor has no permission')
+    }
+
+    if (
+      [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+        user.state as
+          | typeof USER_STATE.archived
+          | typeof USER_STATE.banned
+          | typeof USER_STATE.frozen
+      )
+    ) {
+      throw new ForbiddenByStateError(`${user.state} user has no permission`)
+    }
   }
 }

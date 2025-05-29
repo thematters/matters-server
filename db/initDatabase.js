@@ -76,11 +76,11 @@ export default async (database) => {
 }
 
 async function runShellDBRollup(connection) {
-  const { host, user, password, database } = connection
+  const { host, user, password, database, port } = connection
   const cwd = dirname
   const env = {
     PGPASSWORD: password,
-    PSQL: `psql -h ${host} -U ${user} -d ${database} -w`,
+    PSQL: `psql -h ${host} -U ${user} -p ${port} -d ${database} -w`,
   }
   const cmd = `sh -x bin/refresh-lasts.sh; date`
 

@@ -30,7 +30,6 @@ import {
   ChannelService,
 } from '#connectors/index.js'
 import {
-  PublicationQueue,
   RevisionQueue,
   AssetQueue,
   MigrationQueue,
@@ -158,7 +157,6 @@ export const testClient = async ({
     schema,
     includeStacktraceInErrorResponses: true,
   })
-  const publicationQueue = new PublicationQueue(connections)
   const revisionQueue = new RevisionQueue(connections)
   const assetQueue = new AssetQueue(connections)
   const migrationQueue = new MigrationQueue(connections)
@@ -166,7 +164,6 @@ export const testClient = async ({
   const payoutQueue = new PayoutQueue(connections)
   const userQueue = new UserQueue(connections)
   const queues = {
-    publicationQueue,
     revisionQueue,
     assetQueue,
     migrationQueue,

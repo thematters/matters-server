@@ -27,4 +27,8 @@ export const VERIFICATION_CODE_PROTECTED_TYPES = [
 export const VERIFICATION_CODE_EXPIRED_AFTER = MINUTE * 15
 export const CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER = DAY * 180 // 6 months
 
-export const VERIFICATION_DOMAIN_WHITELIST = ['matters.town', 'matters.news']
+export const VERIFICATION_DOMAIN_WHITELIST = [
+  'matters.town',
+  'matters.news',
+  'matters.icu',
+]
