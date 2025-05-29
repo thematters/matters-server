@@ -29,7 +29,7 @@ describe('circleChunk', () => {
     expect(result).toEqual([[1, 2]])
   })
 
-  it('should fill multiple nulls in last chunk when needed', () => {
+  it('should fill last chunk with first elements when needed', () => {
     const input = [1, 2, 3, 4]
     const result = circleChunk(input, 3)
     expect(result).toEqual([
