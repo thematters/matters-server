@@ -399,9 +399,7 @@ export class RecommendationService {
     const decayDays = channelId
       ? RECOMMENDATION_DECAY_DAYS_CHANNEL_TAG
       : RECOMMENDATION_DECAY_DAYS
-    const percentile = channelId
-      ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG
-      : RECOMMENDATION_TOP_PERCENTILE
+    const percentile = RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
     const spamThreshold = await this.systemService.getSpamThreshold()
     const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
