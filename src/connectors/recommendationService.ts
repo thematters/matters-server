@@ -8,7 +8,8 @@ import {
   DEFAULT_TAKE_PER_PAGE,
   RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY,
   RECOMMENDATION_DECAY_DAYS,
-  RECOMMENDATION_DECAY_DAYS_CHANNEL,
+  RECOMMENDATION_DECAY_DAYS_CHANNEL_AUTHOR,
+  RECOMMENDATION_DECAY_DAYS_CHANNEL_TAG,
   RECOMMENDATION_DECAY_FACTOR,
   RECOMMENDATION_TOP_PERCENTILE,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR,
@@ -320,7 +321,7 @@ export class RecommendationService {
     query: Knex.QueryBuilder<any, Array<{ authorId: string }>>
   }> => {
     const decayDays = channelId
-      ? RECOMMENDATION_DECAY_DAYS_CHANNEL
+      ? RECOMMENDATION_DECAY_DAYS_CHANNEL_AUTHOR
       : RECOMMENDATION_DECAY_DAYS
     const percentile = channelId
       ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR
@@ -396,7 +397,7 @@ export class RecommendationService {
     channelId?: string
   ): Promise<{ query: Knex.QueryBuilder<any, Array<{ tagId: string }>> }> => {
     const decayDays = channelId
-      ? RECOMMENDATION_DECAY_DAYS_CHANNEL
+      ? RECOMMENDATION_DECAY_DAYS_CHANNEL_TAG
       : RECOMMENDATION_DECAY_DAYS
     const percentile = channelId
       ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG
