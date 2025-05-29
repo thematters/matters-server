@@ -13,6 +13,8 @@ import {
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
   TOPIC_CHANNEL_PIN_LIMIT,
+  CHANNEL_ANTIFLOOD_WINDOW,
+  CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
 } from '#common/enums/index.js'
 import {
   EntityNotFoundError,
@@ -347,7 +349,7 @@ export class ChannelService {
           'time_grouped',
           knexRO.raw(
             `SELECT *,
-              ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY author_id ORDER BY created_at))/3600)::integer)/12 AS time_group
+              ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY author_id ORDER BY created_at))/3600)::integer)/${CHANNEL_ANTIFLOOD_WINDOW} AS time_group
             FROM base`
           )
         )
@@ -361,7 +363,7 @@ export class ChannelService {
         )
         .select('*')
         .from('ranked')
-        .where('rank', '<=', 2)
+        .where('rank', '<=', CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW)
       return floodFilteredQuery
     }
 
