@@ -23,6 +23,7 @@ export * from './nanoid.js'
 export * from './mention.js'
 export * from './knex.js'
 export * from './translation.js'
+export * from './collection.js'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
