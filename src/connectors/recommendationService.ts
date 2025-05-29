@@ -8,10 +8,12 @@ import {
   DEFAULT_TAKE_PER_PAGE,
   RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY,
   RECOMMENDATION_DECAY_DAYS,
-  RECOMMENDATION_DECAY_DAYS_CHANNEL,
+  RECOMMENDATION_DECAY_DAYS_CHANNEL_AUTHOR,
+  RECOMMENDATION_DECAY_DAYS_CHANNEL_TAG,
   RECOMMENDATION_DECAY_FACTOR,
   RECOMMENDATION_TOP_PERCENTILE,
-  RECOMMENDATION_TOP_PERCENTILE_CHANNEL,
+  RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR,
+  RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -319,10 +321,10 @@ export class RecommendationService {
     query: Knex.QueryBuilder<any, Array<{ authorId: string }>>
   }> => {
     const decayDays = channelId
-      ? RECOMMENDATION_DECAY_DAYS_CHANNEL
+      ? RECOMMENDATION_DECAY_DAYS_CHANNEL_AUTHOR
       : RECOMMENDATION_DECAY_DAYS
     const percentile = channelId
-      ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL
+      ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR
       : RECOMMENDATION_TOP_PERCENTILE
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
     const spamThreshold = await this.systemService.getSpamThreshold()
@@ -357,12 +359,12 @@ export class RecommendationService {
             knex.client.raw('avg(??) as author_score', [articleScoreColumn])
           )
       })
-      .with('author_median_score', (qb) => {
+      .with('author_percentile_score', (qb) => {
         return qb
           .from('with_author_score')
           .select(
             knex.client.raw(
-              'percentile_cont(??) WITHIN GROUP (ORDER BY author_score DESC) as median_score',
+              'percentile_cont(??) WITHIN GROUP (ORDER BY author_score DESC) as percentile_score',
               [percentile]
             )
           )
@@ -381,11 +383,11 @@ export class RecommendationService {
       .from('with_article_count')
       .crossJoin(
         knex.client.raw(
-          '(SELECT median_score FROM author_median_score LIMIT 1) AS median_score_table'
+          '(SELECT percentile_score FROM author_percentile_score LIMIT 1) AS percentile_score_table'
         )
       )
       .whereRaw(`article_count > 1`)
-      .whereRaw(`author_score > median_score`)
+      .whereRaw(`author_score > percentile_score`)
       .select('with_article_count.author_id')
 
     return { query }
@@ -395,11 +397,9 @@ export class RecommendationService {
     channelId?: string
   ): Promise<{ query: Knex.QueryBuilder<any, Array<{ tagId: string }>> }> => {
     const decayDays = channelId
-      ? RECOMMENDATION_DECAY_DAYS_CHANNEL
+      ? RECOMMENDATION_DECAY_DAYS_CHANNEL_TAG
       : RECOMMENDATION_DECAY_DAYS
-    const percentile = channelId
-      ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL
-      : RECOMMENDATION_TOP_PERCENTILE
+    const percentile = RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
     const spamThreshold = await this.systemService.getSpamThreshold()
     const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'

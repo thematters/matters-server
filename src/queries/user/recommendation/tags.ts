@@ -7,9 +7,9 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   fromGlobalId,
+  circleChunk,
 } from '#common/utils/index.js'
 import { CacheService } from '#connectors/index.js'
-import chunk from 'lodash/chunk.js'
 
 export const tags: GQLRecommendationResolvers['tags'] = async (
   _,
@@ -67,7 +67,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
       },
       expire: CACHE_TTL.LONG,
     })
-    const chunks = chunk(tagIds, draw)
+    const chunks = circleChunk(tagIds, draw)
     const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
     const randomTagIds = chunks[index] || []
     const randomTags = await atomService.tagIdLoader.loadMany(
@@ -87,7 +87,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
       minAuthors: 5,
     })
 
-    const chunks = chunk(curationTags, draw)
+    const chunks = circleChunk(curationTags, draw)
     const index = Math.min(random, limit, chunks.length - 1)
     const filteredTags = chunks[index] || []
 

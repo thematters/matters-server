@@ -7,9 +7,9 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   fromGlobalId,
+  circleChunk,
 } from '#common/utils/index.js'
 import { CacheService } from '#connectors/index.js'
-import chunk from 'lodash/chunk.js'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
@@ -89,7 +89,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     const filtered = authorIds.filter(
       ({ authorId }) => !notIn.includes(authorId)
     )
-    const chunks = chunk(filtered, draw)
+    const chunks = circleChunk(filtered, draw)
     const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
     const randomAuthorIds = chunks[index] || []
     const randomAuthors = await atomService.userIdLoader.loadMany(
@@ -108,7 +108,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
       oss,
     })
 
-    const chunks = chunk(authorPool, draw)
+    const chunks = circleChunk(authorPool, draw)
     const index = Math.min(filter.random, limit, chunks.length - 1)
     const filteredAuthors = chunks[index] || []
 
