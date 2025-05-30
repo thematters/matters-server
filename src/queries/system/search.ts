@@ -3,7 +3,6 @@ import type { GQLQueryResolvers, SearchHistory } from '#definitions/index.js'
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
-  SEARCH_API_VERSION,
 } from '#common/enums/index.js'
 import {
   connectionFromArray,
@@ -52,20 +51,20 @@ const resolver: GQLQueryResolvers['search'] = async (
   input.key = stripSpaces(keyOriginal) as string
 
   // TODO: remove unused search methods to fix any type error
-  const connection = await (input.version === SEARCH_API_VERSION.v20230601
-    ? serviceMap[input.type].searchV3
-    : serviceMap[input.type].search)({
-    ...input,
-    take,
-    skip,
-    viewerId: viewer.id,
-  }).then(({ nodes, totalCount }) => {
-    nodes = compact(nodes)
-    return {
-      nodes: nodes.map((node) => ({ __type: input.type, ...node })),
-      totalCount,
-    }
-  })
+  const connection = await serviceMap[input.type]
+    .search({
+      ...input,
+      take,
+      skip,
+      viewerId: viewer.id,
+    })
+    .then(({ nodes, totalCount }) => {
+      nodes = compact(nodes)
+      return {
+        nodes: nodes.map((node) => ({ __type: input.type, ...node })),
+        totalCount,
+      }
+    })
 
   return connectionFromArray(
     connection.nodes as any[],

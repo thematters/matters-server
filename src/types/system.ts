@@ -290,10 +290,6 @@ export default /* GraphQL */ `
     record: Boolean
     oss: Boolean
 
-    """use the api version; default to use latest stable version is v20230301"""
-    version: SearchAPIVersion = v20230301
-    "deprecated, make no effect"
-    coefficients: String
     quicksearch: Boolean
   }
 

@@ -3482,8 +3482,6 @@ export type GQLSearchFilter = {
 
 export type GQLSearchInput = {
   after?: InputMaybe<Scalars['String']['input']>
-  /** deprecated, make no effect */
-  coefficients?: InputMaybe<Scalars['String']['input']>
   /** specific condition for rule data out */
   exclude?: InputMaybe<GQLSearchExclude>
   /** extra query filter for searching */
@@ -3499,8 +3497,6 @@ export type GQLSearchInput = {
   record?: InputMaybe<Scalars['Boolean']['input']>
   /** types of search target */
   type: GQLSearchTypes
-  /** use the api version; default to use latest stable version is v20230301 */
-  version?: InputMaybe<GQLSearchApiVersion>
 }
 
 export type GQLSearchResultConnection = GQLConnection & {
