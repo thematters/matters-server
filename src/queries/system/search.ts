@@ -15,10 +15,7 @@ import compact from 'lodash/compact.js'
 const resolver: GQLQueryResolvers['search'] = async (
   _,
   { input },
-  {
-    dataSources: { systemService, articleService, userService, tagService },
-    viewer,
-  }
+  { dataSources: { systemService, searchService }, viewer }
 ) => {
   if (input.key) {
     const match = SEARCH_ARTICLE_URL_REGEX.exec(input.key)
@@ -41,36 +38,49 @@ const resolver: GQLQueryResolvers['search'] = async (
 
   const { take, skip } = fromConnectionArgs(input)
 
-  const serviceMap = {
-    Article: articleService,
-    User: userService,
-    Tag: tagService,
-  }
-
   const keyOriginal = input.key
   input.key = stripSpaces(keyOriginal) as string
 
-  // TODO: remove unused search methods to fix any type error
-  const connection = await serviceMap[input.type]
-    .search({
-      ...input,
-      take,
-      skip,
-      viewerId: viewer.id,
-    })
-    .then(({ nodes, totalCount }) => {
-      nodes = compact(nodes)
-      return {
-        nodes: nodes.map((node) => ({ __type: input.type, ...node })),
-        totalCount,
-      }
-    })
-
-  return connectionFromArray(
-    connection.nodes as any[],
-    input,
-    connection.totalCount
-  )
+  switch (input.type) {
+    case 'Article': {
+      const connection = await searchService.searchArticles({
+        ...input,
+        take,
+        skip,
+        viewerId: viewer.id,
+      })
+      return connectionFromArray(
+        compact(connection.nodes),
+        input,
+        connection.totalCount
+      )
+    }
+    case 'User': {
+      const connection = await searchService.searchUsers({
+        ...input,
+        take,
+        skip,
+        viewerId: viewer.id,
+      })
+      return connectionFromArray(
+        compact(connection.nodes),
+        input,
+        connection.totalCount
+      )
+    }
+    case 'Tag': {
+      const connection = await searchService.searchTags({
+        ...input,
+        take,
+        skip,
+      })
+      return connectionFromArray(
+        compact(connection.nodes),
+        input,
+        connection.totalCount
+      )
+    }
+  }
 }
 
 export default resolver

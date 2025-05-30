@@ -1,7 +1,6 @@
 import type {
   UserRestriction,
   Article,
-  Item,
   ItemData,
   UserOAuthLikeCoin,
   UserOauthLikecoinDB,
@@ -31,8 +30,6 @@ import {
   HOUR,
   MATERIALIZED_VIEW,
   PRICE_STATE,
-  SEARCH_KEY_TRUNCATE_LENGTH,
-  SEARCH_EXCLUDE,
   SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
@@ -91,7 +88,6 @@ import {
   getPunishExpiredDate,
   genDisplayName,
   RatelimitCounter,
-  normalizeSearchKey,
 } from '#common/utils/index.js'
 import {
   AtomService,
@@ -698,186 +694,6 @@ export class UserService extends BaseService<User> {
 
     return archivedUser
   }
-
-  /*********************************
-   *                               *
-   *           Search              *
-   *                               *
-   *********************************/
-
-  public search = async ({
-    key: keyOriginal,
-    take,
-    skip,
-    exclude,
-    viewerId,
-    coefficients,
-    quicksearch,
-  }: {
-    key: string
-    author?: string
-    take: number
-    skip: number
-    viewerId?: string | null
-    exclude?: keyof typeof SEARCH_EXCLUDE
-    coefficients?: string
-    quicksearch?: boolean
-  }) => {
-    const key = await normalizeSearchKey(keyOriginal)
-    let coeffs = [1, 1, 1, 1]
-    try {
-      coeffs = JSON.parse(coefficients || '[]')
-    } catch (err) {
-      logger.error(err)
-    }
-
-    const c0 = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
-    const c1 = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
-    const c2 = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
-    const c3 = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
-    const c4 = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
-    const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
-    const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
-
-    const searchUserName = key.startsWith('@') || key.startsWith('＠')
-    const strippedName = key.replaceAll(/^[@＠]+/g, '').trim()
-
-    if (!strippedName) {
-      return { nodes: [], totalCount: 0 }
-    }
-
-    // gather users that blocked viewer
-    const excludeBlocked = exclude === SEARCH_EXCLUDE.blocked && viewerId
-    let blockedIds: string[] = []
-    if (excludeBlocked) {
-      blockedIds = (
-        await this.knex('action_user')
-          .select('user_id')
-          .where({ action: USER_ACTION.block, targetId: viewerId })
-      ).map(({ userId }) => userId)
-    }
-
-    const baseQuery = this.searchKnex
-      .select(
-        '*',
-
-        this.searchKnex.raw(
-          'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN user_name = ? THEN 1 ELSE 0 END) ::float AS user_name_equal_rank',
-          [strippedName]
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN display_name = ? THEN 1 ELSE 0 END) ::float AS display_name_equal_rank',
-          [strippedName]
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN user_name LIKE ? THEN 1 ELSE 0 END) ::float AS user_name_like_rank',
-          [`%${strippedName}%`]
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN display_name LIKE ? THEN 1 ELSE 0 END) ::float AS display_name_like_rank',
-          [`%${strippedName}%`]
-        ),
-        this.searchKnex.raw(
-          'ts_rank(display_name_jieba_ts, query) AS display_name_ts_rank'
-        ),
-        this.searchKnex.raw(
-          'ts_rank(description_jieba_ts, query) AS description_ts_rank'
-        )
-      )
-      .from('search_index.user')
-      .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
-      )
-      .where('state', 'NOT IN', [
-        // USER_STATE.active,
-        USER_STATE.archived,
-        USER_STATE.banned,
-      ])
-      .andWhere('id', 'NOT IN', blockedIds)
-      .andWhere((builder: Knex.QueryBuilder) => {
-        builder
-          .whereLike('user_name', `%${strippedName}%`)
-          .orWhereLike('display_name', `%${strippedName}%`)
-
-        if (!quicksearch) {
-          builder
-            .orWhereRaw('display_name_jieba_ts @@ query')
-            .orWhereRaw('description_jieba_ts @@ query')
-        }
-      })
-
-    const queryUsers = this.searchKnex
-      .select(
-        '*',
-        this.searchKnex.raw(
-          '(? * followers_rank + ? * user_name_equal_rank + ? * display_name_equal_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
-          [c0, c1, c2, c3, c4, c5, c6]
-        ),
-        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
-      )
-      .from(baseQuery.as('base'))
-      .modify((builder: Knex.QueryBuilder) => {
-        if (quicksearch) {
-          if (searchUserName) {
-            builder
-              .orderByRaw('user_name = ? DESC', [strippedName])
-              .orderByRaw('display_name = ? DESC', [strippedName])
-          } else {
-            builder
-              .orderByRaw('display_name = ? DESC', [strippedName])
-              .orderByRaw('user_name = ? DESC', [strippedName])
-          }
-        } else {
-          builder.orderByRaw('score DESC NULLS LAST')
-        }
-      })
-      .orderByRaw('num_followers DESC NULLS LAST')
-      .orderByRaw('id') // fallback to earlier first
-      .modify((builder: Knex.QueryBuilder) => {
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-      })
-
-    const records = (await queryUsers) as Item[]
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-
-    logger.debug(
-      `userService::searchV2 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
-      { key, keyOriginal, queryUsers: queryUsers.toString() },
-      { sample: records?.slice(0, 3) }
-    )
-
-    const nodes = (await this.models.userIdLoader.loadMany(
-      records.map(({ id }) => id)
-    )) as Item[]
-
-    return { nodes, totalCount }
-  }
-
-  public findRecentSearches = async (userId: string) => {
-    const result = await this.knexRO('search_history')
-      .select('search_key')
-      .where({ userId, archived: false })
-      .whereNot({ searchKey: '' })
-      .max('created_at as search_at')
-      .groupBy('search_key')
-      .orderBy('search_at', 'desc')
-    return result.map(({ searchKey }) =>
-      searchKey.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
-    )
-  }
-
-  public clearSearches = (userId: string) =>
-    this.knex('search_history')
-      .where({ userId, archived: false })
-      .update({ archived: true })
 
   /*********************************
    *                               *

@@ -29,14 +29,11 @@ import {
   TRANSACTION_TARGET_TYPE,
   MAX_PINNED_WORKS_LIMIT,
   MAX_ARTICLES_PER_CONNECTION_LIMIT,
-  USER_ACTION,
-  USER_STATE,
   NODE_TYPES,
   QUEUE_URL,
   PUBLISH_STATE,
   LANGUAGE,
 } from '#common/enums/index.js'
-import { environment } from '#common/environment.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
@@ -50,7 +47,6 @@ import { getLogger } from '#common/logger.js'
 import {
   countWords,
   shortHash,
-  normalizeSearchKey,
   genMD5,
   excludeSpam as excludeSpamModifier,
   excludeRestricted as excludeRestrictedModifier,
@@ -81,7 +77,6 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
-import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
 
 import { OpenRouter } from './openRouter/index.js'
@@ -92,9 +87,6 @@ const require = createRequire(import.meta.url)
 const { html2md } = require('@matters/matters-editor/transformers')
 
 const logger = getLogger('service-article')
-
-const SEARCH_TITLE_RANK_THRESHOLD = 0.001
-const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
@@ -811,229 +803,6 @@ export class ArticleService extends BaseService<Article> {
         pinned: false,
       },
     })
-  }
-
-  /*********************************
-   *                               *
-   *           Search              *
-   *                               *
-   *********************************/
-
-  public search = async ({
-    key: keyOriginal,
-    take = 10,
-    skip = 0,
-    filter,
-    exclude,
-    viewerId,
-    coefficients,
-    quicksearch,
-  }: {
-    key: string
-    author?: string
-    take: number
-    skip: number
-    viewerId?: string | null
-    filter?: {
-      authorId?: string
-    }
-    exclude?: 'blocked'
-    coefficients?: string
-    quicksearch?: boolean
-  }) => {
-    if (quicksearch) {
-      return this.quicksearch({ key: keyOriginal, take, skip, filter })
-    }
-    const key = await normalizeSearchKey(keyOriginal)
-    let coeffs = [1, 1, 1, 1]
-    try {
-      coeffs = JSON.parse(coefficients || '[]')
-    } catch (err) {
-      logger.error(err)
-    }
-
-    const c0 = +(
-      coeffs?.[0] ||
-      environment.searchPgArticleCoefficients?.[0] ||
-      1
-    )
-    const c1 = +(
-      coeffs?.[1] ||
-      environment.searchPgArticleCoefficients?.[1] ||
-      1
-    )
-    const c2 = +(
-      coeffs?.[2] ||
-      environment.searchPgArticleCoefficients?.[2] ||
-      1
-    )
-    const c3 = +(
-      coeffs?.[3] ||
-      environment.searchPgArticleCoefficients?.[3] ||
-      1
-    )
-
-    // gather users that blocked viewer
-    const excludeBlocked = exclude === 'blocked' && viewerId
-    let blockedIds: string[] = []
-    if (excludeBlocked) {
-      blockedIds = (
-        await this.knexRO('action_user')
-          .select('user_id')
-          .where({ action: USER_ACTION.block, targetId: viewerId })
-      ).map(({ userId }) => userId)
-    }
-    // gather articles blocked by admin
-    const articleIds = (
-      await this.knexRO('article_recommend_setting')
-        .where({ inSearch: false })
-        .select('articleId')
-    ).map(({ articleId }) => articleId)
-
-    const baseQuery = this.searchKnex
-      .from(
-        this.searchKnex
-          .select(
-            '*',
-            this.searchKnex.raw(
-              '(_text_cd_rank/(_text_cd_rank + 1)) AS text_cd_rank'
-            )
-          )
-          .from(
-            this.searchKnex
-              .select(
-                'id',
-                'num_views',
-                'title_orig', // 'title',
-                'created_at',
-                'last_read_at', // -- title, slug,
-                this.searchKnex.raw(
-                  'percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank'
-                ),
-                this.searchKnex.raw(
-                  'ts_rank(title_jieba_ts, query) AS title_ts_rank'
-                ),
-                this.searchKnex.raw(
-                  'COALESCE(ts_rank(summary_jieba_ts, query, 1), 0) ::float AS summary_ts_rank'
-                ),
-                this.searchKnex.raw(
-                  'ts_rank_cd(text_jieba_ts, query, 4) AS _text_cd_rank'
-                )
-              )
-              .from('search_index.article')
-              .crossJoin(
-                this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
-              )
-              .whereNotIn('id', articleIds)
-              .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'NOT IN', [
-                // USER_STATE.active
-                USER_STATE.archived,
-                USER_STATE.banned,
-              ])
-              .andWhere('author_id', 'NOT IN', blockedIds)
-              .andWhereRaw(
-                `(query @@ title_jieba_ts OR query @@ summary_jieba_ts OR query @@ text_jieba_ts)`
-              )
-              .as('t0')
-          )
-          .as('t1')
-      )
-      .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
-      .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-
-    const records = await this.searchKnex
-      .select(
-        '*',
-        this.searchKnex.raw(
-          '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
-          [c0, c1, c2, c3]
-        ),
-        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
-      )
-      .from(baseQuery.as('base'))
-      .orderByRaw('score DESC NULLS LAST')
-      .orderByRaw('num_views DESC NULLS LAST')
-      .orderByRaw('id DESC')
-      .modify((builder: Knex.QueryBuilder) => {
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-      })
-
-    const nodes = await this.models.articleIdLoader.loadMany(
-      records.map((item: { id: string }) => item.id).filter(Boolean)
-    )
-
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-
-    logger.debug(
-      `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
-      { key, keyOriginal, baseQuery: baseQuery.toString() },
-      { sample: records?.slice(0, 3) }
-    )
-
-    return { nodes, totalCount }
-  }
-
-  private quicksearch = async ({
-    key,
-    take,
-    skip,
-    filter,
-  }: {
-    key: string
-    take?: number
-    skip?: number
-    filter?: {
-      authorId?: string
-    }
-  }): Promise<{ nodes: Article[]; totalCount: number }> => {
-    const keySimplified = simplecc(key, 't2s')
-    const keyTraditional = simplecc(key, 's2t')
-    const q = this.knexRO('article')
-      .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .whereIn(
-        'id',
-        this.knexRO
-          .select('article_id')
-          .whereNotIn(
-            'article_id',
-            this.knexRO('article_recommend_setting')
-              .where({ inSearch: false })
-              .select('articleId')
-          )
-          .where(function () {
-            if (filter && filter.authorId) {
-              this.where({ authorId: filter.authorId })
-            }
-            this.whereILike('title', `%${key}%`)
-              .orWhereILike('title', `%${keyTraditional}%`)
-              .orWhereILike('title', `%${keySimplified}%`)
-          })
-          .from('article_version_newest')
-      )
-      .where({ state: ARTICLE_STATE.active })
-      // .modify(excludeSpam, spamThreshold)
-      .orderBy('id', 'desc')
-      .modify((builder: Knex.QueryBuilder) => {
-        if (filter && filter.authorId) {
-          builder.where({ authorId: filter.authorId })
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-      })
-    const records = await q
-
-    const totalCount = +(records?.[0]?.totalCount ?? 0)
-    return { nodes: records as Article[], totalCount }
   }
 
   /**
