@@ -861,60 +861,6 @@ export class UserService extends BaseService<User> {
     return { nodes, totalCount }
   }
 
-  public searchV3 = async ({
-    key: keyOriginal,
-    take,
-    skip,
-    quicksearch,
-  }: {
-    key: string
-    author?: string
-    take: number
-    skip: number
-    viewerId?: string | null
-    exclude?: keyof typeof SEARCH_EXCLUDE
-    coefficients?: string
-    quicksearch?: boolean
-  }) => {
-    const key = await normalizeSearchKey(keyOriginal)
-    try {
-      const u = new URL(`${environment.tsQiServerUrl}/api/users/search`)
-      u.searchParams.set('q', key?.trim())
-      if (quicksearch) {
-        u.searchParams.set('quicksearch', '1')
-      }
-      if (take) {
-        u.searchParams.set('limit', `${take}`)
-      }
-      if (skip) {
-        u.searchParams.set('offset', `${skip}`)
-      }
-      logger.info(`searchV3 fetching from: "%s"`, u.toString())
-      const {
-        nodes: records,
-        total: totalCount,
-        query,
-      } = (await fetch(u).then((res) => res.json())) as {
-        nodes: Array<{ id: string }>
-        total: number
-        query: string
-      }
-      logger.info(
-        `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}': sample: %j`,
-        records[0]
-      )
-
-      const nodes = (await this.models.userIdLoader.loadMany(
-        records.map((item) => `${item.id}`).filter(Boolean)
-      )) as Item[]
-
-      return { nodes, totalCount }
-    } catch (err) {
-      logger.error(`searchV3 ERROR:`, err)
-      return { nodes: [], totalCount: 0 }
-    }
-  }
-
   public findRecentSearches = async (userId: string) => {
     const result = await this.knexRO('search_history')
       .select('search_key')

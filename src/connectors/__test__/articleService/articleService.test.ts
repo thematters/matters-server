@@ -323,7 +323,7 @@ describe('search', () => {
 
 describe('quicksearch', () => {
   test('search by title', async () => {
-    const { nodes, totalCount } = await articleService.searchV3({
+    const { nodes, totalCount } = await articleService.search({
       key: 'test',
       take: 1,
       skip: 0,
@@ -338,7 +338,7 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    const { nodes: nodes2 } = await articleService.searchV3({
+    const { nodes: nodes2 } = await articleService.search({
       key: 'uppercase',
       take: 1,
       skip: 0,
@@ -351,7 +351,7 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    const { nodes: nodes3 } = await articleService.searchV3({
+    const { nodes: nodes3 } = await articleService.search({
       key: '测试',
       take: 1,
       skip: 0,
@@ -364,7 +364,7 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    const { nodes: nodes4 } = await articleService.searchV3({
+    const { nodes: nodes4 } = await articleService.search({
       key: '試測',
       take: 1,
       skip: 0,
@@ -377,7 +377,7 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    const { nodes: nodes5 } = await articleService.searchV3({
+    const { nodes: nodes5 } = await articleService.search({
       key: '測测',
       take: 1,
       skip: 0,
@@ -386,7 +386,7 @@ describe('quicksearch', () => {
     expect(nodes5.length).toBe(1)
 
     // mixed case will not match in current implementation
-    const { nodes: nodes6 } = await articleService.searchV3({
+    const { nodes: nodes6 } = await articleService.search({
       key: '测測',
       take: 1,
       skip: 0,
@@ -395,7 +395,7 @@ describe('quicksearch', () => {
     expect(nodes6.length).toBe(0)
   })
   test('filter by authorId', async () => {
-    const { nodes } = await articleService.searchV3({
+    const { nodes } = await articleService.search({
       key: 'test',
       take: 10,
       skip: 0,
@@ -412,7 +412,7 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    const { nodes: nodes } = await articleService.searchV3({
+    const { nodes: nodes } = await articleService.search({
       key: 'article_recommend_setting',
       take: 1,
       skip: 0,
@@ -426,7 +426,7 @@ describe('quicksearch', () => {
       data: { articleId: article.id, inSearch: false },
     })
 
-    const { nodes: excluded } = await articleService.searchV3({
+    const { nodes: excluded } = await articleService.search({
       key: 'article_recommend_setting',
       take: 1,
       skip: 0,
@@ -440,14 +440,6 @@ describe('quicksearch', () => {
       content: '',
       authorId: '1',
     })
-    // const { nodes: nodes } = await articleService.searchV3({
-    //   key: 'spam',
-    //   take: 1,
-    //   skip: 0,
-    //   quicksearch: true,
-    // })
-    // expect(nodes.length).toBe(1)
-    // expect(nodes[0].id).toBe(article.id)
 
     const spamThreshold = 0.5
     await systemService.setFeatureFlag({
@@ -461,13 +453,6 @@ describe('quicksearch', () => {
       where: { id: article.id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    // const { nodes: excluded } = await articleService.searchV3({
-    //   key: 'spam',
-    //   take: 1,
-    //   skip: 0,
-    //   quicksearch: true,
-    // })
-    // expect(excluded.length).toBe(0)
   })
 })
 

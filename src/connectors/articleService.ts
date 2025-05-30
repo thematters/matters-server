@@ -1,7 +1,5 @@
 import type {
   Connections,
-  GQLSearchExclude,
-  GQLSearchFilter,
   Draft,
   Article,
   ArticleVersion,
@@ -836,8 +834,10 @@ export class ArticleService extends BaseService<Article> {
     take: number
     skip: number
     viewerId?: string | null
-    filter?: GQLSearchFilter
-    exclude?: GQLSearchExclude
+    filter?: {
+      authorId?: string
+    }
+    exclude?: 'blocked'
     coefficients?: string
     quicksearch?: boolean
   }) => {
@@ -873,7 +873,6 @@ export class ArticleService extends BaseService<Article> {
       1
     )
 
-    // TODO: add below logic to searchV3
     // gather users that blocked viewer
     const excludeBlocked = exclude === 'blocked' && viewerId
     let blockedIds: string[] = []
@@ -978,67 +977,6 @@ export class ArticleService extends BaseService<Article> {
     )
 
     return { nodes, totalCount }
-  }
-
-  public searchV3 = async ({
-    key: keyOriginal,
-    take = 10,
-    skip = 0,
-    quicksearch,
-    filter,
-  }: {
-    key: string
-    author?: string
-    take: number
-    skip: number
-    viewerId?: string | null
-    filter?: {
-      authorId?: string
-    }
-    exclude?: {
-      blocked?: boolean
-    }
-    coefficients?: string
-    quicksearch?: boolean
-  }): Promise<{ nodes: Article[]; totalCount: number }> => {
-    if (quicksearch) {
-      return this.quicksearch({ key: keyOriginal, take, skip, filter })
-    }
-    const key = await normalizeSearchKey(keyOriginal)
-    try {
-      const u = new URL(`${environment.tsQiServerUrl}/api/articles/search`)
-      u.searchParams.set('q', key?.trim())
-      u.searchParams.set('fields', 'id,title,summary')
-      if (take) {
-        u.searchParams.set('limit', `${take}`)
-      }
-      if (skip) {
-        u.searchParams.set('offset', `${skip}`)
-      }
-      logger.info(`searchV3 fetching from: "%s"`, u.toString())
-      const {
-        nodes: records,
-        total: totalCount,
-        query,
-      } = (await fetch(u).then((res) => res.json())) as {
-        nodes: Array<{ id: string }>
-        total: number
-        query: string
-      }
-      logger.info(
-        `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}': sample: %j`,
-        records[0]
-      )
-
-      const nodes = await this.models.articleIdLoader.loadMany(
-        records.map((item: { id: string }) => `${item.id}`).filter(Boolean)
-      )
-
-      return { nodes, totalCount }
-    } catch (err) {
-      logger.error(`searchV3 ERROR:`, err)
-      return { nodes: [], totalCount: 0 }
-    }
   }
 
   private quicksearch = async ({
