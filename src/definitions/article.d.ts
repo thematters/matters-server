@@ -4,6 +4,8 @@ import type {
   ARTICLE_LICENSE_TYPE,
 } from '#common/enums/index.js'
 
+import { GQLTranslationModel } from './schema.js'
+
 export interface Article {
   id: string
   authorId: string
@@ -109,7 +111,7 @@ export interface ArticleTranslation {
   title: string
   content: string
   summary: string | null
-  model: string
+  model: GQLTranslationModel
   createdAt: Date
   updatedAt: Date
 }

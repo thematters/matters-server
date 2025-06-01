@@ -3984,6 +3984,7 @@ export type GQLTranslationModel =
   | 'google_gemini_2_0_flash'
   | 'google_gemini_2_5_flash'
   | 'google_translation_v2'
+  | 'opencc'
 
 export type GQLUnbindLikerIdInput = {
   id: Scalars['ID']['input']
