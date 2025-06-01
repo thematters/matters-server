@@ -18,6 +18,8 @@ import {
   TOPIC_CHANNEL_FEEDBACK_STATE,
   CACHE_PREFIX,
   CACHE_TTL,
+  CHANNEL_ANTIFLOOD_WINDOW,
+  CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
 } from '#common/enums/index.js'
 import {
   EntityNotFoundError,
@@ -222,6 +224,11 @@ export class ChannelService {
 
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
+      await this.models.update({
+        table: 'article',
+        where: { id: articleId },
+        data: { isSpam: false },
+      })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
         data: toAdd.map((channelId) => ({
@@ -349,7 +356,7 @@ export class ChannelService {
           'time_grouped',
           knexRO.raw(
             `SELECT *,
-              ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY author_id ORDER BY created_at))/3600)::integer)/12 AS time_group
+              ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY author_id ORDER BY created_at))/3600)::integer)/${CHANNEL_ANTIFLOOD_WINDOW} AS time_group
             FROM base`
           )
         )
@@ -364,9 +371,17 @@ export class ChannelService {
         .select('*')
         .from('ranked')
       if (flood === true) {
-        return floodBaseQuery.where('rank', '>', 2)
+        return floodBaseQuery.where(
+          'rank',
+          '>',
+          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+        )
       } else {
-        return floodBaseQuery.where('rank', '<=', 2)
+        return floodBaseQuery.where(
+          'rank',
+          '<=',
+          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+        )
       }
     }
 
