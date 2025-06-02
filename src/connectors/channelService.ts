@@ -4,6 +4,7 @@ import type {
   CurationChannel,
   Connections,
   ValueOf,
+  TopicChannelFeedback,
 } from '#definitions/index.js'
 
 import {
@@ -13,12 +14,17 @@ import {
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
   TOPIC_CHANNEL_PIN_LIMIT,
+  TOPIC_CHANNEL_FEEDBACK_TYPE,
+  TOPIC_CHANNEL_FEEDBACK_STATE,
+  CACHE_PREFIX,
+  CACHE_TTL,
   CHANNEL_ANTIFLOOD_WINDOW,
   CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
 } from '#common/enums/index.js'
 import {
   EntityNotFoundError,
   ActionLimitExceededError,
+  ForbiddenError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
@@ -31,6 +37,7 @@ import {
 import {
   ArticleService,
   AtomService,
+  CacheService,
   ChannelClassifier,
 } from '#connectors/index.js'
 
@@ -255,16 +262,16 @@ export class ChannelService {
       spamThreshold,
       datetimeRange,
       addOrderColumn = false,
-      filterFlood = false,
+      // false to exclude flood articles, true to query flood articles.
+      flood,
     }: {
       channelThreshold?: number
       spamThreshold?: number
       datetimeRange?: { start: Date; end?: Date }
-      filterFlood?: boolean
+      flood?: boolean
       addOrderColumn?: boolean
     } = {
       addOrderColumn: false,
-      filterFlood: false,
     }
   ) => {
     const knexRO = this.connections.knexRO
@@ -342,8 +349,8 @@ export class ChannelService {
       return filteredQuery
     }
 
-    if (filterFlood) {
-      const floodFilteredQuery = knexRO
+    if (flood !== undefined) {
+      const floodBaseQuery = knexRO
         .with('base', query)
         .with(
           'time_grouped',
@@ -363,11 +370,49 @@ export class ChannelService {
         )
         .select('*')
         .from('ranked')
-        .where('rank', '<=', CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW)
-      return floodFilteredQuery
+      if (flood === true) {
+        return floodBaseQuery.where(
+          'rank',
+          '>',
+          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+        )
+      } else {
+        return floodBaseQuery.where(
+          'rank',
+          '<=',
+          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+        )
+      }
     }
 
     return query
+  }
+
+  public isFlood = async ({
+    articleId,
+    channelId,
+  }: {
+    articleId: string
+    channelId: string
+  }) => {
+    const cacheService = new CacheService(
+      CACHE_PREFIX.CHANNEL_FLOOD,
+      this.connections.objectCacheRedis
+    )
+    const articleIds = await cacheService.getObject({
+      keys: {
+        type: 'channelFlood',
+        args: { channelId },
+      },
+      getter: async () => {
+        const articles = await this.findTopicChannelArticles(channelId, {
+          flood: true,
+        })
+        return articles.map((a) => a.id)
+      },
+      expire: CACHE_TTL.MEDIUM,
+    })
+    return articleIds.includes(articleId)
   }
 
   public classifyArticlesChannels = async ({
@@ -638,5 +683,210 @@ export class ChannelService {
     })
 
     return channel
+  }
+
+  public createPositiveFeedback = async ({
+    articleId,
+    userId,
+  }: {
+    articleId: string
+    userId: string
+  }) => {
+    const article = await this.models.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    if (article?.authorId !== userId) {
+      throw new ForbiddenError('Only author can submit feedbacks')
+    }
+
+    const feedback = await this.models.findFirst({
+      table: 'topic_channel_feedback',
+      where: { articleId },
+    })
+    if (feedback) {
+      throw new ActionLimitExceededError('Feedback already exists')
+    }
+
+    return this.models.create({
+      table: 'topic_channel_feedback',
+      data: {
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE,
+        articleId,
+        userId,
+      },
+    })
+  }
+
+  public createNegativeFeedback = async ({
+    articleId,
+    userId,
+    channelIds,
+  }: {
+    articleId: string
+    userId: string
+    channelIds: string[]
+  }) => {
+    const article = await this.models.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    if (article?.authorId !== userId) {
+      throw new ForbiddenError('Only author can submit feedbacks')
+    }
+
+    const existingFeedback = await this.models.findFirst({
+      table: 'topic_channel_feedback',
+      where: { articleId },
+    })
+    if (existingFeedback) {
+      throw new ActionLimitExceededError('Feedback already exists')
+    }
+
+    const feedback = await this.models.create({
+      table: 'topic_channel_feedback',
+      data: {
+        type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+        articleId,
+        userId,
+        channelIds: JSON.stringify(channelIds) as unknown as string[],
+        state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+      },
+    })
+
+    // auto accept feedback if it is remove all channels or in line with current classification
+    if (
+      feedback.channelIds.length === 0 ||
+      (await this.isFeedbackResolved({
+        articleId,
+        channelIds: feedback.channelIds,
+      }))
+    ) {
+      await this.acceptFeedback(feedback, true)
+      return await this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+      })
+    }
+    return feedback
+  }
+
+  public findFeedbacks = ({
+    type,
+    state,
+    spamThreshold,
+  }: {
+    type?: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_TYPE>
+    state?: ValueOf<typeof TOPIC_CHANNEL_FEEDBACK_STATE>
+    spamThreshold?: number | null
+  } = {}) => {
+    const knexRO = this.connections.knexRO
+    const query = knexRO('topic_channel_feedback')
+    if (type !== undefined) {
+      query.where({ type })
+    }
+    if (state !== undefined) {
+      query.where({ state })
+    }
+    if (spamThreshold) {
+      query
+        .leftJoin('article', 'topic_channel_feedback.article_id', 'article.id')
+        .modify(excludeSpamModifier, spamThreshold)
+        .modify(excludeRestrictedModifier)
+    }
+    return query
+  }
+
+  public acceptFeedback = async (
+    feedback: TopicChannelFeedback,
+    autoResolve: boolean = false
+  ) => {
+    // will not set isLabeled to true if autoResolve is true
+    if (feedback.channelIds.length === 0 && autoResolve) {
+      await this.models.updateMany({
+        table: 'topic_channel_article',
+        where: { articleId: feedback.articleId },
+        data: { enabled: false },
+      })
+      return this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
+      })
+    }
+
+    if (
+      await this.isFeedbackResolved({
+        articleId: feedback.articleId,
+        channelIds: feedback.channelIds,
+      })
+    ) {
+      return this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
+      })
+    }
+
+    await this.setArticleTopicChannels({
+      articleId: feedback.articleId,
+      channelIds: feedback.channelIds,
+    })
+    return this.models.update({
+      table: 'topic_channel_feedback',
+      where: { id: feedback.id },
+      data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
+    })
+  }
+
+  public rejectFeedback = async (feedback: TopicChannelFeedback) => {
+    return this.models.update({
+      table: 'topic_channel_feedback',
+      where: { id: feedback.id },
+      data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED },
+    })
+  }
+
+  public resolveArticleFeedback = async (articleId: string) => {
+    const feedback = await this.models.findFirst({
+      table: 'topic_channel_feedback',
+      where: { articleId },
+    })
+    if (
+      feedback &&
+      feedback.state === TOPIC_CHANNEL_FEEDBACK_STATE.PENDING &&
+      (await this.isFeedbackResolved({
+        articleId,
+        channelIds: feedback.channelIds,
+      }))
+    ) {
+      await this.models.update({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
+      })
+    }
+  }
+
+  public isFeedbackResolved = async ({
+    articleId,
+    channelIds,
+  }: {
+    articleId: string
+    channelIds: string[]
+  }) => {
+    const articleChannels = await this.models.findMany({
+      table: 'topic_channel_article',
+      where: { articleId, enabled: true },
+    })
+    const currentChannelIds = articleChannels.map((c) => c.channelId)
+    if (channelIds.every((id) => currentChannelIds.includes(id))) {
+      return true
+    }
+    if (channelIds.length === 0 && articleChannels.length === 0) {
+      return true
+    }
+    return false
   }
 }

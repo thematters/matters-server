@@ -300,6 +300,69 @@ await notificationService.withdraw("follow-123");
    - Implement pagination for large notification lists
    - Utilize the caching system for frequently accessed notifications
 
+## Adding New Notice Types
+
+To add a new notice type to the system, follow these steps:
+
+1. **Add Notice Type Enum**
+   ```typescript
+   // In src/common/enums/notification.ts
+   export enum NOTICE_TYPE {
+     // ... existing types ...
+     new_notice_type = 'new_notice_type'
+   }
+   ```
+
+2. **Define Notice Parameters Interface**
+   ```typescript
+   // In src/definitions/notification.d.ts
+   interface NoticeNewTypeParams extends NotificationRequiredParams {
+     event: NOTICE_TYPE.new_notice_type
+     recipientId: string
+     entities: [NotificationEntity<'target', 'article'>] // Adjust entity types as needed
+   }
+   ```
+
+3. **Add to NotificationParams Union Type**
+   ```typescript
+   // In src/definitions/notification.d.ts
+   export type NotificationParams =
+     | // ... existing types ...
+     | NoticeNewTypeParams
+   ```
+
+4. **Update Notice Type Mapping**
+   ```typescript
+   // In src/queries/notice/index.ts
+   const notice: {
+     // ... existing mappings ...
+     new_notice_type: NOTICE_TYPE.ArticleNotice, // Choose appropriate notice type
+   }
+   ```
+
+5. **Add Type Case Handler**
+   ```typescript
+   // In src/queries/notice/index.ts
+   case INNER_NOTICE_TYPE.new_notice_type:
+     return 'NewType'
+   ```
+
+6. **Implement Trigger Logic**
+   ```typescript
+   // In your service/mutation file
+   await notificationService.trigger({
+     event: NOTICE_TYPE.new_notice_type,
+     recipientId: userId,
+     entities: [
+       {
+         type: 'target',
+         entityTable: 'article',
+         entity: article,
+       },
+     ],
+   })
+   ```
+
 ## Limitations
 
 1. Notifications are stored for 6 months by default

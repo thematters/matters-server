@@ -628,4 +628,5 @@ const UPATEABLE_TABLES = [
   'curation_channel',
   'article_read_count',
   'channel_announcement',
+  'topic_channel_feedback',
 ]

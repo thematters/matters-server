@@ -43,6 +43,7 @@ import {
   CurationChannel as CurationChannelModel,
 } from './channel.js'
 import { Announcement as AnnouncementModel } from './announcement.js'
+import { TopicChannelFeedback as TopicChannelFeedbackModel } from './feedback.js'
 import { GlobalId } from './nominal.js'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
@@ -81,7 +82,7 @@ export type Scalars = {
 
 export type GQLAdStatus = {
   __typename?: 'AdStatus'
-  /** whether this article is labeled as ad by human, null for not labeled yet.  */
+  /** Whether this article is labeled as ad by human, null for not labeled yet.  */
   isAd?: Maybe<Scalars['Boolean']['output']>
 }
 
@@ -232,12 +233,14 @@ export type GQLArticle = GQLNode &
     /** The number of users who bookmarked this article. */
     bookmarkCount: Scalars['Int']['output']
     bookmarked: Scalars['Boolean']['output']
-    /** associated campaigns */
+    /** Associated campaigns */
     campaigns: Array<GQLArticleCampaign>
-    /** whether readers can comment */
+    /** Whether readers can comment */
     canComment: Scalars['Boolean']['output']
     /** This value determines if current viewer can SuperLike or not. */
     canSuperLike: Scalars['Boolean']['output']
+    /** Classifications status */
+    classification: GQLArticleClassification
     /**
      * List of articles added into this article's connections.
      * @deprecated Use connections instead
@@ -262,7 +265,7 @@ export type GQLArticle = GQLNode &
     createdAt: Scalars['DateTime']['output']
     /** IPFS hash of this article. */
     dataHash: Scalars['String']['output']
-    /** whether current viewer has donated to this article */
+    /** Whether current viewer has donated to this article */
     donated: Scalars['Boolean']['output']
     /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
@@ -274,9 +277,9 @@ export type GQLArticle = GQLNode &
     hasAppreciate: Scalars['Boolean']['output']
     /** Unique ID of this article */
     id: Scalars['ID']['output']
-    /** whether the first line of paragraph should be indented */
+    /** Whether the first line of paragraph should be indented */
     indentFirstLine: Scalars['Boolean']['output']
-    /** the iscnId if published to ISCN */
+    /** The iscnId if published to ISCN */
     iscnId?: Maybe<Scalars['String']['output']>
     /** Original language of content */
     language?: Maybe<Scalars['String']['output']>
@@ -284,7 +287,7 @@ export type GQLArticle = GQLNode &
     license: GQLArticleLicenseType
     /** Media hash, composed of cid encoding, of this article. */
     mediaHash: Scalars['String']['output']
-    /** whether this article is noindex */
+    /** Whether this article is noindex */
     noindex: Scalars['Boolean']['output']
     oss: GQLArticleOss
     /** The number determines how many comments can be set as pinned comment. */
@@ -304,9 +307,9 @@ export type GQLArticle = GQLNode &
     /** Donation-related articles to this article. */
     relatedDonationArticles: GQLArticleConnection
     remark?: Maybe<Scalars['String']['output']>
-    /** creator message after support */
+    /** Creator message after support */
     replyToDonator?: Maybe<Scalars['String']['output']>
-    /** creator message asking for support */
+    /** Creator message asking for support */
     requestForDonation?: Maybe<Scalars['String']['output']>
     /** The counting number of this article. */
     responseCount: Scalars['Int']['output']
@@ -316,7 +319,7 @@ export type GQLArticle = GQLNode &
     revisedAt?: Maybe<Scalars['DateTime']['output']>
     /** Revision Count */
     revisionCount: Scalars['Int']['output']
-    /** whether content is marked as sensitive by admin */
+    /** Whether content is marked as sensitive by admin */
     sensitiveByAdmin: Scalars['Boolean']['output']
     /** whether content is marked as sensitive by author */
     sensitiveByAuthor: Scalars['Boolean']['output']
@@ -343,7 +346,7 @@ export type GQLArticle = GQLNode &
     transactionsReceivedBy: GQLUserConnection
     /** Translation of article title and content. */
     translation?: Maybe<GQLArticleTranslation>
-    /** history versions */
+    /** History versions */
     versions: GQLArticleVersionsConnection
     /** Word count of this article. */
     wordCount?: Maybe<Scalars['Int']['output']>
@@ -499,6 +502,11 @@ export type GQLArticleCampaignInput = {
   stage?: InputMaybe<Scalars['ID']['input']>
 }
 
+export type GQLArticleClassification = {
+  __typename?: 'ArticleClassification'
+  topicChannel: GQLTopicChannelClassification
+}
+
 export type GQLArticleConnection = GQLConnection & {
   __typename?: 'ArticleConnection'
   edges?: Maybe<Array<GQLArticleEdge>>
@@ -575,6 +583,7 @@ export type GQLArticleNoticeType =
   | 'RevisedArticleNotPublished'
   | 'RevisedArticlePublished'
   | 'ScheduledArticlePublished'
+  | 'TopicChannelFeedbackAccepted'
 
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'
@@ -586,7 +595,8 @@ export type GQLArticleOss = {
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
   spamStatus: GQLSpamStatus
-  topicChannels: Array<GQLArticleTopicChannel>
+  /** @deprecated Use classification.topicChannel.channels instead */
+  topicChannels?: Maybe<Array<GQLArticleTopicChannel>>
 }
 
 export type GQLArticleRecommendationActivity = {
@@ -606,16 +616,18 @@ export type GQLArticleState = 'active' | 'archived' | 'banned'
 
 export type GQLArticleTopicChannel = {
   __typename?: 'ArticleTopicChannel'
+  /** Whether this article is filtered out by anti-flood in this channel */
+  antiFlooded: Scalars['Boolean']['output']
   channel: GQLTopicChannel
-  /** datetime when this article is classified */
+  /** Datetime when this article is classified */
   classicfiedAt: Scalars['DateTime']['output']
-  /** whether this article channel is enabled */
+  /** Whether this article channel is enabled */
   enabled: Scalars['Boolean']['output']
-  /** whether this article is labeled by human, null for not labeled yet.  */
+  /** Whether this article is labeled by human, null for not labeled yet.  */
   isLabeled: Scalars['Boolean']['output']
-  /** whether this article is pinned */
+  /** Whether this article is pinned */
   pinned: Scalars['Boolean']['output']
-  /** confident score by machine */
+  /** Confident score by machine */
   score?: Maybe<Scalars['Float']['output']>
 }
 
@@ -2100,6 +2112,7 @@ export type GQLMutation = {
   resetLikerId: GQLUser
   /** Reset user or payment password. */
   resetPassword?: Maybe<Scalars['Boolean']['output']>
+  reviewTopicChannelFeedback: GQLTopicChannelFeedback
   sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
@@ -2122,6 +2135,8 @@ export type GQLMutation = {
   socialLogin: GQLAuthResult
   /** Submit inappropriate content report */
   submitReport: GQLReport
+  /** Feedback on topic channel classification */
+  submitTopicChannelFeedback: GQLTopicChannelFeedback
   /** Subscribe a Circle. */
   subscribeCircle: GQLSubscribeCircleResult
   toggleArticleRecommend: GQLArticle
@@ -2432,6 +2447,10 @@ export type GQLMutationResetPasswordArgs = {
   input: GQLResetPasswordInput
 }
 
+export type GQLMutationReviewTopicChannelFeedbackArgs = {
+  input: GQLReviewTopicChannelFeedbackInput
+}
+
 export type GQLMutationSendCampaignAnnouncementArgs = {
   input: GQLSendCampaignAnnouncementInput
 }
@@ -2486,6 +2505,10 @@ export type GQLMutationSocialLoginArgs = {
 
 export type GQLMutationSubmitReportArgs = {
   input: GQLSubmitReportInput
+}
+
+export type GQLMutationSubmitTopicChannelFeedbackArgs = {
+  input: GQLSubmitTopicChannelFeedbackInput
 }
 
 export type GQLMutationSubscribeCircleArgs = {
@@ -2771,6 +2794,7 @@ export type GQLOss = {
   seedingUsers: GQLUserConnection
   skippedListItems: GQLSkippedListItemsConnection
   tags: GQLTagConnection
+  topicChannelFeedbacks: GQLTopicChannelFeedbackConnection
   users: GQLUserConnection
 }
 
@@ -2812,6 +2836,10 @@ export type GQLOssSkippedListItemsArgs = {
 
 export type GQLOssTagsArgs = {
   input: GQLTagsInput
+}
+
+export type GQLOssTopicChannelFeedbacksArgs = {
+  input: GQLTopicChannelFeedbacksInput
 }
 
 export type GQLOssUsersArgs = {
@@ -3436,6 +3464,11 @@ export type GQLResponsesInput = {
   sort?: InputMaybe<GQLResponseSort>
 }
 
+export type GQLReviewTopicChannelFeedbackInput = {
+  action: GQLTopicChannelFeedbackAction
+  feedback: Scalars['ID']['input']
+}
+
 /** Enums for user roles. */
 export type GQLRole = 'admin' | 'user' | 'vistor'
 
@@ -3630,9 +3663,9 @@ export type GQLSocialLoginInput = {
 
 export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
-  /** whether this article is labeled as spam by human, null for not labeled yet.  */
+  /** Whether this article is labeled as spam by human, null for not labeled yet.  */
   isSpam?: Maybe<Scalars['Boolean']['output']>
-  /** spam confident score by machine, null for not checked yet.  */
+  /** Spam confident score by machine, null for not checked yet.  */
   score?: Maybe<Scalars['Float']['output']>
 }
 
@@ -3679,6 +3712,12 @@ export type GQLStripeAccountCountry =
 export type GQLSubmitReportInput = {
   reason: GQLReportReason
   targetId: Scalars['ID']['input']
+}
+
+export type GQLSubmitTopicChannelFeedbackInput = {
+  article: Scalars['ID']['input']
+  channels?: InputMaybe<Array<Scalars['ID']['input']>>
+  type: GQLTopicChannelFeedbackType
 }
 
 export type GQLSubscribeCircleInput = {
@@ -3863,6 +3902,59 @@ export type GQLTopicChannelNameArgs = {
 
 export type GQLTopicChannelNoteArgs = {
   input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLTopicChannelClassification = {
+  __typename?: 'TopicChannelClassification'
+  /** Which channels this article is in, null for not classified, empty for not in any channel */
+  channels?: Maybe<Array<GQLArticleTopicChannel>>
+  /** Feedback from author */
+  feedback?: Maybe<GQLTopicChannelFeedback>
+}
+
+export type GQLTopicChannelFeedback = {
+  __typename?: 'TopicChannelFeedback'
+  article: GQLArticle
+  /** Which channels author want to be in, empty for no channels */
+  channels?: Maybe<Array<GQLTopicChannel>>
+  id: Scalars['ID']['output']
+  state?: Maybe<GQLTopicChannelFeedbackState>
+  type: GQLTopicChannelFeedbackType
+}
+
+export type GQLTopicChannelFeedbackAction = 'accept' | 'reject'
+
+export type GQLTopicChannelFeedbackConnection = GQLConnection & {
+  __typename?: 'TopicChannelFeedbackConnection'
+  edges: Array<GQLTopicChannelFeedbackEdge>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLTopicChannelFeedbackEdge = {
+  __typename?: 'TopicChannelFeedbackEdge'
+  cursor: Scalars['String']['output']
+  node: GQLTopicChannelFeedback
+}
+
+export type GQLTopicChannelFeedbackState =
+  | 'accepted'
+  | 'pending'
+  | 'rejected'
+  | 'resolved'
+
+export type GQLTopicChannelFeedbackType = 'negative' | 'positive'
+
+export type GQLTopicChannelFeedbacksFilterInput = {
+  spam?: InputMaybe<Scalars['Boolean']['input']>
+  state?: InputMaybe<GQLTopicChannelFeedbackState>
+  type?: InputMaybe<GQLTopicChannelFeedbackType>
+}
+
+export type GQLTopicChannelFeedbacksInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLTopicChannelFeedbacksFilterInput>
+  first: Scalars['Int']['input']
 }
 
 export type GQLTransaction = {
@@ -4805,6 +4897,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLTopDonatorConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['TopDonatorEdge']>>
       })
+    | (Omit<GQLTopicChannelFeedbackConnection, 'edges'> & {
+        edges: Array<_RefType['TopicChannelFeedbackEdge']>
+      })
     | (Omit<GQLTransactionConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['TransactionEdge']>>
       })
@@ -4888,6 +4983,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleCampaignInput: GQLArticleCampaignInput
+  ArticleClassification: ResolverTypeWrapper<ArticleModel>
   ArticleConnection: ResolverTypeWrapper<
     Omit<GQLArticleConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
@@ -5243,6 +5339,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'restrictedUsers'
       | 'seedingUsers'
       | 'tags'
+      | 'topicChannelFeedbacks'
       | 'users'
     > & {
       articles: GQLResolversTypes['ArticleConnection']
@@ -5254,6 +5351,7 @@ export type GQLResolversTypes = ResolversObject<{
       restrictedUsers: GQLResolversTypes['UserConnection']
       seedingUsers: GQLResolversTypes['UserConnection']
       tags: GQLResolversTypes['TagConnection']
+      topicChannelFeedbacks: GQLResolversTypes['TopicChannelFeedbackConnection']
       users: GQLResolversTypes['UserConnection']
     }
   >
@@ -5360,6 +5458,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ResponseSort: GQLResponseSort
   ResponsesInput: GQLResponsesInput
+  ReviewTopicChannelFeedbackInput: GQLReviewTopicChannelFeedbackInput
   Role: GQLRole
   SearchAPIVersion: GQLSearchApiVersion
   SearchExclude: GQLSearchExclude
@@ -5401,6 +5500,7 @@ export type GQLResolversTypes = ResolversObject<{
   StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
   StripeAccountCountry: GQLStripeAccountCountry
   SubmitReportInput: GQLSubmitReportInput
+  SubmitTopicChannelFeedbackInput: GQLSubmitTopicChannelFeedbackInput
   SubscribeCircleInput: GQLSubscribeCircleInput
   SubscribeCircleResult: ResolverTypeWrapper<
     Omit<GQLSubscribeCircleResult, 'circle'> & {
@@ -5439,6 +5539,23 @@ export type GQLResolversTypes = ResolversObject<{
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
   TopicChannel: ResolverTypeWrapper<TopicChannelModel>
+  TopicChannelClassification: ResolverTypeWrapper<ArticleModel>
+  TopicChannelFeedback: ResolverTypeWrapper<TopicChannelFeedbackModel>
+  TopicChannelFeedbackAction: GQLTopicChannelFeedbackAction
+  TopicChannelFeedbackConnection: ResolverTypeWrapper<
+    Omit<GQLTopicChannelFeedbackConnection, 'edges'> & {
+      edges: Array<GQLResolversTypes['TopicChannelFeedbackEdge']>
+    }
+  >
+  TopicChannelFeedbackEdge: ResolverTypeWrapper<
+    Omit<GQLTopicChannelFeedbackEdge, 'node'> & {
+      node: GQLResolversTypes['TopicChannelFeedback']
+    }
+  >
+  TopicChannelFeedbackState: GQLTopicChannelFeedbackState
+  TopicChannelFeedbackType: GQLTopicChannelFeedbackType
+  TopicChannelFeedbacksFilterInput: GQLTopicChannelFeedbacksFilterInput
+  TopicChannelFeedbacksInput: GQLTopicChannelFeedbacksInput
   Transaction: ResolverTypeWrapper<TransactionModel>
   TransactionConnection: ResolverTypeWrapper<
     Omit<GQLTransactionConnection, 'edges'> & {
@@ -5606,6 +5723,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     stage?: Maybe<GQLResolversParentTypes['CampaignStage']>
   }
   ArticleCampaignInput: GQLArticleCampaignInput
+  ArticleClassification: ArticleModel
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
@@ -5865,6 +5983,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'restrictedUsers'
     | 'seedingUsers'
     | 'tags'
+    | 'topicChannelFeedbacks'
     | 'users'
   > & {
     articles: GQLResolversParentTypes['ArticleConnection']
@@ -5876,6 +5995,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     restrictedUsers: GQLResolversParentTypes['UserConnection']
     seedingUsers: GQLResolversParentTypes['UserConnection']
     tags: GQLResolversParentTypes['TagConnection']
+    topicChannelFeedbacks: GQLResolversParentTypes['TopicChannelFeedbackConnection']
     users: GQLResolversParentTypes['UserConnection']
   }
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
@@ -5955,6 +6075,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Response']
   }
   ResponsesInput: GQLResponsesInput
+  ReviewTopicChannelFeedbackInput: GQLReviewTopicChannelFeedbackInput
   SearchFilter: GQLSearchFilter
   SearchInput: GQLSearchInput
   SearchResultConnection: Omit<GQLSearchResultConnection, 'edges'> & {
@@ -5986,6 +6107,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   String: Scalars['String']['output']
   StripeAccount: PayoutAccountModel
   SubmitReportInput: GQLSubmitReportInput
+  SubmitTopicChannelFeedbackInput: GQLSubmitTopicChannelFeedbackInput
   SubscribeCircleInput: GQLSubscribeCircleInput
   SubscribeCircleResult: Omit<GQLSubscribeCircleResult, 'circle'> & {
     circle: GQLResolversParentTypes['Circle']
@@ -6014,6 +6136,17 @@ export type GQLResolversParentTypes = ResolversObject<{
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
   TopicChannel: TopicChannelModel
+  TopicChannelClassification: ArticleModel
+  TopicChannelFeedback: TopicChannelFeedbackModel
+  TopicChannelFeedbackConnection: Omit<
+    GQLTopicChannelFeedbackConnection,
+    'edges'
+  > & { edges: Array<GQLResolversParentTypes['TopicChannelFeedbackEdge']> }
+  TopicChannelFeedbackEdge: Omit<GQLTopicChannelFeedbackEdge, 'node'> & {
+    node: GQLResolversParentTypes['TopicChannelFeedback']
+  }
+  TopicChannelFeedbacksFilterInput: GQLTopicChannelFeedbacksFilterInput
+  TopicChannelFeedbacksInput: GQLTopicChannelFeedbacksInput
   Transaction: TransactionModel
   TransactionConnection: Omit<GQLTransactionConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TransactionEdge']>>
@@ -6406,6 +6539,11 @@ export type GQLArticleResolvers<
   >
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   canSuperLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  classification?: Resolver<
+    GQLResolversTypes['ArticleClassification'],
+    ParentType,
+    ContextType
+  >
   collection?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
@@ -6628,6 +6766,18 @@ export type GQLArticleCampaignResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLArticleClassificationResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleClassification'] = GQLResolversParentTypes['ArticleClassification']
+> = ResolversObject<{
+  topicChannel?: Resolver<
+    GQLResolversTypes['TopicChannelClassification'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLArticleConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleConnection'] = GQLResolversParentTypes['ArticleConnection']
@@ -6743,7 +6893,7 @@ export type GQLArticleOssResolvers<
     ContextType
   >
   topicChannels?: Resolver<
-    Array<GQLResolversTypes['ArticleTopicChannel']>,
+    Maybe<Array<GQLResolversTypes['ArticleTopicChannel']>>,
     ParentType,
     ContextType
   >
@@ -6771,6 +6921,7 @@ export type GQLArticleTopicChannelResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleTopicChannel'] = GQLResolversParentTypes['ArticleTopicChannel']
 > = ResolversObject<{
+  antiFlooded?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   channel?: Resolver<GQLResolversTypes['TopicChannel'], ParentType, ContextType>
   classicfiedAt?: Resolver<
     GQLResolversTypes['DateTime'],
@@ -7612,6 +7763,7 @@ export type GQLConnectionResolvers<
     | 'SkippedListItemsConnection'
     | 'TagConnection'
     | 'TopDonatorConnection'
+    | 'TopicChannelFeedbackConnection'
     | 'TransactionConnection'
     | 'UserConnection'
     | 'WritingConnection',
@@ -8543,6 +8695,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationResetPasswordArgs, 'input'>
   >
+  reviewTopicChannelFeedback?: Resolver<
+    GQLResolversTypes['TopicChannelFeedback'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationReviewTopicChannelFeedbackArgs, 'input'>
+  >
   sendCampaignAnnouncement?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
@@ -8626,6 +8784,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSubmitReportArgs, 'input'>
+  >
+  submitTopicChannelFeedback?: Resolver<
+    GQLResolversTypes['TopicChannelFeedback'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSubmitTopicChannelFeedbackArgs, 'input'>
   >
   subscribeCircle?: Resolver<
     GQLResolversTypes['SubscribeCircleResult'],
@@ -9141,6 +9305,12 @@ export type GQLOssResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLOssTagsArgs, 'input'>
+  >
+  topicChannelFeedbacks?: Resolver<
+    GQLResolversTypes['TopicChannelFeedbackConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssTopicChannelFeedbacksArgs, 'input'>
   >
   users?: Resolver<
     GQLResolversTypes['UserConnection'],
@@ -9785,6 +9955,74 @@ export type GQLTopicChannelResolvers<
   >
   providerId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTopicChannelClassificationResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TopicChannelClassification'] = GQLResolversParentTypes['TopicChannelClassification']
+> = ResolversObject<{
+  channels?: Resolver<
+    Maybe<Array<GQLResolversTypes['ArticleTopicChannel']>>,
+    ParentType,
+    ContextType
+  >
+  feedback?: Resolver<
+    Maybe<GQLResolversTypes['TopicChannelFeedback']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTopicChannelFeedbackResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TopicChannelFeedback'] = GQLResolversParentTypes['TopicChannelFeedback']
+> = ResolversObject<{
+  article?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  channels?: Resolver<
+    Maybe<Array<GQLResolversTypes['TopicChannel']>>,
+    ParentType,
+    ContextType
+  >
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  state?: Resolver<
+    Maybe<GQLResolversTypes['TopicChannelFeedbackState']>,
+    ParentType,
+    ContextType
+  >
+  type?: Resolver<
+    GQLResolversTypes['TopicChannelFeedbackType'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTopicChannelFeedbackConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TopicChannelFeedbackConnection'] = GQLResolversParentTypes['TopicChannelFeedbackConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Array<GQLResolversTypes['TopicChannelFeedbackEdge']>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTopicChannelFeedbackEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TopicChannelFeedbackEdge'] = GQLResolversParentTypes['TopicChannelFeedbackEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<
+    GQLResolversTypes['TopicChannelFeedback'],
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -10583,6 +10821,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleAccess?: GQLArticleAccessResolvers<ContextType>
   ArticleArticleNotice?: GQLArticleArticleNoticeResolvers<ContextType>
   ArticleCampaign?: GQLArticleCampaignResolvers<ContextType>
+  ArticleClassification?: GQLArticleClassificationResolvers<ContextType>
   ArticleConnection?: GQLArticleConnectionResolvers<ContextType>
   ArticleContents?: GQLArticleContentsResolvers<ContextType>
   ArticleDonation?: GQLArticleDonationResolvers<ContextType>
@@ -10717,6 +10956,10 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   TopDonatorConnection?: GQLTopDonatorConnectionResolvers<ContextType>
   TopDonatorEdge?: GQLTopDonatorEdgeResolvers<ContextType>
   TopicChannel?: GQLTopicChannelResolvers<ContextType>
+  TopicChannelClassification?: GQLTopicChannelClassificationResolvers<ContextType>
+  TopicChannelFeedback?: GQLTopicChannelFeedbackResolvers<ContextType>
+  TopicChannelFeedbackConnection?: GQLTopicChannelFeedbackConnectionResolvers<ContextType>
+  TopicChannelFeedbackEdge?: GQLTopicChannelFeedbackEdgeResolvers<ContextType>
   Transaction?: GQLTransactionResolvers<ContextType>
   TransactionConnection?: GQLTransactionConnectionResolvers<ContextType>
   TransactionEdge?: GQLTransactionEdgeResolvers<ContextType>

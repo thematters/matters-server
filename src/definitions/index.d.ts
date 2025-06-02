@@ -87,6 +87,7 @@ import type {
 import type { Collection, CollectionArticle } from './collection.js'
 import type { Comment, FeaturedCommentMaterialized } from './comment.js'
 import type { Draft } from './draft.js'
+import type { TopicChannelFeedback } from './feedback.ts'
 import type {
   BlockedSearchKeyword,
   Blocklist,
@@ -154,6 +155,7 @@ export * from './campaign.js'
 export * from './translation.js'
 export * from './channel.js'
 export * from './nominal.js'
+export * from './feedback.js'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -285,6 +287,7 @@ export interface TableTypeMap {
   curation_channel: CurationChannel
   curation_channel_article: CurationChannelArticle
   channel_announcement: ChannelAnnouncement
+  topic_channel_feedback: TopicChannelFeedback
 }
 
 export type TableTypeMapKey = keyof TableTypeMap

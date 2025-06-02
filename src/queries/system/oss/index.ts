@@ -8,6 +8,7 @@ import { restrictedUsers } from './restrictedUsers.js'
 import { seedingUsers } from './seedingUsers.js'
 import { skippedListItems } from './skippedListItems.js'
 import { tags } from './tags.js'
+import { topicChannelFeedbacks } from './topicChannelFeedbacks.js'
 import { users } from './users.js'
 
 export default {
@@ -22,4 +23,5 @@ export default {
   restrictedUsers,
   reports,
   icymiTopics,
+  topicChannelFeedbacks,
 }

@@ -112,6 +112,13 @@ interface NoticeCircleNewArticleParams extends NotificationRequiredParams {
   entities: [NotificationEntity<'target', 'article'>]
 }
 
+interface NoticeTopicChannelFeedbackAcceptedParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.topic_channel_feedback_accepted
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
+}
+
 // Article-Article
 interface NoticeArticleNewConnectedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_new_collected
@@ -411,6 +418,7 @@ export type NotificationParams =
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
   | NoticeCircleNewArticleParams
+  | NoticeTopicChannelFeedbackAcceptedParams
   // Collection
   | NoticeCollectionLikedParams
   // Moment

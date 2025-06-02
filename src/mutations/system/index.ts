@@ -9,6 +9,7 @@ import putRemark from './putRemark.js'
 import putRestrictedUsers from './putRestrictedUsers.js'
 import putSkippedListItem from './putSkippedListItem.js'
 import putUserFeatureFlags from './putUserFeatureFlags.js'
+import reviewTopicChannelFeedback from './reviewTopicChannelFeedback.js'
 import setAdStatus from './setAdStatus.js'
 import setBoost from './setBoost.js'
 import setFeature from './setFeature.js'
@@ -37,5 +38,6 @@ export default {
     putIcymiTopic,
     setSpamStatus,
     setAdStatus,
+    reviewTopicChannelFeedback,
   },
 }

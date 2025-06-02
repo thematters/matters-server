@@ -11,6 +11,7 @@ import CurationChannelNote from './curation/note.js'
 import TopicChannelArticles from './topic/articles.js'
 import TopicChannelName from './topic/name.js'
 import TopicChannelNote from './topic/note.js'
+import TopicChannelFeedback from './topicChannelFeedback.js'
 
 const schema: GQLResolvers = {
   Query: {
@@ -23,6 +24,7 @@ const schema: GQLResolvers = {
     note: TopicChannelNote,
     articles: TopicChannelArticles,
   },
+  TopicChannelFeedback,
   CurationChannel: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.CurationChannel, id }),
     name: CurationChannelName,
