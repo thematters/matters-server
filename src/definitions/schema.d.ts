@@ -3917,6 +3917,7 @@ export type GQLTopicChannelFeedback = {
   article: GQLArticle
   /** Which channels author want to be in, empty for no channels */
   channels?: Maybe<Array<GQLTopicChannel>>
+  createdAt: Scalars['DateTime']['output']
   id: Scalars['ID']['output']
   state?: Maybe<GQLTopicChannelFeedbackState>
   type: GQLTopicChannelFeedbackType
@@ -9986,6 +9987,7 @@ export type GQLTopicChannelFeedbackResolvers<
     ParentType,
     ContextType
   >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   state?: Resolver<
     Maybe<GQLResolversTypes['TopicChannelFeedbackState']>,

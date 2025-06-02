@@ -84,6 +84,7 @@ describe('feedback resolvers', () => {
           channels {
             id
           }
+          createdAt
         }
       }
     `
@@ -107,6 +108,7 @@ describe('feedback resolvers', () => {
 
       expect(errors).toBeUndefined()
       expect(data?.submitTopicChannelFeedback).toBeDefined()
+      expect(data?.submitTopicChannelFeedback.createdAt).toBeDefined()
       expect(data?.submitTopicChannelFeedback.type).toBe(
         TOPIC_CHANNEL_FEEDBACK_TYPE.POSITIVE
       )
@@ -216,6 +218,7 @@ describe('feedback resolvers', () => {
                 channels {
                   id
                 }
+                createdAt
               }
             }
             pageInfo {
@@ -315,6 +318,7 @@ describe('feedback resolvers', () => {
           id: article.id,
         })
       )
+      expect(oss?.topicChannelFeedbacks.edges[0].node.createdAt).toBeDefined()
     })
   })
 
