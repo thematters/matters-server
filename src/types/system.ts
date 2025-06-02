@@ -586,6 +586,7 @@ export default /* GraphQL */ `
     "Which channels author want to be in, empty for no channels"
     channels: [TopicChannel!]
     state: TopicChannelFeedbackState
+    createdAt: DateTime!
   }
 
   input ReviewTopicChannelFeedbackInput {
