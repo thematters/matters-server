@@ -782,12 +782,14 @@ export class ChannelService {
     spamThreshold?: number | null
   } = {}) => {
     const knexRO = this.connections.knexRO
-    const query = knexRO('topic_channel_feedback')
+    const query = knexRO('topic_channel_feedback').select(
+      'topic_channel_feedback.*'
+    )
     if (type !== undefined) {
-      query.where({ type })
+      query.where({ 'topic_channel_feedback.type': type })
     }
     if (state !== undefined) {
-      query.where({ state })
+      query.where({ 'topic_channel_feedback.state': state })
     }
     if (spamThreshold) {
       query
@@ -815,7 +817,6 @@ export class ChannelService {
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
     }
-
     if (
       await this.isFeedbackResolved({
         articleId: feedback.articleId,
