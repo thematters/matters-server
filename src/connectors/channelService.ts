@@ -782,12 +782,14 @@ export class ChannelService {
     spamThreshold?: number | null
   } = {}) => {
     const knexRO = this.connections.knexRO
-    const query = knexRO('topic_channel_feedback')
+    const query = knexRO('topic_channel_feedback').select(
+      'topic_channel_feedback.*'
+    )
     if (type !== undefined) {
       query.where({ type })
     }
     if (state !== undefined) {
-      query.where({ state })
+      query.where({ 'topic_channel_feedback.state': state })
     }
     if (spamThreshold) {
       query

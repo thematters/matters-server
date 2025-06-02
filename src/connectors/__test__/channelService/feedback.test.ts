@@ -252,10 +252,17 @@ describe('feedback methods', () => {
         },
       })
 
-      const feedbacks = await channelService.findFeedbacks({
+      const feedbacks1 = await channelService.findFeedbacks({
         spamThreshold: 0.6,
       })
-      expect(feedbacks).toHaveLength(2)
+      expect(feedbacks1).toHaveLength(2)
+      const feedbacks2 = await channelService
+        .findFeedbacks({
+          spamThreshold: 0.6,
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+        })
+        .orderBy('id')
+      expect(feedbacks2).toHaveLength(1)
     })
   })
 
