@@ -786,7 +786,7 @@ export class ChannelService {
       'topic_channel_feedback.*'
     )
     if (type !== undefined) {
-      query.where({ type })
+      query.where({ 'topic_channel_feedback.type': type })
     }
     if (state !== undefined) {
       query.where({ 'topic_channel_feedback.state': state })
@@ -817,7 +817,6 @@ export class ChannelService {
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
     }
-
     if (
       await this.isFeedbackResolved({
         articleId: feedback.articleId,
