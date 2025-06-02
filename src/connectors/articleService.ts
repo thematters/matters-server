@@ -11,6 +11,7 @@ import type {
   GQLTranslationModel,
   LANGUAGES,
   Campaign,
+  GQLArticleTranslation,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -35,6 +36,7 @@ import {
   NODE_TYPES,
   QUEUE_URL,
   PUBLISH_STATE,
+  LANGUAGE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -2090,7 +2092,7 @@ export class ArticleService extends BaseService<Article> {
     language: LANGUAGES,
     actorId?: string,
     model?: GQLTranslationModel
-  ) => {
+  ): Promise<GQLArticleTranslation | null> => {
     // paywalled content
     const { id: articleVersionId, articleId, contentId } = articleVersion
     const { authorId } = await this.models.articleIdLoader.load(articleId)
@@ -2149,11 +2151,49 @@ export class ArticleService extends BaseService<Article> {
         content: isPaywalledContent ? '' : translation.content,
         summary: translation.summary,
         language: translation.language,
-        model: translation.model as GQLTranslationModel,
+        model: translation.model,
       }
     }
 
-    // Otherwise, translate
+    // Handle Chinese conversion using OpenCC
+    const canUseOpenCC =
+      (articleVersion.language === LANGUAGE.zh_hans &&
+        language === LANGUAGE.zh_hant) ||
+      (articleVersion.language === LANGUAGE.zh_hant &&
+        language === LANGUAGE.zh_hans)
+
+    if (canUseOpenCC) {
+      const type = articleVersion.language === LANGUAGE.zh_hans ? 's2t' : 't2s'
+
+      const convertedTitle = simplecc(articleVersion.title, type)
+      const convertedContent = simplecc(content, type)
+      const convertedSummary = articleVersion.summary
+        ? simplecc(articleVersion.summary, type)
+        : null
+
+      await this.models.create({
+        table: 'article_translation',
+        data: {
+          articleId,
+          articleVersionId,
+          language,
+          title: convertedTitle,
+          content: convertedContent,
+          summary: convertedSummary,
+          model: 'opencc',
+        },
+      })
+
+      return {
+        title: convertedTitle,
+        content: isPaywalledContent ? '' : convertedContent,
+        summary: convertedSummary,
+        language,
+        model: 'opencc',
+      }
+    }
+
+    // Otherwise, translate with LLM
     let translatedTitle: string | null = null
     let translatedContent: string | null = null
     let translatedSummary: string | null = null
