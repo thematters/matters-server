@@ -77,6 +77,7 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
+import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
 
 import { OpenRouter } from './openRouter/index.js'
