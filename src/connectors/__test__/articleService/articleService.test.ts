@@ -747,7 +747,6 @@ describe('addArticleCountColumn', () => {
 
     // Execute query
     const results = await query.orderBy('id', 'asc')
-    console.dir(results, { depth: null })
 
     // Verify results
     expect(results).toHaveLength(3)
