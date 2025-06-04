@@ -29,6 +29,7 @@ import {
   CampaignService,
   ChannelService,
   TranslationService,
+  SearchService,
   LikeCoin,
   ExchangeRate,
 } from '#connectors/index.js'
@@ -150,6 +151,7 @@ export const graphql = async (app: Express) => {
       exchangeRate: new ExchangeRate(connections.objectCacheRedis),
       translationService: new TranslationService(connections),
       notificationService: new NotificationService(connections),
+      searchService: new SearchService(connections),
       connections,
       queues,
     }

@@ -3,13 +3,13 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 const resolver: GQLMutationResolvers['clearSearchHistory'] = async (
   _,
   __,
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { searchService } }
 ) => {
   if (!viewer.id) {
     return true
   }
 
-  await userService.clearSearches(viewer.id)
+  await searchService.clearSearches(viewer.id)
 
   return true
 }

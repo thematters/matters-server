@@ -19,6 +19,7 @@ import type {
   UserWorkService,
   TranslationService,
   ChannelService,
+  SearchService,
 } from '#connectors/index.js'
 import type {
   RevisionQueue,
@@ -191,6 +192,7 @@ export interface DataSources {
   campaignService: CampaignService
   translationService: TranslationService
   channelService: ChannelService
+  searchService: SearchService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections

@@ -28,6 +28,7 @@ import {
   CampaignService,
   TranslationService,
   ChannelService,
+  SearchService,
 } from '#connectors/index.js'
 import {
   RevisionQueue,
@@ -191,6 +192,7 @@ export const testClient = async ({
       campaignService: new CampaignService(connections),
       translationService: new TranslationService(connections),
       channelService: new ChannelService(connections),
+      searchService: new SearchService(connections),
       notificationService,
       connections,
       queues,

@@ -24,13 +24,13 @@ const resolver: GQLUserActivityResolvers = {
   recentSearches: async (
     { id },
     { input },
-    { dataSources: { userService } }
+    { dataSources: { searchService } }
   ) => {
     if (!id) {
       return connectionFromArray([], input)
     }
     return connectionFromPromisedArray(
-      userService.findRecentSearches(id),
+      searchService.findRecentSearches(id),
       input
     )
   },
