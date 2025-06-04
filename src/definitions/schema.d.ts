@@ -939,6 +939,7 @@ export type GQLChannelArticleEdge = {
 
 export type GQLChannelArticlesFilter = {
   datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
+  searchKey?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLChannelArticlesInput = {
@@ -2849,6 +2850,7 @@ export type GQLOssUsersArgs = {
 export type GQLOssArticlesFilterInput = {
   datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
   isSpam?: InputMaybe<Scalars['Boolean']['input']>
+  searchKey?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLOssArticlesInput = {

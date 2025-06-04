@@ -194,7 +194,7 @@ export class SearchService {
     return { nodes, totalCount }
   }
 
-  private quicksearchArticles = async ({
+  public quicksearchArticles = async ({
     key,
     take,
     skip,
@@ -375,8 +375,8 @@ export class SearchService {
   }: {
     key: string
     author?: string
-    take: number
-    skip: number
+    take?: number
+    skip?: number
     viewerId?: string | null
     exclude?: keyof typeof SEARCH_EXCLUDE
     coefficients?: string
