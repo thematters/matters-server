@@ -214,6 +214,160 @@ describe('TopicChannel.articles', () => {
     })
   })
 
+  describe('search filtering', () => {
+    let channel: TopicChannel
+    let articles: Article[]
+
+    beforeEach(async () => {
+      channel = await channelService.createTopicChannel({
+        name: 'test-topic',
+        providerId: 'test-provider-id',
+        enabled: true,
+      })
+
+      articles = await atomService.findMany({
+        table: 'article',
+        where: {},
+        take: 10,
+      })
+
+      // Create channel articles
+      await Promise.all(
+        articles.map((article) =>
+          atomService.create({
+            table: 'topic_channel_article',
+            data: {
+              articleId: article.id,
+              channelId: channel.id,
+              enabled: true,
+              pinned: false,
+            },
+          })
+        )
+      )
+    })
+
+    test('search by article title', async () => {
+      const server = await testClient({ connections })
+
+      // Test article title search
+      const { errors: errors1, data: data1 } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: 'test article 1',
+            },
+          },
+        },
+      })
+      expect(errors1).toBeUndefined()
+      expect(data1?.channel.articles.edges.length).toBeGreaterThan(0)
+
+      // Test non-existent article title
+      const { errors: errors2, data: data2 } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: 'non existent article title',
+            },
+          },
+        },
+      })
+      expect(errors2).toBeUndefined()
+      expect(data2?.channel.articles.edges.length).toBe(0)
+    })
+
+    test('search by username', async () => {
+      const server = await testClient({ connections })
+
+      // Test user search with @username
+      const { errors: errors1, data: data1 } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: '@test1',
+            },
+          },
+        },
+      })
+      expect(errors1).toBeUndefined()
+      expect(data1?.channel.articles.edges.length).toBeGreaterThan(0)
+
+      // Test non-existent username
+      const { errors: errors2, data: data2 } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: '@nonexistentuser',
+            },
+          },
+        },
+      })
+      expect(errors2).toBeUndefined()
+      expect(data2?.channel.articles.edges.length).toBe(0)
+    })
+
+    test('search with empty or whitespace input', async () => {
+      const server = await testClient({ connections })
+
+      // Test search with empty string
+      const { errors: errors1, data: data1 } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: '',
+            },
+          },
+        },
+      })
+      expect(errors1).toBeUndefined()
+      expect(data1?.channel.articles.edges.length).toBeGreaterThan(0)
+
+      // Test search with whitespace
+      const { errors: errors2, data: data2 } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: '   ',
+            },
+          },
+        },
+      })
+      expect(errors2).toBeUndefined()
+      expect(data2?.channel.articles.edges.length).toBeGreaterThan(0)
+    })
+  })
+
   describe('sorting', () => {
     let channel: TopicChannel
     let articles: Article[]
