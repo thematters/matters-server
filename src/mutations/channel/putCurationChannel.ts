@@ -11,6 +11,20 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
   },
   { dataSources: { translationService, channelService } }
 ) => {
+  if (name) {
+    for (const trans of name) {
+      if (trans.text.length > 16) {
+        throw new UserInputError('Name is too long')
+      }
+    }
+  }
+  if (note) {
+    for (const trans of note) {
+      if (trans.text.length > 30) {
+        throw new UserInputError('Note is too long')
+      }
+    }
+  }
   if (activePeriod) {
     if (!isValidDatetimeRange(activePeriod)) {
       throw new UserInputError('Invalid datetime range')

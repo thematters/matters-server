@@ -8,8 +8,22 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   { input: { id: globalId, providerId, name, note, enabled } },
   { dataSources: { translationService, channelService } }
 ) => {
-  let channel: TopicChannel
+  if (name) {
+    for (const trans of name) {
+      if (trans.text.length > 16) {
+        throw new UserInputError('Name is too long')
+      }
+    }
+  }
+  if (note) {
+    for (const trans of note) {
+      if (trans.text.length > 30) {
+        throw new UserInputError('Note is too long')
+      }
+    }
+  }
 
+  let channel: TopicChannel
   if (!globalId) {
     if (!providerId) {
       throw new UserInputError(
