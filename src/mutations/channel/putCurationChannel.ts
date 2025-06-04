@@ -13,14 +13,14 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
 ) => {
   if (name) {
     for (const trans of name) {
-      if (trans.text.length > 16) {
+      if (trans.text.length > 32) {
         throw new UserInputError('Name is too long')
       }
     }
   }
   if (note) {
     for (const trans of note) {
-      if (trans.text.length > 30) {
+      if (trans.text.length > 60) {
         throw new UserInputError('Note is too long')
       }
     }
