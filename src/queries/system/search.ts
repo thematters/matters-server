@@ -1,8 +1,13 @@
-import type { GQLQueryResolvers, SearchHistory } from '#definitions/index.js'
+import type {
+  GQLQueryResolvers,
+  SearchHistory,
+  Tag,
+} from '#definitions/index.js'
 
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  NODE_TYPES,
 } from '#common/enums/index.js'
 import {
   connectionFromArray,
@@ -49,11 +54,11 @@ const resolver: GQLQueryResolvers['search'] = async (
         skip,
         viewerId: viewer.id,
       })
-      return connectionFromArray(
-        compact(connection.nodes),
-        input,
-        connection.totalCount
-      )
+      const nodes = compact(connection.nodes).map((node) => ({
+        ...node,
+        __type: NODE_TYPES.Article,
+      }))
+      return connectionFromArray(nodes, input, connection.totalCount)
     }
     case 'User': {
       const connection = await searchService.searchUsers({
@@ -62,11 +67,11 @@ const resolver: GQLQueryResolvers['search'] = async (
         skip,
         viewerId: viewer.id,
       })
-      return connectionFromArray(
-        compact(connection.nodes),
-        input,
-        connection.totalCount
-      )
+      const nodes = compact(connection.nodes).map((node) => ({
+        ...node,
+        __type: NODE_TYPES.User,
+      }))
+      return connectionFromArray(nodes, input, connection.totalCount)
     }
     case 'Tag': {
       const connection = await searchService.searchTags({
@@ -74,11 +79,11 @@ const resolver: GQLQueryResolvers['search'] = async (
         take,
         skip,
       })
-      return connectionFromArray(
-        compact(connection.nodes),
-        input,
-        connection.totalCount
-      )
+      const nodes = compact(connection.nodes).map((node) => ({
+        ...(node as Tag),
+        __type: NODE_TYPES.Tag,
+      }))
+      return connectionFromArray(nodes, input, connection.totalCount)
     }
   }
 }
