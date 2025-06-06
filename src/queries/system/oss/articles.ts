@@ -40,7 +40,9 @@ export const articles: GQLOssResolvers['articles'] = async (
     })
     const userIds = users.map((user) => user.id)
     const articleIds = _articles.map((article) => article.id)
-    query = query.whereIn('authorId', userIds).orWhereIn('id', articleIds)
+    query = query.where((builder) =>
+      builder.whereIn('authorId', userIds).orWhereIn('id', articleIds)
+    )
   }
 
   let orderBy: {
