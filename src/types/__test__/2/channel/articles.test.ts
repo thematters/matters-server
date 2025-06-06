@@ -250,7 +250,7 @@ describe('TopicChannel.articles', () => {
     test('search by article title', async () => {
       const server = await testClient({ connections })
 
-      // Test article title search
+      // Test article title search (now searches both articles and users)
       const { errors: errors1, data: data1 } = await server.executeOperation({
         query: GET_CHANNEL_ARTICLES,
         variables: {
@@ -268,7 +268,7 @@ describe('TopicChannel.articles', () => {
       expect(errors1).toBeUndefined()
       expect(data1?.channel.articles.edges.length).toBeGreaterThan(0)
 
-      // Test non-existent article title
+      // Test non-existent article title (searches both articles and users)
       const { errors: errors2, data: data2 } = await server.executeOperation({
         query: GET_CHANNEL_ARTICLES,
         variables: {
@@ -290,7 +290,7 @@ describe('TopicChannel.articles', () => {
     test('search by username', async () => {
       const server = await testClient({ connections })
 
-      // Test user search with @username
+      // Test user search with @username (now searches both articles and users)
       const { errors: errors1, data: data1 } = await server.executeOperation({
         query: GET_CHANNEL_ARTICLES,
         variables: {
@@ -308,7 +308,7 @@ describe('TopicChannel.articles', () => {
       expect(errors1).toBeUndefined()
       expect(data1?.channel.articles.edges.length).toBeGreaterThan(0)
 
-      // Test non-existent username
+      // Test non-existent username (searches both articles and users)
       const { errors: errors2, data: data2 } = await server.executeOperation({
         query: GET_CHANNEL_ARTICLES,
         variables: {
@@ -330,7 +330,7 @@ describe('TopicChannel.articles', () => {
     test('search with empty or whitespace input', async () => {
       const server = await testClient({ connections })
 
-      // Test search with empty string
+      // Test search with empty string (searches both articles and users)
       const { errors: errors1, data: data1 } = await server.executeOperation({
         query: GET_CHANNEL_ARTICLES,
         variables: {
@@ -348,7 +348,7 @@ describe('TopicChannel.articles', () => {
       expect(errors1).toBeUndefined()
       expect(data1?.channel.articles.edges.length).toBeGreaterThan(0)
 
-      // Test search with whitespace
+      // Test search with whitespace (searches both articles and users)
       const { errors: errors2, data: data2 } = await server.executeOperation({
         query: GET_CHANNEL_ARTICLES,
         variables: {
@@ -365,6 +365,28 @@ describe('TopicChannel.articles', () => {
       })
       expect(errors2).toBeUndefined()
       expect(data2?.channel.articles.edges.length).toBeGreaterThan(0)
+    })
+
+    test('search with combined article and user results', async () => {
+      const server = await testClient({ connections })
+
+      // Test search with a term that could match both articles and users
+      const { errors, data } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            filter: {
+              searchKey: 'test',
+            },
+          },
+        },
+      })
+      expect(errors).toBeUndefined()
+      expect(data?.channel.articles.edges.length).toBeGreaterThan(0)
     })
   })
 
