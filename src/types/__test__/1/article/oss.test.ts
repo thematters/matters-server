@@ -148,7 +148,7 @@ describe('query oss articles', () => {
       connections,
     })
 
-    // Test article title search
+    // Test article title search (now searches both articles and users)
     const { errors: errors1, data: data1 } = await server.executeOperation({
       query: GET_OSS_ARTICLES,
       variables: {
@@ -162,7 +162,7 @@ describe('query oss articles', () => {
     expect(errors1).toBeUndefined()
     expect(data1.oss.articles.edges.length).toBeGreaterThan(0)
 
-    // Test non-existent article title
+    // Test non-existent article title (searches both articles and users)
     const { errors: errors2, data: data2 } = await server.executeOperation({
       query: GET_OSS_ARTICLES,
       variables: {
@@ -176,7 +176,7 @@ describe('query oss articles', () => {
     expect(errors2).toBeUndefined()
     expect(data2.oss.articles.edges.length).toBe(0)
 
-    // Test user search with @username
+    // Test user search with @username (now searches both articles and users)
     const { errors: errors3, data: data3 } = await server.executeOperation({
       query: GET_OSS_ARTICLES,
       variables: {
@@ -190,7 +190,7 @@ describe('query oss articles', () => {
     expect(errors3).toBeUndefined()
     expect(data3.oss.articles.edges.length).toBeGreaterThan(0)
 
-    // Test non-existent username
+    // Test non-existent username (searches both articles and users)
     const { errors: errors4, data: data4 } = await server.executeOperation({
       query: GET_OSS_ARTICLES,
       variables: {
@@ -204,7 +204,7 @@ describe('query oss articles', () => {
     expect(errors4).toBeUndefined()
     expect(data4.oss.articles.edges.length).toBe(0)
 
-    // Test search with empty string
+    // Test search with empty string (searches both articles and users)
     const { errors: errors5, data: data5 } = await server.executeOperation({
       query: GET_OSS_ARTICLES,
       variables: {
@@ -218,7 +218,7 @@ describe('query oss articles', () => {
     expect(errors5).toBeUndefined()
     expect(data5.oss.articles.edges.length).toBeGreaterThan(0)
 
-    // Test search with whitespace
+    // Test search with whitespace (searches both articles and users)
     const { errors: errors6, data: data6 } = await server.executeOperation({
       query: GET_OSS_ARTICLES,
       variables: {
@@ -231,6 +231,22 @@ describe('query oss articles', () => {
     })
     expect(errors6).toBeUndefined()
     expect(data6.oss.articles.edges.length).toBeGreaterThan(0)
+
+    // Test search with a term that could match both articles and users
+    const { errors: errors7, data: data7 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: {
+        input: {
+          filter: {
+            searchKey: 'test',
+          },
+        },
+      },
+    })
+    expect(errors7).toBeUndefined()
+    expect(data7.oss.articles.edges.length).toBeGreaterThan(
+      data1.oss.articles.edges.length
+    )
   })
 })
 

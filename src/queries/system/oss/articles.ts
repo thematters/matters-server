@@ -31,20 +31,16 @@ export const articles: GQLOssResolvers['articles'] = async (
 
   const key = input?.filter?.searchKey?.trim()
   if (key && key.length > 0) {
-    if (key.startsWith('@') && key.length > 1) {
-      const { nodes } = await searchService.searchUsers({
-        key,
-        quicksearch: true,
-      })
-      const userIds = nodes.map((node) => node.id)
-      query = query.whereIn('authorId', userIds)
-    } else {
-      const { nodes } = await searchService.quicksearchArticles({
-        key,
-      })
-      const articleIds = nodes.map((node) => node.id)
-      query = query.whereIn('id', articleIds)
-    }
+    const { nodes: users } = await searchService.searchUsers({
+      key,
+      quicksearch: true,
+    })
+    const { nodes: _articles } = await searchService.quicksearchArticles({
+      key,
+    })
+    const userIds = users.map((user) => user.id)
+    const articleIds = _articles.map((article) => article.id)
+    query = query.whereIn('authorId', userIds).orWhereIn('id', articleIds)
   }
 
   let orderBy: {
