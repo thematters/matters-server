@@ -248,6 +248,28 @@ describe('query oss articles', () => {
       data1.oss.articles.edges.length
     )
   })
+  test('query articles with search filter and datetimeRange filter', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_OSS_ARTICLES,
+      variables: {
+        input: {
+          filter: {
+            searchKey: 'test',
+            datetimeRange: {
+              start: new Date('2024-01-01'),
+              end: new Date('2024-01-02'),
+            },
+          },
+        },
+      },
+    })
+    expect(data1.oss.articles.edges.length).toBe(0)
+  })
 })
 
 describe('query article oss', () => {
