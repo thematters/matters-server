@@ -71,3 +71,16 @@ export interface Customer {
   card_last_4: string
   archived: boolean
 }
+
+export interface BlockchainCurationEvent {
+  id?: string
+  blockchainTransactionId: string
+  contractAddress: string
+  curatorAddress: string
+  creatorAddress?: string | null
+  creatorId?: string | null
+  tokenAddress?: string | null
+  amount: string
+  uri: string
+  createdAt?: Date
+}

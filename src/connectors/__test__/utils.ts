@@ -87,10 +87,16 @@ export const createDonationTx = async (
     senderId,
     recipientId,
     targetId,
+    currency,
+    provider,
+    state,
   }: {
     senderId: string
     recipientId: string
     targetId?: string
+    currency?: keyof typeof PAYMENT_CURRENCY
+    provider?: PAYMENT_PROVIDER
+    state?: TRANSACTION_STATE
   },
   paymentService: PaymentService
 ) =>
@@ -99,8 +105,9 @@ export const createDonationTx = async (
       senderId,
       recipientId,
       purpose: TRANSACTION_PURPOSE.donation,
-      currency: PAYMENT_CURRENCY.HKD,
-      state: TRANSACTION_STATE.succeeded,
+      currency: currency ?? PAYMENT_CURRENCY.HKD,
+      state: state ?? TRANSACTION_STATE.succeeded,
+      provider: provider ?? PAYMENT_PROVIDER.matters,
       targetId,
     },
     paymentService
@@ -115,6 +122,7 @@ export const createTx = async (
     state,
     targetId,
     amount,
+    provider,
   }: {
     senderId: string
     recipientId: string
@@ -123,6 +131,7 @@ export const createTx = async (
     state: TRANSACTION_STATE
     targetId?: string
     amount?: number
+    provider?: PAYMENT_PROVIDER
   },
   paymentService: PaymentService
 ) => {
@@ -132,7 +141,7 @@ export const createTx = async (
     purpose,
     currency,
     state,
-    provider: PAYMENT_PROVIDER.matters,
+    provider: provider ?? PAYMENT_PROVIDER.matters,
     providerTxId: String(Math.random()),
     recipientId,
     senderId,
