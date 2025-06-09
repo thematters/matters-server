@@ -166,6 +166,10 @@ export const environment = {
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
   languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
+  deleteNoticeCacheTTL: parseInt(
+    process.env.MATTERS_DELETE_NOTICE_CACHE_TTL || '180',
+    10
+  ), // 3 minutes by default
 }
 
 export const contract = {

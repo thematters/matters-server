@@ -136,11 +136,10 @@ describe('user notify setting', () => {
 const getBundleableUserNewFollowerNotice = async () => {
   // @ts-ignore
   const bundleables = await notificationService.findBundleables({
-    type: 'user_new_follower',
+    type: NOTICE_TYPE.user_new_follower,
     actorId: '4',
     recipientId,
   })
-  console.log(bundleables)
   return bundleables[0]
 }
 
