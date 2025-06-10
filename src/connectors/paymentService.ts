@@ -6,10 +6,14 @@ import type {
   Connections,
   UserHasUsername,
   LANGUAGES,
+  EmailableUser,
+  GQLChain,
+  BlockchainCurationEvent,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
+  NODE_TYPES,
   BLOCKCHAIN_TRANSACTION_STATE,
   NOTICE_TYPE,
   INVITATION_STATE,
@@ -18,23 +22,44 @@ import {
   PRICE_STATE,
   SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
-  TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
+  BLOCKCHAIN_CHAINID,
+  BLOCKCHAIN_CHAINNAME,
+  BLOCKCHAIN_SAFE_CONFIRMS,
+  TRANSACTION_STATE,
+  TRANSACTION_REMARK,
 } from '#common/enums/index.js'
+import { contract } from '#common/environment.js'
 import { ServerError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { getUTC8Midnight, numRound } from '#common/utils/index.js'
+import {
+  CurationContract,
+  type CurationEvent,
+  type CurationTxReceipt,
+  type Log,
+} from '#connectors/blockchain/curation.js'
+import {
+  CurationVaultContract,
+  CurationVaultEvent,
+} from '#connectors/blockchain/curationVault.js'
 import {
   ArticleService,
   BaseService,
   NotificationService,
 } from '#connectors/index.js'
+import { stripe } from '#connectors/stripe/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import slugify from '@matters/slugify'
+import _capitalize from 'lodash/capitalize.js'
 import { v4 } from 'uuid'
-
-import { stripe } from './stripe/index.js'
+import { formatUnits, parseUnits } from 'viem'
 
 const logger = getLogger('service-payment')
+
+export type PaymentParams = {
+  txId: string
+}
 
 export class PaymentService extends BaseService<Transaction> {
   public stripe: typeof stripe
@@ -229,7 +254,7 @@ export class PaymentService extends BaseService<Transaction> {
       const articleService = new ArticleService(this.connections)
       articleVersionId = (
         await articleService.loadLatestArticleVersion(targetId)
-      ).id
+      )?.id
     }
 
     return this.baseCreate(
@@ -388,22 +413,18 @@ export class PaymentService extends BaseService<Transaction> {
   }
 
   // Update blockchain_transaction's state by given id
-  public markBlockchainTransactionStateAs = async (
-    {
-      id,
-      state,
-    }: {
-      id: string
-      state: BLOCKCHAIN_TRANSACTION_STATE
-    },
-    trx?: Knex.Transaction
-  ) =>
-    this.baseUpdate<BlockchainTransaction>(
-      id,
-      { state },
-      'blockchain_transaction',
-      trx
-    )
+  public markBlockchainTransactionStateAs = async ({
+    id,
+    state,
+  }: {
+    id: string
+    state: BLOCKCHAIN_TRANSACTION_STATE
+  }) =>
+    this.models.update({
+      table: 'blockchain_transaction',
+      where: { id },
+      data: { state },
+    })
 
   // Update transaction's state by given id
   public markTransactionStateAs = async (
@@ -1241,4 +1262,677 @@ export class PaymentService extends BaseService<Transaction> {
       column,
     }
   }
+
+  /****************************************************
+   *                                                  *
+   *           Blockchain Payment Logic              *
+   *                                                  *
+   ****************************************************/
+
+  /**
+   * Process a payment transaction
+   *
+   * 1. Mark tx as succeeded if tx is mined;
+   * 2. Mark tx as failed if blockchain tx or tx is reverted;
+   * 3. Skip to process if tx is not found or mined;
+   */
+  public payToBlockchain = async (
+    params: PaymentParams,
+    fetchTxReceipt?: (
+      txHash: `0x${string}`
+    ) => Promise<CurationTxReceipt | null>
+  ) => {
+    const { txId } = params
+
+    // skip if tx is not found
+    const tx = await this.models.findUnique({
+      table: 'transaction',
+      where: { id: txId },
+    })
+    if (!tx) {
+      throw new Error('pay-to pending tx not found')
+    }
+    if (tx.provider !== PAYMENT_PROVIDER.blockchain) {
+      throw new Error('wrong pay-to queue')
+    }
+
+    // skip if blockchain tx is not found
+    const blockchainTx = await this.knex<BlockchainTransaction>(
+      'blockchain_transaction'
+    )
+      .where({ id: tx.providerTxId })
+      .first()
+
+    if (!blockchainTx) {
+      throw new Error('blockchain transaction not found')
+    }
+
+    const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
+    const curation = new CurationContract(BLOCKCHAIN_CHAINID[chain])
+    const curationVault = new CurationVaultContract()
+
+    // vault contract only for recipient w/o ETH address
+    const recipient = await this.models.findUnique({
+      table: 'user',
+      where: { id: tx.recipientId },
+    })
+
+    const isVaultCuration = !recipient.ethAddress
+    const txReceipt = fetchTxReceipt
+      ? await fetchTxReceipt(blockchainTx.txHash)
+      : await (isVaultCuration ? curationVault : curation).fetchTxReceipt(
+          blockchainTx.txHash
+        )
+
+    // update metadata blockchain tx
+    if (txReceipt) {
+      await this.models.update({
+        table: 'blockchain_transaction',
+        where: { id: blockchainTx.id },
+        data: {
+          from: txReceipt.from, // curator address
+          to: txReceipt.to, // contract address
+          blockNumber: txReceipt.blockNumber.toString(),
+        },
+      })
+    } else {
+      // skip if tx is not mined
+      throw new Error('blockchain transaction not mined')
+    }
+
+    // fail both tx and blockchain tx if it's reverted
+    if (txReceipt.reverted) {
+      await this.updateTxAndBlockchainTxState({
+        txId,
+        txState: TRANSACTION_STATE.failed,
+        blockchainTxId: blockchainTx.id,
+        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.reverted,
+      })
+      return params
+    }
+
+    const [sender, article] = await Promise.all([
+      tx.senderId
+        ? this.models.findUnique({
+            table: 'user',
+            where: { id: tx.senderId },
+          })
+        : null,
+      this.models.findUnique({
+        table: 'article',
+        where: { id: tx.targetId },
+      }),
+    ])
+
+    if (!article) {
+      throw new Error(`Article not found: ${tx.targetId}`)
+    }
+
+    const articleVersions = await this.models.findMany({
+      table: 'article_version',
+      where: {
+        articleId: article.id,
+      },
+    })
+    const articleCids = articleVersions.map((v) => v.dataHash)
+
+    // cancel tx and success blockchain tx if it's invalid
+    // Note: sender and recipient's ETH address may change after tx is created
+    const isValidTx = await this.containMatchedEvent(txReceipt.events, {
+      cids: articleCids.filter((cid) => cid !== null),
+      shortHash: article.shortHash,
+      amount: tx.amount,
+      // support USDT only for now
+      tokenAddress: contract[chain].tokenAddress,
+      decimals: contract[chain].tokenDecimals,
+    })
+    if (!isValidTx) {
+      await this.updateTxAndBlockchainTxState({
+        txId,
+        txState: TRANSACTION_STATE.canceled,
+        txRemark: TRANSACTION_REMARK.INVALID,
+        blockchainTxId: blockchainTx.id,
+        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+      })
+      return params
+    }
+
+    // anonymize tx if sender's ETH address is not matched
+    const isSenderMatched = txReceipt.events
+      .map((e: any) => e.curatorAddress)
+      .every((address: string) =>
+        ignoreCaseMatch(address, sender?.ethAddress || '')
+      )
+    if (!isSenderMatched) {
+      await this.models.update({
+        table: 'transaction',
+        where: { id: tx.id },
+        data: { senderId: null },
+      })
+    }
+
+    // success both tx and blockchain tx if it's valid
+    await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
+
+    // notify recipient and sender (if needed)
+    await this.notifyDonation({
+      tx,
+      sender: isSenderMatched ? (sender as EmailableUser) : undefined,
+      recipient: recipient as EmailableUser,
+      article,
+    })
+
+    await this.invalidCache(tx.targetType, tx.targetId)
+    return params
+  }
+
+  /**
+   * Sync curation events from blockchain
+   */
+  public handleSyncCurationEvents = async (chain: GQLChain) => {
+    const results: number[] = []
+
+    try {
+      const curation = new CurationContract(BLOCKCHAIN_CHAINID[chain])
+      results.push(await this._handleSyncCurationEvents(chain, curation))
+    } catch (error) {
+      console.error('Failed to sync curation events', error)
+      throw error
+    }
+
+    try {
+      const curationVault = new CurationVaultContract()
+      results.push(await this._handleSyncCurationEvents(chain, curationVault))
+    } catch (error) {
+      console.error('Failed to sync curation vault events', error)
+      throw error
+    }
+
+    return results
+  }
+
+  private _handleSyncCurationEvents = async (
+    chain: GQLChain,
+    curation: CurationContract | CurationVaultContract
+  ) => {
+    const chainId = BLOCKCHAIN_CHAINID[chain]
+
+    // fetch events
+    const record = await this.models.findFirst({
+      table: 'blockchain_sync_record',
+      where: { chainId, contractAddress: curation.address },
+    })
+    const oldSavepoint = record
+      ? BigInt(parseInt(record.blockNumber, 10))
+      : BigInt(parseInt(curation.blockNum, 10) || 0)
+    const [logs, newSavepoint] = await this.fetchCurationLogs(
+      curation,
+      oldSavepoint
+    )
+
+    // update tx state and save events
+    await this._syncCurationEvents(logs, chain)
+
+    // save progress
+    const updated = await this.models.update({
+      table: 'blockchain_sync_record',
+      where: { chainId, contractAddress: curation.address },
+      data: {
+        blockNumber: newSavepoint.toString(),
+        updatedAt: new Date(),
+      },
+    })
+    if (!updated) {
+      await this.models.create({
+        table: 'blockchain_sync_record',
+        data: {
+          chainId,
+          contractAddress: curation.address,
+          blockNumber: newSavepoint.toString(),
+          updatedAt: new Date(),
+        },
+      })
+    }
+
+    return Number(newSavepoint)
+  }
+
+  // Helper functions
+  private handleNewEvent = async (
+    event: CurationEvent | CurationVaultEvent,
+    chain: GQLChain,
+    blockchainTx: {
+      id: string
+      transactionId: string | null
+      state: string
+    }
+  ) => {
+    // skip if blockchain tx is already resolved
+    if (
+      blockchainTx.transactionId &&
+      blockchainTx.state === BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    ) {
+      return
+    }
+
+    // skip if token address or uri is invalid
+    // support USDT only for now
+    if (
+      !ignoreCaseMatch(
+        event.tokenAddress || '',
+        contract[chain].tokenAddress
+      ) ||
+      !isValidUri(event.uri)
+    ) {
+      return
+    }
+
+    // skip if recipient or article is not found
+    const creatorUser =
+      'creatorAddress' in event // from curation contract
+        ? await this.findByEthAddress(event.creatorAddress)
+        : 'creatorId' in event && event.creatorId // from curation vault contract
+        ? await this.models.findFirst({
+            table: 'user',
+            where: { id: event.creatorId },
+          })
+        : undefined
+    if (!creatorUser) {
+      return
+    }
+    const { cid, shortHash } = extractCidOrShortHash(event.uri)
+    const articleVersion = cid
+      ? await this.models.findFirst({
+          table: 'article_version',
+          where: { dataHash: cid },
+        })
+      : undefined
+    const article = articleVersion
+      ? await this.models.findFirst({
+          table: 'article',
+          where: {
+            id: articleVersion?.articleId,
+            authorId: creatorUser.id,
+          },
+        })
+      : shortHash
+      ? await this.models.findFirst({
+          table: 'article',
+          where: { shortHash },
+        })
+      : undefined
+
+    if (!article) {
+      return
+    }
+
+    const amount = parseFloat(
+      formatUnits(BigInt(event.amount), contract[chain].tokenDecimals)
+    )
+    let tx
+
+    // can find via `blockchainTx.transactionId`
+    // for tx that is created by `payTo` mutation previously
+    // but haven't resolved by `handlePayTo`
+    if (blockchainTx.transactionId) {
+      tx = await this.models.findFirst({
+        table: 'transaction',
+        where: { id: blockchainTx.transactionId },
+      })
+    }
+
+    // can find via `blockchainTx.id`
+    // for tx that is created by `payTo` mutation previously
+    // but linked to the wrong blockchainTx
+    if (!tx) {
+      tx = await this.models.findFirst({
+        table: 'transaction',
+        where: {
+          provider: PAYMENT_PROVIDER.blockchain,
+          providerTxId: blockchainTx.id,
+        },
+      })
+
+      // correct `blockchainTx.transactionId`
+      if (tx) {
+        await this.models.update({
+          table: 'blockchain_transaction',
+          where: { id: blockchainTx.id },
+          data: { transactionId: String(tx.id) },
+        })
+
+        // skip if tx is already resolved
+        if (tx.state === TRANSACTION_STATE.succeeded) {
+          return
+        }
+      }
+    }
+
+    // can find via matching the tx data (amount, sender, recipient, etc.)
+    // for sender who fails to request the settlement `payTo` mutation
+    if (!tx) {
+      const senderUser = await this.findByEthAddress(event.curatorAddress)
+      tx = await this.models.findFirst({
+        table: 'transaction',
+        where: {
+          amount: amount.toString(),
+          state: TRANSACTION_STATE.pending,
+          purpose: TRANSACTION_PURPOSE.donation,
+          currency: PAYMENT_CURRENCY.USDT,
+          provider: PAYMENT_PROVIDER.blockchain,
+          recipientId: creatorUser.id,
+          senderId: senderUser?.id,
+          targetId: article.id,
+        },
+      })
+
+      // correct `blockchainTx.transactionId` and `tx.providerId`
+      if (tx) {
+        await Promise.all([
+          this.models.update({
+            table: 'blockchain_transaction',
+            where: { id: blockchainTx.id },
+            data: { transactionId: String(tx.id) },
+          }),
+          this.models.update({
+            table: 'transaction',
+            where: { id: tx.id },
+            data: { providerTxId: blockchainTx.id },
+          }),
+        ])
+      }
+    }
+
+    if (tx) {
+      // correct invalid tx
+      // e.g. sender changes the amount on MetaMask
+      const isValidTx =
+        tx.targetId === article.id &&
+        parseUnits(tx.amount, contract[chain].tokenDecimals).toString() ===
+          event.amount
+
+      if (!isValidTx) {
+        await this.models.update({
+          table: 'transaction',
+          where: { id: tx.id },
+          data: {
+            amount: amount.toString(),
+            targetId: article.id,
+            currency: PAYMENT_CURRENCY.USDT,
+            provider: PAYMENT_PROVIDER.blockchain,
+            providerTxId: blockchainTx.id,
+          },
+        })
+      }
+
+      // success both tx and blockchain tx
+      await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
+    } else {
+      // still no related tx record, create a new one with anonymous sender
+      // for sender who interacts with contract directly
+      const trx = await this.knex.transaction()
+      try {
+        const newTx = {
+          amount: amount.toString(),
+          state: TRANSACTION_STATE.succeeded,
+          purpose: TRANSACTION_PURPOSE.donation,
+          currency: PAYMENT_CURRENCY.USDT,
+          provider: PAYMENT_PROVIDER.blockchain,
+          providerTxId: blockchainTx.id,
+          recipientId: creatorUser.id,
+          senderId: null, // anonymize sender
+          targetId: article.id,
+        }
+
+        const [id] = await this.knex<Transaction>('transaction')
+          .insert(newTx)
+          .returning('id')
+          .transacting(trx)
+
+        // tx = { id, ...newTx }
+
+        await this.knex<BlockchainTransaction>('blockchain_transaction')
+          .where({ id: blockchainTx.id })
+          .update({ transactionId: String(id) })
+          .transacting(trx)
+
+        await trx.commit()
+      } catch (error) {
+        await trx.rollback()
+        throw error
+      }
+    }
+
+    if (creatorUser.userName && creatorUser.email) {
+      await this.notifyDonation({
+        tx: tx!,
+        recipient: creatorUser as EmailableUser,
+        article,
+      })
+    }
+
+    if (tx) {
+      await this.invalidCache(tx.targetType, tx.targetId)
+    }
+  }
+
+  private _syncCurationEvents = async (
+    logs: Array<Log<CurationEvent | CurationVaultEvent>>,
+    chain: GQLChain
+  ) => {
+    const chainId = BLOCKCHAIN_CHAINID[chain]
+    const curation = new CurationContract(chainId)
+    const curationVault = new CurationVaultContract()
+
+    // save events to `blockchain_curation_event`
+    const events: Array<CurationEvent | CurationVaultEvent> = []
+    for (const log of logs) {
+      // skip if event is removed
+      if (log.removed) {
+        continue
+      }
+
+      const isCurationVaultEvent = 'creatorId' in log.event
+      const data: (CurationEvent | CurationVaultEvent) & {
+        blockchainTransactionId?: string
+        contractAddress?: string
+      } = { ...log.event }
+
+      // Find or create blockchain transaction
+      const existingTx = await this.models.findFirst({
+        table: 'blockchain_transaction',
+        where: { chainId, txHash: log.txHash as `0x${string}` },
+      })
+
+      let blockchainTx: BlockchainTransaction
+      if (existingTx) {
+        blockchainTx = existingTx
+      } else {
+        blockchainTx = await this.models.create({
+          table: 'blockchain_transaction',
+          data: {
+            chainId,
+            txHash: log.txHash as `0x${string}`,
+            state: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+            from: log.event.curatorAddress as `0x${string}`,
+            to: isCurationVaultEvent ? curationVault.address : curation.address,
+            blockNumber: log.blockNumber.toString(),
+            transactionId: null,
+          },
+        })
+      }
+
+      data.blockchainTransactionId = blockchainTx.id
+      data.contractAddress = log.address
+
+      // correct tx if needed
+      try {
+        await this.handleNewEvent(log.event, chain, blockchainTx)
+      } catch (error) {
+        console.error('Failed to handle new event', error)
+      }
+
+      events.push(data)
+    }
+
+    if (events.length > 0) {
+      // Batch create blockchain curation events
+      await this.knex<BlockchainCurationEvent>(
+        'blockchain_curation_event'
+      ).insert(events)
+    }
+  }
+
+  private fetchCurationLogs = async (
+    curation: CurationContract | CurationVaultContract,
+    savepoint: bigint
+  ): Promise<[Array<Log<CurationEvent | CurationVaultEvent>>, bigint]> => {
+    const safeBlockNum =
+      BigInt(await curation.fetchBlockNumber()) -
+      BigInt(BLOCKCHAIN_SAFE_CONFIRMS[BLOCKCHAIN_CHAINNAME[curation.chainId]])
+
+    const fromBlockNum = savepoint + BigInt(1)
+
+    if (fromBlockNum >= safeBlockNum) {
+      return [[], BigInt(savepoint)]
+    }
+    return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
+  }
+
+  private updateTxAndBlockchainTxState = async ({
+    txId,
+    txState,
+    txRemark,
+    blockchainTxId,
+    blockchainTxState,
+  }: {
+    txId: string
+    txState: TRANSACTION_STATE
+    txRemark?: string
+    blockchainTxId: string
+    blockchainTxState: string
+  }) => {
+    const trx = await this.knex.transaction()
+    try {
+      // Update transaction state
+      await this.knex<Transaction>('transaction')
+        .where({ id: txId })
+        .update({
+          state: txState,
+          remark: txRemark,
+          updatedAt: new Date(),
+        })
+        .transacting(trx)
+
+      // Update blockchain transaction state
+      await this.knex<BlockchainTransaction>('blockchain_transaction')
+        .where({ id: blockchainTxId })
+        .update({
+          state: blockchainTxState,
+          updatedAt: new Date(),
+        })
+        .transacting(trx)
+
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+  }
+
+  private succeedBothTxAndBlockchainTx = async (
+    txId: string,
+    blockchainTxId: string
+  ) => {
+    await this.updateTxAndBlockchainTxState({
+      txId,
+      txState: TRANSACTION_STATE.succeeded,
+      blockchainTxId,
+      blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+    })
+  }
+
+  private containMatchedEvent = async (
+    events: CurationEvent[] | CurationVaultEvent[],
+    {
+      cids,
+      shortHash,
+      tokenAddress,
+      amount,
+      decimals,
+    }: {
+      cids: string[]
+      shortHash: string
+      tokenAddress: string
+      amount: string
+      decimals: number
+    }
+  ) => {
+    if (events.length === 0) {
+      return false
+    }
+
+    for (const event of events) {
+      const { cid: eventCid, shortHash: eventShortHash } =
+        extractCidOrShortHash(event.uri)
+      const isCidMatch = eventCid ? cids.includes(eventCid) : false
+      const isShortHashMatch = eventShortHash
+        ? shortHash === eventShortHash
+        : false
+
+      if (
+        ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
+        event.amount === parseUnits(amount, decimals).toString() &&
+        isValidUri(event.uri) &&
+        (isCidMatch || isShortHashMatch)
+      ) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  private invalidCache = async (targetTypeId: string, targetId: string) => {
+    // manually invalidate cache
+    if (targetTypeId) {
+      const entity = await this.baseFindEntityTypeTable(targetTypeId)
+      const entityType = _capitalize(entity?.table) as NODE_TYPES
+      if (entityType) {
+        await invalidateFQC({
+          node: { type: entityType, id: targetId },
+          redis: this.redis,
+        })
+      }
+    }
+  }
+  private findByEthAddress = async (ethAddress: string) =>
+    this.models.findFirst({
+      table: 'user',
+      where: { ethAddress },
+    })
+}
+
+const ignoreCaseMatch = (a: string, b: string) =>
+  a.toLowerCase() === b.toLowerCase()
+
+const isValidUri = (uri: string): boolean =>
+  /^ipfs:\/\//.test(uri) ||
+  new RegExp(`^https://${process.env.MATTERS_SITE_DOMAIN}/a/[\\w-]+$`).test(uri)
+
+const extractCidOrShortHash = (
+  uri: string
+): { cid?: string; shortHash?: string } => {
+  // ipfs://{cid}
+  if (uri.startsWith('ipfs://')) {
+    return { cid: uri.replace('ipfs://', '') }
+  }
+
+  // https://matters.town/a/{shortHash}
+  if (uri.startsWith('https://')) {
+    const shortHash = uri.split('/').pop()?.split('?')[0]
+    return { shortHash }
+  }
+
+  return {}
 }
