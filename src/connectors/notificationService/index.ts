@@ -17,7 +17,6 @@ import type {
 import type { Knex } from 'knex'
 
 import {
-  DAY,
   MONTH,
   QUEUE_URL,
   CACHE_TTL,
@@ -36,7 +35,7 @@ import { mail } from './mail/index.js'
 import trans from './translations.js'
 import { mergeDataWith } from './utils.js'
 
-const { isEqual, uniqBy } = _
+const { isEqual } = _
 
 const logger = getLogger('service-notification')
 
@@ -281,7 +280,7 @@ export class NotificationService {
   /**
    * Find notices with detail
    */
-  private findDetail = async ({
+  public findDetail = async ({
     where,
     whereIn,
     skip,
@@ -339,7 +338,7 @@ export class NotificationService {
   /**
    * Find notice entities by a given notice id
    */
-  private findEntities = async (
+  public findEntities = async (
     noticeId: string,
     expand = true
   ): Promise<NoticeEntity[] | NoticeEntitiesMap> => {
@@ -968,86 +967,6 @@ export class NotificationService {
   }
   private findNotifySetting = async (userId: string) =>
     this.knexRO('user_notify_setting').select().where({ userId }).first()
-
-  public findDailySummaryUsers = async (): Promise<User[]> => {
-    const recipients = await this.knexRO('notice')
-      .select('user.*')
-      .where({
-        unread: true,
-        deleted: false,
-        'user_notify_setting.enable': true,
-        'user_notify_setting.email': true,
-      })
-      .where(
-        'notice.updated_at',
-        '>=',
-        this.knex.raw(`now() -  interval '1 days'`)
-      )
-      .join('user', 'user.id', 'recipient_id')
-      .join(
-        'user_notify_setting',
-        'user_notify_setting.user_id',
-        'recipient_id'
-      )
-      .groupBy('user.id')
-
-    return recipients
-  }
-
-  public findDailySummaryNoticesByUser = async (
-    userId: string
-  ): Promise<NoticeItem[]> => {
-    const validNoticeTypes: NotificationType[] = [
-      NOTICE_TYPE.user_new_follower,
-      NOTICE_TYPE.article_new_collected,
-      NOTICE_TYPE.article_new_appreciation,
-      NOTICE_TYPE.article_new_subscriber,
-      NOTICE_TYPE.article_new_comment,
-      NOTICE_TYPE.article_mentioned_you,
-      NOTICE_TYPE.comment_new_reply,
-      NOTICE_TYPE.article_comment_mentioned_you,
-    ]
-    const noticeDetails = await this.findDetail({
-      where: [
-        [{ recipientId: userId, deleted: false, unread: true }],
-        [
-          'notice.updated_at',
-          '>=',
-          this.knex.raw(`now() -  interval '1 days'`),
-        ],
-      ],
-      whereIn: ['notice_detail.notice_type', validNoticeTypes],
-    })
-
-    const notices = await Promise.all(
-      noticeDetails.map(async (n: NoticeDetail) => {
-        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
-        const actors = (await this.findActors(n.id)).filter(
-          (actor) =>
-            new Date(actor.noticeActorCreatedAt) >=
-            new Date(Date.now() - DAY * 1)
-        )
-
-        return {
-          ...n,
-          createdAt: n.updatedAt,
-          type: n.noticeType,
-          actors,
-          entities,
-        }
-      })
-    )
-
-    const uniqNotices = uniqBy(notices, (n) => {
-      const actors = n.actors.map(({ id }) => id).join('')
-      const entities = `${n?.entities?.target?.id || ''}`
-      const uniqId = `type:${n.type}::actors:${actors}::entities:${entities}`
-
-      return uniqId
-    })
-
-    return uniqNotices
-  }
 }
 
 const shouldBeUnreachable = (value: never) =>
