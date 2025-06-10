@@ -177,6 +177,7 @@ export const environment = {
     process.env.MATTERS_USER_RETENTION_INTERVAL_IN_DAYS || '6',
     10
   ),
+  subscriptionTrialExpire: process.env.MATTERS_SUBSCRIPTION_TRIAL_EXPIRE || '',
 }
 
 export const contract = {

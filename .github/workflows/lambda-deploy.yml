@@ -252,3 +252,51 @@ jobs:
             sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:user-retention-sendmail-${{ env.SQS_ENV }},
             sqsBatchSize=1,
             sqsMaxBatchingWindowInSeconds=1
+
+  deploy-payment-cancel-timeout-transactions:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: payment-cancel-timeout-transactions-${{ inputs.environment }}
+          template: ./deployment/lambda/cronjob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=paymentCancelTimeoutTransactions.handler,
+            lambdaTimeout=120,
+            lambdaMemorySize=128,
+            cronExpression="rate(30 minutes)"
+
+  deploy-transfer-trial-end-subscriptions:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: transfer-trial-end-subscriptions-${{ inputs.environment }}
+          template: ./deployment/lambda/cronjob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=transferTrialEndSubscriptions.handler,
+            lambdaTimeout=60,
+            lambdaMemorySize=128,
+            cronExpression="rate(12 hours)"
