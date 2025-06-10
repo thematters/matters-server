@@ -529,7 +529,7 @@ export class UserRetentionService {
   ): Promise<RecommendedArticle[]> => {
     const query = this.knexRO('article')
       .select('article.id', 'avn.title', 'u.display_name', 'article.short_hash')
-      .join('article_version as avn', 'article.id', 'avn.article_id')
+      .join('article_version_newest as avn', 'article.id', 'avn.article_id')
       .join('user as u', 'article.author_id', 'u.id')
       .where('article.created_at', '>=', lastSeen)
       .whereIn('article.author_id', targetAuthorIds)
