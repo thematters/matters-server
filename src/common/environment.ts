@@ -102,6 +102,7 @@ export const environment = {
   objectCachePort: (process.env.MATTERS_OBJECT_CACHE_PORT || 6379) as number,
   mattyId: process.env.MATTERS_MATTY_ID || '',
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
+  newFeatureTagId: process.env.MATTERS_NEW_FEATURE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
