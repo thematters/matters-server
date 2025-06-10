@@ -571,6 +571,13 @@ export interface NoticeDetail {
   createdAt: Date
 }
 
+export interface NoticeActor {
+  id: string
+  noticeId: string
+  actorId: string
+  createdAt: Date
+}
+
 export interface NoticeEntity {
   id: string
   type: NoticeEntityType

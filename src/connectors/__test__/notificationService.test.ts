@@ -199,16 +199,6 @@ describe('bundle notices', () => {
   })
 })
 
-describe('find users', () => {
-  test('findDailySummaryUsers', async () => {
-    const users = await notificationService.findDailySummaryUsers()
-    expect(users.length).toBeGreaterThanOrEqual(1)
-  })
-  test('findDailySummaryNoticesByUser', async () => {
-    await notificationService.findDailySummaryNoticesByUser('1')
-  })
-})
-
 describe('trigger notifications', () => {
   test('trigger `write_challenge_applied` notice', async () => {
     const [{ id: campaignId }] = await connections

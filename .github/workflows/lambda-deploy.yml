@@ -203,6 +203,30 @@ jobs:
             lambdaMemorySize=512,
             cronExpression="rate(30 minutes)"
 
+  deploy-daily-summary-email:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: daily-summary-email-${{ inputs.environment }}
+          template: ./deployment/lambda/cronjob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=dailySummaryEmail.handler,
+            lambdaTimeout=900,
+            lambdaMemorySize=256,
+            cronExpression="cron(0 1 * * ? *)"
+
   deploy-user-retention:
     needs: build-lambda-image
     runs-on: ubuntu-latest
