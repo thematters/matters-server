@@ -7,7 +7,7 @@ import { connections } from '../connections.js'
 const userRetentionService = new UserRetentionService(connections)
 
 export const handler = async () => {
-  const client = new SQS({ region: process.env.AWS_REGIONAWS_REGION })
+  const client = new SQS({ region: process.env.AWS_REGION })
   const sendmail: SendmailFn = async (userId, lastSeen, type) => {
     try {
       await client.send(
