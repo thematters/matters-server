@@ -171,6 +171,12 @@ export const environment = {
     process.env.MATTERS_DELETE_NOTICE_CACHE_TTL || '180',
     10
   ), // 3 minutes by default
+  userRetentionSendmailQueueUrl:
+    process.env.MATTERS_USER_RETENTION_SENDMAIL_QUEUE_URL || '',
+  userRetentionIntervalInDays: parseInt(
+    process.env.MATTERS_USER_RETENTION_INTERVAL_IN_DAYS || '6',
+    10
+  ),
 }
 
 export const contract = {
