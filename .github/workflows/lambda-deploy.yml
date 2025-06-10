@@ -167,7 +167,7 @@ jobs:
       - name: Deploy Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: notify-${{ inputs.environment }}
+          name: blockchain-payment-${{ inputs.environment }}
           template: ./deployment/lambda/queuejob.yml
           parameter-overrides: >-
             mattersEnv=${{ env.MATTERS_ENV }},
@@ -193,7 +193,7 @@ jobs:
       - name: Deploy Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: scheduled-publish-${{ inputs.environment }}
+          name: sync-blockchain-events-${{ inputs.environment }}
           template: ./deployment/lambda/cronjob.yml
           parameter-overrides: >-
             mattersEnv=${{ env.MATTERS_ENV }},
