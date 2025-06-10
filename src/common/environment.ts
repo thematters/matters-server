@@ -102,6 +102,7 @@ export const environment = {
   objectCachePort: (process.env.MATTERS_OBJECT_CACHE_PORT || 6379) as number,
   mattyId: process.env.MATTERS_MATTY_ID || '',
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
+  newFeatureTagId: process.env.MATTERS_NEW_FEATURE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
@@ -170,6 +171,12 @@ export const environment = {
     process.env.MATTERS_DELETE_NOTICE_CACHE_TTL || '180',
     10
   ), // 3 minutes by default
+  userRetentionSendmailQueueUrl:
+    process.env.MATTERS_USER_RETENTION_SENDMAIL_QUEUE_URL || '',
+  userRetentionIntervalInDays: parseInt(
+    process.env.MATTERS_USER_RETENTION_INTERVAL_IN_DAYS || '6',
+    10
+  ),
 }
 
 export const contract = {

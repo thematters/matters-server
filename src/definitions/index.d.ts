@@ -157,6 +157,7 @@ export * from './translation.js'
 export * from './channel.js'
 export * from './nominal.js'
 export * from './feedback.js'
+export * from './userRetention.js'
 
 export interface Context extends BasedContext {
   viewer: Viewer
