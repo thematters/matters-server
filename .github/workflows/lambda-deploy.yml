@@ -123,6 +123,8 @@ jobs:
             mattersEnv=${{ env.MATTERS_ENV }},
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=scheduledPublish.handler,
+            lambdaTimeout=900,
+            lambdaMemorySize=512,
             cronExpression="rate(5 minutes)"
 
   deploy-notify:
@@ -150,3 +152,53 @@ jobs:
             sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:notice-${{ env.SQS_ENV }},
             sqsBatchSize=2,
             sqsMaxBatchingWindowInSeconds=2
+
+  deploy-blockchain-payment:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: notify-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=blockchainPayment.handler,
+            lambdaTimeout=10,
+            lambdaMemorySize=256,
+            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:blockchain-payment-${{ env.SQS_ENV }},
+            sqsBatchSize=10,
+            sqsMaxBatchingWindowInSeconds=0
+
+  deploy-sync-blockchain-events:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: scheduled-publish-${{ inputs.environment }}
+          template: ./deployment/lambda/cronjob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=syncBlockchainEvents.handler,
+            lambdaTimeout=300,
+            lambdaMemorySize=512,
+            cronExpression="rate(30 minutes)"
