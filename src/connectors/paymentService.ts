@@ -28,8 +28,9 @@ import {
   BLOCKCHAIN_SAFE_CONFIRMS,
   TRANSACTION_STATE,
   TRANSACTION_REMARK,
+  SUBSCRIPTION_ITEM_REMARK,
 } from '#common/enums/index.js'
-import { contract } from '#common/environment.js'
+import { contract, environment } from '#common/environment.js'
 import { ServerError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { getUTC8Midnight, numRound } from '#common/utils/index.js'
@@ -797,11 +798,194 @@ export class PaymentService extends BaseService<Transaction> {
     return Math.floor(amount) === splitTotal
   }
 
+  public cancelTimeoutTransactions = async () =>
+    await this.knex('transaction')
+      .update({
+        state: TRANSACTION_STATE.canceled,
+        remark: TRANSACTION_REMARK.TIME_OUT,
+      })
+      .where(
+        'created_at',
+        '<',
+        this.knex.raw(`now() - ('30 minutes'::interval)`)
+      )
+      .andWhere({ state: TRANSACTION_STATE.pending })
+      .whereNotIn('purpose', [
+        TRANSACTION_PURPOSE.payout,
+        TRANSACTION_PURPOSE.dispute,
+      ])
+
   /*********************************
    *                               *
    *         Subscription          *
    *                               *
    *********************************/
+  public transferTrialEndSubscriptions = async () => {
+    // obtain trial end subscription items from the past 30 days
+    const trialEndSubItems = await this.knex
+      .select(
+        'csi.id',
+        'csi.subscription_id',
+        'csi.user_id',
+        'csi.price_id',
+        'circle_price.provider_price_id',
+        'circle_price.circle_id',
+        'expired_ivts.id as invitation_id'
+      )
+      .from(
+        this.knex('circle_invitation')
+          .select(
+            '*',
+            this.knex.raw(
+              `accepted_at + ${
+                environment.subscriptionTrialExpire
+                  ? environment.subscriptionTrialExpire
+                  : "duration_in_days * '1 day'"
+              }::interval AS ended_at`
+            )
+          )
+          .where({ state: INVITATION_STATE.accepted })
+          .whereNotNull('subscription_item_id')
+          .as('expired_ivts')
+      )
+      .leftJoin(
+        'circle_subscription_item as csi',
+        'csi.id',
+        'expired_ivts.subscription_item_id'
+      )
+      .leftJoin('circle_price', 'circle_price.id', 'csi.price_id')
+      .where({
+        'csi.provider': PAYMENT_PROVIDER.matters,
+        'csi.archived': false,
+        'circle_price.state': PRICE_STATE.active,
+      })
+      .andWhere('ended_at', '>', this.knex.raw(`now() - interval '1 months'`))
+      .andWhere('ended_at', '<=', this.knex.raw(`now()`))
+
+    const succeedItemIds = []
+    const failedItemIds = []
+    for (const item of trialEndSubItems) {
+      try {
+        // archive Matters subscription item
+        await this.archiveMattersSubItem({
+          subscriptionId: item.subscriptionId,
+          subscriptionItemId: item.id,
+        })
+
+        // create Stripe subscription item
+        await this.createStripeSubItem({
+          userId: item.userId,
+          priceId: item.priceId,
+          providerPriceId: item.providerPriceId,
+        })
+
+        // mark invitation as `transfer_succeeded`
+        await this.markInvitationAs({
+          invitationId: item.invitationId,
+          state: INVITATION_STATE.transfer_succeeded,
+        })
+
+        succeedItemIds.push(item.id)
+        console.info(`Matters subscription item ${item.id} moved to Stripe.`)
+      } catch (error) {
+        // mark invitation as `transfer_failed`
+        await this.markInvitationAs({
+          invitationId: item.invitationId,
+          state: INVITATION_STATE.transfer_failed,
+        })
+
+        failedItemIds.push(item.id)
+        console.error(error)
+      }
+
+      // invalidate user & circle
+      invalidateFQC({
+        node: { type: NODE_TYPES.User, id: item.userId },
+        redis: this.connections.redis,
+      })
+      invalidateFQC({
+        node: { type: NODE_TYPES.Circle, id: item.circleId },
+        redis: this.connections.redis,
+      })
+    }
+  }
+
+  private archiveMattersSubItem = async ({
+    subscriptionId,
+    subscriptionItemId,
+  }: {
+    subscriptionId: string
+    subscriptionItemId: string
+  }) => {
+    const subItems = await this.knex('circle_subscription_item')
+      .select()
+      .where({ subscriptionId, archived: false })
+
+    // cancel the subscription if only one subscription item left
+    if (subItems.length <= 1) {
+      await this.knex('circle_subscription')
+        .where({ id: subscriptionId })
+        .update({
+          state: SUBSCRIPTION_STATE.canceled,
+          canceledAt: new Date(),
+          updatedAt: new Date(),
+        })
+    }
+
+    await this.knex('circle_subscription_item')
+      .where({ id: subscriptionItemId })
+      .update({
+        archived: true,
+        updatedAt: new Date(),
+        canceledAt: new Date(),
+        remark: SUBSCRIPTION_ITEM_REMARK.trial_end,
+      })
+  }
+
+  private createStripeSubItem = async ({
+    userId,
+    priceId,
+    providerPriceId,
+  }: {
+    userId: string
+    priceId: string
+    providerPriceId: string
+  }) => {
+    // retrieve user customer and subscriptions
+    const customer = await this.knex('customer')
+      .select()
+      .where({
+        userId,
+        provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
+      })
+      .first()
+    const subscriptions = await this.findActiveSubscriptions({
+      userId,
+    })
+
+    if (!customer || !customer.cardLast4) {
+      throw new Error('Credit card is required on customer')
+    }
+
+    await this.createSubscriptionOrItem({
+      userId,
+      priceId,
+      providerPriceId,
+      providerCustomerId: customer.customerId,
+      subscriptions,
+    })
+  }
+
+  private markInvitationAs = async ({
+    invitationId,
+    state,
+  }: {
+    invitationId: string
+    state: INVITATION_STATE
+  }) =>
+    this.knex('circle_invitation').where({ id: invitationId }).update({ state })
+
   /**
    * Check if user is circle member
    */
