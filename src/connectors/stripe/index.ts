@@ -15,6 +15,7 @@ import {
   toProviderAmount,
 } from '#common/utils/index.js'
 import SlackService from '#connectors/slack/index.js'
+import * as Sentry from '@sentry/node'
 import Stripe from 'stripe'
 
 const logger = getLogger('service-stripe')
@@ -48,6 +49,7 @@ class StripeService {
   private handleError(err: Stripe.errors.StripeError) {
     const slack = new SlackService()
 
+    Sentry.captureException(err)
     logger.error(err)
 
     switch (err.code) {

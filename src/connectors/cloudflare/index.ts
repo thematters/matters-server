@@ -2,6 +2,7 @@ import { environment, isProd, isTest } from '#common/environment.js'
 import { ActionFailedError, UserInputError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { GQLAssetType } from '#definitions/index.js'
+import * as Sentry from '@sentry/node'
 import FormData from 'form-data'
 import mime from 'mime-types'
 import path from 'path'
@@ -45,17 +46,9 @@ export class CloudflareService {
     })
 
     try {
-      const resData = await res.json()
-
-      logger.info('upload image: %j', resData)
+      await res.json()
     } catch (err) {
-      logger.error(
-        'error: %o ok: %o headers: %o',
-        err,
-        res.ok,
-        res.headers
-        // await res.text()
-      )
+      Sentry.captureException(err)
       throw err
     }
 
@@ -97,16 +90,9 @@ export class CloudflareService {
     })
 
     try {
-      const resData = await res.json()
-      logger.info('upload image: %j', resData)
+      await res.json()
     } catch (err) {
-      logger.error(
-        'error: %j ok: %j headers: %j',
-        err,
-        res.ok,
-        res.headers
-        // await res.text()
-      )
+      Sentry.captureException(err)
       throw err
     }
     return key
@@ -137,7 +123,6 @@ export class CloudflareService {
         success: boolean
         result: { id: string; uploadURL: string }
       }
-      logger.info('direct upload image: %j', resData)
       if (resData?.success) {
         return {
           key,
@@ -145,13 +130,7 @@ export class CloudflareService {
         }
       }
     } catch (err) {
-      logger.error(
-        'error: %o ok: %o headers: %o',
-        err,
-        res.ok,
-        res.headers
-        // await res.text()
-      )
+      Sentry.captureException(err)
       throw err
     }
   }

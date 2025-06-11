@@ -74,6 +74,7 @@ import {
   DraftService,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import * as Sentry from '@sentry/node'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
@@ -424,6 +425,7 @@ export class ArticleService extends BaseService<Article> {
       _contentMd = contentMd || html2md(content)
     } catch (e) {
       logger.warn('draft %s failed to convert HTML to Markdown', draftId)
+      Sentry.captureException(e)
     }
     let contentMdId
     if (_contentMd) {
@@ -489,6 +491,7 @@ export class ArticleService extends BaseService<Article> {
       return [article, articleVersion]
     } catch (e) {
       await trx.rollback()
+      Sentry.captureException(e)
       throw e
     }
   }
@@ -589,6 +592,7 @@ export class ArticleService extends BaseService<Article> {
           'failed to convert HTML to Markdown for new article version of article %s',
           articleId
         )
+        Sentry.captureException(e)
       }
       if (_contentMd) {
         const { id: _contentMdId } = await this.getOrCreateArticleContent(
@@ -2233,6 +2237,7 @@ export class ArticleService extends BaseService<Article> {
         err,
         draftId: draft.id,
       })
+      Sentry.captureException(err)
     }
 
     // Step 7: trigger notifications
@@ -2284,6 +2289,8 @@ export class ArticleService extends BaseService<Article> {
           return await this.publishArticle(draft.id)
         } catch (err) {
           logger.error(`Failed to publish draft ${draft.id}: ${err}`)
+          Sentry.captureException(err)
+
           return await this.models.update({
             table: 'draft',
             where: { id: draft.id },

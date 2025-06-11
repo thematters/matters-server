@@ -17,6 +17,7 @@ import {
 import { isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { aws, AtomService } from '#connectors/index.js'
+import * as Sentry from '@sentry/node'
 
 import { mail } from './mail/index.js'
 
@@ -58,6 +59,7 @@ export class NotificationService {
       })
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
     }
   }
 

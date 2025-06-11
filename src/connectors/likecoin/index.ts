@@ -12,6 +12,7 @@ import {
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { aws, CacheService } from '#connectors/index.js'
+import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
 import { v4 } from 'uuid'
@@ -185,6 +186,8 @@ export class LikeCoin {
         }
 
         logger.error(err)
+        Sentry.captureException(err)
+
         throw err
       }
     }
@@ -218,6 +221,7 @@ export class LikeCoin {
         })
     } catch (e) {
       logger.error(e)
+      Sentry.captureException(e)
     }
 
     return data.access_token

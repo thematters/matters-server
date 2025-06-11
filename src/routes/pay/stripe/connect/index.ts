@@ -2,6 +2,7 @@ import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { PaymentService, AtomService } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
+import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
@@ -39,6 +40,7 @@ stripeRouter.post('/', async (req, res) => {
     )
   } catch (err: any) {
     logger.error(err)
+    Sentry.captureException(err)
     slack.sendStripeAlert({
       data: {
         id: event?.id,
@@ -79,6 +81,7 @@ stripeRouter.post('/', async (req, res) => {
     }
   } catch (err: any) {
     logger.error(err)
+    Sentry.captureException(err)
     slack.sendStripeAlert({
       data: slackEventData,
       message: `Server error: ${err.message}`,
