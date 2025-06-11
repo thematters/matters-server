@@ -178,6 +178,10 @@ export const environment = {
     10
   ),
   subscriptionTrialExpire: process.env.MATTERS_SUBSCRIPTION_TRIAL_EXPIRE || '',
+  motorBadgeThreshold: parseInt(
+    process.env.MATTERS_MOTOR_BADGE_THRESHOLD || '100',
+    10
+  ),
 }
 
 export const contract = {
