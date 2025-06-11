@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: lambda to cache ahead recommendation-authors db query
+Description: lambda to refresh materialized views
 
 Parameters:
   imageUri:
