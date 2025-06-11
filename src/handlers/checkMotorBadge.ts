@@ -1,28 +1,15 @@
-import type {
-  Context,
-  APIGatewayProxyResult,
-  APIGatewayEvent,
-} from 'aws-lambda'
+import type { APIGatewayProxyResult } from 'aws-lambda'
 
+import { environment } from '#common/environment.js'
 import { BadgeService } from '#connectors/index.js'
 
 import { connections } from '../connections.js'
 
 const badgeService = new BadgeService(connections)
 
-export const handler = async (
-  event: APIGatewayEvent,
-  context: Context
-): Promise<APIGatewayProxyResult> => {
-  console.log(`Event: ${JSON.stringify(event, null, 2)}`)
-  console.log(`Context: ${JSON.stringify(context, null, 2)}`)
-
+export const handler = async (): Promise<APIGatewayProxyResult> => {
   try {
-    const threshold = Math.max(
-      5,
-      Number.parseInt(event?.queryStringParameters?.threshold || '100', 10)
-    )
-    await badgeService.checkMotorBadge(threshold)
+    await badgeService.checkMotorBadge(environment.motorBadgeThreshold)
 
     return {
       statusCode: 200,
