@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: lambda to update exchange rate
+
+Parameters:
+  imageUri:
+    Type: String
+    Description: "The Amazon ECR image URI"
+  mattersEnv:
+    Type: String
+    Description: 'Lambda environment, which will determine the ssm parameter path to query'
+  lambdaCMD:
+    Type: String
+    Description: 'lambda CMD setting'
+  lambdaTimeout:
+    Type: Number
+    Description: 'lambda timeout setting'
+  lambdaMemorySize:
+    Type: Number
+    Description: 'lambda memory size setting'
+
+Conditions:
+  isProd: !Equals
+    - !Ref mattersEnv
+    - "production"
+
+Resources:
+  Lambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        ImageUri: !Ref imageUri
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - !Ref lambdaCMD
+      Environment:
+        Variables:
+          MATTERS_ENV: !Ref mattersEnv
+      Architectures:
+        - x86_64
+      MemorySize: !Ref lambdaMemorySize
+      Timeout: !Ref lambdaTimeout
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !If
+            - isProd
+            - sg-0a1928a3b07644413
+            - sg-08ca5c76639a365d3
+        SubnetIds:
+          - !If
+            - isProd
+            - subnet-0415147ddf68a48f2
+            - subnet-0c6a762428d442ec3
+
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  LambdaRolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref LambdaRole
+      PolicyName: "exchangeRateLambda"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "ssm:GetParameter"
+              - "ssm:GetParametersByPath"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:"
+                - !Ref "AWS::Partition"
+                - ":ssm:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - !If
+                  - isProd
+                  - ":parameter/prod/matters-server/"
+                  - ":parameter/dev/matters-server/"
+
+  CronEvent0:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(20 minutes)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent0LambdaTarget
+          Input: |
+            {
+              "data": {
+                "type": "token"
+              }
+            }
+  CronEvent0Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent0.Arn
+
+  CronEvent1:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent1LambdaTarget
+          Input: |
+            {
+              "data": {
+                "type": "fiat"
+              }
+            }
+  CronEvent1Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent1.Arn
