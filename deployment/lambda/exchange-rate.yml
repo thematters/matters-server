@@ -74,7 +74,7 @@ Resources:
     Properties:
       Roles:
         - !Ref LambdaRole
-      PolicyName: "recommendationCacheAheadLambda"
+      PolicyName: "exchangeRateLambda"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
