@@ -103,6 +103,29 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=recommendationTagsCacheAhead.handler
 
+  deploy-refresh-view:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: refresh-view-${{ inputs.environment }}
+          template: ./deployment/lambda/refresh-view.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=refreshView.handler,
+            lambdaTimeout=300,
+            lambdaMemorySize=128
+
   deploy-scheduled-publish:
     needs: build-lambda-image
     runs-on: ubuntu-latest
