@@ -353,7 +353,7 @@ Resources:
       ScheduleExpression: "rate(1 day)"
       Targets:
         - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent11LambdaTarget
+          Id: CronEvent12LambdaTarget
           Input: |
             {
               "data": {
