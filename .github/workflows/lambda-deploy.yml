@@ -345,6 +345,6 @@ jobs:
             mattersEnv=${{ env.MATTERS_ENV }},
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=checkMotorBadge.handler,
-            lambdaTimeout=60,
+            lambdaTimeout=10,
             lambdaMemorySize=128,
-            cronExpression="rate(12 hours)"
+            cronExpression="rate(1 hour)"
