@@ -18,6 +18,10 @@ Parameters:
   lambdaMemorySize:
     Type: Number
     Description: 'lambda memory size setting'
+  lambdaReservedConcurrency:
+    Type: Number
+    Description: 'The reserved concurrency limit for the Lambda function'
+    Default: 1
 
 Conditions:
   isProd: !Equals
@@ -41,6 +45,7 @@ Resources:
         - x86_64
       MemorySize: !Ref lambdaMemorySize
       Timeout: !Ref lambdaTimeout
+      ReservedConcurrentExecutions: !Ref lambdaReservedConcurrency
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:
