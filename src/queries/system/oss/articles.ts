@@ -13,6 +13,7 @@ export const articles: GQLOssResolvers['articles'] = async (
       userService,
       commentService,
       paymentService,
+      searchService,
     },
   }
 ) => {
@@ -27,6 +28,23 @@ export const articles: GQLOssResolvers['articles'] = async (
       datetimeRange: input?.filter?.datetimeRange,
     })
   }
+
+  const key = input?.filter?.searchKey?.trim()
+  if (key && key.length > 0) {
+    const { nodes: users } = await searchService.searchUsers({
+      key,
+      quicksearch: true,
+    })
+    const { nodes: _articles } = await searchService.quicksearchArticles({
+      key,
+    })
+    const userIds = users.map((user) => user.id)
+    const articleIds = _articles.map((article) => article.id)
+    query = query.where((builder) =>
+      builder.whereIn('authorId', userIds).orWhereIn('id', articleIds)
+    )
+  }
+
   let orderBy: {
     column: string
     order: 'asc' | 'desc'

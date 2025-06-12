@@ -60,6 +60,7 @@ export interface NewTableName {
   // Example:
   // description: string | null
   // state: ValueOf<typeof CURATION_CHANNEL_STATE>
+  // channelIds: string[] // jsonb type in db
   createdAt: Date
   updatedAt: Date
 }

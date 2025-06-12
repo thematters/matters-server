@@ -8,7 +8,7 @@ import {
 export const seedingUsers: GQLOssResolvers['seedingUsers'] = async (
   _,
   { input },
-  { dataSources: { userService, atomService } }
+  { dataSources: { atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

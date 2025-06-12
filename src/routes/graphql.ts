@@ -29,6 +29,7 @@ import {
   CampaignService,
   ChannelService,
   TranslationService,
+  SearchService,
   LikeCoin,
   ExchangeRate,
 } from '#connectors/index.js'
@@ -54,6 +55,7 @@ import {
 } from '@apollo/utils.keyvaluecache'
 import KeyvRedis from '@keyv/redis'
 import { responseCachePlugin } from '@matters/apollo-response-cache'
+import * as Sentry from '@sentry/node'
 import ApolloServerPluginQueryComplexity from 'apollo-server-plugin-query-complexity'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -129,6 +131,14 @@ export const graphql = async (app: Express) => {
 
     const viewer = await getViewerFromReq({ req, res }, connections)
 
+    // Add user info for Sentry
+    Sentry.getCurrentScope()
+      .setUser({ id: viewer.id, ip_address: viewer.ip })
+      .setTags({
+        language: viewer.language,
+        userAgent: viewer.userAgent,
+      })
+
     const dataSources = {
       atomService: new AtomService(connections),
       userService: new UserService(connections),
@@ -150,6 +160,7 @@ export const graphql = async (app: Express) => {
       exchangeRate: new ExchangeRate(connections.objectCacheRedis),
       translationService: new TranslationService(connections),
       notificationService: new NotificationService(connections),
+      searchService: new SearchService(connections),
       connections,
       queues,
     }

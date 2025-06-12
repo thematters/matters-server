@@ -18,6 +18,7 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
       paymentService,
       userService,
       systemService,
+      searchService,
     },
   }
 ) => {
@@ -32,10 +33,27 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     spamThreshold: spamThreshold ?? undefined,
     datetimeRange: input.filter?.datetimeRange,
     addOrderColumn: input.sort === undefined ? true : false,
-    filterFlood: true,
+    flood: false,
   })
 
   let query: Knex.QueryBuilder = baseQuery
+
+  const key = input.filter?.searchKey?.trim()
+  if (key && key.length > 0) {
+    const { nodes: users } = await searchService.searchUsers({
+      key,
+      quicksearch: true,
+    })
+    const { nodes: articles } = await searchService.quicksearchArticles({
+      key,
+    })
+    const userIds = users.map((user) => user.id)
+    const articleIds = articles.map((article) => article.id)
+    query = query.where((builder) =>
+      builder.whereIn('authorId', userIds).orWhereIn('id', articleIds)
+    )
+  }
+
   let orderBy: {
     column: string
     order: 'asc' | 'desc'

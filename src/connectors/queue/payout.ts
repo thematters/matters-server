@@ -19,6 +19,7 @@ import {
   NotificationService,
 } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
+import * as Sentry from '@sentry/node'
 
 import { getOrCreateQueue } from './utils.js'
 
@@ -153,6 +154,8 @@ export class PayoutQueue {
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
       } catch (err: unknown) {
+        Sentry.captureException(err)
+
         if (err instanceof Error) {
           slack.sendStripeAlert({
             data,
@@ -232,6 +235,8 @@ export class PayoutQueue {
       job.progress(100)
       done(null, { txId, stripeTxId: transfer.id })
     } catch (err: unknown) {
+      Sentry.captureException(err)
+
       if (err instanceof Error) {
         slack.sendStripeAlert({
           data,

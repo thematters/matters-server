@@ -48,6 +48,7 @@ export default /* GraphQL */ `
 
   input ChannelArticlesFilter {
     datetimeRange: DatetimeRangeInput
+    searchKey: String
   }
 
   input ChannelInput {

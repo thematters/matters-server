@@ -49,6 +49,7 @@ export default /* GraphQL */ `
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
     setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input KeywordsInput {
@@ -150,6 +151,7 @@ export default /* GraphQL */ `
     restrictedUsers(input: ConnectionArgs!): UserConnection!
     reports(input: ConnectionArgs!): ReportConnection!
     icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
+    topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   }
 
 
@@ -288,10 +290,6 @@ export default /* GraphQL */ `
     record: Boolean
     oss: Boolean
 
-    """use the api version; default to use latest stable version is v20230301"""
-    version: SearchAPIVersion = v20230301
-    "deprecated, make no effect"
-    coefficients: String
     quicksearch: Boolean
   }
 
@@ -566,6 +564,61 @@ export default /* GraphQL */ `
     node: IcymiTopic!
   }
 
+  type TopicChannelFeedbackConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TopicChannelFeedbackEdge!]!
+  }
+
+  type TopicChannelFeedbackEdge {
+    cursor: String!
+    node: TopicChannelFeedback!
+  }
+
+  type TopicChannelFeedback {
+    id: ID!
+    type: TopicChannelFeedbackType!
+    article: Article!
+    "Which channels author want to be in, empty for no channels"
+    channels: [TopicChannel!]
+    state: TopicChannelFeedbackState
+    createdAt: DateTime!
+  }
+
+  input ReviewTopicChannelFeedbackInput {
+    feedback: ID!
+    action: TopicChannelFeedbackAction!
+  }
+
+  enum TopicChannelFeedbackType {
+    positive
+    negative
+  }
+
+  enum TopicChannelFeedbackAction {
+    accept
+    reject
+  }
+
+  enum TopicChannelFeedbackState {
+    pending
+    accepted
+    rejected
+    resolved
+  }
+
+  input TopicChannelFeedbacksInput {
+    after: String
+    first: Int! @constraint(min: 0)
+    filter: TopicChannelFeedbacksFilterInput
+  }
+
+  input TopicChannelFeedbacksFilterInput {
+    state: TopicChannelFeedbackState
+    type: TopicChannelFeedbackType
+    spam: Boolean
+  }
+
   input PutIcymiTopicInput {
     id: ID
     title: String
@@ -595,6 +648,7 @@ export default /* GraphQL */ `
   input OSSArticlesFilterInput {
     isSpam: Boolean
     datetimeRange: DatetimeRangeInput
+    searchKey: String
   }
 
   ####################

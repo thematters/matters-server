@@ -5,6 +5,7 @@ import putCurationChannel from './putCurationChannel.js'
 import putTopicChannel from './putTopicChannel.js'
 import reorderChannels from './reorderChannels.js'
 import setArticleTopicChannels from './setArticleTopicChannels.js'
+import submitTopicChannelFeedback from './submitTopicChannelFeedback.js'
 import togglePinChannelArticles from './togglePinChannelArticles.js'
 
 export default {
@@ -17,5 +18,6 @@ export default {
     deleteCurationChannelArticles,
     reorderChannels,
     togglePinChannelArticles,
+    submitTopicChannelFeedback,
   },
 }

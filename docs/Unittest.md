@@ -225,3 +225,49 @@ beforeEach(async () => {
 - Verify input types match schema definitions
 - Use service methods for data creation when available
 - Prefer using existing user IDs when possible
+
+## Using Seed Data
+
+### Available Seed Data
+The test database is seeded with predefined data in `db/seeds/` directory:
+- `01_users.js`: Test users with different roles and states
+  - Users: test1-test4, admin1, matty, active, frozen, etc.
+  - Various states: active, banned
+  - Different roles: admin, user
+- `05_articles.js`: Test articles with different content and authors
+  - Articles: test article 1-6
+  - Different authors and states
+- Other seed files for comments, tags, etc.
+
+### Best Practices for Using Seed Data
+1. **Prefer Seed Data Over New Data**
+   ```typescript
+   // Good: Use existing seed data
+   const article = await atomService.findUnique({
+     table: 'article',
+     where: { id: '1' }, // References test article 1 from seeds
+   })
+
+   // Avoid: Creating new test data unless necessary
+   const newArticle = await articleService.createArticle({
+     authorId: '1',
+     title: 'test',
+     content: 'test',
+   })
+   ```
+
+2. **Document Seed Data Usage**
+   ```typescript
+   describe('article search', () => {
+     test('finds article by title', async () => {
+       // Using seed article "test article 1" from db/seeds/05_articles.js
+       const { data } = await server.executeOperation({
+         query: SEARCH_ARTICLES,
+         variables: {
+           input: { searchKey: 'test article 1' },
+         },
+       })
+       expect(data.articles.edges.length).toBeGreaterThan(0)
+     })
+   })
+   ```

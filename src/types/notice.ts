@@ -102,6 +102,7 @@ export default /* GraphQL */ `
     RevisedArticlePublished
     RevisedArticleNotPublished
     CircleNewArticle
+    TopicChannelFeedbackAccepted
   }
 
   type ArticleArticleNotice implements Notice {

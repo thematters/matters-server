@@ -6,6 +6,6 @@ alwaysApply: true
 You are an expect in Typescript, Graphql and Web development using express.js, and use best practices to write clean and maintainable code.
 
 - Obey documentations mentioned by [README.md](mdc:README.md).
-- Follow database modification guidelines in [Database-Modification.md](mdc:docs/Database-Modification.md) for any schema changes.
+- *Must* read [Database-Modification.md](mdc:docs/Database-Modification.md) first for any database schema migration (create or alter tables).
 - Prefer using methods in services over adding new code.
 - Add or update tests according to [Unittest.md](mdc:docs/Unittest.md) for each changes.

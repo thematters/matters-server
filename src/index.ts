@@ -2,17 +2,40 @@ import './fetch-polyfill.js'
 
 import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from '#common/enums/index.js'
 import { contextStorage, LoggingContextKey } from '#common/logger.js'
+import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express, { RequestHandler } from 'express'
 import helmet from 'helmet'
+import { createRequire } from 'node:module'
 import requestIp from 'request-ip'
 import { v4 } from 'uuid'
 
+const require = createRequire(import.meta.url)
+import { environment, isLocal, isProd } from './common/environment.js'
 import * as routes from './routes/index.js'
+
+const { version } = require('../package.json')
+
+//
+
 ;(async () => {
   /**
    * Init
    */
+
+  // Sentry
+  Sentry.init({
+    enabled: !isLocal,
+    dsn: environment.sentryDsn,
+    release: version,
+    sampleRate: isLocal ? 1 : 0.1,
+    environment: isProd ? 'production' : 'development',
+    debug: isLocal,
+
+    // Adds request headers and IP for users, for more info visit:
+    // https://docs.sentry.io/platforms/javascript/guides/node/configuration/options/#sendDefaultPii
+    sendDefaultPii: true,
+  })
 
   // Express
   const PORT = 4000
@@ -57,6 +80,9 @@ import * as routes from './routes/index.js'
   // Facebook Data Deletion Request Callback
   // see https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback
   app.use('/facebook', routes.facebook)
+
+  // Sentry error handler
+  Sentry.setupExpressErrorHandler(app)
 
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)
