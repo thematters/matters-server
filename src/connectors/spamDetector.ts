@@ -1,5 +1,6 @@
 import { environment, isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
+import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 
 const logger = getLogger('spam-detector')
@@ -33,6 +34,7 @@ export class SpamDetector {
         retries++
         if (retries >= 3) {
           logger.error(error)
+          Sentry.captureException(error)
         } else {
           logger.warn(error)
           await new Promise((resolve) => setTimeout(resolve, 1000 * retries))

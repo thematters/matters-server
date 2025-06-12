@@ -30,6 +30,7 @@ import {
   NotificationService,
 } from '#connectors/index.js'
 import slugify from '@matters/slugify'
+import * as Sentry from '@sentry/node'
 import { v4 } from 'uuid'
 
 import { stripe } from './stripe/index.js'
@@ -383,6 +384,7 @@ export class PaymentService extends BaseService<Transaction> {
       return tx
     } catch (error) {
       await trx.rollback()
+      Sentry.captureException(error)
       throw error
     }
   }
@@ -752,6 +754,7 @@ export class PaymentService extends BaseService<Transaction> {
       )
     } catch (e) {
       await trx.rollback()
+      Sentry.captureException(e)
       throw e
     }
   }

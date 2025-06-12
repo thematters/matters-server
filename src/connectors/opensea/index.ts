@@ -2,6 +2,7 @@ import { CACHE_TTL } from '#common/enums/index.js'
 import { contract, environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { RESTDataSource, AugmentedRequest } from '@apollo/datasource-rest'
+import * as Sentry from '@sentry/node'
 
 const logger = getLogger('service-opensea')
 
@@ -50,6 +51,7 @@ export class OpenSeaService extends RESTDataSource {
       return data.assets
     } catch (err) {
       logger.error(err)
+      Sentry.captureException(err)
 
       return []
     }

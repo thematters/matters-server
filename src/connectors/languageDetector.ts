@@ -1,6 +1,7 @@
 import { environment, isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { LANGUAGES } from '#definitions/index.js'
+import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 
 const logger = getLogger('language-detector')
@@ -28,6 +29,7 @@ export class LanguageDetector {
       return response.data.language
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
       return null
     }
   }

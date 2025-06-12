@@ -2,6 +2,7 @@ import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 import { environment, isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { ValueOf } from '#definitions/index.js'
+import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 
 const logger = getLogger('channel-classifier')
@@ -55,6 +56,8 @@ export class ChannelClassifier {
       }))
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
+
       return null
     }
   }

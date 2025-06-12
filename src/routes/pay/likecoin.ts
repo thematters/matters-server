@@ -12,6 +12,7 @@ import { LikeCoinWebhookError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { AtomService, PaymentService, UserService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import { Redis } from 'ioredis'
@@ -298,6 +299,7 @@ likecoinRouter.post('/', async (req, res, next) => {
     const errMsg = `webhook err: ${error}, tx hash: ${txHash}, request: ${JSON.stringify(
       req.body
     )}`
+    Sentry.captureException(error)
     logger.error(errMsg)
     next(errMsg)
   }

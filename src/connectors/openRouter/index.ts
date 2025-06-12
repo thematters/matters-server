@@ -5,6 +5,7 @@ import {
   restoreUrlPlaceholders,
 } from '#common/utils/index.js'
 import { GQLTranslationModel, LANGUAGES } from '#definitions/index.js'
+import * as Sentry from '@sentry/node'
 
 const logger = getLogger('service-openrouter')
 
@@ -143,6 +144,7 @@ export class OpenRouter {
       }
     } catch (err) {
       logger.error(err)
+      Sentry.captureException(err)
       return
     }
   }
