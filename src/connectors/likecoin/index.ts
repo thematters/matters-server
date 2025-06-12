@@ -550,7 +550,6 @@ export class LikeCoin {
   public updateCivicLikerCaches = async (
     likerCacheData: BaseUpdateCivicLikerCacheData[]
   ) => {
-    const likerIds = likerCacheData.map(({ likerId }) => likerId)
     const likerIdToExpires = Object.fromEntries(
       likerCacheData.map(({ likerId, expire }) => [likerId, expire])
     )
@@ -562,15 +561,12 @@ export class LikeCoin {
       )
     await Promise.all(
       mattersLikerData.map(async ({ id, likerId }) => {
-        const isCivicLiker = likerIds.includes(likerId)
-        if (isCivicLiker) {
-          await this._handleUpdateCivicLikerCache({
-            likerId,
-            userId: id,
-            isCivicLiker,
-            expire: likerIdToExpires[likerId],
-          })
-        }
+        await this._handleUpdateCivicLikerCache({
+          likerId,
+          userId: id,
+          isCivicLiker: true,
+          expire: likerIdToExpires[likerId],
+        })
       })
     )
   }
