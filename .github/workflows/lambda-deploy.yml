@@ -323,6 +323,32 @@ jobs:
             sqsBatchSize=1,
             sqsMaxBatchingWindowInSeconds=1
 
+  deploy-archive-user:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: archive-user-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=archiveUser.handler,
+            lambdaTimeout=60,
+            lambdaMemorySize=128,
+            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:archive-user-${{ env.SQS_ENV }},
+            sqsBatchSize=1,
+            sqsMaxBatchingWindowInSeconds=1
+
   deploy-payment-cancel-timeout-transactions:
     needs: build-lambda-image
     runs-on: ubuntu-latest

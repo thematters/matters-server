@@ -1,16 +1,8 @@
 import type { SQSEvent } from 'aws-lambda'
 
-import { connections } from '../connections.js'
-import { ArchiveUserService } from '../connectors/archiveUserService.js'
+import { ArchiveUserService } from '#connectors/archiveUserService.js'
 
-// envs
-// MATTERS_AWS_S3_BUCKET
-// MATTERS_CLOUDFLARE_ACCOUNT_ID
-// MATTERS_CLOUDFLARE_API_TOKEN
-// MATTERS_PG_HOST
-// MATTERS_PG_USER
-// MATTERS_PG_PASSWORD
-// MATTERS_PG_DATABASE
+import { connections } from '../connections.js'
 
 export const handler = async (event: SQSEvent) => {
   console.log(event.Records)
