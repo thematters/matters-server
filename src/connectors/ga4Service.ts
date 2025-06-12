@@ -79,7 +79,7 @@ export class GA4Service {
         .where({ articleId, dateRange })
         .select('id', 'totalUsers')
         .first()
-      if (res && res.totalUsers) {
+      if (res && res.totalUsers !== undefined) {
         if (res.totalUsers !== String(totalUsers)) {
           // only update when totalUsers is different
           updateRows.push({ id: res.id, totalUsers })
@@ -106,8 +106,8 @@ export class GA4Service {
       }))
     )
     const res: MergedData = {}
-    const ret = await this.knexRO<Article>('article').max('id').first()
-    const maxLegalId = ret ? parseInt(ret.max) : 0
+    const record = await this.knexRO<Article>('article').max('id').first()
+    const maxLegalId = record ? parseInt(record.max, 10) : 0
     for (const row of await converted) {
       if (row.id in res) {
         res[row.id] += row.totalUsers
