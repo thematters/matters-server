@@ -443,6 +443,7 @@ jobs:
             lambdaCMD=likecoinUpdateCivicLikerCache.handler,
             lambdaTimeout=30,
             lambdaMemorySize=128,
+            lambdaReservedConcurrency=200,
             sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:likecoin-update-civic-liker-cache-${{ env.SQS_ENV }},
             sqsBatchSize=100,
             sqsMaxBatchingWindowInSeconds=1
