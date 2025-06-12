@@ -134,7 +134,6 @@ export class GA4Service {
         }
       }
     } else if (path.startsWith('/a/')) {
-      console.log(path)
       const parts = path.split('/')
       if (parts.length === 3) {
         // /a/m4nxkbfhn4vc
@@ -145,6 +144,7 @@ export class GA4Service {
         return null
       }
     }
+    console.log('unexpected path', path)
     return null
   }
 
@@ -235,8 +235,8 @@ export class GA4Service {
       returnPropertyQuota: true,
     })
     if (response && response.rows) {
-      console.log(response.propertyQuota)
-      console.log(`total rows count: ${response.rowCount}`)
+      console.log('quota used', response.propertyQuota)
+      console.log('total rows count', response.rowCount)
       return response.rows.map((row) => ({
         path: (row.dimensionValues && row.dimensionValues[0].value) ?? '',
         totalUsers: (row.metricValues && row.metricValues[0].value) ?? '0',
