@@ -42,6 +42,11 @@ interface UpdateCivicLikerCacheData {
   expire: (typeof CACHE_TTL)[keyof typeof CACHE_TTL]
 }
 
+interface BaseUpdateCivicLikerCacheData {
+  likerId: string
+  expire: number
+}
+
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 
 const ERROR_CODES = {
@@ -80,10 +85,10 @@ const ENDPOINTS = {
  * @see {@url https://documenter.getpostman.com/view/6879252/SVzxZfwH?version=latest}
  */
 export class LikeCoin {
-  knex: Knex
-  redis: Redis
-  objectCacheRedis: Redis
-  aws: typeof aws
+  private knex: Knex
+  private redis: Redis
+  private objectCacheRedis: Redis
+  private aws: typeof aws
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -473,4 +478,236 @@ export class LikeCoin {
       messageBody: data,
       queueUrl: QUEUE_URL.likecoinUpdateCivicLikerCache,
     })
+
+  // Lambda handler implementations
+  public handleLike = async (data: LikeData) => {
+    const { likerId, url, authorLikerId } = data
+    const liker = await this.findLiker({ likerId })
+
+    if (likerId === authorLikerId) {
+      logger.info('cannot like self, skip.')
+      return
+    }
+
+    if (!liker) {
+      throw new Error(`liker (${likerId}) not found.`)
+    }
+
+    if (url.startsWith('https://matters.news')) {
+      await this.requestLike({
+        liker,
+        ...data,
+        url: url.replace('https://matters.news', 'https://matters.town'),
+      })
+    } else {
+      await this.requestLike({
+        liker,
+        ...data,
+      })
+    }
+  }
+
+  public handleSendPV = async (data: SendPVData) => {
+    const { likerId } = data
+    const liker =
+      likerId === undefined
+        ? undefined
+        : (await this.findLiker({ likerId })) || undefined
+
+    await this.requestCount({
+      liker: liker,
+      ...data,
+    })
+  }
+
+  public handleUpdateCivicLikerCache = async ({
+    likerId,
+    userId,
+    key,
+    expire,
+  }: UpdateCivicLikerCacheData) => {
+    let isCivicLiker
+    const cache = new CacheService(
+      CACHE_PREFIX.CIVIC_LIKER,
+      this.objectCacheRedis
+    )
+    try {
+      isCivicLiker = await this.requestIsCivicLiker({
+        likerId,
+      })
+    } catch (e) {
+      // remove from cache so new request can trigger a retry
+      await cache.removeObject({ keys: { id: key } })
+      throw e
+    }
+
+    const hour = 60 * 60
+    await this._handleUpdateCivicLikerCache({
+      likerId,
+      userId,
+      isCivicLiker,
+      expire: expire + this.getRandomInt(1, hour),
+    })
+  }
+
+  public updateCivicLikerCaches = async (
+    likerCacheData: BaseUpdateCivicLikerCacheData[]
+  ) => {
+    const likerIdToExpires = Object.fromEntries(
+      likerCacheData.map(({ likerId, expire }) => [likerId, expire])
+    )
+    const mattersLikerData = await this.knex('user')
+      .select('id', 'liker_id')
+      .whereIn(
+        'liker_id',
+        likerCacheData.map(({ likerId }) => likerId)
+      )
+    await Promise.all(
+      mattersLikerData.map(async ({ id, likerId }) => {
+        const isCivicLiker = likerId in likerIdToExpires
+        if (isCivicLiker) {
+          this._handleUpdateCivicLikerCache({
+            likerId,
+            userId: id,
+            isCivicLiker,
+            expire: likerIdToExpires[likerId],
+          })
+        }
+      })
+    )
+  }
+
+  private _handleUpdateCivicLikerCache = async ({
+    likerId,
+    userId,
+    isCivicLiker,
+    expire,
+  }: {
+    likerId: string
+    userId: string
+    isCivicLiker: boolean
+    expire: number
+  }) => {
+    const cache = new CacheService(
+      CACHE_PREFIX.CIVIC_LIKER,
+      this.objectCacheRedis
+    )
+    // update cache
+    await cache.storeObject({
+      keys: { id: likerId },
+      data: isCivicLiker,
+      expire,
+    })
+
+    // invalidation should after data update
+    const { invalidateFQC } = await import('@matters/apollo-response-cache')
+    await invalidateFQC({
+      node: { type: 'User', id: userId },
+      redis: this.redis,
+    })
+  }
+
+  private requestLike = async ({
+    authorLikerId,
+    liker,
+    url,
+    likerIp,
+    amount,
+    userAgent,
+  }: {
+    authorLikerId: string
+    liker: UserOAuthLikeCoin
+    url: string
+    likerIp?: string
+    amount: number
+    userAgent: string
+  }) => {
+    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
+    const result = await this.request({
+      ip: likerIp,
+      userAgent,
+      endpoint,
+      method: 'POST',
+      liker,
+      data: {
+        referrer: encodeURI(url),
+      },
+    })
+    const data = _.get(result, 'data')
+    if (data === 'OK') {
+      return data
+    } else {
+      throw result
+    }
+  }
+
+  /**
+   * current user like count of a content
+   */
+  private requestCount = async ({
+    liker,
+    authorLikerId,
+    url,
+    likerIp,
+    userAgent,
+  }: {
+    liker?: UserOAuthLikeCoin
+    authorLikerId: string
+    url: string
+    likerIp?: string
+    userAgent: string
+  }) => {
+    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/self`
+    const res = await this.request({
+      endpoint,
+      method: 'GET',
+      liker,
+      ip: likerIp,
+      userAgent,
+      data: {
+        referrer: encodeURI(url),
+      },
+    })
+    const data = _.get(res, 'data')
+    logger.info('count response:', data)
+
+    if (!data) {
+      throw res
+    }
+
+    return data.count
+  }
+
+  private requestIsCivicLiker = async ({ likerId }: { likerId: string }) => {
+    let res: any
+    try {
+      res = await this.request({
+        endpoint: `/users/id/${likerId}/min`,
+        method: 'GET',
+        timeout: 2000,
+      })
+    } catch (e: any) {
+      const code = e.response?.status as any
+      if (code === 404) {
+        logger.warn(`likerId ${likerId} not exist`)
+        return false
+      }
+      throw e
+    }
+    logger.info('civicLiker response:', res?.data)
+    return !!_.get(res, 'data.isSubscribedCivicLiker')
+  }
+
+  private findLiker = async ({
+    likerId,
+  }: {
+    likerId: string
+  }): Promise<UserOAuthLikeCoin | null> =>
+    this.knex.select().from('user_oauth_likecoin').where({ likerId }).first()
+
+  private getRandomInt = (min: number, max: number): number => {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min)) + min
+  }
 }
