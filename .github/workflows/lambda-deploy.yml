@@ -79,7 +79,7 @@ jobs:
           template: ./deployment/lambda/sync-ga4-data.yml
           parameter-overrides: >-
             mattersEnv=${{ env.MATTERS_ENV }},
-            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }}
 
   deploy-exchange-rate:
     needs: build-lambda-image
