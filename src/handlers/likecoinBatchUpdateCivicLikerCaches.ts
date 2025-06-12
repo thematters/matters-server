@@ -1,33 +1,52 @@
-import type { APIGatewayProxyResult } from 'aws-lambda'
-
 import { LikeCoin } from '#connectors/index.js'
 
 import { connections } from '../connections.js'
 
-type Event = Array<{
-  id: string
-  expires: number // unix timestamp
-}>
+type Event = {
+  body?: string
+  rawBody?: string
+  isBase64Encoded?: boolean
+}
 
 const likecoin = new LikeCoin(connections)
 
-export const handler = async (event: Event): Promise<APIGatewayProxyResult> => {
-  console.log(event)
+type CivicLikerUpdate = {
+  id: string
+  expires: number // unix timestamp
+}
 
-  if (!validate(event)) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({
-        message: 'Unexpected input.',
-      }),
-    }
-  }
+// Usage:
+// curl -X POST -H "Content-Type: application/json" -d '[{"id":"like_id1","expires":1718236800}]' https://some.lambda-url.ap-southeast-1.on.aws
+export const handler = async (event: Event) => {
+  console.log('body:', event.body)
 
-  const oneday = 86400
+  let updates: CivicLikerUpdate[] = []
 
   try {
+    // Parse the request body
+    if (event.body) {
+      const body = event.isBase64Encoded
+        ? Buffer.from(event.body, 'base64').toString()
+        : event.body
+      updates = JSON.parse(body)
+    }
+
+    if (!validate(updates)) {
+      return {
+        statusCode: 400,
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Unexpected input.',
+        }),
+      }
+    }
+
+    const oneday = 86400
+
     await likecoin.updateCivicLikerCaches(
-      event.map(({ id, expires }) => {
+      updates.map(({ id, expires }) => {
         const ttl = getTTL(expires)
 
         return {
@@ -38,6 +57,9 @@ export const handler = async (event: Event): Promise<APIGatewayProxyResult> => {
     )
     return {
       statusCode: 200,
+      headers: {
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         message: 'succeeded.',
       }),
@@ -46,6 +68,9 @@ export const handler = async (event: Event): Promise<APIGatewayProxyResult> => {
     console.error(e)
     return {
       statusCode: 500,
+      headers: {
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         message: 'failed.',
       }),
