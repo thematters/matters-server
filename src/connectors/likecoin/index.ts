@@ -38,7 +38,6 @@ interface SendPVData {
 interface UpdateCivicLikerCacheData {
   likerId: string
   userId: string
-  key: string
   expire: (typeof CACHE_TTL)[keyof typeof CACHE_TTL]
 }
 
@@ -298,7 +297,6 @@ export class LikeCoin {
         this.updateCivicLikerCache({
           likerId,
           userId,
-          key: cache.genKey(keys),
           expire: CACHE_TTL.LONG,
         })
         return false
@@ -523,7 +521,6 @@ export class LikeCoin {
   public handleUpdateCivicLikerCache = async ({
     likerId,
     userId,
-    key,
     expire,
   }: UpdateCivicLikerCacheData) => {
     let isCivicLiker
@@ -537,7 +534,7 @@ export class LikeCoin {
       })
     } catch (e) {
       // remove from cache so new request can trigger a retry
-      await cache.removeObject({ keys: { id: key } })
+      await cache.removeObject({ keys: { id: likerId } })
       throw e
     }
 

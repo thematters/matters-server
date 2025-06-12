@@ -17,7 +17,10 @@ afterAll(async () => {
 })
 
 const getCivicLikerStatus = async (likerId: string) => {
-  const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER, connections.redis)
+  const cache = new CacheService(
+    CACHE_PREFIX.CIVIC_LIKER,
+    connections.objectCacheRedis
+  )
   return await cache.getObject({
     keys: { id: likerId },
     getter: async () => null,
