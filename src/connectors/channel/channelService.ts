@@ -21,6 +21,7 @@ import {
   CHANNEL_ANTIFLOOD_WINDOW,
   CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   EntityNotFoundError,
   ActionLimitExceededError,
@@ -34,12 +35,9 @@ import {
   excludeRestricted as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
-import {
-  ArticleService,
-  AtomService,
-  CacheService,
-  ChannelClassifier,
-} from '#connectors/index.js'
+import { ArticleService, AtomService, CacheService } from '#connectors/index.js'
+
+import { ChannelClassifier } from './channelClassifier.js'
 
 const logger = getLogger('service-channel')
 
@@ -50,6 +48,12 @@ export class ChannelService {
   public constructor(connections: Connections) {
     this.connections = connections
     this.models = new AtomService(connections)
+  }
+
+  public findTopicChannels = async () => {
+    return this.models.findMany({
+      table: 'topic_channel',
+    })
   }
 
   public createTopicChannel = async ({
@@ -423,7 +427,9 @@ export class ChannelService {
     classifier?: ChannelClassifier
   }) => {
     const articleService = new ArticleService(this.connections)
-    const channelClassifier = classifier ?? new ChannelClassifier()
+    const channelClassifier =
+      classifier ??
+      new ChannelClassifier(environment.channelClassificationApiUrl)
 
     const articleVersions = (await articleService.loadLatestArticlesVersion(
       ids
@@ -455,11 +461,10 @@ export class ChannelService {
     }>,
     classifier: ChannelClassifier
   ) => {
-    const channelClassifier = classifier ?? new ChannelClassifier()
     const texts = articles.map(({ title, summary, content }) =>
       summary ? `${title}\n${summary}\n${content}` : `${title}\n${content}`
     )
-    const result = await channelClassifier.classify(texts)
+    const result = await classifier.classify(texts)
 
     if (!result) {
       return
