@@ -812,11 +812,16 @@ export class ChannelService {
         where: { articleId: feedback.articleId },
         data: { enabled: false },
       })
-      return this.models.update({
+      const autoResolved = await this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: autoResolved.articleId },
+        redis: this.connections.redis,
+      })
+      return autoResolved
     }
     if (
       await this.isFeedbackResolved({
@@ -824,11 +829,16 @@ export class ChannelService {
         channelIds: feedback.channelIds,
       })
     ) {
-      return this.models.update({
+      const resolved = await this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: resolved.articleId },
+        redis: this.connections.redis,
+      })
+      return resolved
     }
 
     await this.setArticleTopicChannels({
