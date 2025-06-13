@@ -99,7 +99,7 @@ export class GA4Service {
   }
 
   public convertAndMerge = async (rows: Row[]): Promise<MergedData> => {
-    const converted = Promise.all(
+    const converted = await Promise.all(
       rows.map(async (row) => ({
         id: await this.pathToId(row.path),
         totalUsers: parseInt(row.totalUsers, 10),
@@ -108,7 +108,7 @@ export class GA4Service {
     const res: MergedData = {}
     const record = await this.knexRO<Article>('article').max('id').first()
     const maxLegalId = record ? parseInt(record.max, 10) : 0
-    for (const row of await converted) {
+    for (const row of converted) {
       if (row.id in res) {
         res[row.id] += row.totalUsers
       } else {
