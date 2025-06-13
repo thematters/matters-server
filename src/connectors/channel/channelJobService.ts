@@ -72,7 +72,7 @@ export class ChannelJobService {
         await this.updateJobState(job.id, result.state)
       } catch (err) {
         logger.error('Error processing job:', err)
-        await this.updateJobState(job.id, 'error')
+        await this.updateJobState(job.id, ARTICLE_CHANNEL_JOB_STATE.error)
       }
     }
   }
