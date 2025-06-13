@@ -64,7 +64,7 @@ Resources:
     Properties:
       Roles:
         - !Ref LambdaRole
-      PolicyName: "exchangeRateLambda"
+      PolicyName: "channeljobLambda"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

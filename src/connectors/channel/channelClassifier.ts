@@ -54,7 +54,7 @@ export class ChannelClassifier {
       const response = await axios(config)
       const result = response.data as APIJobResult[]
 
-      logger.log('result', JSON.stringify(result, null, 2))
+      logger.info('result', JSON.stringify(result, null, 2))
 
       return result.map((data) => ({
         jobId: data.jobId,
@@ -83,7 +83,7 @@ export class ChannelClassifier {
       const response = await axios(config)
       const results = response.data as APIJobResult[]
 
-      logger.log('results', JSON.stringify(results, null, 2))
+      logger.info('results', JSON.stringify(results, null, 2))
 
       return results.map((data) => ({
         jobId: data.jobId,
