@@ -40,6 +40,7 @@ import {
   CacheService,
   ChannelClassifier,
 } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const logger = getLogger('service-channel')
 
@@ -834,11 +835,16 @@ export class ChannelService {
       articleId: feedback.articleId,
       channelIds: feedback.channelIds,
     })
-    return this.models.update({
+    const updated = await this.models.update({
       table: 'topic_channel_feedback',
       where: { id: feedback.id },
       data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
     })
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: updated.articleId },
+      redis: this.connections.redis,
+    })
+    return updated
   }
 
   public rejectFeedback = async (feedback: TopicChannelFeedback) => {
