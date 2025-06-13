@@ -182,6 +182,10 @@ export const environment = {
     process.env.MATTERS_MOTOR_BADGE_THRESHOLD || '100',
     10
   ),
+  ga4PropertyId: process.env.MATTERS_GA4_PROPERTY_ID || '',
+  ga4ProjectId: process.env.MATTERS_GA4_PROJECT_ID || '',
+  ga4ClientEmail: process.env.MATTERS_GA4_CLIENT_EMAIL || '',
+  ga4PrivateKey: process.env.MATTERS_GA4_PRIVATE_KEY || '',
 }
 
 export const contract = {

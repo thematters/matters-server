@@ -61,6 +61,26 @@ jobs:
           ECR_REPOSITORY: lambda-handlers-image
           IMAGE_TAG: matters-server-${{ github.SHA }}
 
+  deploy-sync-ga4-data:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: sync-ga4-data-${{ inputs.environment }}
+          template: ./deployment/lambda/sync-ga4-data.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }}
+
   deploy-exchange-rate:
     needs: build-lambda-image
     runs-on: ubuntu-latest
