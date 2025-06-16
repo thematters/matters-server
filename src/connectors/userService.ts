@@ -95,6 +95,7 @@ import {
   OAuthService,
   NotificationService,
   SearchService,
+  ArticleService,
 } from '#connectors/index.js'
 import { Twitter } from '#connectors/oauth/index.js'
 import axios from 'axios'
@@ -1787,6 +1788,18 @@ export class UserService extends BaseService<User> {
   ) => {
     const table = 'user_feature_flag'
     await this.models.create({ table, data: { userId: id, type } })
+    if (type === USER_FEATURE_FLAG_TYPE.bypassSpamDetection) {
+      const articles = await this.models.findMany({
+        table: 'article',
+        where: { authorId: id },
+      })
+      if (articles.length > 0) {
+        const articleService = new ArticleService(this.connections)
+        await Promise.all(
+          articles.map((article) => articleService.runPostProcessing(article))
+        )
+      }
+    }
   }
 
   public removeFeatureFlag = async (
