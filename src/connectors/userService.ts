@@ -226,7 +226,7 @@ export class UserService extends BaseService<User> {
     await this.follow(user.id, environment.mattyId)
 
     // index user to search service
-    this.searchService.indexUser(user.id)
+    this.searchService.triggerIndexingUser(user.id)
 
     // send email
     if (user.email && user.displayName) {
@@ -601,7 +601,7 @@ export class UserService extends BaseService<User> {
         previous: oldUserName,
       },
     })
-    this.searchService.indexUser(userId)
+    this.searchService.triggerIndexingUser(userId)
     return await this.baseUpdate(userId, data)
   }
 
@@ -695,7 +695,7 @@ export class UserService extends BaseService<User> {
       //     owner = ${id}
       // `)
 
-      this.searchService.indexUser(id)
+      this.searchService.triggerIndexingUser(id)
 
       return user
     })
@@ -874,7 +874,7 @@ export class UserService extends BaseService<User> {
       update: data,
       table: 'action_user',
     })
-    this.searchService.indexUser(targetId)
+    this.searchService.triggerIndexingUser(targetId)
     return result
   }
 
@@ -887,7 +887,7 @@ export class UserService extends BaseService<User> {
         action: USER_ACTION.follow,
       })
       .del()
-    this.searchService.indexUser(targetId)
+    this.searchService.triggerIndexingUser(targetId)
     return result
   }
 

@@ -2059,7 +2059,7 @@ export class ArticleService extends BaseService<Article> {
 
     // trigger search indexing
     const searchService = new SearchService(this.connections)
-    searchService.indexArticle(article.id)
+    searchService.triggerIndexingArticle(article.id)
 
     // trigger IPFS publication
     const ipfsPublicationService = new IPFSPublicationService(this.connections)

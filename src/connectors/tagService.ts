@@ -208,7 +208,7 @@ export class TagService extends BaseService<Tag> {
     })
 
     if (tag) {
-      this.searchService.indexTag(tag.id)
+      this.searchService.triggerIndexingTag(tag.id)
     }
 
     return tag
@@ -661,7 +661,7 @@ export class TagService extends BaseService<Tag> {
       where: { id: tagId },
       data: { content },
     })
-    this.searchService.indexTag(tagId)
+    this.searchService.triggerIndexingTag(tagId)
     return tag
   }
 

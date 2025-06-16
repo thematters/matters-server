@@ -196,7 +196,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
       newValue: input.displayName,
       status: AUDIT_LOG_STATUS.succeeded,
     })
-    searchService.indexUser(viewer.id)
+    searchService.triggerIndexingUser(viewer.id)
   }
 
   // trigger notifications

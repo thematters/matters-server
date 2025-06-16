@@ -542,7 +542,7 @@ export class SearchService {
       .where({ userId, archived: false })
       .update({ archived: true })
 
-  public indexUser = async (userId: string) => {
+  public triggerIndexingUser = async (userId: string) => {
     this.aws.sqsSendMessage({
       messageBody: { userId },
       queueUrl: QUEUE_URL.searchIndexUser,
@@ -607,7 +607,7 @@ export class SearchService {
       .merge()
   }
 
-  public indexTag = async (tagId: string) => {
+  public triggerIndexingTag = async (tagId: string) => {
     this.aws.sqsSendMessage({
       messageBody: { tagId },
       queueUrl: QUEUE_URL.searchIndexTag,
@@ -688,7 +688,7 @@ export class SearchService {
       .merge()
   }
 
-  public indexArticle = async (articleId: string) => {
+  public triggerIndexingArticle = async (articleId: string) => {
     this.aws.sqsSendMessage({
       messageBody: { articleId },
       queueUrl: QUEUE_URL.searchIndexArticle,
