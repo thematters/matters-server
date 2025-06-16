@@ -213,6 +213,32 @@ jobs:
             lambdaMemorySize=512,
             cronExpression="rate(5 minutes)"
 
+  deploy-ipfs-publication:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ipfs-publication-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=ipfsPublication.handler,
+            lambdaTimeout=600,
+            lambdaMemorySize=1536,
+            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:ipfs-publication-${{ env.SQS_ENV }},
+            sqsBatchSize=10,
+            sqsMaxBatchingWindowInSeconds=0
+
   deploy-notify:
     needs: build-lambda-image
     runs-on: ubuntu-latest
