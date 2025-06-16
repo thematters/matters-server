@@ -105,7 +105,7 @@ import type {
   NoticeEntity,
   NoticeActor,
 } from './notification.js'
-import type { UserOauthLikecoinDB } from './oauth.js'
+import type { UserOAuthLikeCoin } from './oauth.js'
 import type {
   BlockchainSyncRecord,
   BlockchainTransaction,
@@ -287,7 +287,7 @@ export interface TableTypeMap {
   user: User
   user_badge: UserBadge
   user_ipns_keys: UserIpnsKeys
-  user_oauth_likecoin: UserOauthLikecoinDB
+  user_oauth_likecoin: UserOAuthLikeCoin
   user_restriction: UserRestriction
   user_feature_flag: UserFeatureFlag
   user_tags_order: UserTagsOrder

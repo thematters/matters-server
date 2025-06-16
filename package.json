@@ -118,7 +118,11 @@
     "validator": "^13.9.0",
     "viem": "^2.21.52",
     "winston": "^3.8.2",
-    "xss": "^1.0.14"
+    "xss": "^1.0.14",
+    "@web3-storage/w3up-client": "^17.1.2",
+    "@web-std/file": "^3.0.3",
+    "pinata-web3": "^0.5.4",
+    "@matters/ipns-site-generator": "^0.1.8"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.7",

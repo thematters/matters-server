@@ -186,6 +186,21 @@ export const environment = {
   ga4ProjectId: process.env.MATTERS_GA4_PROJECT_ID || '',
   ga4ClientEmail: process.env.MATTERS_GA4_CLIENT_EMAIL || '',
   ga4PrivateKey: process.env.MATTERS_GA4_PRIVATE_KEY || '',
+  // IPFS related
+  storachaProofS3Bucket: process.env.MATTERS_STORACHA_PROOF_S3_BUCKET,
+  storachaProofS3Key: process.env.MATTERS_STORACHA_PROOF_S3_KEY,
+  storachaPrivateKey: process.env.MATTERS_STORACHA_PRIVATE_KEY,
+  pinataJwt: process.env.MATTERS_PINATA_JWT,
+  pinataGateway: process.env.MATTERS_PINATA_GATEWAY,
+  pinataGroupId: process.env.MATTERS_PINATA_GROUP_ID,
+  uploadTimeoutMs: parseInt(
+    process.env.MATTERS_UPLOAD_TIMEOUT_MS || '30000',
+    10
+  ),
+  uploadImageThreshold: parseInt(
+    process.env.MATTERS_UPLOAD_IMAGE_THRESHOLD || '20',
+    10
+  ),
 }
 
 export const contract = {
