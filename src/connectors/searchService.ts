@@ -4,6 +4,7 @@ import type { Knex } from 'knex'
 import {
   ARTICLE_STATE,
   USER_ACTION,
+  TAG_ACTION,
   USER_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_EXCLUDE,
@@ -587,7 +588,7 @@ export class SearchService {
       users.map(async (user) => {
         return {
           id: user.id,
-          userName: user.userName.toLowerCase(),
+          userName: user.userName?.toLowerCase() || '',
           displayName: simplecc(user.displayName?.toLowerCase() || '', 't2s'),
           displayNameOrig: user.displayName,
           description: simplecc(user.description?.toLowerCase() || '', 't2s'),
@@ -630,7 +631,7 @@ export class SearchService {
             this.knexRO.raw('COUNT(*) ::int AS num_followers'),
             this.knexRO.raw('MAX(created_at) AS last_followed_at')
           )
-          .where({ action: USER_ACTION.follow })
+          .where({ action: TAG_ACTION.follow })
           .whereIn('target_id', dedupedTagIds)
           .groupBy('target_id')
       })
@@ -762,9 +763,9 @@ export class SearchService {
           authorId: article.authorId,
           state: article.state,
           authorState: article.authorState,
-          createdAt: article?.created_at?.toISOString(),
+          createdAt: article?.createdAt?.toISOString(),
           numViews: article.numViews,
-          lastReadAt: article?.last_read_at?.toISOString(),
+          lastReadAt: article?.lastReadAt?.toISOString(),
           indexedAt: now,
         }
       })
