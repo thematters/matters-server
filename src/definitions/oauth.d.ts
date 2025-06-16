@@ -54,6 +54,7 @@ export interface UserOAuthLikeCoin {
   refreshToken: string | null
   expires: Date
   scope: string | string[]
+  pendingLike: string | null
   createdAt: Date
   updatedAt: Date
 }

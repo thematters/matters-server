@@ -300,12 +300,23 @@ export class IPFSPublicationService {
       if (isTimeoutError) {
         console.log('Upload timed out, retrying without assets...')
 
-        const retryResult = await this.publishToIPFS({
+        const retryPromise = this.publishToIPFS({
           article,
           articleVersion,
           content: articleContent.content,
           skipAssets: true,
         })
+
+        const retryTimeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(
+            () => reject(new Error(TIMEOUT_ERR)),
+            environment.uploadTimeoutMs
+          )
+        })
+        const retryResult = await Promise.race([
+          retryPromise,
+          retryTimeoutPromise,
+        ])
 
         mediaHash = retryResult.mediaHash
         dataHash = retryResult.contentHash
