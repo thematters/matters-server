@@ -439,3 +439,14 @@ export class CircleCreationReachLimitError extends GraphQLError {
     super(message, { extensions: { code: 'CIRCLE_CREATION_REACH_LIMIT' } })
   }
 }
+
+/*********************************
+ *                               *
+ *           Translation         *
+ *                               *
+ *********************************/
+export class TranslationInsufficientCreditsError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'TRANSLATION_INSUFFICIENT_CREDITS' } })
+  }
+}

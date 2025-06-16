@@ -1,4 +1,5 @@
 import { environment } from '#common/environment.js'
+import { TranslationInsufficientCreditsError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
   extractAndReplaceUrls,
@@ -124,6 +125,14 @@ export class OpenRouter {
       )
 
       if (!response.ok) {
+        // Handle insufficient credits specifically
+        // https://openrouter.ai/docs/api-reference/errors#error-codes
+        if (response.status === 402) {
+          logger.error('OpenRouter insufficient credits')
+          throw new TranslationInsufficientCreditsError('insufficient credits')
+        }
+
+        // For other errors, fall back to basic error handling
         const error = await response.text()
         logger.error(error)
         return
@@ -143,6 +152,11 @@ export class OpenRouter {
           : model || this.toDatabaseModel(this.defaultModel),
       }
     } catch (err) {
+      // Re-throw our custom insufficient credits error
+      if (err instanceof TranslationInsufficientCreditsError) {
+        throw err
+      }
+
       logger.error(err)
       Sentry.captureException(err)
       return
