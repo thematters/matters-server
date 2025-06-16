@@ -581,6 +581,7 @@ export class SearchService {
       .leftJoin('user_followers', 'user.id', 'user_followers.target_id')
 
     // Transform data for search index
+    const now = new Date().toISOString()
     const rows = await Promise.all(
       users.map(async (user) => {
         return {
@@ -593,13 +594,94 @@ export class SearchService {
           createdAt: user.createdAt.toISOString(),
           numFollowers: user.numFollowers,
           lastFollowedAt: user.lastFollowedAt?.toISOString(),
-          indexedAt: new Date().toISOString(),
+          indexedAt: now,
         }
       })
     )
 
     // Upsert into search index
     await this.knexSearch('search_index.user')
+      .insert(rows)
+      .onConflict('id')
+      .merge()
+  }
+
+  public indexTag = async (tagId: string) => {
+    this.aws.sqsSendMessage({
+      messageBody: { tagId },
+      queueUrl: QUEUE_URL.searchIndexTag,
+    })
+  }
+
+  public indexTags = async (tagIds: string[]) => {
+    if (tagIds.length === 0) {
+      return
+    }
+    const dedupedTagIds = [...new Set(tagIds)]
+
+    // Get tag data from main database
+    const tags = await this.knexRO
+      .with('tag_followers', (builder) => {
+        builder
+          .from('action_tag')
+          .select(
+            'target_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_followers'),
+            this.knexRO.raw('MAX(created_at) AS last_followed_at')
+          )
+          .where({ action: USER_ACTION.follow })
+          .whereIn('target_id', dedupedTagIds)
+          .groupBy('target_id')
+      })
+      .with('tag_articles', (builder) => {
+        builder
+          .from('article_tag')
+          .join('article', 'article_tag.article_id', 'article.id')
+          .select(
+            'tag_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_articles'),
+            this.knexRO.raw('COUNT(DISTINCT author_id) ::int AS num_authors')
+          )
+          .where('article.state', ARTICLE_STATE.active)
+          .whereIn('tag_id', dedupedTagIds)
+          .groupBy('tag_id')
+      })
+      .from('tag')
+      .select([
+        'id',
+        'content',
+        'description',
+        'created_at',
+        'tag_articles.num_articles',
+        'tag_articles.num_authors',
+        'tag_followers.num_followers',
+        'tag_followers.last_followed_at',
+      ])
+      .whereIn('id', dedupedTagIds)
+      .leftJoin('tag_followers', 'tag.id', 'tag_followers.target_id')
+      .leftJoin('tag_articles', 'tag.id', 'tag_articles.tag_id')
+
+    // Transform data for search index
+    const now = new Date().toISOString()
+    const rows = await Promise.all(
+      tags.map(async (tag) => {
+        return {
+          id: tag.id,
+          content: simplecc(tag.content?.toLowerCase() || '', 't2s'),
+          contentOrig: tag.content,
+          description: simplecc(tag.description?.toLowerCase() || '', 't2s'),
+          createdAt: tag.createdAt.toISOString(),
+          numArticles: tag.numArticles,
+          numAuthors: tag.numAuthors,
+          numFollowers: tag.numFollowers,
+          lastFollowedAt: tag.lastFollowedAt?.toISOString(),
+          indexedAt: now,
+        }
+      })
+    )
+
+    // Upsert into search index
+    await this.knexSearch('search_index.tag')
       .insert(rows)
       .onConflict('id')
       .merge()

@@ -100,4 +100,88 @@ describe('SearchService', () => {
       expect(indexedUser.description).toBe('updated description') // Lowercase
     })
   })
+
+  describe('indexTags', () => {
+    beforeEach(async () => {
+      // Clean up search index before each test
+      await connections.knexSearch('search_index.tag').del()
+    })
+
+    test('handles empty tagIds array', async () => {
+      await expect(searchService.indexTags([])).resolves.not.toThrow()
+    })
+
+    test('deduplicates tagIds', async () => {
+      const tagIds = ['1', '1', '1'] // Duplicate IDs
+      await searchService.indexTags(tagIds)
+
+      // Verify only one record was created
+      const indexedTags = await connections
+        .knexSearch('search_index.tag')
+        .where({ id: '1' })
+        .select('*')
+      expect(indexedTags).toHaveLength(1)
+    })
+
+    test('indexes tag data with follower and article counts', async () => {
+      // Use seed data tags
+      const tag1Id = '1' // From seeds
+      const tag2Id = '2' // From seeds
+
+      await searchService.indexTags([tag1Id, tag2Id])
+
+      // Verify indexed data
+      const indexedTag1 = await connections
+        .knexSearch('search_index.tag')
+        .where({ id: tag1Id })
+        .first()
+
+      expect(indexedTag1).toBeDefined()
+      expect(indexedTag1.content).toBeDefined()
+      expect(indexedTag1.numFollowers).toBeDefined()
+      expect(indexedTag1.numArticles).toBeDefined()
+      expect(indexedTag1.numAuthors).toBeDefined()
+
+      const indexedTag2 = await connections
+        .knexSearch('search_index.tag')
+        .where({ id: tag2Id })
+        .first()
+
+      expect(indexedTag2).toBeDefined()
+      expect(indexedTag2.content).toBeDefined()
+      expect(indexedTag2.numFollowers).toBeDefined()
+      expect(indexedTag2.numArticles).toBeDefined()
+      expect(indexedTag2.numAuthors).toBeDefined()
+    })
+
+    test('updates existing indexed tag data', async () => {
+      const tagId = '2' // From seeds
+
+      // First index
+      await searchService.indexTags([tagId])
+
+      // Update tag data
+      await atomService.update({
+        table: 'tag',
+        where: { id: tagId },
+        data: {
+          content: 'Updated Tag',
+          description: 'Updated description',
+        },
+      })
+
+      // Re-index
+      await searchService.indexTags([tagId])
+
+      // Verify updated data
+      const indexedTag = await connections
+        .knexSearch('search_index.tag')
+        .where({ id: tagId })
+        .first()
+
+      expect(indexedTag).toBeDefined()
+      expect(indexedTag.content).toBe('updated tag') // Lowercase and simplified Chinese
+      expect(indexedTag.description).toBe('updated description') // Lowercase and simplified Chinese
+    })
+  })
 })

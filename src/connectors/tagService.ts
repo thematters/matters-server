@@ -19,14 +19,16 @@ import {
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
 } from '#common/utils/index.js'
-import { BaseService, SystemService } from '#connectors/index.js'
+import { BaseService, SystemService, SearchService } from '#connectors/index.js'
 import _ from 'lodash'
 
 const logger = getLogger('service-tag')
 
 export class TagService extends BaseService<Tag> {
+  private searchService: SearchService
   public constructor(connections: Connections) {
     super('tag', connections)
+    this.searchService = new SearchService(connections)
   }
 
   /**
@@ -204,6 +206,10 @@ export class TagService extends BaseService<Tag> {
       },
       skipCreate, // : content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
     })
+
+    if (tag) {
+      this.searchService.indexTag(tag.id)
+    }
 
     return tag
   }
@@ -649,7 +655,15 @@ export class TagService extends BaseService<Tag> {
   }: {
     tagId: string
     content: string
-  }) => this.baseUpdate(tagId, { content })
+  }) => {
+    const tag = await this.models.update({
+      table: 'tag',
+      where: { id: tagId },
+      data: { content },
+    })
+    this.searchService.indexTag(tagId)
+    return tag
+  }
 
   public mergeTags = async ({
     tagIds,
