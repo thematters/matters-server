@@ -13,6 +13,7 @@ import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { normalizeSearchKey } from '#common/utils/index.js'
 import { AtomService, aws } from '#connectors/index.js'
+import * as cheerio from 'cheerio'
 import { simplecc } from 'simplecc-wasm'
 
 const logger = getLogger('service-search')
@@ -682,6 +683,95 @@ export class SearchService {
 
     // Upsert into search index
     await this.knexSearch('search_index.tag')
+      .insert(rows)
+      .onConflict('id')
+      .merge()
+  }
+
+  public indexArticle = async (articleId: string) => {
+    this.aws.sqsSendMessage({
+      messageBody: { articleId },
+      queueUrl: QUEUE_URL.searchIndexArticle,
+    })
+  }
+
+  public indexArticles = async (articleIds: string[]) => {
+    if (articleIds.length === 0) {
+      return
+    }
+    const dedupedArticleIds = [...new Set(articleIds)]
+
+    // Gather article data from main database
+    const articles = await this.knexRO
+      .with('article_views', (builder) => {
+        builder
+          .from('article_read_count')
+          .select(
+            'article_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_views'),
+            this.knexRO.raw('MAX(created_at) AS last_read_at')
+          )
+          .whereNotNull('user_id')
+          .whereIn('article_id', dedupedArticleIds)
+          .groupBy('article_id')
+      })
+      .from({ a: 'article' })
+      .leftJoin('article_version_newest as avn', 'a.id', 'avn.article_id')
+      .leftJoin('article_content as ac', 'avn.content_id', 'ac.id')
+      .leftJoin('user as author', 'author.id', 'a.author_id')
+      .leftJoin('article_views', 'article_views.article_id', 'a.id')
+      .select([
+        'a.id',
+        'a.author_id',
+        'a.state',
+        this.knexRO.raw('author.state AS author_state'),
+        'a.created_at',
+        'avn.title',
+        'avn.summary',
+        'ac.content',
+        'article_views.num_views',
+        'article_views.last_read_at',
+      ])
+      .whereIn('a.id', dedupedArticleIds)
+
+    // Transform data for search index
+    const now = new Date().toISOString()
+    const rows = await Promise.all(
+      articles.map(async (article: any) => {
+        // Extract plain text from HTML content
+        let text = ''
+        try {
+          if (article.content) {
+            const $ = cheerio.load(article.content)
+            text = $('body')
+              .children()
+              .toArray()
+              .map((e) => $(e).text().trim())
+              .filter(Boolean)
+              .join('\n')
+          }
+        } catch (err) {
+          logger.error('Failed to extract article text', err)
+        }
+
+        return {
+          id: article.id,
+          title: simplecc((article.title || '').toLowerCase(), 't2s'),
+          summary: simplecc((article.summary || '').toLowerCase(), 't2s'),
+          textContentConverted: simplecc(text.toLowerCase(), 't2s'),
+          authorId: article.authorId,
+          state: article.state,
+          authorState: article.authorState,
+          createdAt: article?.created_at?.toISOString(),
+          numViews: article.numViews,
+          lastReadAt: article?.last_read_at?.toISOString(),
+          indexedAt: now,
+        }
+      })
+    )
+
+    // Upsert into search index
+    await this.knexSearch('search_index.article')
       .insert(rows)
       .onConflict('id')
       .merge()
