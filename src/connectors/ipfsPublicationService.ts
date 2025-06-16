@@ -6,7 +6,7 @@ import type {
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
-import { NODE_TYPES } from '#common/enums/index.js'
+import { NODE_TYPES, QUEUE_URL } from '#common/enums/index.js'
 import { environment, isProd } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { AtomService, LikeCoin } from '#connectors/index.js'
@@ -220,6 +220,19 @@ export class IPFSPublicationService {
     }
 
     return { contentHash, mediaHash, key }
+  }
+
+  public async triggerPublication({
+    articleId,
+    articleVersionId,
+  }: {
+    articleId: string
+    articleVersionId: string
+  }) {
+    this.aws.sqsSendMessage({
+      messageBody: { articleId, articleVersionId },
+      queueUrl: QUEUE_URL.ipfsPublication,
+    })
   }
 
   public async publish({
