@@ -239,6 +239,84 @@ jobs:
             sqsBatchSize=10,
             sqsMaxBatchingWindowInSeconds=0
 
+  deploy-search-index-users:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: search-index-users-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=searchIndexUsers.handler,
+            lambdaTimeout=900,
+            lambdaMemorySize=128,
+            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:search-index-users-${{ env.SQS_ENV }},
+            sqsBatchSize=100,
+            sqsMaxBatchingWindowInSeconds=20
+
+  deploy-search-index-tags:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: search-index-tags-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=searchIndexTags.handler,
+            lambdaTimeout=900,
+            lambdaMemorySize=128,
+            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:search-index-tags-${{ env.SQS_ENV }},
+            sqsBatchSize=100,
+            sqsMaxBatchingWindowInSeconds=20
+
+  deploy-search-index-articles:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: search-index-articles-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=searchIndexArticles.handler,
+            lambdaTimeout=900,
+            lambdaMemorySize=128,
+            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:search-index-articles-${{ env.SQS_ENV }},
+            sqsBatchSize=100,
+            sqsMaxBatchingWindowInSeconds=20
+
   deploy-notify:
     needs: build-lambda-image
     runs-on: ubuntu-latest
