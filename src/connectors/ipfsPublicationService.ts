@@ -314,18 +314,18 @@ export class IPFSPublicationService {
         throw error
       }
     }
+    // update article_version and article_circle in transaction
+    await this.knex.transaction(async (trx) => {
+      await trx('article_version')
+        .where({ id: articleVersionId })
+        .update({ dataHash, mediaHash })
 
-    // update article_version
-    await this.knex('article_version')
-      .where({ id: articleVersionId })
-      .update({ dataHash, mediaHash })
-
-    // update article_circle
-    if (key && articleVersion.circleId) {
-      await this.knex('article_circle')
-        .where({ articleId, circleId: articleVersion.circleId })
-        .update({ secret: key })
-    }
+      if (key && articleVersion.circleId) {
+        await trx('article_circle')
+          .where({ articleId, circleId: articleVersion.circleId })
+          .update({ secret: key })
+      }
+    })
 
     // publish to ISCN
     try {
