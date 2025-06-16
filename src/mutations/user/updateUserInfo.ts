@@ -32,7 +32,12 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
   { input },
   {
     viewer,
-    dataSources: { systemService, notificationService, atomService },
+    dataSources: {
+      systemService,
+      notificationService,
+      atomService,
+      searchService,
+    },
     req,
     res,
   }
@@ -191,6 +196,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
       newValue: input.displayName,
       status: AUDIT_LOG_STATUS.succeeded,
     })
+    searchService.indexUser(viewer.id)
   }
 
   // trigger notifications

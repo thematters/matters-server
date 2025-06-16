@@ -7,11 +7,12 @@ import {
   USER_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_EXCLUDE,
+  QUEUE_URL,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { normalizeSearchKey } from '#common/utils/index.js'
-import { AtomService } from '#connectors/index.js'
+import { AtomService, aws } from '#connectors/index.js'
 import { simplecc } from 'simplecc-wasm'
 
 const logger = getLogger('service-search')
@@ -25,6 +26,7 @@ export class SearchService {
   private knex: Knex
   private knexRO: Knex
   private knexSearch: Knex
+  private aws: typeof aws
 
   public constructor(connections: Connections) {
     this.connections = connections
@@ -32,6 +34,7 @@ export class SearchService {
     this.knex = this.connections.knex
     this.knexRO = this.connections.knexRO
     this.knexSearch = this.connections.knexSearch
+    this.aws = aws
   }
 
   public searchArticles = async ({
@@ -537,4 +540,68 @@ export class SearchService {
     this.knex('search_history')
       .where({ userId, archived: false })
       .update({ archived: true })
+
+  public indexUser = async (userId: string) => {
+    this.aws.sqsSendMessage({
+      messageBody: { userId },
+      queueUrl: QUEUE_URL.searchIndexUser,
+    })
+  }
+  public indexUsers = async (userIds: string[]) => {
+    if (userIds.length === 0) {
+      return
+    }
+    const dedupedUserIds = [...new Set(userIds)]
+    // Get user data from main database
+    const users = await this.knexRO
+      .with('user_followers', (builder) => {
+        builder
+          .from('action_user')
+          .select(
+            'target_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_followers'),
+            this.knexRO.raw('MAX(created_at) AS last_followed_at')
+          )
+          .where({ action: USER_ACTION.follow })
+          .whereIn('target_id', dedupedUserIds)
+          .groupBy('target_id')
+      })
+      .from('user')
+      .select([
+        'id',
+        'user_name',
+        'display_name',
+        'description',
+        'state',
+        'created_at',
+        'user_followers.num_followers',
+        'user_followers.last_followed_at',
+      ])
+      .whereIn('id', dedupedUserIds)
+      .leftJoin('user_followers', 'user.id', 'user_followers.target_id')
+
+    // Transform data for search index
+    const rows = await Promise.all(
+      users.map(async (user) => {
+        return {
+          id: user.id,
+          userName: user.userName.toLowerCase(),
+          displayName: simplecc(user.displayName?.toLowerCase() || '', 't2s'),
+          displayNameOrig: user.displayName,
+          description: simplecc(user.description?.toLowerCase() || '', 't2s'),
+          state: user.state,
+          createdAt: user.createdAt.toISOString(),
+          numFollowers: user.numFollowers,
+          lastFollowedAt: user.lastFollowedAt?.toISOString(),
+          indexedAt: new Date().toISOString(),
+        }
+      })
+    )
+
+    // Upsert into search index
+    await this.knexSearch('search_index.user')
+      .insert(rows)
+      .onConflict('id')
+      .merge()
+  }
 }
