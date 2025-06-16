@@ -360,7 +360,7 @@ export class IPFSPublicationService {
             title: articleVersion.title,
             description: articleVersion.summary,
             datePublished: article.createdAt?.toISOString().substring(0, 10),
-            url: `https://${process.env.MATTERS_SITE_DOMAIN}/a/${article.shortHash}`,
+            url: `https://${environment.siteDomain}/a/${article.shortHash}`,
             tags: articleVersion.tags,
             liker,
           })

@@ -51,7 +51,7 @@ export interface UserOAuthLikeCoin {
   likerId: string
   accountType: UserOAuthLikeCoinAccountType
   accessToken: string
-  refreshToken: string
+  refreshToken: string | null
   expires: Date
   scope: string | string[]
   createdAt: Date
