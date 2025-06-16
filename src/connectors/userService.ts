@@ -3,7 +3,6 @@ import type {
   Article,
   ItemData,
   UserOAuthLikeCoin,
-  UserOauthLikecoinDB,
   UserOAuthLikeCoinAccountType,
   UserNotifySetting,
   User,
@@ -1622,7 +1621,7 @@ export class UserService extends BaseService<User> {
       likerId,
     })
 
-    await this.baseUpdateOrCreate<UserOauthLikecoinDB>({
+    await this.baseUpdateOrCreate<UserOAuthLikeCoin>({
       where: { likerId },
       data: {
         likerId,

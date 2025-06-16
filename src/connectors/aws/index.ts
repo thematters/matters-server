@@ -4,7 +4,7 @@ import { LOCAL_S3_ENDPOINT, QUEUE_URL } from '#common/enums/index.js'
 import { environment, isLocal, isProd, isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { CloudWatch } from '@aws-sdk/client-cloudwatch'
-import { S3 } from '@aws-sdk/client-s3'
+import { GetObjectCommand, S3 } from '@aws-sdk/client-s3'
 import { SQS } from '@aws-sdk/client-sqs'
 import { Upload } from '@aws-sdk/lib-storage'
 import getStream from 'get-stream'
@@ -172,6 +172,21 @@ export class AWSService {
       'cloudwatch:putMetricData %o with res RequestId: %s',
       MetricData,
       res?.$metadata?.requestId
+    )
+  }
+
+  public s3GetFile = async ({
+    bucket,
+    key,
+  }: {
+    bucket: string
+    key: string
+  }) => {
+    return this.s3.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      })
     )
   }
 }
