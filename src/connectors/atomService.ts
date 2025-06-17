@@ -540,6 +540,20 @@ export class AtomService {
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 
+  public exists = async ({
+    table,
+    where,
+  }: {
+    table: TableName
+    where: Record<string, any>
+  }) => {
+    const record = await this.knex(table)
+      .where(where)
+      .select(this.knex.raw('1'))
+      .first()
+    return record !== undefined
+  }
+
   /**
    * Max of given column.
    *

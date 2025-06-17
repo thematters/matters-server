@@ -94,6 +94,8 @@ import {
   CacheService,
   OAuthService,
   NotificationService,
+  SearchService,
+  ArticleService,
 } from '#connectors/index.js'
 import { Twitter } from '#connectors/oauth/index.js'
 import axios from 'axios'
@@ -120,11 +122,13 @@ const logger = getLogger('service-user')
 
 export class UserService extends BaseService<User> {
   public likecoin: LikeCoin
+  public searchService: SearchService
 
   public constructor(connections: Connections) {
     super('user', connections)
 
     this.likecoin = new LikeCoin(connections)
+    this.searchService = new SearchService(connections)
   }
 
   /*********************************
@@ -221,6 +225,9 @@ export class UserService extends BaseService<User> {
     const atomService = new AtomService(this.connections)
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
+
+    // index user to search service
+    this.searchService.triggerIndexingUser(user.id)
 
     // send email
     if (user.email && user.displayName) {
@@ -595,6 +602,7 @@ export class UserService extends BaseService<User> {
         previous: oldUserName,
       },
     })
+    this.searchService.triggerIndexingUser(userId)
     return await this.baseUpdate(userId, data)
   }
 
@@ -687,6 +695,8 @@ export class UserService extends BaseService<User> {
       //   WHERE
       //     owner = ${id}
       // `)
+
+      this.searchService.triggerIndexingUser(id)
 
       return user
     })
@@ -859,16 +869,18 @@ export class UserService extends BaseService<User> {
       targetId,
       action: USER_ACTION.follow,
     }
-    return this.models.upsert({
+    const result = await this.models.upsert({
       where: data,
       create: data,
       update: data,
       table: 'action_user',
     })
+    this.searchService.triggerIndexingUser(targetId)
+    return result
   }
 
-  public unfollow = async (userId: string, targetId: string) =>
-    this.knex
+  public unfollow = async (userId: string, targetId: string) => {
+    const result = await this.knex
       .from('action_user')
       .where({
         targetId,
@@ -876,6 +888,9 @@ export class UserService extends BaseService<User> {
         action: USER_ACTION.follow,
       })
       .del()
+    this.searchService.triggerIndexingUser(targetId)
+    return result
+  }
 
   public countFollowees = async (userId: string) => {
     const result = await this.knex('action_user')
@@ -1773,6 +1788,20 @@ export class UserService extends BaseService<User> {
   ) => {
     const table = 'user_feature_flag'
     await this.models.create({ table, data: { userId: id, type } })
+    if (type === USER_FEATURE_FLAG_TYPE.bypassSpamDetection) {
+      const articles = await this.models.findMany({
+        table: 'article',
+        where: { authorId: id },
+      })
+      if (articles.length > 0) {
+        const articleService = new ArticleService(this.connections)
+        await Promise.all(
+          articles.map((article) =>
+            articleService.runPostProcessing(article, false)
+          )
+        )
+      }
+    }
   }
 
   public removeFeatureFlag = async (

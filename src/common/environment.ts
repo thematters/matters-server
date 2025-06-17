@@ -61,6 +61,12 @@ export const environment = {
     process.env.MATTERS_AWS_IPFS_PUBLICATION_QUEUE_URL || '',
   awsBlockchainPaymentQueueUrl:
     process.env.MATTERS_AWS_BLOCKCHAIN_PAYMENT_QUEUE_URL || '',
+  awsSearchIndexUserQueueUrl:
+    process.env.MATTERS_AWS_SEARCH_INDEX_USER_QUEUE_URL || '',
+  awsSearchIndexTagQueueUrl:
+    process.env.MATTERS_AWS_SEARCH_INDEX_TAG_QUEUE_URL || '',
+  awsSearchIndexArticleQueueUrl:
+    process.env.MATTERS_AWS_SEARCH_INDEX_ARTICLE_QUEUE_URL || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
