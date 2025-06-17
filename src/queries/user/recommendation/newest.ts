@@ -1,6 +1,5 @@
 import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import { connectionFromQuery } from '#common/utils/index.js'
 
@@ -18,8 +17,6 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   }
   const spamThreshold = await systemService.getSpamThreshold()
 
-  const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
-
   const query = articleService.latestArticles({
     spamThreshold: spamThreshold ?? undefined,
     excludeChannelArticles,
@@ -31,6 +28,5 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     orderBy: { column: 'id', order: 'desc' },
     args: input,
     cursorColumn: oss ? undefined : 'id',
-    maxTake: oss ? undefined : MAX_ITEM_COUNT,
   })
 }
