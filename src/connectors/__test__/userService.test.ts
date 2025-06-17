@@ -95,6 +95,7 @@ describe('countDonators', () => {
     await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     await createDonationTx({ recipientId, senderId: '4' }, paymentService)
+    await createDonationTx({ recipientId, senderId: null }, paymentService)
     const result1 = await userService.topDonators(recipientId, undefined, {
       skip: 1,
     })

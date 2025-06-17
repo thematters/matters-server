@@ -1536,11 +1536,14 @@ export class UserService extends BaseService<User> {
     range?: { start?: Date; end?: Date },
     pagination?: { skip?: number; take?: number }
   ) => {
-    const query = this.knex('transaction').where({
-      recipientId,
-      state: TRANSACTION_STATE.succeeded,
-      purpose: TRANSACTION_PURPOSE.donation,
-    })
+    const query = this.knex('transaction')
+      .where({
+        recipientId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .whereNotNull('sender_id')
+
     if (range?.start) {
       query.where('created_at', '>=', range.start)
     }

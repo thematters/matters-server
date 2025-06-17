@@ -204,7 +204,9 @@ const resolver: GQLRecommendationResolvers['following'] = async (
             __type: 'ArticleRecommendationActivity',
             source,
             nodes: await atomService.articleIdLoader.loadMany(
-              recommendation.map(({ articleId }) => articleId)
+              recommendation
+                .map(({ articleId }) => articleId)
+                .filter((articleId) => articleId !== null)
             ),
           },
         })
