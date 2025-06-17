@@ -95,6 +95,7 @@ export class ArticleService extends BaseService<Article> {
   private openRouter = new OpenRouter()
   private systemService: SystemService
   private notificationService: NotificationService
+  private searchService: SearchService
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -121,6 +122,7 @@ export class ArticleService extends BaseService<Article> {
 
     this.systemService = new SystemService(this.connections)
     this.notificationService = new NotificationService(this.connections)
+    this.searchService = new SearchService(this.connections)
   }
 
   /*********************************
@@ -1145,6 +1147,7 @@ export class ArticleService extends BaseService<Article> {
       },
       table
     )
+    this.searchService.updateArticleReadData(articleId)
     return { newRead: false }
   }
 
@@ -2030,18 +2033,16 @@ export class ArticleService extends BaseService<Article> {
       const score =
         (await this._detectSpam({ id: articleId, title, content, summary })) ||
         0
-
       const spamThreshold = (await this.systemService.getSpamThreshold()) || 1
       _isSpam = pypassSpam ? false : score >= spamThreshold
     }
-
-    const channelService = new ChannelService(this.connections)
 
     if (_isSpam) {
       return
     }
 
     // infer article channels if not spam
+    const channelService = new ChannelService(this.connections)
     channelService.classifyArticlesChannels({ ids: [articleId] })
 
     // detect language
@@ -2058,8 +2059,7 @@ export class ArticleService extends BaseService<Article> {
     })
 
     // trigger search indexing
-    const searchService = new SearchService(this.connections)
-    searchService.triggerIndexingArticle(article.id)
+    this.searchService.triggerIndexingArticle(article.id)
 
     // trigger IPFS publication
     const ipfsPublicationService = new IPFSPublicationService(this.connections)

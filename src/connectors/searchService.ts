@@ -696,6 +696,24 @@ export class SearchService {
     })
   }
 
+  public updateArticleReadData = async (articleId: string) => {
+    const { numViews, lastReadAt } = (await this.knexRO('article_read_count')
+      .select(
+        'article_id',
+        this.knexRO.raw('COUNT(*) OVER() ::integer AS num_views'),
+        this.knexRO.raw('MAX(created_at) OVER() AS last_read_at')
+      )
+      .whereNotNull('user_id')
+      .where('article_id', articleId)
+      .first()) || { numViews: 0, lastReadAt: null }
+    await this.knexSearch('search_index.article')
+      .where('id', articleId)
+      .update({
+        numViews: numViews,
+        lastReadAt: lastReadAt,
+      })
+  }
+
   public indexArticles = async (articleIds: string[]) => {
     if (articleIds.length === 0) {
       return

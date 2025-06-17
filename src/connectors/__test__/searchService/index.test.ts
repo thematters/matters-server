@@ -286,3 +286,67 @@ describe('indexArticles', () => {
     )
   })
 })
+
+describe('updateArticleReadData', () => {
+  beforeEach(async () => {
+    // Clean up search index and read count data before each test
+    await connections.knexSearch('search_index.article').del()
+    await connections.knex('article_read_count').del()
+  })
+
+  test('updates article view count and last read time in search index', async () => {
+    const articleId = '1' // From seeds
+    const userId = '2' // Test user from seeds
+    const readTime = new Date('2024-01-01T00:00:00Z')
+
+    // First index the article
+    await searchService.indexArticles([articleId])
+
+    // Add some read count data
+    await connections.knex('article_read_count').insert([
+      {
+        article_id: articleId,
+        user_id: userId,
+        created_at: readTime,
+        count: 1,
+      },
+      { article_id: articleId, user_id: '3', created_at: readTime, count: 1 },
+      { article_id: articleId, user_id: null, created_at: readTime, count: 1 },
+    ])
+
+    // Update read data
+    await searchService.updateArticleReadData(articleId)
+
+    // Verify the search index was updated
+    const indexedArticle = await connections
+      .knexSearch('search_index.article')
+      .where({ id: articleId })
+      .first()
+
+    expect(indexedArticle).toBeDefined()
+    expect(indexedArticle.numViews).toBe(2) // Should only count non-null user_id records
+    expect(new Date(indexedArticle.lastReadAt).toISOString()).toBe(
+      readTime.toISOString()
+    )
+  })
+
+  test('handles article with no reads', async () => {
+    const articleId = '1' // From seeds
+
+    // First index the article
+    await searchService.indexArticles([articleId])
+
+    // Update read data with no reads
+    await searchService.updateArticleReadData(articleId)
+
+    // Verify the search index was updated
+    const indexedArticle = await connections
+      .knexSearch('search_index.article')
+      .where({ id: articleId })
+      .first()
+
+    expect(indexedArticle).toBeDefined()
+    expect(indexedArticle.numViews).toBe(0)
+    expect(indexedArticle.lastReadAt).toBeNull()
+  })
+})

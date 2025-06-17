@@ -1796,7 +1796,9 @@ export class UserService extends BaseService<User> {
       if (articles.length > 0) {
         const articleService = new ArticleService(this.connections)
         await Promise.all(
-          articles.map((article) => articleService.runPostProcessing(article))
+          articles.map((article) =>
+            articleService.runPostProcessing(article, false)
+          )
         )
       }
     }
