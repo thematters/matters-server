@@ -4393,7 +4393,9 @@ export type GQLUserFeatureFlag = {
   type: GQLUserFeatureFlagType
 }
 
-export type GQLUserFeatureFlagType = 'bypassSpamDetection'
+export type GQLUserFeatureFlagType =
+  | 'bypassSpamDetection'
+  | 'unlimitedArticleFetch'
 
 export type GQLUserGroup = 'a' | 'b'
 
