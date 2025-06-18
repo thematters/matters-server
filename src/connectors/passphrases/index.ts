@@ -4,6 +4,7 @@ import {
   PasswordInvalidError,
   UnknownError,
 } from '#common/errors.js'
+import * as Sentry from '@sentry/node'
 import axios from 'axios'
 import { ServerError } from 'oauth2-server'
 
@@ -33,6 +34,8 @@ export class Passphrases {
       })
       return result.data.passphrases
     } catch (error: any) {
+      Sentry.captureException(error)
+
       const code = error.response.data?.code
       if (code === 'InputError') {
         throw new ServerError('invalid input')
@@ -64,6 +67,8 @@ export class Passphrases {
       })
       return result.status === 200
     } catch (error: any) {
+      Sentry.captureException(error)
+
       const code = error.response.data?.code
       if (code === 'PassphrasesExpiredError') {
         throw new CodeExpiredError('passphrases expired')

@@ -83,7 +83,6 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
     try {
       const ext = mime.split('/')[1]
       const result = (await cfsvc.directUploadImage(type, uuid, ext))!
-      logger.info('got cloudflare image uploadURL: %o', result)
       ;({ key, uploadURL } = result)
     } catch (err) {
       logger.error('cloudflare upload image ERROR:', err)

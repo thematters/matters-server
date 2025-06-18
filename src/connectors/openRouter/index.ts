@@ -1,15 +1,17 @@
 import { environment } from '#common/environment.js'
+import { TranslationInsufficientCreditsError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
   extractAndReplaceUrls,
   restoreUrlPlaceholders,
 } from '#common/utils/index.js'
 import { GQLTranslationModel, LANGUAGES } from '#definitions/index.js'
+import * as Sentry from '@sentry/node'
 
 const logger = getLogger('service-openrouter')
 
 type TranslationModel =
-  | 'google/gemini-2.5-flash-preview-05-20'
+  | 'google/gemini-2.5-flash'
   | 'google/gemini-2.0-flash-001'
 
 type OpenRouterResponse = {
@@ -37,16 +39,16 @@ export class OpenRouter {
   public constructor() {
     this.apiKey = environment.openRouterApiKey
 
-    this.defaultModel = 'google/gemini-2.5-flash-preview-05-20'
+    this.defaultModel = 'google/gemini-2.5-flash'
     this.availableModels = [
-      'google/gemini-2.5-flash-preview-05-20',
+      'google/gemini-2.5-flash',
       'google/gemini-2.0-flash-001',
     ]
   }
 
   public toDatabaseModel = (model: TranslationModel): GQLTranslationModel => {
     const modelMap: { [key: string]: GQLTranslationModel } = {
-      'google/gemini-2.5-flash-preview-05-20': 'google_gemini_2_5_flash',
+      'google/gemini-2.5-flash': 'google_gemini_2_5_flash',
       'google/gemini-2.0-flash-001': 'google_gemini_2_0_flash',
     }
     return modelMap[model]
@@ -54,7 +56,7 @@ export class OpenRouter {
 
   public fromDatabaseModel = (model: GQLTranslationModel): TranslationModel => {
     const modelMap: { [key: string]: TranslationModel } = {
-      google_gemini_2_5_flash: 'google/gemini-2.5-flash-preview-05-20',
+      google_gemini_2_5_flash: 'google/gemini-2.5-flash',
       google_gemini_2_0_flash: 'google/gemini-2.0-flash-001',
     }
     return modelMap[model]
@@ -123,6 +125,14 @@ export class OpenRouter {
       )
 
       if (!response.ok) {
+        // Handle insufficient credits specifically
+        // https://openrouter.ai/docs/api-reference/errors#error-codes
+        if (response.status === 402) {
+          logger.error('OpenRouter insufficient credits')
+          throw new TranslationInsufficientCreditsError('insufficient credits')
+        }
+
+        // For other errors, fall back to basic error handling
         const error = await response.text()
         logger.error(error)
         return
@@ -142,7 +152,13 @@ export class OpenRouter {
           : model || this.toDatabaseModel(this.defaultModel),
       }
     } catch (err) {
+      // Re-throw our custom insufficient credits error
+      if (err instanceof TranslationInsufficientCreditsError) {
+        throw err
+      }
+
       logger.error(err)
+      Sentry.captureException(err)
       return
     }
   }

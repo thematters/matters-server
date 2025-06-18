@@ -7,6 +7,7 @@ import { getLogger } from '#common/logger.js'
 import { toDBAmount } from '#common/utils/index.js'
 import { PaymentService, UserService } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
+import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
@@ -56,6 +57,7 @@ stripeRouter.post('/', async (req, res) => {
       environment.stripeWebhookSecret
     )
   } catch (err: unknown) {
+    Sentry.captureException(err)
     if (err instanceof Error) {
       logger.error(err)
       slack.sendStripeAlert({
@@ -256,6 +258,7 @@ stripeRouter.post('/', async (req, res) => {
     }
   } catch (err: unknown) {
     logger.error(err)
+    Sentry.captureException(err)
     slack.sendStripeAlert({
       data: slackEventData,
       message: `Server error: ${

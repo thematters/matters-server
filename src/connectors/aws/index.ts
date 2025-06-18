@@ -7,6 +7,7 @@ import { CloudWatch } from '@aws-sdk/client-cloudwatch'
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3'
 import { SQS } from '@aws-sdk/client-sqs'
 import { Upload } from '@aws-sdk/lib-storage'
+import * as Sentry from '@sentry/node'
 import getStream from 'get-stream'
 import mime from 'mime-types'
 
@@ -89,6 +90,8 @@ export class AWSService {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
+      Sentry.captureException(err)
+
       switch (err.name) {
         case 'NotFound':
           break

@@ -26,6 +26,7 @@ import {
 } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import * as Sentry from '@sentry/node'
 import _ from 'lodash'
 import Stripe from 'stripe'
 
@@ -205,6 +206,7 @@ export const updateSubscription = async (
       })
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
       throw new ServerError('failed to update subscription')
     }
   }
@@ -232,6 +234,7 @@ export const updateSubscription = async (
       updatedPriceIds = updatedItems.map((i) => i.priceId)
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
       throw new ServerError('failed to update subscription items')
     }
   }
@@ -257,6 +260,7 @@ export const updateSubscription = async (
       })
     } catch (error) {
       logger.error(error)
+      Sentry.captureException(error)
     }
   }
 
@@ -363,6 +367,7 @@ export const completeCircleInvoice = async (
       throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
     }
   } catch (err: unknown) {
+    Sentry.captureException(err)
     if (err instanceof Error) {
       logger.error(err)
       slack.sendStripeAlert({

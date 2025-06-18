@@ -23,6 +23,7 @@ import {
 } from '#common/errors.js'
 import { CurationVaultContract } from '#connectors/blockchain/curationVault.js'
 import SlackService from '#connectors/slack/index.js'
+import * as Sentry from '@sentry/node'
 import { v4 } from 'uuid'
 import { formatUnits } from 'viem'
 
@@ -145,6 +146,7 @@ const resolver: GQLMutationResolvers['withdrawLockedTokens'] = async (
       txHash: `${BLOCKCHAIN_EXPLORER[BLOCKCHAIN.Optimism].url}/tx/${txHash}`,
     })
   } catch (error) {
+    Sentry.captureException(error)
     console.error(error)
 
     await paymentService.markTransactionStateAs({

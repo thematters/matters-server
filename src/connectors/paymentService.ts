@@ -52,6 +52,7 @@ import {
 import { stripe } from '#connectors/stripe/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import slugify from '@matters/slugify'
+import * as Sentry from '@sentry/node'
 import _capitalize from 'lodash/capitalize.js'
 import { v4 } from 'uuid'
 import { formatUnits, parseUnits } from 'viem'
@@ -409,6 +410,7 @@ export class PaymentService extends BaseService<Transaction> {
       return tx
     } catch (error) {
       await trx.rollback()
+      Sentry.captureException(error)
       throw error
     }
   }
@@ -774,6 +776,7 @@ export class PaymentService extends BaseService<Transaction> {
       )
     } catch (e) {
       await trx.rollback()
+      Sentry.captureException(e)
       throw e
     }
   }

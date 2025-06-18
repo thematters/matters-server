@@ -2,6 +2,7 @@ import { SOCIAL_LOGIN_TYPE } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { UserService } from '#connectors/index.js'
+import * as Sentry from '@sentry/node'
 import crypto from 'crypto'
 import { Router, urlencoded } from 'express'
 
@@ -28,6 +29,7 @@ facebook.post('/delete/', async (req, res) => {
   try {
     data = parseSignedRequest(signedRequest, environment.facebookClientSecret)
   } catch (e) {
+    Sentry.captureException(e)
     logger.error('facebook callback error', { error: e })
     return res.status(400).send('Invalid signed_request')
   }

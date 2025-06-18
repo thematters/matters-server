@@ -10,6 +10,7 @@ import {
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { alchemy, AlchemyNetwork } from '#connectors/index.js'
+import * as Sentry from '@sentry/node'
 import axios from 'axios'
 import {
   Address,
@@ -117,6 +118,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
       await logbookContract.read.ownerOf([tokenId])
     } catch (e: unknown) {
       logger.error(e)
+      Sentry.captureException(e)
       unclaimedTokenIds.push(tokenId)
     }
   }
