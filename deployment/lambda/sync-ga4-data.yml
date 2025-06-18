@@ -25,7 +25,8 @@ Resources:
         ImageUri: !Ref imageUri
       PackageType: Image
       ImageConfig:
-        Command: syncGa4Data.handler
+        Command:
+          - syncGa4Data.handler
       Environment:
         Variables:
           MATTERS_ENV: !Ref mattersEnv
