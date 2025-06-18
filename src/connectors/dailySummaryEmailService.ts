@@ -437,13 +437,7 @@ export class DailySummaryEmailService {
   /**
    * Get user digest with avatar URL resolved - using SystemService
    */
-  private getUserDigest = async (
-    user: User | null
-  ): Promise<UserDigest | undefined> => {
-    if (!user) {
-      return
-    }
-
+  private getUserDigest = async (user: User): Promise<UserDigest> => {
     let avatar = user.avatar
     if (avatar) {
       const url = await this.systemService.findAssetUrl(avatar)
@@ -487,7 +481,7 @@ export class DailySummaryEmailService {
 
     return {
       id: article.id,
-      author: authorDigest!,
+      author: authorDigest,
       title: articleVersion?.title,
       shortHash: article.shortHash,
       appreciationsReceivedTotal,
