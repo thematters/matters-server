@@ -2555,6 +2555,7 @@ enum UserRestrictionType {
 
 enum UserFeatureFlagType {
   bypassSpamDetection
+  unlimitedArticleFetch
 }
 
 enum ReportReason {

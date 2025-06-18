@@ -40,6 +40,7 @@ import {
   CacheService,
   ChannelClassifier,
 } from '#connectors/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const logger = getLogger('service-channel')
 
@@ -811,11 +812,16 @@ export class ChannelService {
         where: { articleId: feedback.articleId },
         data: { enabled: false },
       })
-      return this.models.update({
+      const autoResolved = await this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: autoResolved.articleId },
+        redis: this.connections.redis,
+      })
+      return autoResolved
     }
     if (
       await this.isFeedbackResolved({
@@ -823,22 +829,32 @@ export class ChannelService {
         channelIds: feedback.channelIds,
       })
     ) {
-      return this.models.update({
+      const resolved = await this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
       })
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: resolved.articleId },
+        redis: this.connections.redis,
+      })
+      return resolved
     }
 
     await this.setArticleTopicChannels({
       articleId: feedback.articleId,
       channelIds: feedback.channelIds,
     })
-    return this.models.update({
+    const updated = await this.models.update({
       table: 'topic_channel_feedback',
       where: { id: feedback.id },
       data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
     })
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: updated.articleId },
+      redis: this.connections.redis,
+    })
+    return updated
   }
 
   public rejectFeedback = async (feedback: TopicChannelFeedback) => {
