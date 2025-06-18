@@ -12,6 +12,7 @@ import {
   TRANSACTION_STATE,
   FEATURE_NAME,
   FEATURE_FLAG,
+  DEFAULT_TAKE_PER_PAGE,
 } from '#common/enums/index.js'
 import {
   AtomService,
@@ -224,6 +225,8 @@ query($first: first_Int_min_0, $after: String) {
 
 describe('user recommendations', () => {
   let knex: Knex
+  // from src/queries/user/recommendation/newest.ts
+  const MAX_TAKE = DEFAULT_TAKE_PER_PAGE * 50
   beforeAll(async () => {
     knex = connections.knex
   })
@@ -347,5 +350,67 @@ describe('user recommendations', () => {
     })
     const authorIdsAfter = getAuthorIds(data2)
     expect(authorIdsAfter).not.toContain(restrictedUserId)
+
+    await knex('user_restriction').delete()
   })
+
+  test('newest respects maxTake limit for regular users', async () => {
+    // create more than MAX_TAKE articles
+    await Promise.all(
+      Array.from({ length: MAX_TAKE + 1 }, (_, i) =>
+        articleService.createArticle({
+          authorId: '1',
+          title: `Test Article ${i}`,
+          content: `Test Content ${i}`,
+        })
+      )
+    )
+
+    const server = await testClient({
+      isAuth: true,
+      userId: '2', // regular user
+      connections,
+    })
+
+    // Try to fetch more than the default limit
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { first: 1 },
+    })
+
+    // Should be limited to DEFAULT_TAKE_PER_PAGE * 50
+    expect(data.viewer.recommendation.newest.totalCount).toBeLessThanOrEqual(
+      MAX_TAKE
+    )
+  }, 30000)
+
+  test('newest allows unlimited fetch for users with unlimitedArticleFetch flag', async () => {
+    // make sure there are more than MAX_TAKE articles
+    const spamThreshold = await systemService.getSpamThreshold()
+    const records = await articleService.latestArticles({
+      spamThreshold: spamThreshold ?? undefined,
+    })
+    expect(records.length).toBeGreaterThan(MAX_TAKE)
+
+    const userId = '3'
+    // Add unlimitedArticleFetch feature flag to user
+    await userService.addFeatureFlag(userId, 'unlimitedArticleFetch')
+    const server = await testClient({
+      isAuth: true,
+      userId,
+      connections,
+    })
+    // Try to fetch more than the default limit
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { first: 1 },
+    })
+
+    // Should return all available articles
+    expect(data.viewer.recommendation.newest.totalCount).toBeGreaterThan(0)
+    // The actual count should be higher than the default limit
+    expect(data.viewer.recommendation.newest.totalCount).toBeGreaterThan(
+      MAX_TAKE
+    )
+  }, 30000)
 })
