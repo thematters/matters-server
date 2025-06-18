@@ -14,12 +14,10 @@ on:
         required: true
       AWS_REGION:
         required: true
+      AWS_ACCOUNT_ID:
+        required: true
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   ECR_REPOSITORY: lambda-handlers-image
   MATTERS_ENV: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
   SQS_ENV: ${{ inputs.environment == 'develop' && 'dev' || 'prod' }}
@@ -235,7 +233,7 @@ jobs:
             lambdaCMD=ipfsPublication.handler,
             lambdaTimeout=600,
             lambdaMemorySize=1536,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:ipfs-publication-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:ipfs-publication-${{ env.SQS_ENV }},
             sqsBatchSize=10,
             sqsMaxBatchingWindowInSeconds=0
 
@@ -261,7 +259,7 @@ jobs:
             lambdaCMD=searchIndexUsers.handler,
             lambdaTimeout=900,
             lambdaMemorySize=128,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:search-index-users-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-users-${{ env.SQS_ENV }},
             sqsBatchSize=100,
             sqsMaxBatchingWindowInSeconds=20
 
@@ -287,7 +285,7 @@ jobs:
             lambdaCMD=searchIndexTags.handler,
             lambdaTimeout=900,
             lambdaMemorySize=128,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:search-index-tags-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-tags-${{ env.SQS_ENV }},
             sqsBatchSize=100,
             sqsMaxBatchingWindowInSeconds=20
 
@@ -313,7 +311,7 @@ jobs:
             lambdaCMD=searchIndexArticles.handler,
             lambdaTimeout=900,
             lambdaMemorySize=128,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:search-index-articles-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-articles-${{ env.SQS_ENV }},
             sqsBatchSize=100,
             sqsMaxBatchingWindowInSeconds=20
 
@@ -339,7 +337,7 @@ jobs:
             lambdaCMD=notify.handler,
             lambdaTimeout=10,
             lambdaMemorySize=256,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:notice-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:notice-${{ env.SQS_ENV }},
             sqsBatchSize=2,
             sqsMaxBatchingWindowInSeconds=2
 
@@ -365,7 +363,7 @@ jobs:
             lambdaCMD=blockchainPayment.handler,
             lambdaTimeout=300,
             lambdaMemorySize=256,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:blockchain-payment-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:blockchain-payment-${{ env.SQS_ENV }},
             sqsBatchSize=10,
             sqsMaxBatchingWindowInSeconds=0
 
@@ -463,7 +461,7 @@ jobs:
             lambdaCMD=userRetentionSendmail.handler,
             lambdaTimeout=300,
             lambdaMemorySize=128,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:user-retention-sendmail-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:user-retention-sendmail-${{ env.SQS_ENV }},
             sqsBatchSize=1,
             sqsMaxBatchingWindowInSeconds=1
 
@@ -489,7 +487,7 @@ jobs:
             lambdaCMD=archiveUser.handler,
             lambdaTimeout=60,
             lambdaMemorySize=128,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:archive-user-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:archive-user-${{ env.SQS_ENV }},
             sqsBatchSize=1,
             sqsMaxBatchingWindowInSeconds=1
 
@@ -588,7 +586,7 @@ jobs:
             lambdaTimeout=30,
             lambdaMemorySize=128,
             lambdaReservedConcurrency=200,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:likecoin-update-civic-liker-cache-${{ env.SQS_ENV }},
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:likecoin-update-civic-liker-cache-${{ env.SQS_ENV }},
             sqsBatchSize=100,
             sqsMaxBatchingWindowInSeconds=1
 
@@ -614,7 +612,7 @@ jobs:
             lambdaCMD=likecoinLike.handler,
             lambdaTimeout=120,
             lambdaMemorySize=128,
-            sqsArn=arn:aws:sqs:${{ env.AWS_REGION }}:${{ env.AWS_ACCOUNT_ID }}:likecoin-like-${{ env.SQS_ENV }}.fifo,
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:likecoin-like-${{ env.SQS_ENV }}.fifo,
             sqsBatchSize=10,
             sqsMaxBatchingWindowInSeconds=0
 
