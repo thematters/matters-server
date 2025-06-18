@@ -351,7 +351,9 @@ describe('user recommendations', () => {
     const authorIdsAfter = getAuthorIds(data2)
     expect(authorIdsAfter).not.toContain(restrictedUserId)
 
-    await knex('user_restriction').delete()
+    await knex('user_restriction')
+      .where({ userId: '1', type: 'articleNewest' })
+      .delete()
   })
 
   test('newest respects maxTake limit for regular users', async () => {
