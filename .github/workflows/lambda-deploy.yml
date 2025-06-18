@@ -241,7 +241,7 @@ jobs:
     needs: build-lambda-image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Reposecrets
+      - name: Checkout Repo
         uses: actions/checkout@master
 
       - name: Login to Amazon ECR
