@@ -82,4 +82,5 @@ export enum OFFICIAL_NOTICE_EXTEND_TYPE {
   write_challenge_applied = 'write_challenge_applied',
   write_challenge_applied_late_bird = 'write_challenge_applied_late_bird',
   badge_grand_slam_awarded = 'badge_grand_slam_awarded',
+  write_challenge_announcement = 'write_challenge_announcement',
 }

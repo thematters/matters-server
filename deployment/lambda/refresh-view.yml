@@ -1,0 +1,370 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: lambda to refresh materialized views
+
+Parameters:
+  imageUri:
+    Type: String
+    Description: "The Amazon ECR image URI"
+  mattersEnv:
+    Type: String
+    Description: 'Lambda environment, which will determine the ssm parameter path to query'
+  lambdaCMD:
+    Type: String
+    Description: 'lambda CMD setting'
+  lambdaTimeout:
+    Type: Number
+    Description: 'lambda timeout setting'
+  lambdaMemorySize:
+    Type: Number
+    Description: 'lambda memory size setting'
+
+Conditions:
+  isProd: !Equals
+    - !Ref mattersEnv
+    - "production"
+
+Resources:
+  Lambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        ImageUri: !Ref imageUri
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - !Ref lambdaCMD
+      Environment:
+        Variables:
+          MATTERS_ENV: !Ref mattersEnv
+      Architectures:
+        - x86_64
+      MemorySize: !Ref lambdaMemorySize
+      Timeout: !Ref lambdaTimeout
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !If
+            - isProd
+            - sg-0a1928a3b07644413
+            - sg-08ca5c76639a365d3
+        SubnetIds:
+          - !If
+            - isProd
+            - subnet-0415147ddf68a48f2
+            - subnet-0c6a762428d442ec3
+
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  LambdaRolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref LambdaRole
+      PolicyName: "refreshViewLambda"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "ssm:GetParameter"
+              - "ssm:GetParametersByPath"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:"
+                - !Ref "AWS::Partition"
+                - ":ssm:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - !If
+                  - isProd
+                  - ":parameter/prod/matters-server/"
+                  - ":parameter/dev/matters-server/"
+
+  CronEvent0:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(0 19 * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent0LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "user_reader_materialized"
+              }
+            }
+  CronEvent0Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent0.Arn
+
+  CronEvent1:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(2 hours)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent1LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "featured_comment_materialized"
+              }
+            }
+  CronEvent1Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent1.Arn
+
+  CronEvent2:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(2 minutes)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent2LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "article_hottest_materialized"
+              }
+            }
+  CronEvent2Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent2.Arn
+
+  CronEvent3:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(6 hours)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent3LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "most_active_author_materialized"
+              }
+            }
+  CronEvent3Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent3.Arn
+
+  CronEvent4:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(6 hours)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent4LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "most_appreciated_author_materialized"
+              }
+            }
+  CronEvent4Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent4.Arn
+
+  CronEvent5:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(6 hours)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent5LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "most_trendy_author_materialized"
+              }
+            }
+  CronEvent5Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent5.Arn
+
+  CronEvent6:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(3 minutes)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent6LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "user_activity_materialized"
+              }
+            }
+  CronEvent6Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent6.Arn
+
+  CronEvent7:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(30 minutes)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent7LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "article_read_time_materialized"
+              }
+            }
+  CronEvent7Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent7.Arn
+
+  CronEvent8:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(3 hours)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent8LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "recommended_articles_from_read_tags_materialized"
+              }
+            }
+  CronEvent8Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent8.Arn
+
+  CronEvent9:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent9LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "article_stats_materialized"
+              }
+            }
+  CronEvent9Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent9.Arn
+
+  CronEvent10:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent10LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "tag_stats_materialized"
+              }
+            }
+  CronEvent10Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent10.Arn
+
+  CronEvent11:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent11LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "tag_hottest_materialized"
+              }
+            }
+  CronEvent11Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent11.Arn
+
+  CronEvent12:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent12LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "tag_related_authors_materialized"
+              }
+            }
+  CronEvent12Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent12.Arn
+

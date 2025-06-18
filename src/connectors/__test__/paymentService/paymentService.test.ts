@@ -18,7 +18,7 @@ import {
 
 import { jest } from '@jest/globals'
 
-import { createDonationTx, genConnections, closeConnections } from './utils.js'
+import { createDonationTx, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let paymentService: PaymentService
@@ -34,7 +34,7 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-// helpers
+// test data and helpers
 
 const genRandomProviderTxId = () => 'testProviderTxId' + Math.random()
 

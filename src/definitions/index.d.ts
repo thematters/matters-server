@@ -99,8 +99,13 @@ import type {
   SearchHistory,
 } from './misc.js'
 import type { Moment, MomentAsset } from './moment.js'
-import type { Notice, NoticeDetail, NoticeEntity } from './notification.js'
-import type { UserOauthLikecoinDB } from './oauth.js'
+import type {
+  Notice,
+  NoticeDetail,
+  NoticeEntity,
+  NoticeActor,
+} from './notification.js'
+import type { UserOAuthLikeCoin } from './oauth.js'
 import type {
   BlockchainSyncRecord,
   BlockchainTransaction,
@@ -157,6 +162,7 @@ export * from './translation.js'
 export * from './channel.js'
 export * from './nominal.js'
 export * from './feedback.js'
+export * from './userRetention.js'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -267,6 +273,7 @@ export interface TableTypeMap {
   notice: Notice
   notice_detail: NoticeDetail
   notice_entity: NoticeEntity
+  notice_actor: NoticeActor
   payout_account: PayoutAccount
   punish_record: PunishRecord
   recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized
@@ -280,7 +287,7 @@ export interface TableTypeMap {
   user: User
   user_badge: UserBadge
   user_ipns_keys: UserIpnsKeys
-  user_oauth_likecoin: UserOauthLikecoinDB
+  user_oauth_likecoin: UserOAuthLikeCoin
   user_restriction: UserRestriction
   user_feature_flag: UserFeatureFlag
   user_tags_order: UserTagsOrder

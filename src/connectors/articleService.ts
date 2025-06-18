@@ -30,9 +30,9 @@ import {
   MAX_PINNED_WORKS_LIMIT,
   MAX_ARTICLES_PER_CONNECTION_LIMIT,
   NODE_TYPES,
-  QUEUE_URL,
   PUBLISH_STATE,
   LANGUAGE,
+  USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
@@ -70,8 +70,9 @@ import {
   LanguageDetector,
   CampaignService,
   CollectionService,
-  aws,
+  SearchService,
   DraftService,
+  IPFSPublicationService,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import * as Sentry from '@sentry/node'
@@ -95,6 +96,7 @@ export class ArticleService extends BaseService<Article> {
   private openRouter = new OpenRouter()
   private systemService: SystemService
   private notificationService: NotificationService
+  private searchService: SearchService
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -121,6 +123,7 @@ export class ArticleService extends BaseService<Article> {
 
     this.systemService = new SystemService(this.connections)
     this.notificationService = new NotificationService(this.connections)
+    this.searchService = new SearchService(this.connections)
   }
 
   /*********************************
@@ -469,13 +472,7 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this.postArticleCreation({
-        articleId: article.id,
-        articleVersionId: articleVersion.id,
-        title,
-        content,
-        summary: summaryCustomized ? summary : undefined,
-      })
+      this._runPostProcessing(article, articleVersion, content)
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
@@ -668,15 +665,11 @@ export class ArticleService extends BaseService<Article> {
     })
 
     if (newContent) {
-      this.postArticleCreation({
-        articleId,
-        articleVersionId: articleVersion.id,
-        title: articleVersion.title,
-        content: newContent,
-        summary: articleVersion.summaryCustomized
-          ? articleVersion.summary
-          : undefined,
-      })
+      this._runPostProcessing(
+        { id: articleId, authorId: actorId },
+        articleVersion,
+        newContent
+      )
     }
     this.latestArticleVersionLoader.clear(articleId)
     return articleVersion
@@ -1158,6 +1151,7 @@ export class ArticleService extends BaseService<Article> {
       },
       table
     )
+    this.searchService.updateArticleReadData(articleId)
     return { newRead: false }
   }
 
@@ -1964,19 +1958,14 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public detectSpam = async (
-    id: string,
-    spamDetector?: SpamDetector,
-    callback?: (score: number | null) => Promise<void>
-  ) => {
+  public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
     const detector = spamDetector ?? new SpamDetector()
     const { title, summary, summaryCustomized } =
       await this.loadLatestArticleVersion(id)
     const content = await this.loadLatestArticleContent(id)
     await this._detectSpam(
       { id, title, content, summary: summaryCustomized ? summary : undefined },
-      detector,
-      callback
+      detector
     )
   }
 
@@ -1987,8 +1976,7 @@ export class ArticleService extends BaseService<Article> {
       content,
       summary,
     }: { id: string; title: string; content: string; summary?: string },
-    spamDetector?: SpamDetector,
-    callback?: (score: number | null) => Promise<void>
+    spamDetector?: SpamDetector
   ) => {
     const detector = spamDetector ?? new SpamDetector()
     const text = summary
@@ -2004,8 +1992,7 @@ export class ArticleService extends BaseService<Article> {
         data: { spamScore: score },
       })
     }
-
-    callback?.(score)
+    return score
   }
 
   public detectLanguage = async (articleVersionId: string) => {
@@ -2021,54 +2008,69 @@ export class ArticleService extends BaseService<Article> {
     return languageDetector.detect(`${title} ${summary} ${excerpt}`)
   }
 
-  private postArticleCreation = async ({
-    articleId,
-    articleVersionId,
-    title,
-    content,
-    summary,
-  }: {
-    articleId: string
-    articleVersionId: string
-    title: string
-    content: string
-    summary?: string
-  }) => {
-    this._detectSpam(
-      { id: articleId, title, content, summary },
-      undefined,
-      async (score) => {
-        const channelService = new ChannelService(this.connections)
-        const spamThreshold = await this.systemService.getSpamThreshold()
-        const isSpam = spamThreshold && score && score >= spamThreshold
+  public runPostProcessing = async (article: Article, isSpam?: boolean) => {
+    const articleVersion = await this.loadLatestArticleVersion(article.id)
+    const content = await this.loadLatestArticleContent(article.id)
 
-        if (isSpam) {
-          return
-        }
+    return this._runPostProcessing(article, articleVersion, content, isSpam)
+  }
 
-        // infer article channels if not spam
-        channelService.classifyArticlesChannels({ ids: [articleId] })
+  private _runPostProcessing = async (
+    article: Pick<Article, 'id' | 'authorId'>,
+    articleVersion: ArticleVersion,
+    content: string,
+    isSpam?: boolean
+  ) => {
+    const { id: articleId } = article
+    const { title, summary: _summary, summaryCustomized } = articleVersion
+    const summary = summaryCustomized ? _summary : undefined
 
-        // detect language
-        this.detectLanguage(articleVersionId).then((language) => {
-          if (!language) {
-            return
-          }
+    let _isSpam = isSpam
+    if (_isSpam === undefined) {
+      const pypassSpam = await this.models.exists({
+        table: 'user_feature_flag',
+        where: {
+          userId: article.authorId,
+          type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+        },
+      })
+      const score =
+        (await this._detectSpam({ id: articleId, title, content, summary })) ||
+        0
+      const spamThreshold = (await this.systemService.getSpamThreshold()) || 1
+      _isSpam = pypassSpam ? false : score >= spamThreshold
+    }
 
-          this.models.update({
-            table: 'article_version',
-            where: { id: articleVersionId },
-            data: { language },
-          })
-        })
+    if (_isSpam) {
+      return
+    }
 
-        // trigger IPFS publication
-        aws.sqsSendMessage({
-          messageBody: { articleId, articleVersionId },
-          queueUrl: QUEUE_URL.ipfsPublication,
-        })
+    // infer article channels if not spam
+    const channelService = new ChannelService(this.connections)
+    channelService.classifyArticlesChannels({ ids: [articleId] })
+
+    // detect language
+    this.detectLanguage(articleVersion.id).then((language) => {
+      if (!language) {
+        return
       }
-    )
+
+      this.models.update({
+        table: 'article_version',
+        where: { id: articleVersion.id },
+        data: { language },
+      })
+    })
+
+    // trigger search indexing
+    this.searchService.triggerIndexingArticle(article.id)
+
+    // trigger IPFS publication
+    const ipfsPublicationService = new IPFSPublicationService(this.connections)
+    ipfsPublicationService.triggerPublication({
+      articleId: article.id,
+      articleVersionId: articleVersion.id,
+    })
   }
 
   /*********************************

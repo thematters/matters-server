@@ -24,7 +24,7 @@ import { daysToDatetimeRange } from '#common/utils/time.js'
 
 import { ArticleService } from './articleService.js'
 import { AtomService } from './atomService.js'
-import { ChannelService } from './channelService.js'
+import { ChannelService } from './channel/channelService.js'
 import { CommentService } from './commentService.js'
 import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'

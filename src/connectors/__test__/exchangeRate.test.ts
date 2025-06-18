@@ -132,4 +132,18 @@ describe('exchangeRate', () => {
       rates[rates.length - 1]
     )
   })
+  test('update token rates', async () => {
+    await exchangeRate.updateTokenRates()
+    // Verify that the cache was updated
+    const tokenRates = await exchangeRate.getRates('LIKE')
+    expect(tokenRates.length).toBe(3) // LIKE to TWD, HKD, USD
+    expect(tokenRates[0].from).toBe('LIKE')
+  })
+  test('update fiat rates', async () => {
+    await exchangeRate.updateFiatRates()
+    // Verify that the cache was updated
+    const fiatRates = await exchangeRate.getRates('HKD')
+    expect(fiatRates.length).toBe(3) // HKD to TWD, HKD, USD
+    expect(fiatRates[0].from).toBe('HKD')
+  })
 })
