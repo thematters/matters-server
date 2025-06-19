@@ -103,8 +103,8 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
   context.viewer.scope = {}
 
   return {
-    token: accessToken,
-    accessToken,
+    token: newAccessToken,
+    accessToken: newAccessToken,
     refreshToken: newRefreshToken,
     auth: true,
     type: AUTH_RESULT_TYPE.TokenRefresh,
