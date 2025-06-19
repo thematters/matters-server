@@ -23,7 +23,8 @@ Resources:
         ImageUri: !Ref imageUri
       PackageType: Image
       ImageConfig:
-        Command: syncArticleChannels.handler
+        Command:
+          - syncArticleChannels.handler
       Environment:
         Variables:
           MATTERS_ENV: !Ref mattersEnv
