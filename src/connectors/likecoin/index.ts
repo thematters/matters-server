@@ -11,7 +11,7 @@ import {
   OAuthTokenInvalidError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { aws, CacheService } from '#connectors/index.js'
+import { aws, Cache } from '#connectors/index.js'
 import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
@@ -290,10 +290,7 @@ export class LikeCoin {
     likerId: string
     userId: string
   }): Promise<boolean> => {
-    const cache = new CacheService(
-      CACHE_PREFIX.CIVIC_LIKER,
-      this.objectCacheRedis
-    )
+    const cache = new Cache(CACHE_PREFIX.CIVIC_LIKER, this.objectCacheRedis)
     const keys = { id: likerId }
     const isCivicLiker = (await cache.getObject({
       keys,
@@ -422,7 +419,7 @@ export class LikeCoin {
 
     const data = _.get(res, 'data')
 
-    const cache = new CacheService(CACHE_PREFIX.LIKECOIN, this.redis)
+    const cache = new Cache(CACHE_PREFIX.LIKECOIN, this.redis)
     cache.storeObject({
       // keys: ['iscnPublish', userName, 'likerId', liker.likerId],
       keys: {
@@ -528,10 +525,7 @@ export class LikeCoin {
     expire,
   }: UpdateCivicLikerCacheData) => {
     let isCivicLiker
-    const cache = new CacheService(
-      CACHE_PREFIX.CIVIC_LIKER,
-      this.objectCacheRedis
-    )
+    const cache = new Cache(CACHE_PREFIX.CIVIC_LIKER, this.objectCacheRedis)
     try {
       isCivicLiker = await this.requestIsCivicLiker({
         likerId,
@@ -586,10 +580,7 @@ export class LikeCoin {
     isCivicLiker: boolean
     expire: number
   }) => {
-    const cache = new CacheService(
-      CACHE_PREFIX.CIVIC_LIKER,
-      this.objectCacheRedis
-    )
+    const cache = new Cache(CACHE_PREFIX.CIVIC_LIKER, this.objectCacheRedis)
     // update cache
     await cache.storeObject({
       keys: { id: likerId },

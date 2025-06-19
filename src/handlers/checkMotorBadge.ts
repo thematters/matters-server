@@ -1,7 +1,7 @@
 import type { APIGatewayProxyResult } from 'aws-lambda'
 
 import { environment } from '#common/environment.js'
-import { BadgeService } from '#connectors/index.js'
+import { BadgeService } from '#connectors/badgeService.js'
 
 import { connections } from '../connections.js'
 

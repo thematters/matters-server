@@ -262,10 +262,11 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=searchIndexUsers.handler,
             lambdaTimeout=900,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-users-${{ env.SQS_ENV }},
             sqsBatchSize=100,
-            sqsMaxBatchingWindowInSeconds=20
+            sqsMaxBatchingWindowInSeconds=20,
+            lambdaReservedConcurrency=2
 
   deploy-search-index-tags:
     needs: build-lambda-image
@@ -288,10 +289,11 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=searchIndexTags.handler,
             lambdaTimeout=900,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-tags-${{ env.SQS_ENV }},
             sqsBatchSize=100,
-            sqsMaxBatchingWindowInSeconds=20
+            sqsMaxBatchingWindowInSeconds=20,
+            lambdaReservedConcurrency=2
 
   deploy-search-index-articles:
     needs: build-lambda-image
@@ -314,10 +316,11 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=searchIndexArticles.handler,
             lambdaTimeout=900,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-articles-${{ env.SQS_ENV }},
             sqsBatchSize=100,
-            sqsMaxBatchingWindowInSeconds=20
+            sqsMaxBatchingWindowInSeconds=20,
+            lambdaReservedConcurrency=2
 
   deploy-notify:
     needs: build-lambda-image

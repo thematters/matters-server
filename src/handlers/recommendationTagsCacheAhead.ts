@@ -1,5 +1,6 @@
 import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
-import { RecommendationService, CacheService } from '#connectors/index.js'
+import { Cache } from '#connectors/cache/index.js'
+import { RecommendationService } from '#connectors/recommendationService.js'
 
 import { connections } from '../connections.js'
 
@@ -11,14 +12,14 @@ type Event = {
 
 export const handler = async (event: Event) => {
   const channelId = event?.data?.channelId
-  const cacheService = new CacheService(
+  const cache = new Cache(
     CACHE_PREFIX.RECOMMENDATION_TAGS,
     connections.objectCacheRedis
   )
   const recommendationService = new RecommendationService(connections)
   const { query } = await recommendationService.recommendTags(channelId)
   const tags = await query.limit(50)
-  await cacheService.storeObject({
+  await cache.storeObject({
     keys: {
       type: 'recommendationTags',
       args: {

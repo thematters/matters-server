@@ -2,7 +2,7 @@ import type { Connections } from '#definitions/index.js'
 
 import { CACHE_PREFIX } from '#common/enums/index.js'
 import { LikeCoin } from '../likecoin/index.js'
-import { CacheService } from '../cache/index.js'
+import { Cache } from '../cache/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
@@ -17,7 +17,7 @@ afterAll(async () => {
 })
 
 const getCivicLikerStatus = async (likerId: string) => {
-  const cache = new CacheService(
+  const cache = new Cache(
     CACHE_PREFIX.CIVIC_LIKER,
     connections.objectCacheRedis
   )

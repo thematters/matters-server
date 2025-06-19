@@ -8,7 +8,7 @@ import {
 import { ActionFailedError } from '#common/errors.js'
 import {
   AtomService,
-  CacheService,
+  Cache,
   UserService,
   PaymentService,
   ArticleService,
@@ -209,13 +209,13 @@ describe('updateLastSeen', () => {
     expect(now).not.toStrictEqual(last)
   })
   test('caching', async () => {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.USER_LAST_SEEN,
       connections.objectCacheRedis
     )
     const cacheGet = async (_id: string) =>
       // @ts-ignore
-      cacheService.redis.get(cacheService.genKey({ id: _id }))
+      cache.redis.get(cache.genKey({ id: _id }))
     const id = '3'
 
     await userService.updateLastSeen(id, 1000)

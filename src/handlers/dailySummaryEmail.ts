@@ -1,4 +1,4 @@
-import { DailySummaryEmailService } from '#connectors/index.js'
+import { DailySummaryEmailService } from '#connectors/dailySummaryEmailService.js'
 import { mailService } from '#connectors/mail/index.js'
 
 import { connections } from '../connections.js'
