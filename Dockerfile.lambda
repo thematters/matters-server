@@ -12,5 +12,4 @@ COPY knexfile.js package.json .
 COPY ./build ./build
 RUN node ./build/handlers/bin/gen-handlers-entry.js
 
-ENV NODE_OPTIONS="--no-experimental-fetch"
 CMD ["recommendationTagsCacheAhead.handler"]
