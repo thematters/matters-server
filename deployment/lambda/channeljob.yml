@@ -30,7 +30,7 @@ Resources:
           MATTERS_ENV: !Ref mattersEnv
       Architectures:
         - x86_64
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 180
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
