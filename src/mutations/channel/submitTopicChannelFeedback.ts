@@ -3,11 +3,18 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 import { NODE_TYPES, TOPIC_CHANNEL_FEEDBACK_TYPE } from '#common/enums/index.js'
 import { UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['submitTopicChannelFeedback'] = async (
   _,
   { input: { article: articleGlobalId, channels: channelGlobalIds, type } },
-  { viewer, dataSources: { channelService } }
+  {
+    viewer,
+    dataSources: {
+      channelService,
+      connections: { redis },
+    },
+  }
 ) => {
   const { id: articleId, type: articleType } = fromGlobalId(articleGlobalId)
   if (articleType !== NODE_TYPES.Article) {
@@ -28,6 +35,10 @@ const resolver: GQLMutationResolvers['submitTopicChannelFeedback'] = async (
           channelIds,
         })
 
+  await invalidateFQC({
+    node: { type: NODE_TYPES.Article, id: articleId },
+    redis,
+  })
   return feedback
 }
 
