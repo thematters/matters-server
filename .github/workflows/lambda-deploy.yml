@@ -124,7 +124,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=exchangeRate.handler,
             lambdaTimeout=30,
-            lambdaMemorySize=128
+            lambdaMemorySize=512
 
   deploy-recommendation-authors-cache-ahead:
     needs: build-lambda-image
@@ -419,7 +419,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=dailySummaryEmail.handler,
             lambdaTimeout=900,
-            lambdaMemorySize=256,
+            lambdaMemorySize=512,
             cronExpression="cron(0 1 * * ? *)"
 
   deploy-user-retention:
@@ -443,7 +443,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=userRetention.handler,
             lambdaTimeout=900,
-            lambdaMemorySize=256,
+            lambdaMemorySize=512,
             cronExpression="cron(1 8 * * ? *)"
 
   deploy-user-retention-sendmail:
@@ -467,7 +467,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=userRetentionSendmail.handler,
             lambdaTimeout=300,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:user-retention-sendmail-${{ env.SQS_ENV }},
             sqsBatchSize=1,
             sqsMaxBatchingWindowInSeconds=1
@@ -493,7 +493,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=archiveUser.handler,
             lambdaTimeout=60,
-            lambdaMemorySize=128,
+            lambdaMemorySize=256,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:archive-user-${{ env.SQS_ENV }},
             sqsBatchSize=1,
             sqsMaxBatchingWindowInSeconds=1
@@ -518,8 +518,8 @@ jobs:
             mattersEnv=${{ env.MATTERS_ENV }},
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=paymentCancelTimeoutTransactions.handler,
-            lambdaTimeout=120,
-            lambdaMemorySize=128,
+            lambdaTimeout=60,
+            lambdaMemorySize=512,
             cronExpression="rate(30 minutes)"
 
   deploy-transfer-trial-end-subscriptions:
@@ -543,7 +543,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=transferTrialEndSubscriptions.handler,
             lambdaTimeout=60,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             cronExpression="rate(12 hours)"
 
   deploy-check-motor-badge:
@@ -567,7 +567,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=checkMotorBadge.handler,
             lambdaTimeout=10,
-            lambdaMemorySize=128,
+            lambdaMemorySize=256,
             cronExpression="rate(1 hour)"
 
   deploy-likecoin-update-civic-liker-cache:
