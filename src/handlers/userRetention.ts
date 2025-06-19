@@ -1,5 +1,8 @@
 import { environment } from '#common/environment.js'
-import { UserRetentionService, SendmailFn } from '#connectors/index.js'
+import {
+  UserRetentionService,
+  SendmailFn,
+} from '#connectors/userRetentionService.js'
 import { SQS, SendMessageCommand } from '@aws-sdk/client-sqs'
 
 import { connections } from '../connections.js'

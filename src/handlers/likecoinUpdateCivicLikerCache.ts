@@ -1,6 +1,6 @@
 import type { SQSEvent } from 'aws-lambda'
 
-import { LikeCoin } from '#connectors/index.js'
+import { LikeCoin } from '#connectors/likecoin/index.js'
 
 import { connections } from '../connections.js'
 

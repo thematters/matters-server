@@ -1,5 +1,6 @@
 import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
-import { RecommendationService, CacheService } from '#connectors/index.js'
+import { CacheService } from '#connectors/cache/index.js'
+import { RecommendationService } from '#connectors/recommendationService.js'
 
 import { connections } from '../connections.js'
 

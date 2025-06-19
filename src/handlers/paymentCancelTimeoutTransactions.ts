@@ -1,4 +1,4 @@
-import { PaymentService } from '#connectors/index.js'
+import { PaymentService } from '#connectors/paymentService.js'
 
 import { connections } from '../connections.js'
 

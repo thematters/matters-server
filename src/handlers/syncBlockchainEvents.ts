@@ -1,7 +1,7 @@
 import type { GQLChain } from '#definitions/index.js'
 
 import { BLOCKCHAIN, SLACK_MESSAGE_STATE } from '#common/enums/index.js'
-import { PaymentService } from '#connectors/index.js'
+import { PaymentService } from '#connectors/paymentService.js'
 import SlackService from '#connectors/slack/index.js'
 
 import { connections } from '../connections.js'
