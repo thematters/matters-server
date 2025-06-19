@@ -55,7 +55,10 @@ export default /* GraphQL */ `
     "Remove a social login from current user."
     removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Logout user."
+    "Refresh access token using refresh token."
+    refreshToken: AuthResult! @auth(mode: "oauth")
+
+    "Logout user from current session."
     userLogout: Boolean!
 
     "Reset Liker ID"
@@ -475,16 +478,19 @@ export default /* GraphQL */ `
 
   type AuthResult {
     auth: Boolean!
-    token: String
+    token: String @deprecated(reason: "Use accessToken instead")
+    accessToken: String
+    refreshToken: String
     type: AuthResultType!
     user: User
   }
 
-  enum AuthResultType {
-    Login
-    Signup
-    LinkAccount
-  }
+    enum AuthResultType {
+      Login
+      Signup
+      LinkAccount
+      TokenRefresh
+    }
 
   type SigningMessageResult {
     nonce: String!
