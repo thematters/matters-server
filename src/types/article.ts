@@ -369,7 +369,7 @@ export default /* GraphQL */ `
     isLabeled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
 
     "Whether this article channel is enabled"
-    enabled: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    enabled: Boolean!
 
     "Whether this article is pinned"
     pinned: Boolean! @auth(mode: "${AUTH_MODE.admin}")
