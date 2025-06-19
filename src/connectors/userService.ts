@@ -15,7 +15,9 @@ import type {
   LANGUAGES,
   UserBoost,
   UserFeatureFlag,
+  ViewerBase,
 } from '#definitions/index.js'
+import type { Request, Response } from 'express'
 import type { Knex } from 'knex'
 
 import {
@@ -33,6 +35,7 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+  USER_REFRESH_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
   USER_BAN_REMARK,
@@ -56,10 +59,10 @@ import {
   BLOCKCHAIN_RPC,
   DAY,
   USER_FEATURE_FLAG_TYPE,
+  REFRESH_TOKEN_REVOKE_REASON,
 } from '#common/enums/index.js'
 import { environment, isProd } from '#common/environment.js'
 import {
-  EmailNotFoundError,
   CryptoWalletExistsError,
   EthAddressNotFoundError,
   NameInvalidError,
@@ -87,6 +90,8 @@ import {
   getPunishExpiredDate,
   genDisplayName,
   RatelimitCounter,
+  clearCookie,
+  getTokensFromReq,
 } from '#common/utils/index.js'
 import {
   AtomService,
@@ -283,57 +288,14 @@ export class UserService extends BaseService<User> {
   }
 
   /**
-   * return jwt token. Default to expires in 24 * 90 hours
-   */
-  public genSessionToken = async (userId: string) => {
-    return jwt.sign({ id: userId }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-    })
-  }
-
-  /**
-   * Login user and return jwt token. Default to expires in 24 * 90 hours
-   */
-  public loginByEmail = async ({
-    email,
-    password,
-    archivedCallback,
-  }: {
-    email: string
-    password: string
-    archivedCallback?: () => Promise<any>
-  }) => {
-    const user = await this.findByEmail(email)
-
-    if (!user || user.state === USER_STATE.archived) {
-      // record agent hash if state is archived
-      if (user && user.state === USER_STATE.archived && archivedCallback) {
-        await archivedCallback().catch((error) => logger.error(error))
-      }
-      throw new EmailNotFoundError('Cannot find user with email, login failed.')
-    }
-    if (!user.passwordHash) {
-      throw new PasswordInvalidError('Password incorrect, login failed.')
-    }
-
-    await this.verifyPassword({ password, hash: user.passwordHash })
-
-    const token = await this.genSessionToken(user.id)
-
-    logger.info(`User logged in with uuid ${user.uuid}.`)
-    return {
-      token,
-      user,
-    }
-  }
-
-  /**
-   * Login user and return jwt token. Default to expires in 24 * 90 hours
+   * Login user by ETH address
    */
   public loginByEthAddress = async ({
+    viewer,
     ethAddress,
     archivedCallback,
   }: {
+    viewer: ViewerBase
     ethAddress: string
     archivedCallback?: () => Promise<any>
   }) => {
@@ -355,14 +317,46 @@ export class UserService extends BaseService<User> {
     // no password; caller of this has verified eth signature
     // await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const token = await this.genSessionToken(user.id)
+    const { accessToken, refreshToken } =
+      await this.generateAccessAndRefreshTokens({
+        userId: user.id,
+        userAgent: viewer.userAgent,
+        agentHash: viewer.agentHash,
+      })
 
     logger.info(
       `User logged in with uuid ${user.uuid} ethAddress ${ethAddress}.`
     )
     return {
-      token,
+      accessToken,
+      refreshToken,
       user,
+    }
+  }
+
+  public logout = async ({
+    req,
+    res,
+    reason,
+  }: {
+    req: Request
+    res: Response
+    reason: REFRESH_TOKEN_REVOKE_REASON
+  }) => {
+    clearCookie({ req, res })
+
+    // revoke refresh token
+    const { refreshToken } = getTokensFromReq(req)
+    if (refreshToken) {
+      const atomService = new AtomService(this.connections)
+      await atomService.update({
+        table: 'refresh_token',
+        where: { tokenHash: refreshToken },
+        data: {
+          revokeReason: reason,
+          revokedAt: new Date(),
+        },
+      })
     }
   }
 
@@ -2799,6 +2793,96 @@ export class UserService extends BaseService<User> {
       )
     ) {
       throw new ForbiddenByStateError(`${user.state} user has no permission`)
+    }
+  }
+
+  /**********************************
+   *                                *
+   *        Access & Refresh Tokens *
+   *                                *
+   *********************************/
+
+  /**
+   * Generate both JWT access token and refresh token
+   */
+  public generateAccessAndRefreshTokens = async ({
+    userId,
+    userAgent,
+    agentHash,
+  }: {
+    userId: string
+    userAgent?: string
+    agentHash?: string
+  }): Promise<{
+    accessToken: string
+    refreshToken: string
+  }> => {
+    const sessionId = nanoid(32)
+
+    // Generate access token
+    // https://github.com/auth0/node-jsonwebtoken#token-expiration-exp-claim
+    const accessTokenExpiresAt = Math.floor(
+      (Date.now() + USER_ACCESS_TOKEN_EXPIRES_IN_MS) / 1000
+    )
+    const accessToken = jwt.sign(
+      { id: userId, sid: sessionId, exp: accessTokenExpiresAt },
+      environment.jwtSecret
+    )
+
+    // Generate and save refresh token
+    const refreshTokenExpiresAt = Math.floor(
+      (Date.now() + USER_REFRESH_TOKEN_EXPIRES_IN_MS) / 1000
+    )
+    const refreshToken = jwt.sign(
+      { id: userId, sid: sessionId, exp: refreshTokenExpiresAt },
+      environment.jwtSecret
+    )
+
+    await this.models.create({
+      table: 'refresh_token',
+      data: {
+        userId,
+        tokenHash: refreshToken,
+        userAgent,
+        agentHash,
+        expiredAt: new Date(refreshTokenExpiresAt * 1000),
+      },
+    })
+
+    return { accessToken, refreshToken }
+  }
+
+  /**
+   * Validate that access token and refresh token are a pair
+   */
+  public validateTokenPair = async (
+    accessToken: string,
+    refreshToken: string
+  ) => {
+    try {
+      const accessPayload = jwt.verify(accessToken, environment.jwtSecret) as {
+        id: string
+        sid: string
+      }
+      const refreshPayload = jwt.verify(
+        refreshToken,
+        environment.jwtSecret
+      ) as {
+        id: string
+        sid: string
+      }
+
+      const isValid =
+        accessPayload.id === refreshPayload.id &&
+        accessPayload.sid === refreshPayload.sid
+
+      if (!isValid) {
+        return
+      }
+
+      return accessPayload.id
+    } catch {
+      return
     }
   }
 }

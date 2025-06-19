@@ -16,3 +16,11 @@ export const AUTHOR_TYPE = {
   default: 'default',
   trendy: 'trendy',
 } as const
+
+export enum REFRESH_TOKEN_REVOKE_REASON {
+  userLogout = 'user_logout',
+  tokenInvalid = 'token_invalid',
+  tokenRotation = 'token_rotation',
+  tokenReused = 'token_reused',
+  adminRevoke = 'admin_revoke',
+}

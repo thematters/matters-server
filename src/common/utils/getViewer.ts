@@ -2,17 +2,24 @@ import type { Viewer, Connections, LANGUAGES } from '#definitions/index.js'
 
 import {
   AUTH_MODE,
-  COOKIE_TOKEN_NAME,
+  COOKIE_ACCESS_TOKEN_NAME,
   COOKIE_USER_GROUP,
   COOKIE_LANGUAGE,
   USER_ROLE,
   USER_STATE,
+  COOKIE_REFRESH_TOKEN_NAME,
+  REFRESH_TOKEN_REVOKE_REASON,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { ForbiddenByStateError, TokenInvalidError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { clearCookie, getLanguage } from '#common/utils/index.js'
-import { OAuthService, SystemService, AtomService } from '#connectors/index.js'
+import { getLanguage } from '#common/utils/index.js'
+import {
+  OAuthService,
+  SystemService,
+  AtomService,
+  UserService,
+} from '#connectors/index.js'
 import cookie from 'cookie'
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
@@ -26,6 +33,12 @@ export const authModes = [
   AUTH_MODE.user,
   AUTH_MODE.admin,
 ]
+
+const HEADER_ACCESS_TOKEN = 'x-access-token'
+const HEADER_REFRESH_TOKEN = 'x-refresh-token'
+const HEADER_USER_AGENT = 'user-agent'
+const HEADER_USER_AGENT_HASH = 'x-user-agent-hash'
+const HEADER_USER_GROUP = 'x-user-group'
 
 /**
  * Define user group by id or ip. Even is group A, and odd is group B.
@@ -46,7 +59,7 @@ export const getUserGroup = ({
       const last = ip.split(/[.:]/).pop() || '0'
       num = parseInt(last, 10) || 0
     }
-  } catch (error) {
+  } catch {
     logger.warn('getUserGroup failed: %j', { id, ip })
   }
   return num % 2 === 0 ? 'a' : 'b'
@@ -77,7 +90,7 @@ export const getViewerFromUser = async (
 }
 
 const getUser = async (
-  token: string,
+  accessToken: string,
   agentHash: string,
   connections: Connections
 ) => {
@@ -85,12 +98,13 @@ const getUser = async (
   const systemService = new SystemService(connections)
 
   try {
-    // get general user
-    const source = jwt.verify(token, environment.jwtSecret) as {
+    // get user from access token
+    const payload = jwt.verify(accessToken, environment.jwtSecret) as {
       id: string
     }
-    const user = await atomService.userIdLoader.load(source.id)
+    const user = await atomService.userIdLoader.load(payload.id)
 
+    // log agent hash if user is archived
     if (user.state === USER_STATE.archived) {
       if (agentHash) {
         await systemService
@@ -101,10 +115,10 @@ const getUser = async (
     }
 
     return { ...user, authMode: user.role }
-  } catch (error) {
-    // get oauth user
+  } catch {
+    // get user from OAuth token
     const oAuthService = new OAuthService(connections)
-    const data = await oAuthService.getAccessToken(token)
+    const data = await oAuthService.getAccessToken(accessToken)
 
     if (data && data.accessTokenExpiresAt) {
       // check it's expired or not
@@ -142,39 +156,36 @@ export const getViewerFromReq = async (
 ): Promise<Viewer> => {
   const headers = req ? req.headers : {}
   const cookies = req ? cookie.parse(headers.cookie || '') : {}
-  // const isWeb = headers['x-client-name'] === 'web'
 
   const language =
     (cookies[COOKIE_LANGUAGE] as LANGUAGES) ||
     getLanguage(
       (headers['Accept-Language'] || headers['accept-language']) as LANGUAGES
     )
-  const agentHash = headers['x-user-agent-hash'] as string
-  const userGroup = headers['x-user-group'] as string
-  const userAgent = headers['user-agent'] as string
+  const agentHash = headers[HEADER_USER_AGENT_HASH] as string
+  const userGroup = headers[HEADER_USER_GROUP] as string
+  const userAgent = headers[HEADER_USER_AGENT] as string
 
   // user information from request
   let user = {
-    ip: req?.clientIp,
-    userAgent,
     language,
     authMode: AUTH_MODE.visitor,
     scope: {},
+    ip: req?.clientIp,
+    userAgent,
     agentHash,
   }
 
-  // get user from token, use cookie first then 'x-access-token'
-  const token: string =
-    cookies[COOKIE_TOKEN_NAME] || (headers['x-access-token'] as string) || ''
+  // get tokens from cookie or header
+  const { accessToken } = getTokensFromReq(req)
   const group = userGroup || cookies[COOKIE_USER_GROUP] || ''
 
-  if (!token) {
-    // logger.info('User is not logged in, viewing as guest')
+  if (!accessToken) {
     return getViewerFromUser(user, group)
   }
 
   try {
-    const userDB = await getUser(token, agentHash, connections)
+    const userDB = await getUser(accessToken, agentHash, connections)
 
     // overwrite request by user settings
     user = { ...user, ...userDB }
@@ -182,11 +193,32 @@ export const getViewerFromReq = async (
     logger.warn(err)
 
     if (req && res) {
-      clearCookie({ req, res })
+      const userService = new UserService(connections)
+      await userService.logout({
+        req,
+        res,
+        reason: REFRESH_TOKEN_REVOKE_REASON.tokenInvalid,
+      })
     }
 
     throw err
   }
 
-  return getViewerFromUser(user, group, token)
+  return getViewerFromUser(user, group, accessToken)
+}
+
+export const getTokensFromReq = (req: Request) => {
+  const headers = req ? req.headers : {}
+  const cookies = req ? cookie.parse(headers.cookie || '') : {}
+
+  // get tokens from cookie or header
+  const accessToken = (cookies[COOKIE_ACCESS_TOKEN_NAME] ||
+    headers[HEADER_ACCESS_TOKEN]) as string | undefined
+  const refreshToken = (cookies[COOKIE_REFRESH_TOKEN_NAME] ||
+    headers[HEADER_REFRESH_TOKEN]) as string | undefined
+
+  return {
+    accessToken,
+    refreshToken,
+  }
 }

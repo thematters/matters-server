@@ -4,7 +4,9 @@ export const DAY = HOUR * 24
 export const MONTH = DAY * 30
 export const SERVER_TIMEOUT = 5 * MINUTE
 
-export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
+export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = HOUR // 1 hour (short-lived)
+export const USER_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days (long-lived)
+
 export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
 export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days
 export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
