@@ -1,5 +1,5 @@
 import { CACHE_PREFIX } from '#common/enums/index.js'
-import { CacheService } from '#connectors/index.js'
+import { Cache } from '#connectors/index.js'
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 
@@ -15,11 +15,11 @@ export const objectCacheDirective = (directiveName = 'objectCache') => ({
           const { maxAge } = directive
           fieldConfig.resolve = async (root, args, context, info) => {
             const { id } = root
-            const cacheService = new CacheService(
+            const cache = new Cache(
               CACHE_PREFIX.OBJECTS,
               context.dataSources.connections.objectCacheRedis
             )
-            return cacheService.getObject({
+            return cache.getObject({
               keys: {
                 type: typeName,
                 id,

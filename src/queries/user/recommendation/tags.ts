@@ -9,7 +9,7 @@ import {
   fromGlobalId,
   circleChunk,
 } from '#common/utils/index.js'
-import { CacheService } from '#connectors/index.js'
+import { Cache } from '#connectors/index.js'
 
 export const tags: GQLRecommendationResolvers['tags'] = async (
   _,
@@ -40,10 +40,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
    * new algo
    */
   if (input.newAlgo) {
-    const cacheService = new CacheService(
-      CACHE_PREFIX.RECOMMENDATION_TAGS,
-      objectCacheRedis
-    )
+    const cache = new Cache(CACHE_PREFIX.RECOMMENDATION_TAGS, objectCacheRedis)
 
     let channelId = undefined
     if (input.filter?.channel?.id) {
@@ -56,7 +53,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
       channelId = channel?.id
     }
 
-    const tagIds = await cacheService.getObject({
+    const tagIds = await cache.getObject({
       keys: {
         type: 'recommendationTags',
         args: { channelId: channelId },

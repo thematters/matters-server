@@ -4,7 +4,7 @@ import { CACHE_TTL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { NetworkError, UnknownError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { CacheService } from '#connectors/index.js'
+import { Cache } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
 import axios from 'axios'
 
@@ -47,11 +47,11 @@ const EXCHANGE_RATES_DATA_API_URL =
 
 export class ExchangeRate {
   public expire: number
-  private cache: CacheService
+  private cache: Cache
   private slackService: SlackService
 
   public constructor(redis: Redis | Cluster) {
-    this.cache = new CacheService('exchangeRate', redis)
+    this.cache = new Cache('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
     this.slackService = new SlackService()
   }

@@ -91,7 +91,7 @@ import {
 import {
   AtomService,
   BaseService,
-  CacheService,
+  Cache,
   OAuthService,
   NotificationService,
   SearchService,
@@ -2688,11 +2688,11 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public updateLastSeen = async (id: string, threshold = HOUR) => {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.USER_LAST_SEEN,
       this.connections.objectCacheRedis
     )
-    const _lastSeen = (await cacheService.getObject({
+    const _lastSeen = (await cache.getObject({
       keys: { id },
       getter: async () => {
         const { lastSeen } = await this.knex(this.table)
@@ -2721,11 +2721,11 @@ export class UserService extends BaseService<User> {
       return true
     }
 
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.EMAIL_DOMAIL_WHITELIST,
       this.connections.objectCacheRedis
     )
-    const whiteListEmailDomain = (await cacheService.getObject({
+    const whiteListEmailDomain = (await cache.getObject({
       keys: { type: 'email_domain' },
       getter: this._getEmailDomainWhiteList,
       expire: CACHE_TTL.STATIC,

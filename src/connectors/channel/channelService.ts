@@ -38,7 +38,7 @@ import {
 import {
   ArticleService,
   AtomService,
-  CacheService,
+  Cache,
   ChannelClassifier,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -403,11 +403,11 @@ export class ChannelService {
     articleId: string
     channelId: string
   }) => {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.CHANNEL_FLOOD,
       this.connections.objectCacheRedis
     )
-    const articleIds = await cacheService.getObject({
+    const articleIds = await cache.getObject({
       keys: {
         type: 'channelFlood',
         args: { channelId },
