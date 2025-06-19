@@ -265,7 +265,7 @@ jobs:
             lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:search-index-users-${{ env.SQS_ENV }},
             sqsBatchSize=100,
-            sqsMaxBatchingWindowInSeconds=20
+            sqsMaxBatchingWindowInSeconds=20,
             lambdaReservedConcurrency=2
 
   deploy-search-index-tags:
