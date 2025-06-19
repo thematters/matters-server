@@ -34,7 +34,7 @@ Resources:
       Architectures:
         - x86_64
       MemorySize: 512
-      Timeout: 900
+      Timeout: 60
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:

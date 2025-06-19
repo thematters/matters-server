@@ -591,7 +591,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=likecoinUpdateCivicLikerCache.handler,
             lambdaTimeout=30,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             lambdaReservedConcurrency=200,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:likecoin-update-civic-liker-cache-${{ env.SQS_ENV }},
             sqsBatchSize=100,
@@ -618,7 +618,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=likecoinLike.handler,
             lambdaTimeout=120,
-            lambdaMemorySize=128,
+            lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:likecoin-like-${{ env.SQS_ENV }}.fifo,
             sqsBatchSize=10,
             sqsMaxBatchingWindowInSeconds=0
@@ -644,4 +644,4 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=likecoinBatchUpdateCivicLikerCaches.handler,
             lambdaTimeout=20,
-            lambdaMemorySize=128
+            lambdaMemorySize=512
