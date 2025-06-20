@@ -13,6 +13,7 @@ import {
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
   NODE_TYPES,
+  NOTICE_TYPE,
   TOPIC_CHANNEL_PIN_LIMIT,
   TOPIC_CHANNEL_FEEDBACK_TYPE,
   TOPIC_CHANNEL_FEEDBACK_STATE,
@@ -39,6 +40,7 @@ import {
   AtomService,
   CacheService,
   ChannelClassifier,
+  NotificationService,
 } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -805,6 +807,7 @@ export class ChannelService {
     feedback: TopicChannelFeedback,
     autoResolve: boolean = false
   ) => {
+    const notificationService = new NotificationService(this.connections)
     // will not set isLabeled to true if autoResolve is true
     if (feedback.channelIds.length === 0 && autoResolve) {
       await this.models.updateMany({
@@ -820,6 +823,17 @@ export class ChannelService {
       await invalidateFQC({
         node: { type: NODE_TYPES.Article, id: autoResolved.articleId },
         redis: this.connections.redis,
+      })
+      notificationService.trigger({
+        event: NOTICE_TYPE.topic_channel_feedback_accepted,
+        recipientId: feedback.userId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: await this.models.articleIdLoader.load(feedback.articleId),
+          },
+        ],
       })
       return autoResolved
     }
@@ -838,6 +852,17 @@ export class ChannelService {
         node: { type: NODE_TYPES.Article, id: resolved.articleId },
         redis: this.connections.redis,
       })
+      notificationService.trigger({
+        event: NOTICE_TYPE.topic_channel_feedback_accepted,
+        recipientId: feedback.userId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: await this.models.articleIdLoader.load(feedback.articleId),
+          },
+        ],
+      })
       return resolved
     }
 
@@ -853,6 +878,17 @@ export class ChannelService {
     await invalidateFQC({
       node: { type: NODE_TYPES.Article, id: updated.articleId },
       redis: this.connections.redis,
+    })
+    notificationService.trigger({
+      event: NOTICE_TYPE.topic_channel_feedback_accepted,
+      recipientId: feedback.userId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'article',
+          entity: await this.models.articleIdLoader.load(feedback.articleId),
+        },
+      ],
     })
     return updated
   }
@@ -878,10 +914,26 @@ export class ChannelService {
         channelIds: feedback.channelIds,
       }))
     ) {
-      await this.models.update({
+      const autoResolved = await this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
         data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
+      })
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: autoResolved.articleId },
+        redis: this.connections.redis,
+      })
+      const notificationService = new NotificationService(this.connections)
+      notificationService.trigger({
+        event: NOTICE_TYPE.topic_channel_feedback_accepted,
+        recipientId: feedback.userId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: await this.models.articleIdLoader.load(feedback.articleId),
+          },
+        ],
       })
     }
   }
