@@ -21,7 +21,7 @@ import { CookieOptions, Request, Response } from 'express'
  */
 const getCookieOptions = ({
   req,
-  maxAge = USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+  maxAge,
 }: {
   req: Request
   maxAge?: number

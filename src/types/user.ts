@@ -485,12 +485,12 @@ export default /* GraphQL */ `
     user: User
   }
 
-    enum AuthResultType {
-      Login
-      Signup
-      LinkAccount
-      TokenRefresh
-    }
+  enum AuthResultType {
+    Login
+    Signup
+    LinkAccount
+    TokenRefresh
+  }
 
   type SigningMessageResult {
     nonce: String!

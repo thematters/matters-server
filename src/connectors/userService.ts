@@ -2796,11 +2796,11 @@ export class UserService extends BaseService<User> {
     }
   }
 
-  /**********************************
-   *                                *
-   *        Access & Refresh Tokens *
-   *                                *
-   *********************************/
+  /*******************************
+   *                             *
+   *   Access & Refresh Tokens   *
+   *                             *
+   *******************************/
 
   /**
    * Generate both JWT access token and refresh token
