@@ -56,7 +56,7 @@ export default /* GraphQL */ `
     removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Refresh access token using refresh token."
-    refreshToken: AuthResult! @auth(mode: "oauth")
+    refreshToken: AuthResult!
 
     "Logout user from current session."
     userLogout: Boolean!

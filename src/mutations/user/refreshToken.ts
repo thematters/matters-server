@@ -35,7 +35,13 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     throw new TokenInvalidError('Invalid tokens')
   }
 
-  if (userId !== viewer.id) {
+  const user = await atomService.userIdLoader.load(userId)
+  if (!user) {
+    throw new TokenInvalidError('User not found')
+  }
+
+  // When access token is invalid/expired, viewer.id is undefined
+  if (viewer.id && userId !== viewer.id) {
     throw new TokenInvalidError('Invalid user')
   }
 
@@ -63,7 +69,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     // revoke all sessions for security reason
     await atomService.updateMany({
       table: 'refresh_token',
-      where: { userId: viewer.id },
+      where: { userId },
       data: {
         revokeReason: REFRESH_TOKEN_REVOKE_REASON.tokenReused,
         revokedAt: new Date(),
@@ -83,7 +89,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
   })
   const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
     await userService.generateAccessAndRefreshTokens({
-      userId: viewer.id,
+      userId,
       userAgent: viewer.userAgent,
       agentHash: viewer.agentHash,
     })
@@ -94,12 +100,12 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     res,
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
-    user: viewer,
+    user,
   })
 
-  // Update context viewer
-  context.viewer = await getViewerFromUser(viewer)
-  context.viewer.authMode = viewer.role as AuthMode
+  // Update context viewer with the actual user data
+  context.viewer = await getViewerFromUser(user)
+  context.viewer.authMode = user.role as AuthMode
   context.viewer.scope = {}
 
   return {
@@ -108,7 +114,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     refreshToken: newRefreshToken,
     auth: true,
     type: AUTH_RESULT_TYPE.TokenRefresh,
-    user: viewer,
+    user,
   }
 }
 

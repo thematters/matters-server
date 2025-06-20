@@ -2860,10 +2860,16 @@ export class UserService extends BaseService<User> {
     refreshToken: string
   ) => {
     try {
-      const accessPayload = jwt.verify(accessToken, environment.jwtSecret) as {
+      // For access token, use { ignoreExpiration: true } to allow expired tokens
+      // This is crucial for refresh token flow where access token may be expired
+      const accessPayload = jwt.verify(accessToken, environment.jwtSecret, {
+        ignoreExpiration: true,
+      }) as {
         id: string
         sid: string
       }
+
+      // Refresh token should still be valid (not expired)
       const refreshPayload = jwt.verify(
         refreshToken,
         environment.jwtSecret
