@@ -240,7 +240,8 @@ describe('emailLogin', () => {
         },
       })
       expect(data?.emailLogin.auth).toBe(true)
-      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.accessToken).toBeDefined()
+      expect(data?.emailLogin.refreshToken).toBeDefined()
     })
   })
 
@@ -269,7 +270,8 @@ describe('emailLogin', () => {
       })
       expect(data?.emailLogin.auth).toBe(true)
       expect(data?.emailLogin.type).toBe('Signup')
-      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.accessToken).toBeDefined()
+      expect(data?.emailLogin.refreshToken).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
     test('login existed user with OTP will login the user', async () => {
@@ -294,7 +296,8 @@ describe('emailLogin', () => {
       })
       expect(data?.emailLogin.auth).toBe(true)
       expect(data?.emailLogin.type).toBe('Login')
-      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.accessToken).toBeDefined()
+      expect(data?.emailLogin.refreshToken).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
     test('login with expired OTP will throw error', async () => {
@@ -415,7 +418,8 @@ describe('emailLogin', () => {
       })
       expect(data?.emailLogin.auth).toBe(true)
       expect(data?.emailLogin.type).toBe('Login')
-      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.accessToken).toBeDefined()
+      expect(data?.emailLogin.refreshToken).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
   })

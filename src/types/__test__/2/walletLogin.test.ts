@@ -85,7 +85,8 @@ describe('walletLogin', () => {
         },
       })
       expect(data?.walletLogin.auth).toBe(true)
-      expect(data?.walletLogin.token).toBeDefined()
+      expect(data?.walletLogin.accessToken).toBeDefined()
+      expect(data?.walletLogin.refreshToken).toBeDefined()
       expect(data?.walletLogin.type).toBe('Signup')
       expect(data?.walletLogin.user.userName).toBe(null)
       expect(data?.walletLogin.user.info.ethAddress).toBe(
