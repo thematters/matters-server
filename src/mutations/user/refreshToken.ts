@@ -70,7 +70,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     // revoke all sessions for security reason
     await atomService.updateMany({
       table: 'refresh_token',
-      where: { userId },
+      where: { userId, revokedAt: null },
       data: {
         revokeReason: REFRESH_TOKEN_REVOKE_REASON.tokenReused,
         revokedAt: new Date(),
@@ -89,7 +89,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     },
   })
   const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-    await userService.generateAccessAndRefreshTokens({
+    await userService.generateTokenPair({
       userId,
       userAgent: viewer.userAgent,
       agentHash: viewer.agentHash,

@@ -132,12 +132,11 @@ const _resolver: Exclude<
     await userService.postRegister(newUser)
 
     // login user
-    const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshTokens({
-        userId: newUser.id,
-        userAgent: viewer.userAgent,
-        agentHash: viewer.agentHash,
-      })
+    const { accessToken, refreshToken } = await userService.generateTokenPair({
+      userId: newUser.id,
+      userAgent: viewer.userAgent,
+      agentHash: viewer.agentHash,
+    })
     setCookie({
       req,
       res,
@@ -196,12 +195,11 @@ const _resolver: Exclude<
     }
 
     // login user
-    const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshTokens({
-        userId: user.id,
-        userAgent: viewer.userAgent,
-        agentHash: viewer.agentHash,
-      })
+    const { accessToken, refreshToken } = await userService.generateTokenPair({
+      userId: user.id,
+      userAgent: viewer.userAgent,
+      agentHash: viewer.agentHash,
+    })
     setCookie({ req, res, accessToken, refreshToken, user })
 
     // update viewer

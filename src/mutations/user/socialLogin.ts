@@ -113,12 +113,11 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   }
 
   // login user
-  const { accessToken, refreshToken } =
-    await userService.generateAccessAndRefreshTokens({
-      userId: user.id,
-      userAgent: viewer.userAgent,
-      agentHash: viewer.agentHash,
-    })
+  const { accessToken, refreshToken } = await userService.generateTokenPair({
+    userId: user.id,
+    userAgent: viewer.userAgent,
+    agentHash: viewer.agentHash,
+  })
   setCookie({ req, res, accessToken, refreshToken, user })
 
   // update viewer

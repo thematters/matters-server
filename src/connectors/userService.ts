@@ -318,12 +318,11 @@ export class UserService extends BaseService<User> {
     // no password; caller of this has verified eth signature
     // await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const { accessToken, refreshToken } =
-      await this.generateAccessAndRefreshTokens({
-        userId: user.id,
-        userAgent: viewer.userAgent,
-        agentHash: viewer.agentHash,
-      })
+    const { accessToken, refreshToken } = await this.generateTokenPair({
+      userId: user.id,
+      userAgent: viewer.userAgent,
+      agentHash: viewer.agentHash,
+    })
 
     logger.info(
       `User logged in with uuid ${user.uuid} ethAddress ${ethAddress}.`
@@ -2806,7 +2805,7 @@ export class UserService extends BaseService<User> {
   /**
    * Generate both JWT access token and refresh token
    */
-  public generateAccessAndRefreshTokens = async ({
+  public generateTokenPair = async ({
     userId,
     userAgent,
     agentHash,

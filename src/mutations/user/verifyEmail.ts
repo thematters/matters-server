@@ -63,7 +63,7 @@ const resolver: GQLMutationResolvers['verifyEmail'] = async (
   let refreshToken = null
 
   if (viewer.id !== user.id) {
-    const tokens = await userService.generateAccessAndRefreshTokens({
+    const tokens = await userService.generateTokenPair({
       userId: user.id,
       userAgent: viewer.userAgent,
       agentHash: viewer.agentHash,
