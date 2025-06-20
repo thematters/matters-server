@@ -38,7 +38,8 @@ describe('walletLogin', () => {
     mutation ($input: WalletLoginInput!) {
       walletLogin(input: $input) {
         auth
-        token
+        accessToken
+        refreshToken
         type
         user {
           userName
@@ -124,7 +125,8 @@ describe('walletLogin', () => {
         },
       })
       expect(loginData?.walletLogin.auth).toBe(true)
-      expect(loginData?.walletLogin.token).toBeDefined()
+      expect(loginData?.walletLogin.accessToken).toBeDefined()
+      expect(loginData?.walletLogin.refreshToken).toBeDefined()
       expect(loginData?.walletLogin.type).toBe('Login')
       expect(loginData?.walletLogin.user.userName).toBe(null)
       expect(loginData?.walletLogin.user.info.ethAddress).toBe(
