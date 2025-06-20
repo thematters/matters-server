@@ -9,6 +9,7 @@ import {
   setCookie,
   getViewerFromUser,
   getTokensFromReq,
+  genMD5,
 } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['refreshToken'] = async (
@@ -47,7 +48,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
 
   const dbRefreshToken = await atomService.findFirst({
     table: 'refresh_token',
-    where: { tokenHash: refreshToken },
+    where: { tokenHash: genMD5(refreshToken) }, // Hash token for lookup
   })
   if (!dbRefreshToken) {
     throw new TokenInvalidError('Refresh token not found')
@@ -55,7 +56,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
   if (dbRefreshToken.expiredAt < new Date()) {
     await atomService.update({
       table: 'refresh_token',
-      where: { tokenHash: refreshToken },
+      where: { tokenHash: genMD5(refreshToken) }, // Hash token for lookup
       data: {
         revokeReason: REFRESH_TOKEN_REVOKE_REASON.tokenInvalid,
         revokedAt: new Date(),
@@ -81,7 +82,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
   // Rotate refresh token (revoke old, create new)
   await atomService.update({
     table: 'refresh_token',
-    where: { tokenHash: refreshToken },
+    where: { tokenHash: genMD5(refreshToken) }, // Hash token for lookup
     data: {
       revokeReason: REFRESH_TOKEN_REVOKE_REASON.tokenRotation,
       revokedAt: new Date(),

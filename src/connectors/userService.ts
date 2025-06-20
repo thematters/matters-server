@@ -92,6 +92,7 @@ import {
   RatelimitCounter,
   clearCookie,
   getTokensFromReq,
+  genMD5,
 } from '#common/utils/index.js'
 import {
   AtomService,
@@ -351,7 +352,7 @@ export class UserService extends BaseService<User> {
       const atomService = new AtomService(this.connections)
       await atomService.update({
         table: 'refresh_token',
-        where: { tokenHash: refreshToken },
+        where: { tokenHash: genMD5(refreshToken) }, // Hash token for lookup
         data: {
           revokeReason: reason,
           revokedAt: new Date(),
@@ -2842,7 +2843,7 @@ export class UserService extends BaseService<User> {
       table: 'refresh_token',
       data: {
         userId,
-        tokenHash: refreshToken,
+        tokenHash: genMD5(refreshToken),
         userAgent,
         agentHash,
         expiredAt: new Date(refreshTokenExpiresAt * 1000),
