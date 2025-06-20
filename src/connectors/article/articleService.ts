@@ -82,7 +82,7 @@ import { createRequire } from 'node:module'
 import { simplecc } from 'simplecc-wasm'
 import { v4 } from 'uuid'
 
-import { OpenRouter } from './openRouter/index.js'
+import { OpenRouter } from '../openRouter/index.js'
 
 const { difference, isEqual, uniq } = _
 

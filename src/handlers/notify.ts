@@ -2,7 +2,7 @@ import type { SQSEvent } from 'aws-lambda'
 
 import { environment } from '#common/environment.js'
 import { genMD5 } from '#common/utils/index.js'
-import { NotificationService } from '#connectors/notificationService/index.js'
+import { NotificationService } from '#root/src/connectors/notification/notificationService.js'
 
 import { connections } from '../connections.js'
 

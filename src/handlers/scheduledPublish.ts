@@ -1,4 +1,4 @@
-import { ArticleService } from '#connectors/articleService.js'
+import { ArticleService } from '#root/src/connectors/article/articleService.js'
 
 import { connections } from '../connections.js'
 

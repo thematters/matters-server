@@ -23,7 +23,7 @@ import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import * as cheerio from 'cheerio'
 import { PinataSDK } from 'pinata-web3'
 
-import { aws } from './index.js'
+import { aws } from '../index.js'
 
 const logger = getLogger('service-ipfs-publication')
 
