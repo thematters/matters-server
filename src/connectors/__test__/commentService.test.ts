@@ -8,14 +8,14 @@ import {
   AtomService,
   MomentService,
   UserService,
-  ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 let commentService: CommentService
 let momentService: MomentService
 let userService: UserService
@@ -23,7 +23,7 @@ let userService: UserService
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   commentService = new CommentService(connections)
   momentService = new MomentService(connections)
   userService = new UserService(connections)
@@ -432,17 +432,17 @@ describe('upvote', () => {
 
 describe('addCommentCountColumn', () => {
   test('', async () => {
-    const [article1] = await articleService.createArticle({
+    const [article1] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: '1',
     })
-    const [article2] = await articleService.createArticle({
+    const [article2] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: '1',
     })
-    const [article3] = await articleService.createArticle({
+    const [article3] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: '1',
@@ -510,17 +510,17 @@ describe('addCommentCountColumn', () => {
 
 describe('addNotAuthorCommentCountColumn', () => {
   test('counts only comments not by the article author', async () => {
-    const [article1] = await articleService.createArticle({
+    const [article1] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: '1',
     })
-    const [article2] = await articleService.createArticle({
+    const [article2] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: '2',
     })
-    const [article3] = await articleService.createArticle({
+    const [article3] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: '3',
@@ -615,7 +615,7 @@ describe('addNotAuthorCommentCountColumn', () => {
   })
 
   test('respects the start date filter', async () => {
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       title: 'test with date',
       content: 'test',
       authorId: '10',

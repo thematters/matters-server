@@ -11,6 +11,7 @@ import {
 import {
   AtomService,
   ArticleService,
+  PublicationService,
   NotificationService,
   CampaignService,
 } from '#connectors/index.js'
@@ -20,6 +21,7 @@ import { genConnections, closeConnections } from '../utils.js'
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let publicationService: PublicationService
 let campaignService: CampaignService
 let notificationService: NotificationService
 
@@ -27,6 +29,7 @@ beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   campaignService = new CampaignService(connections)
   notificationService = new NotificationService(connections)
   // @ts-ignore
@@ -39,7 +42,7 @@ afterAll(async () => {
 
 describe('publishArticle', () => {
   test('should not publish if draft does not exist', async () => {
-    const result = await articleService.publishArticle('0')
+    const result = await publicationService.publishArticle('0')
     expect(result).toBeUndefined()
   })
 
@@ -55,7 +58,7 @@ describe('publishArticle', () => {
       },
     })
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
     expect(result.publishState).toBe(PUBLISH_STATE.unpublished)
   })
 
@@ -74,7 +77,7 @@ describe('publishArticle', () => {
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     expect(result).toBeDefined()
     expect(result?.publishState).toBe(PUBLISH_STATE.published)
@@ -107,7 +110,7 @@ describe('publishArticle', () => {
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -163,7 +166,7 @@ describe('publishArticle', () => {
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -203,7 +206,7 @@ describe('publishArticle', () => {
       },
     })
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -244,7 +247,7 @@ describe('publishArticle', () => {
       },
     })
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -283,7 +286,7 @@ describe('publishArticle', () => {
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -326,7 +329,7 @@ describe('publishArticle', () => {
     // Mock notification trigger
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
 
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result).toBeDefined()
@@ -399,7 +402,7 @@ describe('publishArticle', () => {
     })
 
     const triggerSpy = jest.spyOn(notificationService, 'trigger')
-    const result = await articleService.publishArticle(draft.id)
+    const result = await publicationService.publishArticle(draft.id)
 
     // Verify article was created
     expect(result.articleId).toBeDefined()

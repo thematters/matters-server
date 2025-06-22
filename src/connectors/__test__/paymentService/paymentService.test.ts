@@ -11,6 +11,7 @@ import {
 } from '#common/enums/index.js'
 import {
   ArticleService,
+  PublicationService,
   mailService,
   PaymentService,
   UserService,
@@ -306,7 +307,6 @@ describe('notifyDonation', () => {
       mailService.send.mock.calls[0][0].personalizations[0]
         .dynamic_template_data.tx.donationCount
 
-    const articleService = new ArticleService(connections)
     const sender = (await userService.create({
       userName: 'sender',
       email: 'sender@example.com',
@@ -322,6 +322,7 @@ describe('notifyDonation', () => {
       },
       paymentService
     )
+    const articleService = new ArticleService(connections)
     const article = await articleService.baseFindById('1')
     await paymentService.notifyDonation({ tx, sender, recipient, article })
     expect(getDonationCount()).toBe(1)
@@ -375,19 +376,19 @@ describe('calculateBalance', () => {
 
 describe('addDonationCountColumn', () => {
   test('correctly counts unique donors per article', async () => {
+    const publicationService = new PublicationService(connections)
     // Create test articles
-    const articleService = new ArticleService(connections)
-    const [article1] = await articleService.createArticle({
+    const [article1] = await publicationService.createArticle({
       title: 'test1',
       content: 'test1',
       authorId: '1',
     })
-    const [article2] = await articleService.createArticle({
+    const [article2] = await publicationService.createArticle({
       title: 'test2',
       content: 'test2',
       authorId: '1',
     })
-    const [article3] = await articleService.createArticle({
+    const [article3] = await publicationService.createArticle({
       title: 'test3',
       content: 'test3',
       authorId: '1',

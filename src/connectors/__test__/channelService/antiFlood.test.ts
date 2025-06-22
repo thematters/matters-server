@@ -3,19 +3,19 @@ import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 import {
   ChannelService,
   AtomService,
-  ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 import { genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -40,7 +40,7 @@ beforeEach(async () => {
   const author1 = '1'
   const author2 = '2'
 
-  await articleService.createArticle({
+  await publicationService.createArticle({
     authorId: author1,
     title: 'test-article-1',
     content: 'test-content-1',

@@ -2,18 +2,25 @@ import type { Connections } from '#definitions/index.js'
 
 import { LANGUAGE, NODE_TYPES } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
-import { AtomService, ArticleService, OpenRouter } from '#connectors/index.js'
+import {
+  AtomService,
+  ArticleService,
+  PublicationService,
+  OpenRouter,
+} from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let publicationService: PublicationService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -30,7 +37,7 @@ const createArticleWithLanguage = async (
   content: string,
   language: keyof typeof LANGUAGE
 ) => {
-  const [article] = await articleService.createArticle({
+  const [article] = await publicationService.createArticle({
     title,
     content,
     authorId: '1',
@@ -374,7 +381,7 @@ describe('article version translations', () => {
       TEXT_SC,
       LANGUAGE.zh_hans
     )
-    const newArticleVersion = await articleService.createNewArticleVersion(
+    const newArticleVersion = await publicationService.createNewArticleVersion(
       article.id,
       article.authorId,
       { title: 'new title', content: 'new content' }

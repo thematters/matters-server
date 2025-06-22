@@ -8,7 +8,7 @@ import {
 import {
   TagService,
   AtomService,
-  ArticleService,
+  PublicationService,
   UserService,
   SystemService,
 } from '#connectors/index.js'
@@ -18,7 +18,7 @@ import { genConnections, closeConnections } from './utils.js'
 let connections: Connections
 let tagService: TagService
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 let userService: UserService
 let systemService: SystemService
 
@@ -26,7 +26,7 @@ beforeAll(async () => {
   connections = await genConnections()
   tagService = new TagService(connections)
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   userService = new UserService(connections)
   systemService = new SystemService(connections)
 }, 30000)
@@ -140,12 +140,12 @@ describe('findByAuthorUsage', () => {
     const user = await userService.create({
       userName: 'test-findByAuthorUsage2',
     })
-    const [article1] = await articleService.createArticle({
+    const [article1] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: user.id,
     })
-    const [article2] = await articleService.createArticle({
+    const [article2] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: user.id,

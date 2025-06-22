@@ -95,7 +95,7 @@ import {
   OAuthService,
   NotificationService,
   SearchService,
-  ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 import { Twitter } from '#connectors/oauth/index.js'
 import axios from 'axios'
@@ -1794,10 +1794,10 @@ export class UserService extends BaseService<User> {
         where: { authorId: id },
       })
       if (articles.length > 0) {
-        const articleService = new ArticleService(this.connections)
+        const publicationService = new PublicationService(this.connections)
         await Promise.all(
           articles.map((article) =>
-            articleService.runPostProcessing(article, false)
+            publicationService.runPostProcessing(article, false)
           )
         )
       }

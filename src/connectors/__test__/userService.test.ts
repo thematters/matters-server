@@ -12,6 +12,7 @@ import {
   UserService,
   PaymentService,
   ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 
 import { createDonationTx } from './utils.js'
@@ -23,6 +24,7 @@ let atomService: AtomService
 let userService: UserService
 let paymentService: PaymentService
 let articleService: ArticleService
+let publicationService: PublicationService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -30,6 +32,7 @@ beforeAll(async () => {
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -603,7 +606,7 @@ describe('recommendAuthors', () => {
   })
   test('exclude archived articles when calculating authorScore', async () => {
     const authorId = '1'
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       authorId,
       title: 'test',
       content: 'test',

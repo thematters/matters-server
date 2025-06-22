@@ -4,7 +4,7 @@ import { NODE_TYPES } from '#common/enums/index.js'
 import {
   ChannelService,
   AtomService,
-  ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 import { genConnections, closeConnections } from '../utils.js'
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
@@ -14,12 +14,12 @@ import { jest } from '@jest/globals'
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -312,7 +312,7 @@ describe('togglePinChannelArticles', () => {
     })
 
     // create more articles
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: `Test Article 1`,
       content: `Content for Test Article 1`,
       authorId: '1',

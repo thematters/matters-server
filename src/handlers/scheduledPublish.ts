@@ -1,16 +1,16 @@
-import { ArticleService } from '#root/src/connectors/article/articleService.js'
+import { PublicationService } from '#root/src/connectors/article/publicationService.js'
 
 import { connections } from '../connections.js'
 
 export const handler = async () => {
   try {
-    const articleService = new ArticleService(connections)
+    const publicationService = new PublicationService(connections)
 
     // Get current date
     const now = new Date()
 
     // Find and publish scheduled articles from the last hour
-    const drafts = await articleService.findScheduledAndPublish(now, 1)
+    const drafts = await publicationService.findScheduledAndPublish(now, 1)
 
     if (drafts.length > 0) {
       console.log(`Successfully processed ${drafts.length} scheduled articles`)

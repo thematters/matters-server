@@ -29,7 +29,10 @@ const {
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
   { input: { id: globalId, iscnPublish, publishAt } },
-  { viewer, dataSources: { atomService, articleService, collectionService } }
+  {
+    viewer,
+    dataSources: { atomService, publicationService, collectionService },
+  }
 ) => {
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
@@ -112,7 +115,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   if (!publishAt) {
     // publish now
-    const publishedDraft = await articleService.publishArticle(draft.id)
+    const publishedDraft = await publicationService.publishArticle(draft.id)
     auditLog({
       actorId: viewer.id,
       action: AUDIT_LOG_ACTION.addPublishArticleJob,

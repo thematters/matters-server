@@ -182,6 +182,7 @@ export interface Connections {
 export interface DataSources {
   atomService: AtomService
   articleService: ArticleService
+  publicationService: PublicationService
   momentService: MomentService
   commentService: CommentService
   draftService: DraftService

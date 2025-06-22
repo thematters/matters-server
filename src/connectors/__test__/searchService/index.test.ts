@@ -3,7 +3,7 @@ import type { Connections } from '#definitions/index.js'
 import {
   SearchService,
   AtomService,
-  ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 import { USER_STATE } from '#common/enums/index.js'
 
@@ -12,13 +12,13 @@ import { genConnections, closeConnections } from '../utils.js'
 let connections: Connections
 let searchService: SearchService
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 
 beforeAll(async () => {
   connections = await genConnections()
   searchService = new SearchService(connections)
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -263,7 +263,7 @@ describe('indexArticles', () => {
     const updatedTitle = 'Updated title'
     const updatedSummary = 'Updated summary'
     const updatedContent = 'Updated content'
-    await articleService.createNewArticleVersion(articleId, '1', {
+    await publicationService.createNewArticleVersion(articleId, '1', {
       title: updatedTitle,
       summary: updatedSummary,
       content: `<p>${updatedContent}</p>`,

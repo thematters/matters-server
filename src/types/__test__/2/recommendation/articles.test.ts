@@ -17,6 +17,7 @@ import {
 import {
   AtomService,
   ArticleService,
+  PublicationService,
   PaymentService,
   CampaignService,
   SystemService,
@@ -34,6 +35,7 @@ import {
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let publicationService: PublicationService
 let paymentService: PaymentService
 let campaignService: CampaignService
 let systemService: SystemService
@@ -42,6 +44,7 @@ let userService: UserService
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   atomService = new AtomService(connections)
   paymentService = new PaymentService(connections)
   campaignService = new CampaignService(connections)
@@ -360,7 +363,7 @@ describe('user recommendations', () => {
     // create more than MAX_TAKE articles
     await Promise.all(
       Array.from({ length: MAX_TAKE + 1 }, (_, i) =>
-        articleService.createArticle({
+        publicationService.createArticle({
           authorId: '1',
           title: `Test Article ${i}`,
           content: `Test Content ${i}`,
