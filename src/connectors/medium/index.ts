@@ -4,12 +4,13 @@ import {
 } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
 import { getFileName } from '#common/utils/index.js'
-import { cfsvc } from '#connectors/index.js'
 import { GQLAssetType } from '#definitions/index.js'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import pThrottle from 'p-throttle'
 import { v4 } from 'uuid'
+
+import { cfsvc } from '../cloudflare/index.js'
 
 const logger = getLogger('service-medium')
 

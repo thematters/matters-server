@@ -9,11 +9,9 @@ import {
   NODE_TYPES,
 } from '#common/enums/index.js'
 
-import {
-  ChannelService,
-  AtomService,
-  PublicationService,
-} from '#connectors/index.js'
+import { PublicationService } from '../../article/publicationService.js'
+import { AtomService } from '../../atomService.js'
+import { ChannelService } from '../../channel/channelService.js'
 import { genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections

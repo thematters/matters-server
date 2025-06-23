@@ -1,11 +1,9 @@
 import type { Connections, Article } from '#definitions/index.js'
 import { USER_FEATURE_FLAG_TYPE, NODE_TYPES } from '#common/enums/index.js'
 
-import {
-  ChannelService,
-  AtomService,
-  CampaignService,
-} from '#connectors/index.js'
+import { AtomService } from '../../atomService.js'
+import { CampaignService } from '../../campaignService.js'
+import { ChannelService } from '../../channel/channelService.js'
 import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
 let connections: Connections

@@ -27,10 +27,13 @@ import {
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
-import { aws, AtomService, ArticleService } from '#connectors/index.js'
 import * as Sentry from '@sentry/node'
 import _ from 'lodash'
 import { v4 } from 'uuid'
+
+import { ArticleService } from '../article/articleService.js'
+import { AtomService } from '../atomService.js'
+import { aws } from '../aws/index.js'
 
 import { mail } from './mail/index.js'
 import trans from './translations.js'

@@ -88,15 +88,6 @@ import {
   genDisplayName,
   RatelimitCounter,
 } from '#common/utils/index.js'
-import {
-  AtomService,
-  BaseService,
-  Cache,
-  OAuthService,
-  NotificationService,
-  SearchService,
-  PublicationService,
-} from '#connectors/index.js'
 import { Twitter } from '#connectors/oauth/index.js'
 import axios from 'axios'
 import { compare } from 'bcrypt'
@@ -116,7 +107,14 @@ import {
 } from 'viem'
 import { mainnet, polygon, sepolia } from 'viem/chains'
 
+import { PublicationService } from './article/publicationService.js'
+import { AtomService } from './atomService.js'
+import { BaseService } from './baseService.js'
+import { Cache } from './cache/index.js'
 import { LikeCoin } from './likecoin/index.js'
+import { NotificationService } from './notification/notificationService.js'
+import { OAuthService } from './oauthService.js'
+import { SearchService } from './searchService.js'
 
 const logger = getLogger('service-user')
 

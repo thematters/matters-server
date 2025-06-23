@@ -1,8 +1,8 @@
 import type {
   Connections,
   ValueOf,
-  CampaignStage,
   Campaign,
+  CampaignStage,
   User,
   Article,
   GlobalId,
@@ -34,8 +34,10 @@ import {
   fromGlobalId,
   // excludeSpam,
 } from '#common/utils/index.js'
-import { AtomService, NotificationService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import { AtomService } from './atomService.js'
+import { NotificationService } from './notification/notificationService.js'
 
 interface Stage {
   name: string

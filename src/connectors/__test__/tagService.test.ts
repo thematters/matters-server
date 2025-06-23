@@ -5,13 +5,11 @@ import {
   FEATURE_FLAG,
   USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
-import {
-  TagService,
-  AtomService,
-  PublicationService,
-  UserService,
-  SystemService,
-} from '#connectors/index.js'
+import { PublicationService } from '../article/publicationService.js'
+import { AtomService } from '../atomService.js'
+import { SystemService } from '../systemService.js'
+import { TagService } from '../tagService.js'
+import { UserService } from '../userService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

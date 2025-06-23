@@ -3,7 +3,10 @@ import type { Queue, ProcessCallbackFunction } from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
-import { AtomService, aws, cfsvc } from '#connectors/index.js'
+
+import { AtomService } from '../atomService.js'
+import { aws } from '../aws/index.js'
+import { cfsvc } from '../cloudflare/index.js'
 
 import { getOrCreateQueue } from './utils.js'
 

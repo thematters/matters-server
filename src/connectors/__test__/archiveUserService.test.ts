@@ -9,7 +9,7 @@ import {
   PUBLISH_STATE,
   USER_STATE,
 } from '#common/enums/index.js'
-import { ArchiveUserService } from '#connectors/index.js'
+import { ArchiveUserService } from '../archiveUserService.js'
 import { jest } from '@jest/globals'
 
 import { genConnections, closeConnections } from './utils.js'

@@ -1,7 +1,7 @@
 import type { Connections } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
-import { UserRetentionService } from '#connectors/index.js'
+import { UserRetentionService } from '../userRetentionService.js'
 import { DAY } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { jest } from '@jest/globals'

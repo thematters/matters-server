@@ -1,11 +1,9 @@
 import type { Connections } from '#definitions/index.js'
 
-import {
-  UserWorkService,
-  UserService,
-  MomentService,
-  PublicationService,
-} from '#connectors/index.js'
+import { PublicationService } from '../article/publicationService.js'
+import { MomentService } from '../momentService.js'
+import { UserService } from '../userService.js'
+import { UserWorkService } from '../userWorkService.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import { genConnections, closeConnections } from './utils.js'
 

@@ -3,13 +3,11 @@ import type { Connections } from '#definitions/index.js'
 
 import { COMMENT_STATE, COMMENT_TYPE, USER_STATE } from '#common/enums/index.js'
 
-import {
-  CommentService,
-  AtomService,
-  MomentService,
-  UserService,
-  PublicationService,
-} from '#connectors/index.js'
+import { PublicationService } from '../article/publicationService.js'
+import { AtomService } from '../atomService.js'
+import { CommentService } from '../commentService.js'
+import { MomentService } from '../momentService.js'
+import { UserService } from '../userService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

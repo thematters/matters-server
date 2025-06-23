@@ -11,7 +11,8 @@ import {
   TRANSACTION_REMARK,
 } from '#common/enums/index.js'
 import { contract } from '#common/environment.js'
-import { PaymentService, AtomService } from '#connectors/index.js'
+import { AtomService } from '../../atomService.js'
+import { PaymentService } from '../../paymentService.js'
 
 import { jest } from '@jest/globals'
 

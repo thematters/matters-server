@@ -20,9 +20,10 @@ import {
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { isScopeAllowed, toGlobalId } from '#common/utils/index.js'
-import { BaseService } from '#connectors/index.js'
 import jwt from 'jsonwebtoken'
 import { nanoid } from 'nanoid'
+
+import { BaseService } from './baseService.js'
 
 const logger = getLogger('service-oauth')
 

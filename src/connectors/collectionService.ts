@@ -1,8 +1,8 @@
 import type {
-  Collection,
   Connections,
-  User,
+  Collection,
   Article,
+  User,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -22,7 +22,10 @@ import {
   ForbiddenByStateError,
 } from '#common/errors.js'
 import { selectWithTotalCount } from '#common/utils/index.js'
-import { BaseService, UserWorkService, UserService } from '#connectors/index.js'
+
+import { BaseService } from './baseService.js'
+import { UserService } from './userService.js'
+import { UserWorkService } from './userWorkService.js'
 
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {

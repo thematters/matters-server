@@ -1,6 +1,7 @@
 import type { Connections } from '#definitions/index.js'
 
-import { DraftService, AtomService } from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
+import { DraftService } from '../draftService.js'
 import { PUBLISH_STATE } from '#common/enums/index.js'
 
 import { genConnections, closeConnections } from './utils.js'

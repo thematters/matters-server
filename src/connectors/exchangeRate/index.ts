@@ -4,9 +4,10 @@ import { CACHE_TTL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { NetworkError, UnknownError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { Cache } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
 import axios from 'axios'
+
+import { Cache } from '../cache/index.js'
 
 const logger = getLogger('service-exchange-rate')
 

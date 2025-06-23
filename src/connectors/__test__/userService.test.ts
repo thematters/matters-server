@@ -6,14 +6,12 @@ import {
   ARTICLE_ACTION,
 } from '#common/enums/index.js'
 import { ActionFailedError } from '#common/errors.js'
-import {
-  AtomService,
-  Cache,
-  UserService,
-  PaymentService,
-  ArticleService,
-  PublicationService,
-} from '#connectors/index.js'
+import { ArticleService } from '../article/articleService.js'
+import { PublicationService } from '../article/publicationService.js'
+import { AtomService } from '../atomService.js'
+import { Cache } from '../cache/index.js'
+import { PaymentService } from '../paymentService.js'
+import { UserService } from '../userService.js'
 
 import { createDonationTx } from './utils.js'
 import { genConnections, closeConnections } from './utils.js'

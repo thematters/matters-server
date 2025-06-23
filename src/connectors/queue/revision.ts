@@ -12,9 +12,11 @@ import {
 } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
 import { extractMentionIds } from '#common/utils/index.js'
-import { AtomService, NotificationService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _difference from 'lodash/difference.js'
+
+import { AtomService } from '../atomService.js'
+import { NotificationService } from '../notification/notificationService.js'
 
 import { getOrCreateQueue } from './utils.js'
 

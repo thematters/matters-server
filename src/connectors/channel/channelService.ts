@@ -36,14 +36,14 @@ import {
   excludeRestricted as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
-import {
-  ArticleService,
-  AtomService,
-  Cache,
-  ChannelClassifier,
-  NotificationService,
-} from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import { ArticleService } from '../article/articleService.js'
+import { AtomService } from '../atomService.js'
+import { Cache } from '../cache/index.js'
+import { NotificationService } from '../notification/notificationService.js'
+
+import { ChannelClassifier } from './channelClassifier.js'
 
 const logger = getLogger('service-channel')
 

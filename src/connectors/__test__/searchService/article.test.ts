@@ -1,12 +1,10 @@
 import type { Connections } from '#definitions/index.js'
 
 import { FEATURE_NAME, FEATURE_FLAG } from '#common/enums/index.js'
-import {
-  PublicationService,
-  AtomService,
-  SystemService,
-  SearchService,
-} from '#connectors/index.js'
+import { PublicationService } from '../../article/publicationService.js'
+import { AtomService } from '../../atomService.js'
+import { SearchService } from '../../searchService.js'
+import { SystemService } from '../../systemService.js'
 
 import { genConnections, closeConnections } from '../utils.js'
 

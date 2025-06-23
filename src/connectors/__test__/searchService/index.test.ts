@@ -1,10 +1,8 @@
 import type { Connections } from '#definitions/index.js'
 
-import {
-  SearchService,
-  AtomService,
-  PublicationService,
-} from '#connectors/index.js'
+import { PublicationService } from '../../article/publicationService.js'
+import { AtomService } from '../../atomService.js'
+import { SearchService } from '../../searchService.js'
 import { USER_STATE } from '#common/enums/index.js'
 
 import { genConnections, closeConnections } from '../utils.js'

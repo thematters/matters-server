@@ -12,16 +12,14 @@ import {
   FEATURE_FLAG,
   PUBLISH_STATE,
 } from '#common/enums/index.js'
-import {
-  ArticleService,
-  PublicationService,
-  UserWorkService,
-  AtomService,
-  SystemService,
-  ChannelService,
-  UserService,
-  CampaignService,
-} from '#connectors/index.js'
+import { ArticleService } from '../../article/articleService.js'
+import { PublicationService } from '../../article/publicationService.js'
+import { AtomService } from '../../atomService.js'
+import { CampaignService } from '../../campaignService.js'
+import { ChannelService } from '../../channel/channelService.js'
+import { SystemService } from '../../systemService.js'
+import { UserService } from '../../userService.js'
+import { UserWorkService } from '../../userWorkService.js'
 
 import { genConnections, closeConnections, createCampaign } from '../utils.js'
 

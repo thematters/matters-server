@@ -33,9 +33,11 @@ import {
 import { isTest } from '#common/environment.js'
 import { AssetNotFoundError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
-import { BaseService, Cache } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
+
+import { BaseService } from './baseService.js'
+import { Cache } from './cache/index.js'
 const logger = getLogger('service-system')
 
 export class SystemService extends BaseService<BaseDBSchema> {

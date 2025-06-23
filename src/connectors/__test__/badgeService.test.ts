@@ -1,5 +1,7 @@
 import type { Connections } from '#definitions/index.js'
-import { BadgeService, AtomService, PaymentService } from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
+import { BadgeService } from '../badgeService.js'
+import { PaymentService } from '../paymentService.js'
 import { TRANSACTION_STATE } from '#common/enums/index.js'
 
 import { genConnections, closeConnections, createDonationTx } from './utils.js'

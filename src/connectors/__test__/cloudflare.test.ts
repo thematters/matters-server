@@ -1,5 +1,5 @@
 import { environment } from '#common/environment.js'
-import { cfsvc } from '#connectors/index.js'
+import { cfsvc } from '../cloudflare/index.js'
 
 const ACCOUNT_HASH = 'kDRCwexxxx-pYA'
 

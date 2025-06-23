@@ -19,8 +19,11 @@ import {
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
 } from '#common/utils/index.js'
-import { BaseService, SystemService, SearchService } from '#connectors/index.js'
 import _ from 'lodash'
+
+import { BaseService } from './baseService.js'
+import { SearchService } from './searchService.js'
+import { SystemService } from './systemService.js'
 
 const logger = getLogger('service-tag')
 

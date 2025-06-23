@@ -1,6 +1,6 @@
 import type { Connections } from '#definitions/index.js'
 
-import { AtomService } from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

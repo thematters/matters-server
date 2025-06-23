@@ -1,6 +1,6 @@
 import type { Connections } from '#definitions/index.js'
 
-import { ExchangeRate } from '#connectors/index.js'
+import { ExchangeRate } from '../exchangeRate/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

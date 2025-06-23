@@ -35,27 +35,26 @@ import {
   extractMentionIds,
   extractAssetDataFromHtml,
 } from '#common/utils/index.js'
-import {
-  BaseService,
-  SystemService,
-  TagService,
-  NotificationService,
-  SpamDetector,
-  UserService,
-  ChannelService,
-  LanguageDetector,
-  CampaignService,
-  CollectionService,
-  SearchService,
-  DraftService,
-  IPFSPublicationService,
-} from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import * as Sentry from '@sentry/node'
 import _ from 'lodash'
 import { createRequire } from 'node:module'
 
+import { BaseService } from '../baseService.js'
+import { CampaignService } from '../campaignService.js'
+import { ChannelService } from '../channel/channelService.js'
+import { CollectionService } from '../collectionService.js'
+import { DraftService } from '../draftService.js'
+import { LanguageDetector } from '../languageDetector.js'
+import { NotificationService } from '../notification/notificationService.js'
+import { SearchService } from '../searchService.js'
+import { SpamDetector } from '../spamDetector.js'
+import { SystemService } from '../systemService.js'
+import { TagService } from '../tagService.js'
+import { UserService } from '../userService.js'
+
 import { ArticleService } from './articleService.js'
+import { IPFSPublicationService } from './ipfsPublicationService.js'
 
 const require = createRequire(import.meta.url)
 const { html2md } = require('@matters/matters-editor/transformers')

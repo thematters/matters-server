@@ -1,7 +1,7 @@
 import type { Connections } from '#definitions/index.js'
 
 import { USER_ACTION } from '#common/enums/index.js'
-import { SearchService } from '#connectors/index.js'
+import { SearchService } from '../../searchService.js'
 
 import { genConnections, closeConnections } from '../utils.js'
 
