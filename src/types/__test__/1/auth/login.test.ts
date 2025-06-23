@@ -41,7 +41,8 @@ const EMAIL_LOGIN = /* GraphQL */ `
           emailVerified
         }
       }
-      token
+      refreshToken
+      accessToken
     }
   }
 `
@@ -235,7 +236,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: defaultTestUser.email,
-            passwordOrCode: '12345678',
+            passwordOrCode: defaultTestUser.password,
           },
         },
       })

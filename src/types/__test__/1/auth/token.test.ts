@@ -445,6 +445,7 @@ describe('refreshToken mutation', () => {
         id: testUser.id,
         sid: sessionId,
         exp: Math.floor(new Date().getTime() / 1000) + 3600,
+        type: 'access',
       },
       environment.jwtSecret
     )
@@ -453,6 +454,7 @@ describe('refreshToken mutation', () => {
         id: testUser.id,
         sid: sessionId,
         exp: Math.floor(new Date().getTime() / 1000) + 3600,
+        type: 'refresh',
       },
       environment.jwtSecret
     )
