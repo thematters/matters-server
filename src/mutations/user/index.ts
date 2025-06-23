@@ -10,6 +10,7 @@ import migration from './migration.js'
 import payout from './payout.js'
 import payTo from './payTo.js'
 import putFeaturedTags from './putFeaturedTags.js'
+import refreshToken from './refreshToken.js'
 import resetLikerId from './resetLikerId.js'
 import resetPassword from './resetPassword.js'
 import sendVerificationCode from './sendVerificationCode.js'
@@ -47,6 +48,7 @@ export default {
     confirmVerificationCode,
     resetPassword,
     emailLogin,
+    refreshToken,
     userLogout,
     walletLogin,
     addWalletLogin,

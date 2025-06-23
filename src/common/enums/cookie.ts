@@ -2,6 +2,7 @@ import { isProd } from '#common/environment.js'
 
 const prefix = isProd ? '' : '__dev'
 
-export const COOKIE_TOKEN_NAME = prefix + '__access_token'
+export const COOKIE_ACCESS_TOKEN_NAME = prefix + '__access_token'
+export const COOKIE_REFRESH_TOKEN_NAME = prefix + '__refresh_token'
 export const COOKIE_USER_GROUP = prefix + '__user_group'
 export const COOKIE_LANGUAGE = prefix + '__language'
