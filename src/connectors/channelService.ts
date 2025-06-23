@@ -332,7 +332,7 @@ export class ChannelService {
       )
       unpinnedQuery.select(
         knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.created_at DESC) + 100 AS order'
+          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
         )
       )
     }
