@@ -765,12 +765,7 @@ export class ChannelService {
         channelIds: feedback.channelIds,
       }))
     ) {
-      await this.acceptFeedback(feedback, true)
-      return await this.models.update({
-        table: 'topic_channel_feedback',
-        where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
-      })
+      return this.acceptFeedback(feedback, true)
     }
     return feedback
   }
