@@ -679,7 +679,7 @@ describe('spam detection', () => {
     const score = 0.99
     const mockSpamDetoctor = { detect: jest.fn(() => score) }
     // @ts-ignore
-    await articleService._detectSpam(
+    await publicationService._detectSpam(
       { id: articleId, title: 'test', content: 'test' },
       mockSpamDetoctor as any
     )
