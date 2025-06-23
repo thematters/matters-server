@@ -889,11 +889,16 @@ export class ChannelService {
   }
 
   public rejectFeedback = async (feedback: TopicChannelFeedback) => {
-    return this.models.update({
+    const updated = await this.models.update({
       table: 'topic_channel_feedback',
       where: { id: feedback.id },
       data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED },
     })
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: updated.articleId },
+      redis: this.connections.redis,
+    })
+    return updated
   }
 
   public resolveArticleFeedback = async (articleId: string) => {
