@@ -339,7 +339,7 @@ export class ChannelService {
       )
       unpinnedQuery.select(
         knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.created_at DESC) + 100 AS order'
+          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
         )
       )
     }
@@ -773,12 +773,7 @@ export class ChannelService {
         channelIds: feedback.channelIds,
       }))
     ) {
-      await this.acceptFeedback(feedback, true)
-      return await this.models.update({
-        table: 'topic_channel_feedback',
-        where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
-      })
+      return this.acceptFeedback(feedback, true)
     }
     return feedback
   }
@@ -902,11 +897,16 @@ export class ChannelService {
   }
 
   public rejectFeedback = async (feedback: TopicChannelFeedback) => {
-    return this.models.update({
+    const updated = await this.models.update({
       table: 'topic_channel_feedback',
       where: { id: feedback.id },
       data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED },
     })
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: updated.articleId },
+      redis: this.connections.redis,
+    })
+    return updated
   }
 
   public resolveArticleFeedback = async (articleId: string) => {
