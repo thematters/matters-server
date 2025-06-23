@@ -1,6 +1,6 @@
 import type { SQSEvent } from 'aws-lambda'
 
-import { IPFSPublicationService } from '#root/src/connectors/article/ipfsPublicationService.js'
+import { IPFSPublicationService } from '#connectors/article/ipfsPublicationService.js'
 
 import { connections } from '../connections.js'
 

@@ -5,7 +5,7 @@ import {
   NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from '#common/enums/index.js'
-import { NotificationService } from '#root/src/connectors/notification/notificationService.js'
+import { NotificationService } from '#connectors/notification/notificationService.js'
 import { mergeDataWith } from '#connectors/notification/utils.js'
 
 import { genConnections, closeConnections } from './utils.js'

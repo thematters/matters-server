@@ -1,4 +1,4 @@
-import { PublicationService } from '#root/src/connectors/article/publicationService.js'
+import { PublicationService } from '#connectors/article/publicationService.js'
 
 import { connections } from '../connections.js'
 
