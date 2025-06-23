@@ -1,13 +1,19 @@
 import type { GQLArticleResolvers } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
-import { PublicationService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLArticleResolvers['language'] = async (
   { id: articleId, isSpam, spamScore },
   _,
-  { dataSources: { articleService, atomService, systemService, connections } }
+  {
+    dataSources: {
+      articleService,
+      atomService,
+      systemService,
+      publicationService,
+    },
+  }
 ) => {
   const { id: articleVersionId, language: storedLanguage } =
     await articleService.loadLatestArticleVersion(articleId)
@@ -28,7 +34,6 @@ const resolver: GQLArticleResolvers['language'] = async (
   }
 
   // Detect language
-  const publicationService = new PublicationService(connections)
   publicationService
     .detectLanguage(articleVersionId)
     .then((language: string | null) => {

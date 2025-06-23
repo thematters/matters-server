@@ -1,7 +1,5 @@
 import type { GQLArticleOssResolvers } from '#definitions/index.js'
 
-import { PublicationService } from '#connectors/index.js'
-
 export const boost: GQLArticleOssResolvers['boost'] = async (
   { id: articleId },
   _,
@@ -88,10 +86,9 @@ export const inSearch: GQLArticleOssResolvers['inSearch'] = async (
 export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
   { id, spamScore, isSpam },
   _,
-  { dataSources: { articleService, connections } }
+  { dataSources: { publicationService } }
 ) => {
   if (!spamScore) {
-    const publicationService = new PublicationService(connections)
     publicationService.detectSpam(id)
   }
 
