@@ -103,7 +103,7 @@ describe('feedback methods', () => {
       expect(feedback).toBeDefined()
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([])
-      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
 
       // Verify article channels are disabled
       const articleChannels = await atomService.findMany({
@@ -144,7 +144,7 @@ describe('feedback methods', () => {
       expect(feedback).toBeDefined()
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([channel1.id, channel2.id])
-      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
     })
 
     test('creates negative feedback with non-matching channelIds', async () => {
