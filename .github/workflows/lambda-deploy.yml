@@ -369,7 +369,7 @@ jobs:
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=blockchainPayment.handler,
             lambdaTimeout=300,
-            lambdaMemorySize=256,
+            lambdaMemorySize=512,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:blockchain-payment-${{ env.SQS_ENV }},
             sqsBatchSize=10,
             sqsMaxBatchingWindowInSeconds=0
