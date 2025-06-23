@@ -2825,7 +2825,7 @@ export class UserService extends BaseService<User> {
       (Date.now() + USER_ACCESS_TOKEN_EXPIRES_IN_MS) / 1000
     )
     const accessToken = jwt.sign(
-      { id: userId, sid: sessionId, exp: accessTokenExpiresAt },
+      { id: userId, sid: sessionId, exp: accessTokenExpiresAt, type: 'access' },
       environment.jwtSecret
     )
 
@@ -2834,7 +2834,12 @@ export class UserService extends BaseService<User> {
       (Date.now() + USER_REFRESH_TOKEN_EXPIRES_IN_MS) / 1000
     )
     const refreshToken = jwt.sign(
-      { id: userId, sid: sessionId, exp: refreshTokenExpiresAt },
+      {
+        id: userId,
+        sid: sessionId,
+        exp: refreshTokenExpiresAt,
+        type: 'refresh',
+      },
       environment.jwtSecret
     )
 
@@ -2867,6 +2872,7 @@ export class UserService extends BaseService<User> {
       }) as {
         id: string
         sid: string
+        type: 'access'
       }
 
       // Refresh token should still be valid (not expired)
@@ -2876,11 +2882,14 @@ export class UserService extends BaseService<User> {
       ) as {
         id: string
         sid: string
+        type: 'refresh'
       }
 
       const isValid =
         accessPayload.id === refreshPayload.id &&
-        accessPayload.sid === refreshPayload.sid
+        accessPayload.sid === refreshPayload.sid &&
+        accessPayload.type === 'access' &&
+        refreshPayload.type === 'refresh'
 
       if (!isValid) {
         return

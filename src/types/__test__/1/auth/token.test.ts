@@ -33,6 +33,7 @@ type TokenPayload = {
   id: string
   sid: string
   exp: number
+  type: 'access' | 'refresh'
 }
 
 beforeAll(async () => {

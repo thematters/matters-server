@@ -101,7 +101,13 @@ const getUser = async (
     // get user from access token
     const payload = jwt.verify(accessToken, environment.jwtSecret) as {
       id: string
+      type: 'access' | 'refresh'
     }
+
+    if (payload.type === 'refresh') {
+      throw new TokenInvalidError('token invalid')
+    }
+
     const user = await atomService.userIdLoader.load(payload.id)
 
     // log agent hash if user is archived
