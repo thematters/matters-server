@@ -10,7 +10,6 @@ import {
 } from '#common/enums/index.js'
 import {
   AtomService,
-  ArticleService,
   PublicationService,
   NotificationService,
   CampaignService,
@@ -20,7 +19,6 @@ import { genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService
-let articleService: ArticleService
 let publicationService: PublicationService
 let campaignService: CampaignService
 let notificationService: NotificationService
@@ -28,12 +26,11 @@ let notificationService: NotificationService
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
   publicationService = new PublicationService(connections)
   campaignService = new CampaignService(connections)
   notificationService = new NotificationService(connections)
   // @ts-ignore
-  articleService.notificationService = notificationService
+  publicationService.notificationService = notificationService
 }, 30000)
 
 afterAll(async () => {
