@@ -301,11 +301,17 @@ describe('refreshToken mutation', () => {
   })
 
   test('fails with missing tokens', async () => {
-    const mockReq = { headers: { cookie: '' } }
+    const mockReq = { headers: { cookie: '' }, hostname: 'matters.town' }
 
     const server = await testClient({
       connections,
-      context: { viewer: { id: undefined }, req: mockReq },
+      context: {
+        viewer: { id: undefined },
+        req: mockReq,
+        res: {
+          clearCookie: jest.fn(),
+        },
+      },
     })
 
     const { errors } = await server.executeOperation({
@@ -330,11 +336,18 @@ describe('refreshToken mutation', () => {
       headers: {
         cookie: `${COOKIE_ACCESS_TOKEN_NAME}=${accessToken1}; ${COOKIE_REFRESH_TOKEN_NAME}=${refreshToken2}`,
       },
+      hostname: 'matters.town',
     }
 
     const server = await testClient({
       connections,
-      context: { viewer: { id: undefined }, req: mockReq },
+      context: {
+        viewer: { id: undefined },
+        req: mockReq,
+        res: {
+          clearCookie: jest.fn(),
+        },
+      },
     })
 
     const { errors } = await server.executeOperation({
@@ -363,11 +376,18 @@ describe('refreshToken mutation', () => {
       headers: {
         cookie: `${COOKIE_ACCESS_TOKEN_NAME}=${accessToken}; ${COOKIE_REFRESH_TOKEN_NAME}=${refreshToken}`,
       },
+      hostname: 'matters.town',
     }
 
     const server = await testClient({
       connections,
-      context: { viewer: { id: undefined }, req: mockReq },
+      context: {
+        viewer: { id: undefined },
+        req: mockReq,
+        res: {
+          clearCookie: jest.fn(),
+        },
+      },
     })
 
     const { errors } = await server.executeOperation({
@@ -408,11 +428,18 @@ describe('refreshToken mutation', () => {
       headers: {
         cookie: `${COOKIE_ACCESS_TOKEN_NAME}=${accessToken}; ${COOKIE_REFRESH_TOKEN_NAME}=${refreshToken}`,
       },
+      hostname: 'matters.town',
     }
 
     const server = await testClient({
       connections,
-      context: { viewer: { id: undefined }, req: mockReq },
+      context: {
+        viewer: { id: undefined },
+        req: mockReq,
+        res: {
+          clearCookie: jest.fn(),
+        },
+      },
     })
 
     const { errors } = await server.executeOperation({
@@ -463,11 +490,18 @@ describe('refreshToken mutation', () => {
       headers: {
         cookie: `${COOKIE_ACCESS_TOKEN_NAME}=${accessToken}; ${COOKIE_REFRESH_TOKEN_NAME}=${refreshToken}`,
       },
+      hostname: 'matters.town',
     }
 
     const server = await testClient({
       connections,
-      context: { viewer: { id: undefined }, req: mockReq },
+      context: {
+        viewer: { id: undefined },
+        req: mockReq,
+        res: {
+          clearCookie: jest.fn(),
+        },
+      },
     })
 
     const { errors } = await server.executeOperation({
@@ -493,11 +527,18 @@ describe('refreshToken mutation', () => {
       headers: {
         cookie: `${COOKIE_ACCESS_TOKEN_NAME}=${accessToken}; ${COOKIE_REFRESH_TOKEN_NAME}=${refreshToken}`,
       },
+      hostname: 'matters.town',
     }
 
     const server = await testClient({
       connections,
-      context: { viewer: anotherUser, req: mockReq },
+      context: {
+        viewer: anotherUser,
+        req: mockReq,
+        res: {
+          clearCookie: jest.fn(),
+        },
+      },
     })
 
     const { errors } = await server.executeOperation({

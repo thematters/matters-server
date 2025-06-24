@@ -10,6 +10,7 @@ import {
   getViewerFromUser,
   getTokensFromReq,
   genMD5,
+  clearCookie,
 } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['refreshToken'] = async (
@@ -33,16 +34,19 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
 
   const userId = await userService.validateTokenPair(accessToken, refreshToken)
   if (!userId) {
+    clearCookie({ req, res })
     throw new TokenInvalidError('Invalid tokens')
   }
 
   const user = await atomService.userIdLoader.load(userId)
   if (!user) {
+    clearCookie({ req, res })
     throw new TokenInvalidError('User not found')
   }
 
   // When access token is invalid/expired, viewer.id is undefined
   if (viewer.id && userId !== viewer.id) {
+    clearCookie({ req, res })
     throw new TokenInvalidError('Invalid user')
   }
 
@@ -51,6 +55,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
     where: { tokenHash: genMD5(refreshToken) }, // Hash token for lookup
   })
   if (!dbRefreshToken) {
+    clearCookie({ req, res })
     throw new TokenInvalidError('Refresh token not found')
   }
   if (dbRefreshToken.expiredAt < new Date()) {
@@ -62,6 +67,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
         revokedAt: new Date(),
       },
     })
+    clearCookie({ req, res })
     throw new TokenInvalidError('Refresh token expired')
   }
 
@@ -76,6 +82,7 @@ const resolver: GQLMutationResolvers['refreshToken'] = async (
         revokedAt: new Date(),
       },
     })
+    clearCookie({ req, res })
     throw new TokenInvalidError('Token has been used before')
   }
 
