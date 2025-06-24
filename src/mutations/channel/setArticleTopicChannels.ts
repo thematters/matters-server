@@ -23,7 +23,7 @@ const resolver: GQLMutationResolvers['setArticleTopicChannels'] = async (
     articleId,
     channelIds,
   })
-  await channelService.resolveArticleFeedback(articleId)
+  await channelService.tryAutoResolveArticleFeedback(articleId)
 
   return article
 }
