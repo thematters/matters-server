@@ -5,8 +5,7 @@ import {
   COOKIE_ACCESS_TOKEN_NAME,
   COOKIE_REFRESH_TOKEN_NAME,
   COOKIE_USER_GROUP,
-  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
-  USER_REFRESH_TOKEN_EXPIRES_IN_MS,
+  COOKIE_EXPIRES_IN_MS,
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 import { extractRootDomain, getUserGroup } from '#common/utils/index.js'
@@ -21,7 +20,7 @@ import { CookieOptions, Request, Response } from 'express'
  */
 const getCookieOptions = ({
   req,
-  maxAge,
+  maxAge = COOKIE_EXPIRES_IN_MS,
 }: {
   req: Request
   maxAge?: number
@@ -82,19 +81,13 @@ export const setCookie = ({
 
   // cookie:accessToken - Contains user authentication JWT (1 hour)
   if (accessToken) {
-    const accessCookieOptions = getCookieOptions({
-      req,
-      maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
-    })
+    const accessCookieOptions = getCookieOptions({ req })
     res.cookie(COOKIE_ACCESS_TOKEN_NAME, accessToken, accessCookieOptions)
   }
 
   // cookie:refreshToken - Contains refresh token (30 days)
   if (refreshToken) {
-    const refreshCookieOptions = getCookieOptions({
-      req,
-      maxAge: USER_REFRESH_TOKEN_EXPIRES_IN_MS,
-    })
+    const refreshCookieOptions = getCookieOptions({ req })
     res.cookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken, refreshCookieOptions)
   }
 
@@ -117,7 +110,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   // clearCookie needs matching domain and path values
   const cookieOptions = getCookieOptions({ req })
 
-  // cookie:token
+  // cookie:accessToken
   res.clearCookie(COOKIE_ACCESS_TOKEN_NAME, cookieOptions)
 
   // cookie:refreshToken
