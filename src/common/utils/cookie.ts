@@ -10,6 +10,7 @@ import {
 import { isTest } from '#common/environment.js'
 import { extractRootDomain, getUserGroup } from '#common/utils/index.js'
 import { CookieOptions, Request, Response } from 'express'
+import jwt from 'jsonwebtoken'
 
 /**
  * Provides standardized cookie configuration with security best practices:
@@ -20,10 +21,10 @@ import { CookieOptions, Request, Response } from 'express'
  */
 const getCookieOptions = ({
   req,
-  maxAge = COOKIE_EXPIRES_IN_MS,
+  expires,
 }: {
   req: Request
-  maxAge?: number
+  expires?: Date
 }): CookieOptions => {
   // e.g. server.matters.town
   const hostname = req.hostname
@@ -43,7 +44,7 @@ const getCookieOptions = ({
   const isVercelPreview = hostname.includes('.vercel.app')
 
   return {
-    maxAge,
+    expires,
     httpOnly: true,
     secure: true,
     ...(localOrigin || isVercelPreview ? {} : { domain }), // Only set domain if it's defined
@@ -81,18 +82,29 @@ export const setCookie = ({
 
   // cookie:accessToken - Contains user authentication JWT (1 hour)
   if (accessToken) {
-    const accessCookieOptions = getCookieOptions({ req })
+    const payload = jwt.decode(accessToken) as { exp: number }
+    const accessCookieOptions = getCookieOptions({
+      req,
+      expires: new Date(payload.exp * 1000),
+    })
     res.cookie(COOKIE_ACCESS_TOKEN_NAME, accessToken, accessCookieOptions)
   }
 
   // cookie:refreshToken - Contains refresh token (30 days)
   if (refreshToken) {
-    const refreshCookieOptions = getCookieOptions({ req })
+    const payload = jwt.decode(refreshToken) as { exp: number }
+    const refreshCookieOptions = getCookieOptions({
+      req,
+      expires: new Date(payload.exp * 1000),
+    })
     res.cookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken, refreshCookieOptions)
   }
 
   // cookie:user_group - Used for feature targeting and analytics
-  const baseCookieOptions = getCookieOptions({ req })
+  const baseCookieOptions = getCookieOptions({
+    req,
+    expires: new Date(Date.now() + COOKIE_EXPIRES_IN_MS),
+  })
   res.cookie(COOKIE_USER_GROUP, getUserGroup(user), baseCookieOptions)
 
   // cookie:language - Stores user language preference
