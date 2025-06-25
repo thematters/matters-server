@@ -1,12 +1,31 @@
 import type { GQLTopicChannelClassificationResolvers } from '#definitions/index.js'
 
-import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import {
+  ARTICLE_CHANNEL_JOB_STATE,
+  USER_FEATURE_FLAG_TYPE,
+} from '#common/enums/index.js'
 
 const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
-  { id: articleId },
+  { id: articleId, authorId, isSpam: _isSpam, spamScore: _spamScore },
   _,
-  { dataSources: { atomService, channelService } }
+  { dataSources: { atomService, channelService, systemService } }
 ) => {
+  // TODO: move to ArticleService
+  const pypassSpam = !!(await atomService.findFirst({
+    table: 'user_feature_flag',
+    where: {
+      userId: authorId,
+      type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+    },
+  }))
+  const spamThreshold = (await systemService.getSpamThreshold()) || 1
+  const spamScore = _spamScore ?? 1
+  const isSpam = _isSpam ?? (pypassSpam ? false : spamScore > spamThreshold)
+
+  if (isSpam) {
+    return []
+  }
+
   const articleChannels = await atomService.findMany({
     table: 'topic_channel_article',
     where: { articleId },
