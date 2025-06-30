@@ -59,31 +59,18 @@ const resolver: GQLMutationResolvers['verifyEmail'] = async (
   })
 
   let auth = false
-  let accessToken = null
-  let refreshToken = null
-
+  let token = null
   if (viewer.id !== user.id) {
-    const tokens = await userService.generateTokenPair({
-      userId: user.id,
-      userAgent: viewer.userAgent,
-      agentHash: viewer.agentHash,
-    })
-
-    accessToken = tokens.accessToken
-    refreshToken = tokens.refreshToken
-    auth = true
-
     context.viewer = await getViewerFromUser(user)
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
-
-    setCookie({ req, res, accessToken, refreshToken, user })
+    auth = true
+    token = await userService.genSessionToken(user.id)
+    setCookie({ req, res, token, user })
   }
 
   return {
-    token: accessToken,
-    accessToken,
-    refreshToken,
+    token,
     auth,
     type: AUTH_RESULT_TYPE.LinkAccount,
     user: updatedUser,

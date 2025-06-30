@@ -52,8 +52,7 @@ const EMAIL_LOGIN = /* GraphQL */ `
   mutation EmailLogin($input: EmailLoginInput!) {
     emailLogin(input: $input) {
       auth
-      accessToken
-      refreshToken
+      token
     }
   }
 `
@@ -391,8 +390,6 @@ describe('register and login functionarlities', () => {
       variables: { input: { email, passwordOrCode: password } },
     })
     expect(_get(result, 'data.emailLogin.auth')).toBe(true)
-    expect(_get(result, 'data.emailLogin.accessToken')).toBeDefined()
-    expect(_get(result, 'data.emailLogin.refreshToken')).toBeDefined()
   })
 
   test('retrive user info after login', async () => {
@@ -1239,8 +1236,7 @@ describe('verify user email', () => {
     mutation ($input: VerifyEmailInput!) {
       verifyEmail(input: $input) {
         auth
-        accessToken
-        refreshToken
+        token
         user {
           userName
           info {
@@ -1298,8 +1294,7 @@ describe('verify user email', () => {
       variables: { input: { email, code } },
     })
     expect(data.verifyEmail.auth).toBe(false)
-    expect(data.verifyEmail.accessToken).toBe(null)
-    expect(data.verifyEmail.refreshToken).toBe(null)
+    expect(data.verifyEmail.token).toBe(null)
     expect(data.verifyEmail.user.info.emailVerified).toBe(true)
   })
 })

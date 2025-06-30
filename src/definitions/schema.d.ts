@@ -721,20 +721,13 @@ export type GQLAssetType =
 
 export type GQLAuthResult = {
   __typename?: 'AuthResult'
-  accessToken?: Maybe<Scalars['String']['output']>
   auth: Scalars['Boolean']['output']
-  refreshToken?: Maybe<Scalars['String']['output']>
-  /** @deprecated Use accessToken instead */
   token?: Maybe<Scalars['String']['output']>
   type: GQLAuthResultType
   user?: Maybe<GQLUser>
 }
 
-export type GQLAuthResultType =
-  | 'LinkAccount'
-  | 'Login'
-  | 'Signup'
-  | 'TokenRefresh'
+export type GQLAuthResultType = 'LinkAccount' | 'Login' | 'Signup'
 
 export type GQLAuthorsType = 'active' | 'appreciated' | 'default' | 'trendy'
 
@@ -2108,8 +2101,6 @@ export type GQLMutation = {
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
-  /** Refresh access token using refresh token. */
-  refreshToken: GQLAuthResult
   /** Remove a social login from current user. */
   removeSocialLogin: GQLUser
   /** Remove a wallet login from current user. */
@@ -2201,7 +2192,7 @@ export type GQLMutation = {
   updateUserRole: GQLUser
   /** Update state of a user, used in OSS. */
   updateUserState?: Maybe<Array<GQLUser>>
-  /** Logout user from current session. */
+  /** Logout user. */
   userLogout: Scalars['Boolean']['output']
   /** Verify user email. */
   verifyEmail: GQLAuthResult
@@ -7055,17 +7046,7 @@ export type GQLAuthResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['AuthResult'] = GQLResolversParentTypes['AuthResult']
 > = ResolversObject<{
-  accessToken?: Resolver<
-    Maybe<GQLResolversTypes['String']>,
-    ParentType,
-    ContextType
-  >
   auth?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  refreshToken?: Resolver<
-    Maybe<GQLResolversTypes['String']>,
-    ParentType,
-    ContextType
-  >
   token?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['AuthResultType'], ParentType, ContextType>
   user?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
@@ -8674,11 +8655,6 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationReadArticleArgs, 'input'>
-  >
-  refreshToken?: Resolver<
-    GQLResolversTypes['AuthResult'],
-    ParentType,
-    ContextType
   >
   removeSocialLogin?: Resolver<
     GQLResolversTypes['User'],

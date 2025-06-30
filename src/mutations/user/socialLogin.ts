@@ -111,24 +111,15 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       referralCode,
     })
   }
+  const sessionToken = await userService.genSessionToken(user.id)
+  setCookie({ req, res, token: sessionToken, user })
 
-  // login user
-  const { accessToken, refreshToken } = await userService.generateTokenPair({
-    userId: user.id,
-    userAgent: viewer.userAgent,
-    agentHash: viewer.agentHash,
-  })
-  setCookie({ req, res, accessToken, refreshToken, user })
-
-  // update viewer
   context.viewer = await getViewerFromUser(user)
   context.viewer.authMode = user.role as AuthMode
   context.viewer.scope = {}
 
   return {
-    token: accessToken,
-    accessToken,
-    refreshToken,
+    token: sessionToken,
     auth: true,
     type: AUTH_RESULT_TYPE.Login,
     user,
@@ -179,7 +170,7 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       }
     }
     await userService.createSocialAccount({
-      userId: viewer.id!,
+      userId: viewer.id,
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
@@ -224,7 +215,7 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       userInfo = await userService.fetchGoogleUserInfo(authorizationCode, nonce)
     }
     await userService.createSocialAccount({
-      userId: viewer.id!,
+      userId: viewer.id,
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Google,
       email: userInfo.email,
