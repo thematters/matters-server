@@ -7,7 +7,6 @@ export const AUTH_RESULT_TYPE = {
   Login: 'Login',
   Signup: 'Signup',
   LinkAccount: 'LinkAccount',
-  TokenRefresh: 'TokenRefresh',
 } as const
 
 export const SIGNING_MESSAGE_PURPOSE = {

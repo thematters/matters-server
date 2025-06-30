@@ -1,18 +1,13 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { REFRESH_TOKEN_REVOKE_REASON } from '#common/enums/index.js'
+import { clearCookie } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['userLogout'] = async (
   _,
   __,
-  { req, res, dataSources: { userService } }
+  { req, res }
 ) => {
-  await userService.logout({
-    req,
-    res,
-    reason: REFRESH_TOKEN_REVOKE_REASON.userLogout,
-  })
-
+  clearCookie({ req, res })
   return true
 }
 

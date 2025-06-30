@@ -24,7 +24,6 @@ export const authDirective = (directiveName = 'auth') => ({
             const isQuery = operation.operation === 'query'
             const isSelf = root?.id === viewer?.id
             const errorMessage = `"${viewer.authMode}" isn't authorized for "${fieldName}"`
-
             /**
              * Query
              */

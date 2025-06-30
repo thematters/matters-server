@@ -1,7 +1,6 @@
 import type {
   SOCIAL_LOGIN_TYPE,
   USER_STATE,
-  REFRESH_TOKEN_REVOKE_REASON,
   USER_RESTRICTION_TYPE,
   USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
@@ -179,17 +178,4 @@ export interface UserBadge {
   enabled: boolean
   extra: any
   createdAt: Date
-}
-
-export interface RefreshToken {
-  id: string
-  userId: string
-  tokenHash: string
-  userAgent?: string
-  agentHash?: string
-  revokeReason?: REFRESH_TOKEN_REVOKE_REASON
-  expiredAt: Date
-  revokedAt?: Date
-  createdAt: Date
-  updatedAt: Date
 }
