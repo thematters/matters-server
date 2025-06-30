@@ -5,12 +5,12 @@ import {
   COOKIE_ACCESS_TOKEN_NAME,
   COOKIE_REFRESH_TOKEN_NAME,
   COOKIE_USER_GROUP,
-  COOKIE_EXPIRES_IN_MS,
+  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+  USER_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 import { extractRootDomain, getUserGroup } from '#common/utils/index.js'
 import { CookieOptions, Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
 
 /**
  * Provides standardized cookie configuration with security best practices:
@@ -21,10 +21,10 @@ import jwt from 'jsonwebtoken'
  */
 const getCookieOptions = ({
   req,
-  expires,
+  maxAge,
 }: {
   req: Request
-  expires?: Date
+  maxAge?: number
 }): CookieOptions => {
   // e.g. server.matters.town
   const hostname = req.hostname
@@ -44,7 +44,7 @@ const getCookieOptions = ({
   const isVercelPreview = hostname.includes('.vercel.app')
 
   return {
-    expires,
+    maxAge,
     httpOnly: true,
     secure: true,
     ...(localOrigin || isVercelPreview ? {} : { domain }), // Only set domain if it's defined
@@ -82,29 +82,24 @@ export const setCookie = ({
 
   // cookie:accessToken - Contains user authentication JWT (1 hour)
   if (accessToken) {
-    const payload = jwt.decode(accessToken) as { exp: number }
     const accessCookieOptions = getCookieOptions({
       req,
-      expires: new Date(payload.exp * 1000),
+      maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     })
     res.cookie(COOKIE_ACCESS_TOKEN_NAME, accessToken, accessCookieOptions)
   }
 
   // cookie:refreshToken - Contains refresh token (30 days)
   if (refreshToken) {
-    const payload = jwt.decode(refreshToken) as { exp: number }
     const refreshCookieOptions = getCookieOptions({
       req,
-      expires: new Date(payload.exp * 1000),
+      maxAge: USER_REFRESH_TOKEN_EXPIRES_IN_MS,
     })
     res.cookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken, refreshCookieOptions)
   }
 
   // cookie:user_group - Used for feature targeting and analytics
-  const baseCookieOptions = getCookieOptions({
-    req,
-    expires: new Date(Date.now() + COOKIE_EXPIRES_IN_MS),
-  })
+  const baseCookieOptions = getCookieOptions({ req })
   res.cookie(COOKIE_USER_GROUP, getUserGroup(user), baseCookieOptions)
 
   // cookie:language - Stores user language preference
@@ -122,7 +117,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   // clearCookie needs matching domain and path values
   const cookieOptions = getCookieOptions({ req })
 
-  // cookie:accessToken
+  // cookie:token
   res.clearCookie(COOKIE_ACCESS_TOKEN_NAME, cookieOptions)
 
   // cookie:refreshToken

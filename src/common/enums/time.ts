@@ -6,8 +6,6 @@ export const DAY = HOUR * 24
 export const MONTH = DAY * 30
 export const SERVER_TIMEOUT = 5 * MINUTE
 
-export const COOKIE_EXPIRES_IN_MS = DAY * 90 // 90 days
-
 export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = isProd ? HOUR : 15 * MINUTE // 1 hour for prod, 15 mins for dev (short-lived)
 export const USER_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days (long-lived)
 
