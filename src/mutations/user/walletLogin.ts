@@ -84,11 +84,13 @@ const _walletLogin: Exclude<
     systemService.saveAgentHash(viewer.agentHash || '')
 
   const tryLogin = async (type: GQLAuthResultType, loginUser: User) => {
-    const { token } = await userService.loginByEthAddress({
+    const { accessToken, refreshToken } = await userService.loginByEthAddress({
+      viewer,
       ethAddress,
       archivedCallback,
     })
-    setCookie({ req, res, token, user: loginUser })
+
+    setCookie({ req, res, accessToken, refreshToken, user: loginUser })
 
     context.viewer = await getViewerFromUser(loginUser)
     context.viewer.authMode = loginUser.role as AuthMode
@@ -106,7 +108,14 @@ const _walletLogin: Exclude<
       },
     })
 
-    return { token, auth: true, type, user: loginUser }
+    return {
+      token: accessToken,
+      accessToken,
+      refreshToken,
+      auth: true,
+      type,
+      user: loginUser,
+    }
   }
 
   let user = await userService.findByEthAddress(ethAddress)

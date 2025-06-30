@@ -41,7 +41,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   try {
     result = await _resolver(root, args, context, info)
     auditLog({
-      actorId: context.viewer.id,
+      actorId: context.viewer.id || null,
       action: getAction(result),
       status: AUDIT_LOG_STATUS.succeeded,
     })
@@ -132,15 +132,28 @@ const _resolver: Exclude<
     await userService.postRegister(newUser)
 
     // login user
-    const sessionToken = await userService.genSessionToken(newUser.id)
-    setCookie({ req, res, token: sessionToken, user: newUser })
+    const { accessToken, refreshToken } = await userService.generateTokenPair({
+      userId: newUser.id,
+      userAgent: viewer.userAgent,
+      agentHash: viewer.agentHash,
+    })
+    setCookie({
+      req,
+      res,
+      accessToken,
+      refreshToken,
+      user: newUser,
+    })
 
+    // update viewer
     context.viewer = await getViewerFromUser(newUser)
     context.viewer.authMode = newUser.role as AuthMode
     context.viewer.scope = {}
 
     return {
-      token: sessionToken,
+      token: accessToken,
+      accessToken,
+      refreshToken,
       auth: true,
       type: AUTH_RESULT_TYPE.Signup,
       user: newUser,
@@ -181,15 +194,23 @@ const _resolver: Exclude<
       invalidateFQC({ node: { type: NODE_TYPES.User, id: user.id }, redis })
     }
 
-    const sessionToken = await userService.genSessionToken(user.id)
-    setCookie({ req, res, token: sessionToken, user })
+    // login user
+    const { accessToken, refreshToken } = await userService.generateTokenPair({
+      userId: user.id,
+      userAgent: viewer.userAgent,
+      agentHash: viewer.agentHash,
+    })
+    setCookie({ req, res, accessToken, refreshToken, user })
 
+    // update viewer
     context.viewer = await getViewerFromUser(user)
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
 
     return {
-      token: sessionToken,
+      token: accessToken,
+      accessToken,
+      refreshToken,
       auth: true,
       type: AUTH_RESULT_TYPE.Login,
       user,
