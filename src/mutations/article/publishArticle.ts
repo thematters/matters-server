@@ -51,7 +51,27 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   const { id } = fromGlobalId(globalId)
   const draft = await atomService.draftIdLoader.load(id)
   const isPublished = draft.publishState === PUBLISH_STATE.published
+  const isPending = draft.publishState === PUBLISH_STATE.pending
 
+  // return draft if it is already published or pending
+  if (isPending || isPublished || (draft.archived && isPublished)) {
+    return draft
+  }
+
+  // cancel publication if publishAt is null and draft is not published
+  if (publishAt === null && !isPublished) {
+    const cancelledDraft = await atomService.update({
+      table: 'draft',
+      where: { id: draft.id },
+      data: {
+        publishState: PUBLISH_STATE.unpublished,
+        publishAt: null,
+      },
+    })
+    return cancelledDraft
+  }
+
+  // validate draft before publishing or scheduling
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
     throw new DraftNotFoundError('draft does not exists')
   }
@@ -84,13 +104,6 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   await validateConnections(draft.connections, atomService)
 
-  if (
-    draft.publishState === PUBLISH_STATE.pending ||
-    (draft.archived && isPublished)
-  ) {
-    return draft
-  }
-
   const updatedDraft = await atomService.update({
     table: 'draft',
     where: { id: draft.id },
@@ -110,7 +123,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     },
   })
 
-  if (!publishAt) {
+  if (publishAt === undefined) {
     // publish now
     const publishedDraft = await articleService.publishArticle(draft.id)
     auditLog({
