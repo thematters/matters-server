@@ -12,6 +12,7 @@ const resolver: GQLArticleResolvers['language'] = async (
       atomService,
       systemService,
       publicationService,
+      connections: { redis },
     },
   }
 ) => {
@@ -50,7 +51,7 @@ const resolver: GQLArticleResolvers['language'] = async (
       // invalidate article
       invalidateFQC({
         node: { type: NODE_TYPES.Article, id: articleId },
-        redis: connections.redis,
+        redis: redis,
       })
     })
 
