@@ -33,7 +33,7 @@ import {
   shortHash,
   toDatetimeRangeString,
   excludeSpam as excludeSpamModifier,
-  excludeRestricted as excludeRestrictedModifier,
+  excludeRestrictedAuthors as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'

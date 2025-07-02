@@ -37,7 +37,7 @@ import {
 } from '#common/errors.js'
 import {
   excludeSpam as excludeSpamModifier,
-  excludeRestricted as excludeRestrictedModifier,
+  excludeRestrictedAuthors as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
 } from '#common/utils/index.js'
 import DataLoader from 'dataloader'

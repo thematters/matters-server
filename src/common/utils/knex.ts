@@ -46,7 +46,7 @@ export const excludeSpam = (
   }
 }
 
-export const excludeRestricted = (
+export const excludeRestrictedAuthors = (
   builder: Knex.QueryBuilder,
   table = 'article',
   type: ValueOf<
