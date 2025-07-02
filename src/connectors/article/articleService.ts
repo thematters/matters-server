@@ -3,8 +3,9 @@ import type {
   Article,
   ArticleVersion,
   ArticleBoost,
-  GQLTranslationModel,
   LANGUAGES,
+  ValueOf,
+  GQLTranslationModel,
   GQLArticleTranslation,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
@@ -84,26 +85,44 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public findArticles = (filter?: {
-    isSpam?: boolean
-    spamThreshold?: number
-    datetimeRange?: { start: Date; end?: Date }
-  }) => {
+  public findArticles = (
+    {
+      state = ARTICLE_STATE.active,
+      spam,
+      datetimeRange,
+    }: {
+      state?: ValueOf<typeof ARTICLE_STATE>
+      spam?: {
+        isSpam: boolean
+        spamThreshold: number
+      }
+      datetimeRange?: { start: Date; end?: Date }
+    } = { state: ARTICLE_STATE.active }
+  ) => {
     const query = this.knexRO('article').select('*')
 
-    if (filter?.isSpam) {
+    if (state) {
+      query.where('state', '=', state)
+    }
+
+    if (spam?.isSpam === true) {
       query.where((builder) => {
         builder.where('is_spam', '=', true).orWhere((orWhereBuilder) => {
           orWhereBuilder
-            .whereRaw('spam_score >= ?', [filter.spamThreshold])
+            .whereRaw('spam_score >= ?', [spam.spamThreshold])
             .whereNull('is_spam')
         })
       })
+    } else if (spam?.isSpam === false) {
+      query.where((builder) => {
+        builder.modify(excludeSpamModifier, spam.spamThreshold, 'article')
+      })
     }
-    if (filter?.datetimeRange) {
-      query.where('created_at', '>=', filter.datetimeRange.start)
-      if (filter.datetimeRange.end) {
-        query.where('created_at', '<=', filter.datetimeRange.end)
+
+    if (datetimeRange) {
+      query.where('created_at', '>=', datetimeRange.start)
+      if (datetimeRange.end) {
+        query.where('created_at', '<=', datetimeRange.end)
       }
     }
     return query

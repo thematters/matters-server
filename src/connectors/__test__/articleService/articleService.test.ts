@@ -214,8 +214,10 @@ describe('findArticles', () => {
   test('filter by spam and datetime range', async () => {
     const startDate = new Date('2024-01-01')
     const result = await articleService.findArticles({
-      isSpam: true,
-      spamThreshold: 0.5,
+      spam: {
+        isSpam: true,
+        spamThreshold: 0.5,
+      },
       datetimeRange: { start: startDate },
     })
     expect(result.length).toBe(0)
@@ -690,8 +692,10 @@ describe('spam detection', () => {
   })
   test('find spam articles', async () => {
     const articles = await articleService.findArticles({
-      isSpam: true,
-      spamThreshold: 0.5,
+      spam: {
+        isSpam: true,
+        spamThreshold: 0.5,
+      },
     })
     expect(articles.length).toBeGreaterThan(0)
   })

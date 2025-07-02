@@ -50,6 +50,13 @@ export class RecommendationService {
     this.systemService = new SystemService(this.connections)
   }
 
+  //   public findHottestArticles = async (): Promise<{
+  //     query: Knex.QueryBuilder<any, Array<{ articleId: string }>>
+  //   }> => {
+  //     const query =
+  //     return { query }
+  //   }
+  //
   public createIcymiTopic = async ({
     title,
     articleIds,
