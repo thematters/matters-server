@@ -49,5 +49,8 @@ export class DraftService extends BaseService<Draft> {
       .from(this.table)
       .where({ authorId, archived: false })
       .andWhereNot({ publishState: PUBLISH_STATE.published })
-      .orderBy('updated_at', 'desc')
+      .orderBy([
+        { column: 'publish_at', order: 'asc', nulls: 'last' },
+        { column: 'updated_at', order: 'desc' },
+      ])
 }
