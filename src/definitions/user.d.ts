@@ -145,7 +145,7 @@ export interface UsernameEditHistory {
 export interface UserRestriction {
   id: string
   userId: string
-  type: keyof typeof USER_RESTRICTION_TYPE
+  type: ValueOf<typeof USER_RESTRICTION_TYPE>
   createdAt: Date
 }
 

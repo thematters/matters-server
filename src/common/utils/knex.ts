@@ -1,6 +1,10 @@
 import type { Knex } from 'knex'
 
-import { USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
+import {
+  USER_FEATURE_FLAG_TYPE,
+  USER_RESTRICTION_TYPE,
+} from '#common/enums/index.js'
+import { ValueOf } from '#root/src/definitions/index.js'
 
 /**
  * Exclude spam articles
@@ -44,7 +48,10 @@ export const excludeSpam = (
 
 export const excludeRestricted = (
   builder: Knex.QueryBuilder,
-  table = 'article'
+  table = 'article',
+  type: ValueOf<
+    typeof USER_RESTRICTION_TYPE
+  > = USER_RESTRICTION_TYPE.articleNewest
 ) => {
   builder.whereNotIn(
     `${table}.author_id`,
@@ -52,7 +59,7 @@ export const excludeRestricted = (
       .queryBuilder()
       .select('user_id')
       .from('user_restriction')
-      .where('type', 'articleNewest')
+      .where('type', type)
   )
 }
 

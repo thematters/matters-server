@@ -309,19 +309,19 @@ test('countReaders', async () => {
 
 describe('latestArticles', () => {
   test('base', async () => {
-    const articles = await articleService.latestArticles()
+    const articles = await articleService.findNewestArticles()
     expect(articles.length).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
   test('spam are excluded', async () => {
-    const articles = await articleService.latestArticles({
+    const articles = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     const spamThreshold = 0.5
     // spam flag is on but no detected articles
-    const articles1 = await articleService.latestArticles({
+    const articles1 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles1).toEqual(articles)
@@ -332,7 +332,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const articles2 = await articleService.latestArticles({
+    const articles2 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
@@ -343,7 +343,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { isSpam: false },
     })
-    const articles3 = await articleService.latestArticles({
+    const articles3 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
@@ -354,7 +354,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { spamScore: spamThreshold - 0.1 },
     })
-    const articles4 = await articleService.latestArticles({
+    const articles4 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
@@ -365,7 +365,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { isSpam: true },
     })
-    const articles5 = await articleService.latestArticles({
+    const articles5 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
@@ -448,10 +448,10 @@ describe('latestArticles', () => {
       },
     })
 
-    const articles = await articleService.latestArticles({
+    const articles = await articleService.findNewestArticles({
       excludeChannelArticles: false,
     })
-    const articlesExcludedChannel = await articleService.latestArticles({
+    const articlesExcludedChannel = await articleService.findNewestArticles({
       excludeChannelArticles: true,
     })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
@@ -481,14 +481,14 @@ describe('latestArticles', () => {
     await createCampaign(campaignService, article1)
 
     // Test without exclusion
-    const articles = await articleService.latestArticles({
+    const articles = await articleService.findNewestArticles({
       excludeExclusiveCampaignArticles: false,
     })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
     expect(articles.map(({ id }) => id)).toContain(article2.id)
 
     // Test with exclusion
-    const articlesExcluded = await articleService.latestArticles({
+    const articlesExcluded = await articleService.findNewestArticles({
       excludeExclusiveCampaignArticles: true,
     })
     expect(articlesExcluded.map(({ id }) => id)).not.toContain(article1.id)

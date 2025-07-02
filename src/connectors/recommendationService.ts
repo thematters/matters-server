@@ -344,7 +344,7 @@ export class RecommendationService {
             addOrderColumn: true,
           })
           .orderBy('order', 'asc')
-      : this.articleService.latestArticles({
+      : this.articleService.findNewestArticles({
           excludeChannelArticles: false,
           spamThreshold: spamThreshold ?? undefined,
         })
@@ -418,7 +418,7 @@ export class RecommendationService {
             addOrderColumn: true,
           })
           .orderBy('order', 'asc')
-      : this.articleService.latestArticles({
+      : this.articleService.findNewestArticles({
           excludeChannelArticles: false,
           spamThreshold: spamThreshold ?? undefined,
         })
