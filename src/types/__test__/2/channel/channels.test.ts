@@ -497,7 +497,7 @@ describe('channels query', () => {
         })
 
         // Create spam article
-        const [article] = await articleService.createArticle({
+        const [article] = await publicationService.createArticle({
           authorId: '1',
           title: 'spam test',
           content: 'spam content',
@@ -553,7 +553,7 @@ describe('channels query', () => {
         })
 
         // Create article with high spam score
-        const [article] = await articleService.createArticle({
+        const [article] = await publicationService.createArticle({
           authorId: '1',
           title: 'high spam score test',
           content: 'high spam score content',
@@ -609,7 +609,7 @@ describe('channels query', () => {
         })
 
         // Create article with low spam score
-        const [article] = await articleService.createArticle({
+        const [article] = await publicationService.createArticle({
           authorId: '1',
           title: 'low spam score test',
           content: 'low spam score content',
@@ -668,7 +668,7 @@ describe('channels query', () => {
         })
 
         // Create spam article
-        const [article] = await articleService.createArticle({
+        const [article] = await publicationService.createArticle({
           authorId: '1',
           title: 'bypass spam test',
           content: 'bypass spam content',
@@ -736,7 +736,7 @@ describe('channels query', () => {
         })
 
         // Create spam article
-        const [article] = await articleService.createArticle({
+        const [article] = await publicationService.createArticle({
           authorId: '1',
           title: 'explicit spam test',
           content: 'explicit spam content',
