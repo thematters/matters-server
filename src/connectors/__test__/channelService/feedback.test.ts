@@ -104,7 +104,7 @@ describe('feedback methods', () => {
       expect(feedback).toBeDefined()
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([])
-      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
 
       // Verify article channels are disabled
       const articleChannels = await atomService.findMany({
@@ -145,7 +145,7 @@ describe('feedback methods', () => {
       expect(feedback).toBeDefined()
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([channel1.id, channel2.id])
-      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+      expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
     })
 
     test('creates negative feedback with non-matching channelIds', async () => {
@@ -268,46 +268,6 @@ describe('feedback methods', () => {
   })
 
   describe('acceptFeedback', () => {
-    test('accepts feedback and updates article channels when autoAccept is true and channelIds is empty', async () => {
-      // Create test article channels
-      await atomService.create({
-        table: 'topic_channel_article',
-        data: {
-          articleId: '1',
-          channelId: channel1.id,
-          enabled: true,
-        },
-      })
-
-      // Create feedback
-      const feedback = await atomService.create({
-        table: 'topic_channel_feedback',
-        data: {
-          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
-          articleId: '1',
-          userId: '1',
-          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
-          channelIds: JSON.stringify([]) as unknown as string[],
-        },
-      })
-
-      await channelService.acceptFeedback(feedback, true)
-
-      // Verify feedback state is updated
-      const updatedFeedback = await atomService.findFirst({
-        table: 'topic_channel_feedback',
-        where: { id: feedback.id },
-      })
-      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
-
-      // Verify article channels are disabled
-      const articleChannels = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { articleId: '1' },
-      })
-      expect(articleChannels.every((channel) => !channel.enabled)).toBe(true)
-    })
-
     test('accepts feedback and updates article channels with specific channelIds', async () => {
       // Create test article channels
       await atomService.create({
@@ -373,6 +333,451 @@ describe('feedback methods', () => {
     })
   })
 
+  describe('setArticleTopicChannels', () => {
+    test('sets isLabeled to true when setLabeled is true (default)', async () => {
+      await channelService.setArticleTopicChannels({
+        articleId: '1',
+        channelIds: [channel1.id],
+      })
+
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1' },
+      })
+      expect(articleChannels).toHaveLength(1)
+      expect(articleChannels[0].isLabeled).toBe(true)
+      expect(articleChannels[0].enabled).toBe(true)
+    })
+
+    test('does not set isLabeled when setLabeled is false', async () => {
+      await channelService.setArticleTopicChannels({
+        articleId: '1',
+        channelIds: [channel1.id],
+        setLabeled: false,
+      })
+
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1' },
+      })
+      expect(articleChannels).toHaveLength(1)
+      expect(articleChannels[0].isLabeled).toBe(false)
+      expect(articleChannels[0].enabled).toBe(true)
+    })
+
+    test('handles removing channels with setLabeled parameter', async () => {
+      // First add a channel
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: false,
+        },
+      })
+
+      // Remove the channel with setLabeled: false
+      await channelService.setArticleTopicChannels({
+        articleId: '1',
+        channelIds: [],
+        setLabeled: false,
+      })
+
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1' },
+      })
+      expect(articleChannels).toHaveLength(1)
+      expect(articleChannels[0].enabled).toBe(false)
+      expect(articleChannels[0].isLabeled).toBe(false)
+    })
+
+    test('handles removing channels with setLabeled: true', async () => {
+      // First add a channel
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: false,
+        },
+      })
+
+      // Remove the channel with setLabeled: true (default)
+      await channelService.setArticleTopicChannels({
+        articleId: '1',
+        channelIds: [channel2.id],
+      })
+
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1' },
+      })
+      expect(articleChannels).toHaveLength(2)
+
+      const disabledChannel = articleChannels.find(
+        (c) => c.channelId === channel1.id
+      )
+      const enabledChannel = articleChannels.find(
+        (c) => c.channelId === channel2.id
+      )
+
+      expect(disabledChannel?.enabled).toBe(false)
+      expect(disabledChannel?.isLabeled).toBe(true)
+      expect(enabledChannel?.enabled).toBe(true)
+      expect(enabledChannel?.isLabeled).toBe(true)
+    })
+  })
+
+  describe('canAutoResolveFeedback', () => {
+    test('returns true when all feedback channelIds are in current article channels', async () => {
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      const canResolve = await channelService.canAutoResolveFeedback({
+        articleId: '1',
+        channelIds: [channel1.id],
+      })
+      expect(canResolve).toBe(true)
+    })
+
+    test('returns true when channelIds is empty and no labeled channels exist', async () => {
+      const canResolve = await channelService.canAutoResolveFeedback({
+        articleId: '1',
+        channelIds: [],
+      })
+      expect(canResolve).toBe(true)
+    })
+
+    test('returns false when channelIds is empty but labeled channels exist', async () => {
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: true,
+        },
+      })
+
+      const canResolve = await channelService.canAutoResolveFeedback({
+        articleId: '1',
+        channelIds: [],
+      })
+      expect(canResolve).toBe(false)
+    })
+
+    test('returns false when some feedback channelIds are not in current article channels', async () => {
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      const canResolve = await channelService.canAutoResolveFeedback({
+        articleId: '1',
+        channelIds: [channel1.id, channel2.id],
+      })
+      expect(canResolve).toBe(false)
+    })
+
+    test('returns false when none of the feedback channelIds are in current article channels', async () => {
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      const canResolve = await channelService.canAutoResolveFeedback({
+        articleId: '1',
+        channelIds: [channel2.id],
+      })
+      expect(canResolve).toBe(false)
+    })
+  })
+
+  describe('tryAutoResolveArticleFeedback', () => {
+    test('auto-resolves feedback when conditions are met and preserves labeled channels', async () => {
+      // Create labeled and unlabeled channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: true,
+        },
+      })
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel2.id,
+          enabled: true,
+          isLabeled: false,
+        },
+      })
+
+      // Create feedback that can be auto-resolved
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([channel2.id]) as unknown as string[],
+        },
+      })
+
+      const result = await channelService.tryAutoResolveArticleFeedback('1')
+
+      expect(result).toBeDefined()
+      expect(result?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+
+      // Verify labeled channels are preserved
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1', enabled: true },
+      })
+      expect(articleChannels).toHaveLength(2)
+    })
+
+    test('auto-resolves feedback with empty channelIds when no labeled channels exist', async () => {
+      // Create some existing unlabeled channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: false,
+        },
+      })
+
+      // Create feedback with empty channelIds
+      await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([]) as unknown as string[],
+        },
+      })
+
+      const result = await channelService.tryAutoResolveArticleFeedback('1')
+
+      expect(result).toBeDefined()
+      expect(result?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+
+      // Verify unlabeled channels are disabled
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1', enabled: true },
+      })
+      expect(articleChannels).toHaveLength(0)
+    })
+
+    test('does not auto-resolve feedback with empty channelIds when labeled channels exist', async () => {
+      // Create some existing labeled channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: true,
+        },
+      })
+
+      // Create feedback with empty channelIds
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([]) as unknown as string[],
+        },
+      })
+
+      const result = await channelService.tryAutoResolveArticleFeedback('1')
+
+      expect(result).toBeUndefined()
+
+      // Verify feedback state remains pending
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+
+      // Verify labeled channels are preserved
+      const articleChannels = await atomService.findMany({
+        table: 'topic_channel_article',
+        where: { articleId: '1', enabled: true },
+      })
+      expect(articleChannels).toHaveLength(1)
+      expect(articleChannels[0].channelId).toBe(channel1.id)
+      expect(articleChannels[0].isLabeled).toBe(true)
+    })
+
+    test('does not auto-resolve when feedback cannot be resolved', async () => {
+      // Create article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      // Create feedback that cannot be auto-resolved
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
+          channelIds: JSON.stringify([channel2.id]) as unknown as string[],
+        },
+      })
+
+      const result = await channelService.tryAutoResolveArticleFeedback('1')
+
+      expect(result).toBeUndefined()
+
+      // Verify feedback state remains pending
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+    })
+
+    test('does not auto-resolve when feedback state is not pending', async () => {
+      // Create feedback with non-pending state
+      const feedback = await atomService.create({
+        table: 'topic_channel_feedback',
+        data: {
+          type: TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE,
+          articleId: '1',
+          userId: '1',
+          state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED,
+          channelIds: JSON.stringify([channel1.id]) as unknown as string[],
+        },
+      })
+
+      const result = await channelService.tryAutoResolveArticleFeedback('1')
+
+      expect(result).toBeUndefined()
+
+      // Verify feedback state remains unchanged
+      const updatedFeedback = await atomService.findFirst({
+        table: 'topic_channel_feedback',
+        where: { id: feedback.id },
+      })
+      expect(updatedFeedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED)
+    })
+
+    test('returns undefined when no feedback exists', async () => {
+      const result = await channelService.tryAutoResolveArticleFeedback('1')
+      expect(result).toBeUndefined()
+    })
+  })
+
+  describe('createNegativeFeedback with auto-resolve', () => {
+    test('auto-resolves immediately when feedback matches current channels', async () => {
+      // Create existing article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      const feedback = await channelService.createNegativeFeedback({
+        articleId: '1',
+        userId: '1',
+        channelIds: [channel1.id],
+      })
+
+      expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+    })
+
+    test('auto-resolves immediately when channelIds is empty and no labeled channels exist', async () => {
+      const feedback = await channelService.createNegativeFeedback({
+        articleId: '1',
+        userId: '1',
+        channelIds: [],
+      })
+
+      expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+    })
+
+    test('remains pending when channelIds is empty but labeled channels exist', async () => {
+      // Create existing labeled article channel
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+          isLabeled: true,
+        },
+      })
+
+      const feedback = await channelService.createNegativeFeedback({
+        articleId: '1',
+        userId: '1',
+        channelIds: [],
+      })
+
+      expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+    })
+
+    test('remains pending when feedback does not match current channels', async () => {
+      // Create existing article channels
+      await atomService.create({
+        table: 'topic_channel_article',
+        data: {
+          articleId: '1',
+          channelId: channel1.id,
+          enabled: true,
+        },
+      })
+
+      const feedback = await channelService.createNegativeFeedback({
+        articleId: '1',
+        userId: '1',
+        channelIds: [channel2.id],
+      })
+
+      expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+    })
+  })
+
   describe('resolveArticleFeedback', () => {
     test('resolves feedback when conditions are met', async () => {
       // Create test article channels
@@ -397,7 +802,7 @@ describe('feedback methods', () => {
         },
       })
 
-      await channelService.resolveArticleFeedback('1')
+      await channelService.tryAutoResolveArticleFeedback('1')
 
       // Verify feedback state is updated
       const updatedFeedback = await atomService.findFirst({
@@ -420,7 +825,7 @@ describe('feedback methods', () => {
         },
       })
 
-      await channelService.resolveArticleFeedback('1')
+      await channelService.tryAutoResolveArticleFeedback('1')
 
       // Verify feedback state remains unchanged
       const updatedFeedback = await atomService.findFirst({
@@ -431,7 +836,7 @@ describe('feedback methods', () => {
     })
 
     test('does not resolve feedback when feedback is not found', async () => {
-      await channelService.resolveArticleFeedback('2')
+      await channelService.tryAutoResolveArticleFeedback('2')
       // No feedback should be created or updated
       const feedbacks = await atomService.findMany({
         table: 'topic_channel_feedback',

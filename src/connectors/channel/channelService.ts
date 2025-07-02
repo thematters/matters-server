@@ -208,9 +208,11 @@ export class ChannelService {
   public setArticleTopicChannels = async ({
     articleId,
     channelIds,
+    setLabeled = true,
   }: {
     articleId: string
     channelIds: string[]
+    setLabeled?: boolean
   }) => {
     // Get existing channels
     const existingChannels = await this.models.findMany({
@@ -241,12 +243,20 @@ export class ChannelService {
       })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
-        data: toAdd.map((channelId) => ({
-          articleId,
-          channelId,
-          enabled: true,
-          isLabeled: true,
-        })),
+        data: toAdd.map((channelId) =>
+          setLabeled
+            ? {
+                articleId,
+                channelId,
+                enabled: true,
+                isLabeled: true,
+              }
+            : {
+                articleId,
+                channelId,
+                enabled: true,
+              }
+        ),
         onConflict: ['articleId', 'channelId'],
       })
     }
@@ -257,7 +267,9 @@ export class ChannelService {
         table: 'topic_channel_article',
         where: { articleId },
         whereIn: ['channelId', toRemove],
-        data: { enabled: false, isLabeled: true, updatedAt: new Date() },
+        data: setLabeled
+          ? { enabled: false, isLabeled: true, updatedAt: new Date() }
+          : { enabled: false, updatedAt: new Date() },
       })
     }
   }
@@ -339,7 +351,7 @@ export class ChannelService {
       )
       unpinnedQuery.select(
         knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.created_at DESC) + 100 AS order'
+          'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
         )
       )
     }
@@ -764,23 +776,8 @@ export class ChannelService {
         state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
       },
     })
-
-    // auto accept feedback if it is remove all channels or in line with current classification
-    if (
-      feedback.channelIds.length === 0 ||
-      (await this.isFeedbackResolved({
-        articleId,
-        channelIds: feedback.channelIds,
-      }))
-    ) {
-      await this.acceptFeedback(feedback, true)
-      return await this.models.update({
-        table: 'topic_channel_feedback',
-        where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.ACCEPTED },
-      })
-    }
-    return feedback
+    const autoResolved = await this.tryAutoResolveArticleFeedback(articleId)
+    return autoResolved || feedback
   }
 
   public findFeedbacks = ({
@@ -811,69 +808,8 @@ export class ChannelService {
     return query
   }
 
-  public acceptFeedback = async (
-    feedback: TopicChannelFeedback,
-    autoResolve: boolean = false
-  ) => {
+  public acceptFeedback = async (feedback: TopicChannelFeedback) => {
     const notificationService = new NotificationService(this.connections)
-    // will not set isLabeled to true if autoResolve is true
-    if (feedback.channelIds.length === 0 && autoResolve) {
-      await this.models.updateMany({
-        table: 'topic_channel_article',
-        where: { articleId: feedback.articleId },
-        data: { enabled: false },
-      })
-      const autoResolved = await this.models.update({
-        table: 'topic_channel_feedback',
-        where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
-      })
-      await invalidateFQC({
-        node: { type: NODE_TYPES.Article, id: autoResolved.articleId },
-        redis: this.connections.redis,
-      })
-      notificationService.trigger({
-        event: NOTICE_TYPE.topic_channel_feedback_accepted,
-        recipientId: feedback.userId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: await this.models.articleIdLoader.load(feedback.articleId),
-          },
-        ],
-      })
-      return autoResolved
-    }
-    if (
-      await this.isFeedbackResolved({
-        articleId: feedback.articleId,
-        channelIds: feedback.channelIds,
-      })
-    ) {
-      const resolved = await this.models.update({
-        table: 'topic_channel_feedback',
-        where: { id: feedback.id },
-        data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED },
-      })
-      await invalidateFQC({
-        node: { type: NODE_TYPES.Article, id: resolved.articleId },
-        redis: this.connections.redis,
-      })
-      notificationService.trigger({
-        event: NOTICE_TYPE.topic_channel_feedback_accepted,
-        recipientId: feedback.userId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: await this.models.articleIdLoader.load(feedback.articleId),
-          },
-        ],
-      })
-      return resolved
-    }
-
     await this.setArticleTopicChannels({
       articleId: feedback.articleId,
       channelIds: feedback.channelIds,
@@ -902,14 +838,21 @@ export class ChannelService {
   }
 
   public rejectFeedback = async (feedback: TopicChannelFeedback) => {
-    return this.models.update({
+    const updated = await this.models.update({
       table: 'topic_channel_feedback',
       where: { id: feedback.id },
       data: { state: TOPIC_CHANNEL_FEEDBACK_STATE.REJECTED },
     })
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: updated.articleId },
+      redis: this.connections.redis,
+    })
+    return updated
   }
 
-  public resolveArticleFeedback = async (articleId: string) => {
+  public tryAutoResolveArticleFeedback = async (
+    articleId: string
+  ): Promise<TopicChannelFeedback | undefined> => {
     const feedback = await this.models.findFirst({
       table: 'topic_channel_feedback',
       where: { articleId },
@@ -917,11 +860,24 @@ export class ChannelService {
     if (
       feedback &&
       feedback.state === TOPIC_CHANNEL_FEEDBACK_STATE.PENDING &&
-      (await this.isFeedbackResolved({
+      (await this.canAutoResolveFeedback({
         articleId,
         channelIds: feedback.channelIds,
       }))
     ) {
+      const labeledChannels = await this.models.findMany({
+        table: 'topic_channel_article',
+        where: { articleId, enabled: true, isLabeled: true },
+      })
+      const targetChannelIds = labeledChannels
+        .map((c) => c.channelId)
+        .concat(feedback.channelIds)
+      await this.setArticleTopicChannels({
+        articleId,
+        // auto resolve will not remove labeled channels
+        channelIds: Array.from(new Set(targetChannelIds)),
+        setLabeled: false,
+      })
       const autoResolved = await this.models.update({
         table: 'topic_channel_feedback',
         where: { id: feedback.id },
@@ -943,10 +899,11 @@ export class ChannelService {
           },
         ],
       })
+      return autoResolved
     }
   }
 
-  public isFeedbackResolved = async ({
+  public canAutoResolveFeedback = async ({
     articleId,
     channelIds,
   }: {
@@ -958,10 +915,16 @@ export class ChannelService {
       where: { articleId, enabled: true },
     })
     const currentChannelIds = articleChannels.map((c) => c.channelId)
-    if (channelIds.every((id) => currentChannelIds.includes(id))) {
+    if (
+      channelIds.length > 0 &&
+      channelIds.every((id) => currentChannelIds.includes(id))
+    ) {
       return true
     }
-    if (channelIds.length === 0 && articleChannels.length === 0) {
+    if (
+      channelIds.length === 0 &&
+      articleChannels.filter((c) => c.isLabeled).length === 0
+    ) {
       return true
     }
     return false

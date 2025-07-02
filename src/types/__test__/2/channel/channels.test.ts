@@ -5,6 +5,7 @@ import {
   CURATION_CHANNEL_STATE,
   CURATION_CHANNEL_COLOR,
   ARTICLE_CHANNEL_JOB_STATE,
+  USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { genConnections, closeConnections, testClient } from '../../utils.js'
@@ -55,9 +56,11 @@ describe('channels query', () => {
 
   beforeEach(async () => {
     // Clean up existing channels
+    await atomService.deleteMany({ table: 'topic_channel_article' })
     await atomService.deleteMany({ table: 'topic_channel' })
     await atomService.deleteMany({ table: 'curation_channel' })
     await atomService.deleteMany({ table: 'campaign_channel' })
+    await atomService.deleteMany({ table: 'user_feature_flag' })
   })
 
   test('returns all channels for admin with oss flag', async () => {
@@ -476,6 +479,312 @@ describe('channels query', () => {
       expect(channel2Result.enabled).toBe(true)
       expect(channel2Result.classicfiedAt).toBeDefined()
       expect(channel2Result.pinned).toBe(false)
+    })
+
+    describe('spam detection', () => {
+      test('returns empty array when article isSpam is true', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create channels
+        const channel = await channelService.createTopicChannel({
+          name: 'test-channel',
+          enabled: true,
+          providerId: '1',
+        })
+
+        // Create spam article
+        const [article] = await articleService.createArticle({
+          authorId: '1',
+          title: 'spam test',
+          content: 'spam content',
+        })
+
+        // Mark article as spam
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { isSpam: true },
+        })
+
+        // Add article to channels
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: channel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+            pinned: false,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          0
+        )
+      })
+
+      test('returns empty array when article spamScore exceeds threshold', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create channels
+        const channel = await channelService.createTopicChannel({
+          name: 'test-channel',
+          enabled: true,
+          providerId: '1',
+        })
+
+        // Create article with high spam score
+        const [article] = await articleService.createArticle({
+          authorId: '1',
+          title: 'high spam score test',
+          content: 'high spam score content',
+        })
+
+        // Set article spam score higher than default threshold (1)
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { spamScore: 1.5 },
+        })
+
+        // Add article to channels
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: channel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+            pinned: false,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          0
+        )
+      })
+
+      test('returns channels when article spamScore is below threshold', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create channels
+        const channel = await channelService.createTopicChannel({
+          name: 'test-channel',
+          enabled: true,
+          providerId: '1',
+        })
+
+        // Create article with low spam score
+        const [article] = await articleService.createArticle({
+          authorId: '1',
+          title: 'low spam score test',
+          content: 'low spam score content',
+        })
+
+        // Set article spam score lower than default threshold (1)
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { spamScore: 0.5 },
+        })
+
+        // Add article to channels
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: channel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+            pinned: false,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          1
+        )
+        expect(
+          data.article.classification.topicChannel.channels[0].channel.name
+        ).toBe('test-channel')
+      })
+
+      test('returns channels when author has bypassSpamDetection feature flag', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create channels
+        const channel = await channelService.createTopicChannel({
+          name: 'test-channel',
+          enabled: true,
+          providerId: '1',
+        })
+
+        // Create spam article
+        const [article] = await articleService.createArticle({
+          authorId: '1',
+          title: 'bypass spam test',
+          content: 'bypass spam content',
+        })
+
+        // Set article as spam with high spam score
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { spamScore: 1.5 },
+        })
+
+        // Add bypass spam detection feature flag for author
+        await atomService.create({
+          table: 'user_feature_flag',
+          data: {
+            userId: article.authorId,
+            type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+          },
+        })
+
+        // Add article to channels
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: channel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+            pinned: false,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          1
+        )
+        expect(
+          data.article.classification.topicChannel.channels[0].channel.name
+        ).toBe('test-channel')
+      })
+
+      test('returns empty array when isSpam is explicitly true even with bypass flag', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create channels
+        const channel = await channelService.createTopicChannel({
+          name: 'test-channel',
+          enabled: true,
+          providerId: '1',
+        })
+
+        // Create spam article
+        const [article] = await articleService.createArticle({
+          authorId: '1',
+          title: 'explicit spam test',
+          content: 'explicit spam content',
+        })
+
+        // Explicitly mark article as spam
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { isSpam: true, spamScore: 0.5 },
+        })
+
+        // Add bypass spam detection feature flag for author
+        await atomService.create({
+          table: 'user_feature_flag',
+          data: {
+            userId: article.authorId,
+            type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+          },
+        })
+
+        // Add article to channels
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: channel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+            pinned: false,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          0
+        )
+      })
     })
   })
 })

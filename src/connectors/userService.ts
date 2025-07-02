@@ -467,11 +467,13 @@ export class UserService extends BaseService<User> {
         if (count > CHANGE_EMAIL_TIMES_LIMIT_PER_DAY) {
           throw new ActionFailedError('email change too frequent')
         }
-        notificationService.mail.sendEmailChange({
-          to: user.email,
-          newEmail: email,
-          language: user.language,
-        })
+        if (user.emailVerified) {
+          notificationService.mail.sendEmailChange({
+            to: user.email,
+            newEmail: email,
+            language: user.language,
+          })
+        }
       }
       return this.baseUpdate(user.id, {
         email,
