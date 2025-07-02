@@ -58,8 +58,8 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     throw new DraftNotFoundError('draft does not exists')
   }
 
-  // cancel publication if publishAt is null and draft is not published
-  if (publishAt === null && !isPublished) {
+  // cancel publication if publishAt is null and draft is not published or pending
+  if (publishAt === null && !(isPublished || isPending)) {
     const cancelledDraft = await atomService.update({
       table: 'draft',
       where: { id: draft.id },
@@ -117,6 +117,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
           },
         }
       ),
+      // if publishAt is not provided, set publishState to pending, as it will be published below
       publishState: publishAt ? undefined : PUBLISH_STATE.pending,
       iscnPublish,
       publishAt,

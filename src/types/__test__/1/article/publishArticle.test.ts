@@ -9,7 +9,7 @@ import {
   ARTICLE_STATE,
 } from '#common/enums/index.js'
 import { ActionLimitExceededError } from '#common/errors.js'
-import { toGlobalId } from '#common/utils/index.js'
+import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 import {
   AtomService,
   CampaignService,
@@ -359,23 +359,16 @@ describe('publishArticle', () => {
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 
-  test('should cancel scheduled publication when publishAt is null', async () => {
-    // First schedule a publication
+  test('should cancel scheduled publication when publishAt is null only if draft is unpublished', async () => {
+    // Create an unpublished draft
     const draft = {
       title: Math.random().toString(),
       content: Math.random().toString(),
     }
     const { id } = await putDraft({ draft }, connections)
-    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day in the future
     const server = await testClient({ isAuth: true, connections })
 
-    // Schedule the publication
-    await server.executeOperation({
-      query: PUBLISH_ARTICLE,
-      variables: { input: { id, publishAt: futureDate } },
-    })
-
-    // Cancel the scheduled publication
+    // Try to cancel publication on unpublished draft (should work)
     const { data, errors } = await server.executeOperation({
       query: PUBLISH_ARTICLE,
       variables: { input: { id, publishAt: null } },
@@ -428,6 +421,35 @@ describe('publishArticle', () => {
     expect(errors).toBeUndefined()
     expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.published)
     expect(data.publishArticle.article).not.toBeNull()
+  })
+
+  test('should not cancel publication if draft is pending', async () => {
+    // Create and schedule a draft for future publication
+    const draft = {
+      title: Math.random().toString(),
+      content: Math.random().toString(),
+    }
+    const { id: globalId } = await putDraft({ draft }, connections)
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000) // 1 day in the future
+    const server = await testClient({ isAuth: true, connections })
+
+    // Schedule publication
+    const { id } = fromGlobalId(globalId)
+    await atomService.update({
+      table: 'draft',
+      where: { id },
+      data: { publishState: PUBLISH_STATE.pending, publishAt: futureDate },
+    })
+
+    // Try to cancel with null publishAt - should not change state since it's pending
+    const { data, errors } = await server.executeOperation({
+      query: PUBLISH_ARTICLE,
+      variables: { input: { id: globalId, publishAt: null } },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.pending)
+    expect(data.publishArticle.publishAt).toEqual(futureDate)
   })
 
   describe('article connections validation', () => {
