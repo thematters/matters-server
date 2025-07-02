@@ -53,9 +53,9 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   const isPublished = draft.publishState === PUBLISH_STATE.published
   const isPending = draft.publishState === PUBLISH_STATE.pending
 
-  // return draft if it is already published or pending
-  if (isPending || isPublished || (draft.archived && isPublished)) {
-    return draft
+  // validate draft before publishing or scheduling
+  if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
+    throw new DraftNotFoundError('draft does not exists')
   }
 
   // cancel publication if publishAt is null and draft is not published
@@ -71,9 +71,9 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     return cancelledDraft
   }
 
-  // validate draft before publishing or scheduling
-  if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
-    throw new DraftNotFoundError('draft does not exists')
+  // return draft if it is already published or pending
+  if (isPending || isPublished || (draft.archived && isPublished)) {
+    return draft
   }
 
   if (!draft.title.trim()) {
