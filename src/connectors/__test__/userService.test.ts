@@ -6,13 +6,12 @@ import {
   ARTICLE_ACTION,
 } from '#common/enums/index.js'
 import { ActionFailedError } from '#common/errors.js'
-import {
-  AtomService,
-  Cache,
-  UserService,
-  PaymentService,
-  ArticleService,
-} from '#connectors/index.js'
+import { ArticleService } from '../article/articleService.js'
+import { PublicationService } from '../article/publicationService.js'
+import { AtomService } from '../atomService.js'
+import { Cache } from '../cache/index.js'
+import { PaymentService } from '../paymentService.js'
+import { UserService } from '../userService.js'
 
 import { createDonationTx } from './utils.js'
 import { genConnections, closeConnections } from './utils.js'
@@ -23,6 +22,7 @@ let atomService: AtomService
 let userService: UserService
 let paymentService: PaymentService
 let articleService: ArticleService
+let publicationService: PublicationService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -30,6 +30,7 @@ beforeAll(async () => {
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -603,7 +604,7 @@ describe('recommendAuthors', () => {
   })
   test('exclude archived articles when calculating authorScore', async () => {
     const authorId = '1'
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       authorId,
       title: 'test',
       content: 'test',

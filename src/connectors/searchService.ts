@@ -13,9 +13,11 @@ import {
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { normalizeSearchKey } from '#common/utils/index.js'
-import { AtomService, aws } from '#connectors/index.js'
 import * as cheerio from 'cheerio'
 import { simplecc } from 'simplecc-wasm'
+
+import { AtomService } from './atomService.js'
+import { aws } from './aws/index.js'
 
 const logger = getLogger('service-search')
 

@@ -3,7 +3,8 @@ import type { Connections } from '#definitions/index.js'
 import _ from 'lodash'
 
 import { SCOPE_PREFIX } from '#common/enums/index.js'
-import { OAuthService, AtomService } from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
+import { OAuthService } from '../oauthService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

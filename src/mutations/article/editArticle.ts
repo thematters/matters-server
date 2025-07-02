@@ -78,6 +78,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     dataSources: {
       userService,
       articleService,
+      publicationService,
       atomService,
       systemService,
       campaignService,
@@ -201,7 +202,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       articleService,
     })
 
-    const newArticleVersion = await articleService.createNewArticleVersion(
+    const newArticleVersion = await publicationService.createNewArticleVersion(
       article.id,
       viewer.id,
       data,

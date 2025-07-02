@@ -15,14 +15,13 @@ import { DAY, NOTICE_TYPE, COMMENT_TYPE } from '#common/enums/index.js'
 import { isProd, environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { makeSummary } from '#common/utils/index.js'
-import {
-  NotificationService,
-  ArticleService,
-  CommentService,
-  SystemService,
-} from '#connectors/index.js'
 import { MailService } from '#connectors/mail/index.js'
 import _ from 'lodash'
+
+import { ArticleService } from './article/articleService.js'
+import { CommentService } from './commentService.js'
+import { NotificationService } from './notification/notificationService.js'
+import { SystemService } from './systemService.js'
 
 const { uniqBy } = _
 

@@ -1,4 +1,5 @@
-import type { PaymentService, CampaignService } from '#connectors/index.js'
+import type { CampaignService } from '../campaignService.js'
+import type { PaymentService } from '../paymentService.js'
 import type {
   Connections,
   MaterializedView,

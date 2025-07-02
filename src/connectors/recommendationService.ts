@@ -22,7 +22,7 @@ import {
 } from '#common/errors.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
 
-import { ArticleService } from './articleService.js'
+import { ArticleService } from './article/articleService.js'
 import { AtomService } from './atomService.js'
 import { ChannelService } from './channel/channelService.js'
 import { CommentService } from './commentService.js'

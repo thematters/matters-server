@@ -14,20 +14,20 @@ import { toGlobalId } from '#common/utils/index.js'
 import {
   AtomService,
   ChannelService,
-  ArticleService,
+  PublicationService,
 } from '#connectors/index.js'
 import { testClient, genConnections, closeConnections } from '../../utils.js'
 
 let connections: Connections
 let atomService: AtomService
 let channelService: ChannelService
-let articleService: ArticleService
+let publicationService: PublicationService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   channelService = new ChannelService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -464,7 +464,7 @@ describe('addCurationChannelArticles', () => {
     })
 
     // Create an inactive article
-    const [inactiveArticle] = await articleService.createArticle({
+    const [inactiveArticle] = await publicationService.createArticle({
       title: 'Inactive Article',
       authorId: '1',
       content: 'Inactive content',

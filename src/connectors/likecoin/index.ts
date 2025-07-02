@@ -11,11 +11,13 @@ import {
   OAuthTokenInvalidError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { aws, Cache } from '#connectors/index.js'
 import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
 import { v4 } from 'uuid'
+
+import { aws } from '../aws/index.js'
+import { Cache } from '../cache/index.js'
 
 const logger = getLogger('service-likecoin')
 

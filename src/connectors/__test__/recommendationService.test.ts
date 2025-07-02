@@ -12,7 +12,7 @@ import {
 import {
   RecommendationService,
   AtomService,
-  ArticleService,
+  PublicationService,
   ChannelService,
   UserService,
 } from '#connectors/index.js'
@@ -21,7 +21,7 @@ import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 let channelService: ChannelService
 let userService: UserService
 let recommendationService: RecommendationService
@@ -29,7 +29,7 @@ let recommendationService: RecommendationService
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   channelService = new ChannelService(connections)
   userService = new UserService(connections)
   recommendationService = new RecommendationService(connections)
@@ -277,7 +277,7 @@ describe('calRecommendationPoolSize', () => {
   test('new articles with today are excluded', async () => {
     const days = 10
     for (let i = 0; i < RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY + 1; i++) {
-      await articleService.createArticle({
+      await publicationService.createArticle({
         title: `test title ${i}`,
         content: `test content ${i}`,
         authorId: '1',
@@ -294,7 +294,7 @@ describe('calRecommendationPoolSize', () => {
   test('returns pool size when there are articles', async () => {
     const days = 2
     for (let i = 0; i < RECOMMENDATION_ARTICLE_AMOUNT_PER_DAY * 3; i++) {
-      const [article] = await articleService.createArticle({
+      const [article] = await publicationService.createArticle({
         title: `test title ${i}`,
         content: `test content ${i}`,
         authorId: '1',
@@ -332,27 +332,27 @@ describe('recommandation', () => {
     author3 = await userService.create()
 
     // author1 has 2 articles, others only 1
-    const [_article1] = await articleService.createArticle({
+    const [_article1] = await publicationService.createArticle({
       title: 'test score article 1',
       content: 'test content 1',
       authorId: author1.id,
     })
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: 'test score article 1',
       content: 'test content 1',
       authorId: author1.id,
     })
-    const [_article2] = await articleService.createArticle({
+    const [_article2] = await publicationService.createArticle({
       title: 'test score article 2',
       content: 'test content 2',
       authorId: author2.id,
     })
-    const [_article3] = await articleService.createArticle({
+    const [_article3] = await publicationService.createArticle({
       title: 'test score article 3',
       content: 'test content 3',
       authorId: author3.id,
     })
-    const [_article4] = await articleService.createArticle({
+    const [_article4] = await publicationService.createArticle({
       title: 'test score article 3',
       content: 'test content 3',
       authorId: author3.id,

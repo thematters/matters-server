@@ -44,11 +44,6 @@ import {
   CurationVaultContract,
   CurationVaultEvent,
 } from '#connectors/blockchain/curationVault.js'
-import {
-  ArticleService,
-  BaseService,
-  NotificationService,
-} from '#connectors/index.js'
 import { stripe } from '#connectors/stripe/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import slugify from '@matters/slugify'
@@ -56,6 +51,10 @@ import * as Sentry from '@sentry/node'
 import _capitalize from 'lodash/capitalize.js'
 import { v4 } from 'uuid'
 import { formatUnits, parseUnits } from 'viem'
+
+import { ArticleService } from './article/articleService.js'
+import { BaseService } from './baseService.js'
+import { NotificationService } from './notification/notificationService.js'
 
 const logger = getLogger('service-payment')
 

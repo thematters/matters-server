@@ -10,7 +10,7 @@ import {
 } from '#common/enums/index.js'
 import {
   AtomService,
-  ArticleService,
+  PublicationService,
   MomentService,
   UserService,
 } from '#connectors/index.js'
@@ -22,13 +22,13 @@ import { refreshView } from '#connectors/__test__/utils.js'
 
 let connections: Connections
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 let momentService: MomentService
 let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   atomService = new AtomService(connections)
   momentService = new MomentService(connections)
   userService = new UserService(connections)
@@ -312,7 +312,7 @@ describe('following UserPostMomentActivity', () => {
     )
 
     // same actor other activities will reset the combination time window
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: followee1.id,

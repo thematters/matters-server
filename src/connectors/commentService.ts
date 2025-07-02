@@ -19,12 +19,11 @@ import {
   NOTICE_TYPE,
 } from '#common/enums/index.js'
 import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
-import {
-  BaseService,
-  PaymentService,
-  NotificationService,
-  UserService,
-} from '#connectors/index.js'
+
+import { BaseService } from './baseService.js'
+import { NotificationService } from './notification/notificationService.js'
+import { PaymentService } from './paymentService.js'
+import { UserService } from './userService.js'
 
 export interface CommentFilter {
   type: ValueOf<typeof COMMENT_TYPE>

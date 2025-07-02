@@ -9,7 +9,8 @@ import type { Knex } from 'knex'
 
 import { DAY } from '#common/enums/index.js'
 import { environment, isProd } from '#common/environment.js'
-import { mailService } from '#connectors/index.js'
+
+import { mailService } from './mail/index.js'
 
 export type SendmailFn = (
   userId: string,

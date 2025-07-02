@@ -6,7 +6,7 @@ import { fromGlobalId } from '#common/utils/index.js'
 const resolver: GQLMutationResolvers['setSpamStatus'] = async (
   _,
   { input: { id: globalId, isSpam } },
-  { dataSources: { atomService, articleService } }
+  { dataSources: { atomService, publicationService } }
 ) => {
   const id = fromGlobalId(globalId).id
 
@@ -21,7 +21,7 @@ const resolver: GQLMutationResolvers['setSpamStatus'] = async (
   })
 
   if (!isSpam) {
-    await articleService.runPostProcessing(article, false)
+    await publicationService.runPostProcessing(article, false)
   }
 
   return article

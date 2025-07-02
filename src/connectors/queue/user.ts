@@ -11,12 +11,11 @@ import {
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
-import {
-  aws,
-  UserService,
-  AtomService,
-  NotificationService,
-} from '#connectors/index.js'
+
+import { AtomService } from '../atomService.js'
+import { aws } from '../aws/index.js'
+import { NotificationService } from '../notification/notificationService.js'
+import { UserService } from '../userService.js'
 
 import { getOrCreateQueue } from './utils.js'
 

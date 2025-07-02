@@ -5,7 +5,8 @@ import {
   TOPIC_CHANNEL_FEEDBACK_STATE,
 } from '#common/enums/index.js'
 
-import { ChannelService, AtomService } from '#connectors/index.js'
+import { AtomService } from '../../atomService.js'
+import { ChannelService } from '../../channel/channelService.js'
 import { genConnections } from '../utils.js'
 
 let connections: Connections

@@ -12,6 +12,7 @@ import { ApolloServer, GraphQLRequest, GraphQLResponse } from '@apollo/server'
 import { authModes, roleAccess } from '#common/utils/index.js'
 import {
   ArticleService,
+  PublicationService,
   AtomService,
   CommentService,
   DraftService,
@@ -180,6 +181,7 @@ export const testClient = async ({
       userService: new UserService(connections),
       userWorkService: new UserWorkService(connections),
       articleService: new ArticleService(connections),
+      publicationService: new PublicationService(connections),
       commentService: new CommentService(connections),
       draftService: new DraftService(connections),
       systemService: new SystemService(connections),

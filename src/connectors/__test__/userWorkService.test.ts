@@ -1,11 +1,9 @@
 import type { Connections } from '#definitions/index.js'
 
-import {
-  UserWorkService,
-  UserService,
-  MomentService,
-  ArticleService,
-} from '#connectors/index.js'
+import { PublicationService } from '../article/publicationService.js'
+import { MomentService } from '../momentService.js'
+import { UserService } from '../userService.js'
+import { UserWorkService } from '../userWorkService.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import { genConnections, closeConnections } from './utils.js'
 
@@ -13,14 +11,14 @@ let connections: Connections
 let userWorkService: UserWorkService
 let userService: UserService
 let momentService: MomentService
-let articleService: ArticleService
+let publicationService: PublicationService
 
 beforeAll(async () => {
   connections = await genConnections()
   userWorkService = new UserWorkService(connections)
   userService = new UserService(connections)
   momentService = new MomentService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -71,7 +69,7 @@ describe('findWritings', () => {
     const moment1 = await momentService.create({ content: 'test' }, user)
     const moment2 = await momentService.create({ content: 'test' }, user)
     const moment3 = await momentService.create({ content: 'test' }, user)
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: user.id,

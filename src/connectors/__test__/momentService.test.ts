@@ -13,7 +13,9 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from '#common/errors.js'
-import { MomentService, UserService, SystemService } from '#connectors/index.js'
+import { MomentService } from '../momentService.js'
+import { SystemService } from '../systemService.js'
+import { UserService } from '../userService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

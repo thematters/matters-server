@@ -1,24 +1,22 @@
 import type { Connections } from '#definitions/index.js'
 
 import { FEATURE_NAME, FEATURE_FLAG } from '#common/enums/index.js'
-import {
-  ArticleService,
-  AtomService,
-  SystemService,
-  SearchService,
-} from '#connectors/index.js'
+import { PublicationService } from '../../article/publicationService.js'
+import { AtomService } from '../../atomService.js'
+import { SearchService } from '../../searchService.js'
+import { SystemService } from '../../systemService.js'
 
 import { genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
-let articleService: ArticleService
+let publicationService: PublicationService
 let atomService: AtomService
 let systemService: SystemService
 let searchService: SearchService
 
 beforeAll(async () => {
   connections = await genConnections()
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
   searchService = new SearchService(connections)
@@ -65,7 +63,7 @@ describe('quicksearch', () => {
     expect(totalCount).toBeGreaterThan(0)
 
     // both case insensitive and Chinese simplified/traditional insensitive
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: 'Uppercase',
       content: '',
       authorId: '1',
@@ -78,7 +76,7 @@ describe('quicksearch', () => {
     })
     expect(nodes2.length).toBe(1)
 
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: '測試',
       content: '',
       authorId: '1',
@@ -91,7 +89,7 @@ describe('quicksearch', () => {
     })
     expect(nodes3.length).toBe(1)
 
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: '试测',
       content: '',
       authorId: '1',
@@ -104,7 +102,7 @@ describe('quicksearch', () => {
     })
     expect(nodes4.length).toBe(1)
 
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: '測测',
       content: '',
       authorId: '1',
@@ -139,7 +137,7 @@ describe('quicksearch', () => {
     })
   })
   test('exclude articles in article_recommend_setting table', async () => {
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       title: 'test article_recommend_setting',
       content: '',
       authorId: '1',
@@ -167,7 +165,7 @@ describe('quicksearch', () => {
     expect(excluded.length).toBe(0)
   })
   test('spam are excluded', async () => {
-    const [article] = await articleService.createArticle({
+    const [article] = await publicationService.createArticle({
       title: 'test spam',
       content: '',
       authorId: '1',

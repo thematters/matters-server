@@ -13,7 +13,8 @@ import {
   ARTICLE_STATE,
 } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
-import { CampaignService, AtomService } from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
+import { CampaignService } from '../campaignService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

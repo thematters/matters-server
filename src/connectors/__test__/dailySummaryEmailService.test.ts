@@ -2,7 +2,8 @@ import type { Connections, User, Notice } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import { NOTICE_TYPE, LANGUAGE } from '#common/enums/index.js'
-import { DailySummaryEmailService, AtomService } from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
+import { DailySummaryEmailService } from '../dailySummaryEmailService.js'
 import { jest } from '@jest/globals'
 import { v4 as uuidv4 } from 'uuid'
 

@@ -9,7 +9,6 @@ import type { Knex } from 'knex'
 import { NODE_TYPES, QUEUE_URL } from '#common/enums/index.js'
 import { environment, isProd } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
-import { AtomService, LikeCoin } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import {
   ArticlePageContext,
@@ -23,7 +22,9 @@ import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import * as cheerio from 'cheerio'
 import { PinataSDK } from 'pinata-web3'
 
-import { aws } from './index.js'
+import { AtomService } from '../atomService.js'
+import { aws } from '../index.js'
+import { LikeCoin } from '../likecoin/index.js'
 
 const logger = getLogger('service-ipfs-publication')
 

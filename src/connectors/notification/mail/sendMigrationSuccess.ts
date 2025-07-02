@@ -1,21 +1,21 @@
-import type { LANGUAGES } from '#definitions/index.js'
-
 import { EMAIL_TEMPLATE_ID } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
-import { mailService } from '#connectors/index.js'
+import { LANGUAGES, UserHasUsername } from '#definitions/index.js'
+
+import { mailService } from '../../mail/index.js'
 
 import { trans } from './utils.js'
 
-export const sendEmailChange = async ({
+export const sendMigrationSuccess = async ({
   to,
-  newEmail,
-  language,
+  language = 'zh_hant',
+  recipient,
 }: {
   to: string
-  newEmail: string
-  language: LANGUAGES
+  language?: LANGUAGES
+  recipient: Pick<UserHasUsername, 'displayName' | 'userName'>
 }) => {
-  const templateId = EMAIL_TEMPLATE_ID.emailChange[language]
+  const templateId = EMAIL_TEMPLATE_ID.migrationSuccess[language]
   await mailService.send({
     from: environment.emailFromAsk as string,
     templateId,
@@ -24,11 +24,10 @@ export const sendEmailChange = async ({
         to,
         // @ts-ignore
         dynamic_template_data: {
-          subject: trans.emailChange(language, {}),
+          subject: trans.migration(language, {}),
           siteDomain: environment.siteDomain,
           copyrightYear: new Date().getFullYear(),
-          oldEmail: to,
-          newEmail,
+          recipient,
         },
       },
     ],
