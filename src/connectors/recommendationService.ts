@@ -80,19 +80,21 @@ export class RecommendationService {
       .with('source', (qb) => {
         return qb
           .from(
-            this.articleService.findArticles({
-              state: ARTICLE_STATE.active,
-              spam: {
-                isSpam: false,
-                spamThreshold: spamThreshold ?? 0,
-              },
-              excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
-              excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
-              excludeExclusiveCampaignArticles: true,
-              datetimeRange: {
-                start: startDate,
-              },
-            })
+            this.articleService
+              .findArticles({
+                state: ARTICLE_STATE.active,
+                spam: {
+                  isSpam: false,
+                  spamThreshold: spamThreshold ?? 0,
+                },
+                excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
+                excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+                excludeExclusiveCampaignArticles: true,
+                datetimeRange: {
+                  start: startDate,
+                },
+              })
+              .as('t')
           )
           .select(['id as article_id', 'author_id'])
       })
