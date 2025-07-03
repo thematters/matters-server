@@ -58,7 +58,7 @@ afterAll(async () => {
 
 describe('hottest articles', () => {
   const GET_VIEWER_RECOMMENDATION_HOTTEST = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
+    query ($input: RecommendInput!) {
       viewer {
         recommendation {
           hottest(input: $input) {
