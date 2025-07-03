@@ -36,6 +36,7 @@ export const CACHE_PREFIX = {
   ARTICLE_CHANNEL_THRESHOLD: 'cache-article-channel-threshold',
   RECOMMENDATION_TAGS: 'cache-recommendation-tags',
   RECOMMENDATION_AUTHORS: 'cache-recommendation-authors',
+  RECOMMENDATION_HOTTEST: 'cache-recommendation-hottest',
   CHANNEL_FLOOD: 'cache-channel-flood',
 }
 

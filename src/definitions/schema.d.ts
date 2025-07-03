@@ -3315,7 +3315,7 @@ export type GQLRecommendationFollowingArgs = {
 }
 
 export type GQLRecommendationHottestArgs = {
-  input: GQLConnectionArgs
+  input: GQLRecommendInput
 }
 
 export type GQLRecommendationIcymiArgs = {

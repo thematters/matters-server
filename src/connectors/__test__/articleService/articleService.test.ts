@@ -11,6 +11,8 @@ import {
   FEATURE_NAME,
   FEATURE_FLAG,
   PUBLISH_STATE,
+  USER_STATE,
+  USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
 import { ArticleService } from '../../article/articleService.js'
 import { PublicationService } from '../../article/publicationService.js'
@@ -214,11 +216,49 @@ describe('findArticles', () => {
   test('filter by spam and datetime range', async () => {
     const startDate = new Date('2024-01-01')
     const result = await articleService.findArticles({
-      isSpam: true,
-      spamThreshold: 0.5,
+      spam: {
+        isSpam: true,
+        spamThreshold: 0.5,
+      },
       datetimeRange: { start: startDate },
     })
     expect(result.length).toBe(0)
+  })
+  test('excludeAuthorStates', async () => {
+    const result1 = await articleService.findArticles({
+      excludeAuthorStates: [],
+    })
+    expect(result1.length).toBeGreaterThan(0)
+    const result2 = await articleService.findArticles({
+      excludeAuthorStates: [USER_STATE.active],
+    })
+    expect(result2.length).toBe(0)
+  })
+  test('excludeRestrictedAuthors', async () => {
+    const result1 = await articleService.findArticles({})
+    expect(result1.length).toBeGreaterThan(0)
+    const authorId = result1[0].authorId
+    await atomService.create({
+      table: 'user_restriction',
+      data: {
+        userId: authorId,
+        type: USER_RESTRICTION_TYPE.articleHottest,
+      },
+    })
+    const result2 = await articleService.findArticles({
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
+    })
+    expect(result2.length).toBe(result1.length)
+    const result3 = await articleService.findArticles({
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+    })
+    expect(result3.length).toBeLessThan(result1.length)
+    const result4 = await articleService.findArticles({
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+      excludeAuthorStates: [USER_STATE.active],
+    })
+    expect(result4.length).toBe(0)
+    await atomService.deleteMany({ table: 'user_restriction' })
   })
 })
 
@@ -307,19 +347,19 @@ test('countReaders', async () => {
 
 describe('latestArticles', () => {
   test('base', async () => {
-    const articles = await articleService.latestArticles()
+    const articles = await articleService.findNewestArticles()
     expect(articles.length).toBeGreaterThan(0)
     expect(articles[0].id).toBeDefined()
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
   test('spam are excluded', async () => {
-    const articles = await articleService.latestArticles({
+    const articles = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     const spamThreshold = 0.5
     // spam flag is on but no detected articles
-    const articles1 = await articleService.latestArticles({
+    const articles1 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles1).toEqual(articles)
@@ -330,7 +370,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const articles2 = await articleService.latestArticles({
+    const articles2 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
@@ -341,7 +381,7 @@ describe('latestArticles', () => {
       where: { id: articles[0].id },
       data: { isSpam: false },
     })
-    const articles3 = await articleService.latestArticles({
+    const articles3 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
@@ -352,7 +392,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { spamScore: spamThreshold - 0.1 },
     })
-    const articles4 = await articleService.latestArticles({
+    const articles4 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
@@ -363,7 +403,7 @@ describe('latestArticles', () => {
       where: { id: articles[1].id },
       data: { isSpam: true },
     })
-    const articles5 = await articleService.latestArticles({
+    const articles5 = await articleService.findNewestArticles({
       spamThreshold: 0.5,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
@@ -446,10 +486,10 @@ describe('latestArticles', () => {
       },
     })
 
-    const articles = await articleService.latestArticles({
+    const articles = await articleService.findNewestArticles({
       excludeChannelArticles: false,
     })
-    const articlesExcludedChannel = await articleService.latestArticles({
+    const articlesExcludedChannel = await articleService.findNewestArticles({
       excludeChannelArticles: true,
     })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
@@ -479,14 +519,14 @@ describe('latestArticles', () => {
     await createCampaign(campaignService, article1)
 
     // Test without exclusion
-    const articles = await articleService.latestArticles({
+    const articles = await articleService.findNewestArticles({
       excludeExclusiveCampaignArticles: false,
     })
     expect(articles.map(({ id }) => id)).toContain(article1.id)
     expect(articles.map(({ id }) => id)).toContain(article2.id)
 
     // Test with exclusion
-    const articlesExcluded = await articleService.latestArticles({
+    const articlesExcluded = await articleService.findNewestArticles({
       excludeExclusiveCampaignArticles: true,
     })
     expect(articlesExcluded.map(({ id }) => id)).not.toContain(article1.id)
@@ -690,8 +730,10 @@ describe('spam detection', () => {
   })
   test('find spam articles', async () => {
     const articles = await articleService.findArticles({
-      isSpam: true,
-      spamThreshold: 0.5,
+      spam: {
+        isSpam: true,
+        spamThreshold: 0.5,
+      },
     })
     expect(articles.length).toBeGreaterThan(0)
   })

@@ -3,8 +3,9 @@ import type {
   Article,
   ArticleVersion,
   ArticleBoost,
-  GQLTranslationModel,
   LANGUAGES,
+  ValueOf,
+  GQLTranslationModel,
   GQLArticleTranslation,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
@@ -24,6 +25,8 @@ import {
   MAX_PINNED_WORKS_LIMIT,
   NODE_TYPES,
   LANGUAGE,
+  USER_STATE,
+  USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
@@ -34,7 +37,7 @@ import {
 } from '#common/errors.js'
 import {
   excludeSpam as excludeSpamModifier,
-  excludeRestricted as excludeRestrictedModifier,
+  excludeRestrictedAuthors as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
 } from '#common/utils/index.js'
 import DataLoader from 'dataloader'
@@ -84,29 +87,117 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public findArticles = (filter?: {
-    isSpam?: boolean
-    spamThreshold?: number
-    datetimeRange?: { start: Date; end?: Date }
-  }) => {
+  public findArticles = (
+    {
+      state = ARTICLE_STATE.active,
+      spam,
+      excludeAuthorStates,
+      excludeRestrictedAuthors,
+      excludeExclusiveCampaignArticles,
+      excludeChannelArticles,
+      datetimeRange,
+    }: {
+      state?: ValueOf<typeof ARTICLE_STATE>
+      spam?: {
+        isSpam: boolean
+        spamThreshold: number
+      }
+      excludeAuthorStates?: Array<ValueOf<typeof USER_STATE>>
+      excludeRestrictedAuthors?: ValueOf<typeof USER_RESTRICTION_TYPE>
+      excludeExclusiveCampaignArticles?: boolean
+      excludeChannelArticles?: boolean
+      datetimeRange?: { start: Date; end?: Date }
+    } = { state: ARTICLE_STATE.active }
+  ) => {
     const query = this.knexRO('article').select('*')
 
-    if (filter?.isSpam) {
+    if (state) {
+      query.where('state', state)
+    }
+
+    if (spam?.isSpam === true) {
       query.where((builder) => {
-        builder.where('is_spam', '=', true).orWhere((orWhereBuilder) => {
+        builder.where('is_spam', true).orWhere((orWhereBuilder) => {
           orWhereBuilder
-            .whereRaw('spam_score >= ?', [filter.spamThreshold])
+            .whereRaw('spam_score >= ?', [spam.spamThreshold])
             .whereNull('is_spam')
         })
       })
+    } else if (spam?.isSpam === false) {
+      query.where((builder) => {
+        builder.modify(excludeSpamModifier, spam.spamThreshold, 'article')
+      })
     }
-    if (filter?.datetimeRange) {
-      query.where('created_at', '>=', filter.datetimeRange.start)
-      if (filter.datetimeRange.end) {
-        query.where('created_at', '<=', filter.datetimeRange.end)
+
+    if (excludeAuthorStates && excludeAuthorStates.length > 0) {
+      query.whereNotIn(
+        'article.author_id',
+        this.knexRO('user').whereIn('state', excludeAuthorStates).select('id')
+      )
+    }
+
+    if (excludeRestrictedAuthors) {
+      query.modify(
+        excludeRestrictedModifier,
+        'article',
+        excludeRestrictedAuthors
+      )
+    }
+
+    if (excludeExclusiveCampaignArticles) {
+      query.modify(excludeExclusiveCampaignArticlesModifier)
+    }
+
+    if (datetimeRange) {
+      query.where('created_at', '>=', datetimeRange.start)
+      if (datetimeRange.end) {
+        query.where('created_at', '<=', datetimeRange.end)
       }
     }
+
+    if (excludeChannelArticles) {
+      query
+        .leftJoin(
+          this.knexRO
+            .select('article_id')
+            .from('topic_channel_article as tca')
+            .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
+            .where({
+              'tca.enabled': true,
+              'tc.enabled': true,
+            })
+            .as('enabled_article_channels'),
+          'article.id',
+          'enabled_article_channels.article_id'
+        )
+        .whereNull('enabled_article_channels.article_id')
+    }
+
     return query
+  }
+
+  public findNewestArticles = ({
+    spamThreshold,
+    excludeChannelArticles,
+    excludeExclusiveCampaignArticles,
+  }: {
+    spamThreshold?: number
+    excludeChannelArticles?: boolean
+    excludeExclusiveCampaignArticles?: boolean
+  } = {}): Knex.QueryBuilder<Article, Article[]> => {
+    const query = this.findArticles({
+      state: ARTICLE_STATE.active,
+      spam: spamThreshold
+        ? {
+            isSpam: false,
+            spamThreshold,
+          }
+        : undefined,
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
+      excludeChannelArticles,
+      excludeExclusiveCampaignArticles,
+    })
+    return query.orderBy('id', 'desc')
   }
 
   public findArticleByShortHash = async (hash: string) =>
@@ -295,54 +386,6 @@ export class ArticleService extends BaseService<Article> {
           builder.limit(take)
         }
       })
-
-  public latestArticles = ({
-    spamThreshold,
-    excludeChannelArticles,
-    excludeExclusiveCampaignArticles,
-  }: {
-    spamThreshold?: number
-    excludeChannelArticles?: boolean
-    excludeExclusiveCampaignArticles?: boolean
-  } = {}): Knex.QueryBuilder<Article, Article[]> =>
-    this.knexRO
-      .select('article_set.*')
-      .from(
-        this.knexRO
-          .select('article.*')
-          .from('article')
-          .where({ 'article.state': ARTICLE_STATE.active })
-          .modify(excludeRestrictedModifier)
-          .modify((builder) => {
-            if (excludeExclusiveCampaignArticles) {
-              builder.modify(excludeExclusiveCampaignArticlesModifier)
-            }
-            if (excludeChannelArticles) {
-              builder
-                .leftJoin(
-                  this.knexRO
-                    .select('article_id')
-                    .from('topic_channel_article as tca')
-                    .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
-                    .where({
-                      'tca.enabled': true,
-                      'tc.enabled': true,
-                    })
-                    .as('enabled_article_channels'),
-                  'article.id',
-                  'enabled_article_channels.article_id'
-                )
-                .whereNull('enabled_article_channels.article_id')
-            }
-          })
-          .orderBy('article.id', 'desc')
-          .as('article_set')
-      )
-      .where((builder) => {
-        if (spamThreshold) {
-          builder.modify(excludeSpamModifier, spamThreshold, 'article_set')
-        }
-      }) as Knex.QueryBuilder<any>
 
   /*********************************
    *                               *

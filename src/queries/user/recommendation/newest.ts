@@ -33,7 +33,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   }
 
   const spamThreshold = await systemService.getSpamThreshold()
-  const query = articleService.latestArticles({
+  const query = articleService.findNewestArticles({
     spamThreshold: spamThreshold ?? undefined,
     excludeChannelArticles,
     excludeExclusiveCampaignArticles: excludeChannelArticles,

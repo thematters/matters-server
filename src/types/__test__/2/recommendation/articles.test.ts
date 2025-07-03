@@ -58,7 +58,7 @@ afterAll(async () => {
 
 describe('hottest articles', () => {
   const GET_VIEWER_RECOMMENDATION_HOTTEST = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
+    query ($input: RecommendInput!) {
       viewer {
         recommendation {
           hottest(input: $input) {
@@ -392,7 +392,7 @@ describe('user recommendations', () => {
   test('newest allows unlimited fetch for users with unlimitedArticleFetch flag', async () => {
     // make sure there are more than MAX_TAKE articles
     const spamThreshold = await systemService.getSpamThreshold()
-    const records = await articleService.latestArticles({
+    const records = await articleService.findNewestArticles({
       spamThreshold: spamThreshold ?? undefined,
     })
     expect(records.length).toBeGreaterThan(MAX_TAKE)

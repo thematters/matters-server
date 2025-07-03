@@ -23,8 +23,10 @@ export const articles: GQLOssResolvers['articles'] = async (
   if (input?.filter?.isSpam) {
     const spamThreshold = await systemService.getSpamThreshold()
     query = articleService.findArticles({
-      isSpam: input?.filter?.isSpam ?? false,
-      spamThreshold: spamThreshold ?? 0,
+      spam: {
+        isSpam: true,
+        spamThreshold: spamThreshold ?? 1,
+      },
       datetimeRange: input?.filter?.datetimeRange,
     })
   }
