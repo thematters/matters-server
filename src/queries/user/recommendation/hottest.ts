@@ -19,7 +19,7 @@ import {
   selectWithTotalCount,
   fromConnectionArgs,
 } from '#common/utils/index.js'
-import { Cache } from '#root/src/connectors/index.js'
+import { Cache } from '#connectors/index.js'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,

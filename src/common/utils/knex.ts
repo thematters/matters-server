@@ -1,10 +1,10 @@
+import type { ValueOf } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
   USER_FEATURE_FLAG_TYPE,
   USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
-import { ValueOf } from '#root/src/definitions/index.js'
 
 /**
  * Exclude spam articles
