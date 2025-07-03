@@ -56,7 +56,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
         const { query } = await recommendationService.findHottestArticles({
           days: RECOMMENDATION_HOTTEST_DAYS,
         })
-        return query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE * 1.5)
+        return await query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE * 1.5)
       },
       expire: CACHE_TTL.LONG,
     })
