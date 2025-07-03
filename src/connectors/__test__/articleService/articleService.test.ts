@@ -11,6 +11,8 @@ import {
   FEATURE_NAME,
   FEATURE_FLAG,
   PUBLISH_STATE,
+  USER_STATE,
+  USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
 import { ArticleService } from '../../article/articleService.js'
 import { PublicationService } from '../../article/publicationService.js'
@@ -221,6 +223,42 @@ describe('findArticles', () => {
       datetimeRange: { start: startDate },
     })
     expect(result.length).toBe(0)
+  })
+  test('excludeAuthorStates', async () => {
+    const result1 = await articleService.findArticles({
+      excludeAuthorStates: [],
+    })
+    expect(result1.length).toBeGreaterThan(0)
+    const result2 = await articleService.findArticles({
+      excludeAuthorStates: [USER_STATE.active],
+    })
+    expect(result2.length).toBe(0)
+  })
+  test('excludeRestrictedAuthors', async () => {
+    const result1 = await articleService.findArticles({})
+    expect(result1.length).toBeGreaterThan(0)
+    const authorId = result1[0].authorId
+    await atomService.create({
+      table: 'user_restriction',
+      data: {
+        userId: authorId,
+        type: USER_RESTRICTION_TYPE.articleHottest,
+      },
+    })
+    const result2 = await articleService.findArticles({
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
+    })
+    expect(result2.length).toBe(result1.length)
+    const result3 = await articleService.findArticles({
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+    })
+    expect(result3.length).toBeLessThan(result1.length)
+    const result4 = await articleService.findArticles({
+      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+      excludeAuthorStates: [USER_STATE.active],
+    })
+    expect(result4.length).toBe(0)
+    await atomService.deleteMany({ table: 'user_restriction' })
   })
 })
 

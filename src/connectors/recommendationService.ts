@@ -14,6 +14,8 @@ import {
   RECOMMENDATION_TOP_PERCENTILE,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG,
+  USER_RESTRICTION_TYPE,
+  USER_STATE,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -50,13 +52,175 @@ export class RecommendationService {
     this.systemService = new SystemService(this.connections)
   }
 
-  //   public findHottestArticles = async (): Promise<{
-  //     query: Knex.QueryBuilder<any, Array<{ articleId: string }>>
-  //   }> => {
-  //     const query =
-  //     return { query }
-  //   }
-  //
+  /**
+   * Query for hottest articles
+   *
+   * @see https://observablehq.com/d/2e388b5a7f4c217a
+   */
+  public findHottestArticles = async ({
+    days = 5,
+    HKDThreshold = 1,
+    USDTThreshold = 0.1,
+    readWeight = 0.3,
+    commentWeight = 0.4,
+    donationWeight = 0.3,
+    readersThreshold = 5,
+    commentsThreshold = 3,
+  }): Promise<{
+    query: Knex.QueryBuilder<any, Array<{ articleId: string }>>
+  }> => {
+    const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
+      'article'
+    )
+    const spamThreshold = await this.systemService.getSpamThreshold()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    const query = this.knexRO
+      .with('source', (qb) => {
+        return qb
+          .from(
+            this.articleService.findArticles({
+              state: ARTICLE_STATE.active,
+              spam: {
+                isSpam: false,
+                spamThreshold: spamThreshold ?? 0,
+              },
+              excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
+              excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+              excludeExclusiveCampaignArticles: true,
+              datetimeRange: {
+                start: startDate,
+              },
+            })
+          )
+          .select(['id as article_id', 'author_id'])
+      })
+      .with('base', (qb) => {
+        const readersQuery = this.knexRO
+          .select(
+            'article_id',
+            this.knexRO.raw('count(DISTINCT user_id)::int AS readers'),
+            this.knexRO.raw('sum(score) AS read_score')
+          )
+          .from(
+            this.knexRO
+              .select(
+                'article_id',
+                'user_id',
+                this.knexRO.raw(
+                  'greatest(1 - (extract(epoch FROM now() - updated_at) / (24 * 3600)) / ?, 0) AS score',
+                  [days]
+                )
+              )
+              .from('article_read_count')
+              .where('updated_at', '>=', startDate)
+              .as('t1_source')
+          )
+          .groupBy('article_id')
+        const commentsQuery = this.knexRO
+          .select(
+            'target_id',
+            this.knexRO.raw('count(id)::int AS comments'),
+            this.knexRO.raw('sum(score) AS comment_score')
+          )
+          .from(
+            this.knexRO
+              .select(
+                'comment.id',
+                'comment.target_id',
+                this.knexRO.raw(
+                  'greatest(1 - (extract(epoch from now() - comment.created_at) / (24 * 3600)) / ?, 0) AS score',
+                  [days]
+                )
+              )
+              .from('comment')
+              .innerJoin('article', 'article.id', 'comment.target_id')
+              .where('comment.state', 'active')
+              .where('comment.target_type_id', targetTypeId)
+              .where(
+                'comment.author_id',
+                '!=',
+                this.knexRO.ref('article.author_id')
+              )
+              .where('comment.created_at', '>=', startDate)
+              .as('t2_source')
+          )
+          .groupBy('target_id')
+        const donationsQuery = this.knexRO
+          .select(
+            'target_id',
+            this.knexRO.raw('count(id)::int AS donations'),
+            this.knexRO.raw('sum(score) AS donation_score')
+          )
+          .from(
+            this.knexRO
+              .select(
+                'id',
+                'target_id',
+                this.knexRO.raw(
+                  'greatest(1 - (extract(epoch from now() - created_at) / (24 * 3600)) / ?, 0) AS score',
+                  [days]
+                )
+              )
+              .from('transaction')
+              .where('target_type', targetTypeId)
+              .where('state', 'succeeded')
+              .where('purpose', 'donation')
+              .where((w) => {
+                return w
+                  .where('currency', 'HKD')
+                  .where('amount', '>=', HKDThreshold)
+                  .orWhere('currency', 'USDT')
+                  .where('amount', '>=', USDTThreshold)
+              })
+              .where('created_at', '>=', startDate)
+              .as('t3_source')
+          )
+          .groupBy('target_id')
+
+        return qb
+          .select(
+            'source.article_id',
+            this.knexRO.raw('coalesce(t1.readers, 0) AS readers'),
+            this.knexRO.raw('coalesce(t1.read_score, 0) AS read_score'),
+            this.knexRO.raw('coalesce(t2.comments, 0) AS comments'),
+            this.knexRO.raw('coalesce(t2.comment_score, 0) AS comment_score'),
+            this.knexRO.raw('coalesce(t3.donations, 0) AS donations'),
+            this.knexRO.raw('coalesce(t3.donation_score, 0) AS donation_score')
+          )
+          .from('source')
+          .leftJoin(readersQuery.as('t1'), 'source.article_id', 't1.article_id')
+          .leftJoin(commentsQuery.as('t2'), 'source.article_id', 't2.target_id')
+          .leftJoin(
+            donationsQuery.as('t3'),
+            'source.article_id',
+            't3.target_id'
+          )
+      })
+      .with('with_score', (qb) => {
+        return qb
+          .from('base')
+          .select(
+            'article_id',
+            this.knexRO.raw(
+              '(? * base.read_score + ? * base.comment_score + ? * base.donation_score) as score',
+              [readWeight, commentWeight, donationWeight]
+            )
+          )
+          .where((w) => {
+            return w
+              .where('readers', '>=', readersThreshold)
+              .orWhere('comments', '>=', commentsThreshold)
+          })
+      })
+      .select('article_id')
+      .from('with_score')
+      .orderBy('score', 'desc')
+
+    return { query }
+  }
+
   public createIcymiTopic = async ({
     title,
     articleIds,

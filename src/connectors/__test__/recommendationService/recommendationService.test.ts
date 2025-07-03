@@ -17,7 +17,7 @@ import {
   UserService,
 } from '#connectors/index.js'
 
-import { genConnections, closeConnections } from './utils.js'
+import { genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let atomService: AtomService

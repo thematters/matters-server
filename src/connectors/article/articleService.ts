@@ -129,9 +129,9 @@ export class ArticleService extends BaseService<Article> {
       })
     }
 
-    if (excludeAuthorStates) {
+    if (excludeAuthorStates && excludeAuthorStates.length > 0) {
       query.whereNotIn(
-        'author_id',
+        'article.author_id',
         this.knexRO('user').whereIn('state', excludeAuthorStates).select('id')
       )
     }
