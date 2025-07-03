@@ -6,14 +6,20 @@ import {
   MATERIALIZED_VIEW,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  CACHE_PREFIX,
+  CACHE_TTL,
+  RECOMMENDATION_HOTTEST_DAYS,
+  RECOMMENDATION_HOTTEST_MAX_TAKE,
 } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
+  connectionFromArray,
   connectionFromPromisedArray,
   excludeSpam,
   selectWithTotalCount,
   fromConnectionArgs,
 } from '#common/utils/index.js'
+import { Cache } from '#root/src/connectors/index.js'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,
@@ -21,8 +27,10 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   {
     viewer,
     dataSources: {
+      atomService,
+      recommendationService,
       systemService,
-      connections: { knexRO },
+      connections: { knexRO, objectCacheRedis },
     },
   }
 ) => {
@@ -33,8 +41,46 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
       throw new ForbiddenError('only admin can access oss')
     }
   }
-
   const { take, skip } = fromConnectionArgs(input)
+
+  if (input.newAlgo) {
+    const cache = new Cache(
+      CACHE_PREFIX.RECOMMENDATION_HOTTEST,
+      objectCacheRedis
+    )
+    const articleIds = await cache.getObject({
+      keys: {
+        type: 'recommendationHottest',
+      },
+      getter: async () => {
+        const { query } = await recommendationService.findHottestArticles({
+          days: RECOMMENDATION_HOTTEST_DAYS,
+        })
+        return query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE * 1.5)
+      },
+      expire: CACHE_TTL.LONG,
+    })
+    // TODO: add created_at to table and use it as filter here
+    const restricted = await atomService.findMany({
+      table: 'article_recommend_setting',
+      where: {
+        inHottest: false,
+      },
+    })
+    const notIn = restricted.map(({ articleId }) => articleId)
+    const filtered = articleIds
+      .filter(({ articleId }) => !notIn.includes(articleId))
+      .slice(0, RECOMMENDATION_HOTTEST_MAX_TAKE)
+    const _articles = await atomService.articleIdLoader.loadMany(
+      filtered.slice(skip, skip + take).map(({ articleId }) => articleId)
+    )
+
+    return connectionFromArray(
+      _articles,
+      input,
+      Math.min(filtered.length, RECOMMENDATION_HOTTEST_MAX_TAKE)
+    )
+  }
 
   const donatedArticles = knexRO('transaction').select('target_id').where({
     purpose: TRANSACTION_PURPOSE.donation,

@@ -66,7 +66,7 @@ export class RecommendationService {
     donationWeight = 0.3,
     readersThreshold = 5,
     commentsThreshold = 3,
-  }): Promise<{
+  } = {}): Promise<{
     query: Knex.QueryBuilder<any, Array<{ articleId: string }>>
   }> => {
     const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
