@@ -89,7 +89,7 @@ Resources:
   CronEvent0:
     Type: "AWS::Events::Rule"
     Properties:
-      ScheduleExpression: "rate(1 minutes)"
+      ScheduleExpression: "rate(1 minute)"
       Targets:
         - Arn: !GetAtt Lambda.Arn
           Id: CronEvent0LambdaTarget
@@ -110,7 +110,7 @@ Resources:
   CronEvent1:
     Type: "AWS::Events::Rule"
     Properties:
-      ScheduleExpression: "rate(30 minutes)"
+      ScheduleExpression: "rate(10 minutes)"
       Targets:
         - Arn: !GetAtt Lambda.Arn
           Id: CronEvent1LambdaTarget
