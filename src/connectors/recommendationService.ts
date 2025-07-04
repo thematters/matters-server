@@ -67,7 +67,10 @@ export class RecommendationService {
     readersThreshold = 5,
     commentsThreshold = 3,
   } = {}): Promise<{
-    query: Knex.QueryBuilder<any, Array<{ articleId: string }>>
+    query: Knex.QueryBuilder<
+      { articleId: string },
+      Array<{ articleId: string }>
+    >
   }> => {
     const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
       'article'
@@ -220,7 +223,7 @@ export class RecommendationService {
       .from('with_score')
       .orderBy('score', 'desc')
 
-    return { query }
+    return { query } as any
   }
 
   public createIcymiTopic = async ({
