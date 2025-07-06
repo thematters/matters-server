@@ -207,6 +207,33 @@ export const environment = {
     process.env.MATTERS_UPLOAD_IMAGE_THRESHOLD || '20',
     10
   ),
+  hottestArticlesDays: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_DAYS || '5',
+    10
+  ),
+  hottestArticlesHKDThreshold: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_HKD_THRESHOLD || '1'
+  ),
+  hottestArticlesUSDTThreshold: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_USDT_THRESHOLD || '0.1'
+  ),
+  hottestArticlesReadWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_READ_WEIGHT || '0.3'
+  ),
+  hottestArticlesCommentWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_COMMENT_WEIGHT || '0.4'
+  ),
+  hottestArticlesDonationWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_DONATION_WEIGHT || '0.3'
+  ),
+  hottestArticlesReadersThreshold: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_READERS_THRESHOLD || '5',
+    10
+  ),
+  hottestArticlesCommentsThreshold: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_COMMENTS_THRESHOLD || '3',
+    10
+  ),
 }
 
 export const contract = {
