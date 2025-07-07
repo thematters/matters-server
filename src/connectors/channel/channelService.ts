@@ -432,7 +432,7 @@ export class ChannelService {
         })
         return articles.map((a) => a.id)
       },
-      expire: CACHE_TTL.MEDIUM,
+      expire: CACHE_TTL.SHORT,
     })
     return articleIds.includes(articleId)
   }
