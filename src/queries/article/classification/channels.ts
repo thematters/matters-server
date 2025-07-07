@@ -4,6 +4,7 @@ import {
   ARTICLE_CHANNEL_JOB_STATE,
   USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 
 const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
   { id: articleId, authorId, isSpam: _isSpam, spamScore: _spamScore },
@@ -48,6 +49,9 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
 
   // Create a map for quick channel lookup
   const channelMap = new Map(channels.map((channel) => [channel.id, channel]))
+  const floodDetectWindow = new Date(
+    Date.now() - environment.channelFloodDetectWindowInSeconds * 1000
+  )
 
   // Map article channels to ArticleTopicChannel type
   return articleChannels.map(async (ac) => ({
@@ -60,10 +64,12 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
     enabled: ac.enabled,
     classicfiedAt: ac.createdAt,
     pinned: ac.pinned,
-    antiFlooded: await channelService.isFlood({
-      articleId,
-      channelId: ac.channelId,
-    }),
+    antiFlooded:
+      ac.createdAt > floodDetectWindow &&
+      (await channelService.isFlood({
+        articleId,
+        channelId: ac.channelId,
+      })),
   }))
 }
 
