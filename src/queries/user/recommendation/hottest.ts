@@ -8,9 +8,9 @@ import {
   TRANSACTION_STATE,
   CACHE_PREFIX,
   CACHE_TTL,
-  RECOMMENDATION_HOTTEST_DAYS,
   RECOMMENDATION_HOTTEST_MAX_TAKE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromArray,
@@ -54,7 +54,14 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
       },
       getter: async () => {
         const { query } = await recommendationService.findHottestArticles({
-          days: RECOMMENDATION_HOTTEST_DAYS,
+          days: environment.hottestArticlesDays,
+          HKDThreshold: environment.hottestArticlesHKDThreshold,
+          USDTThreshold: environment.hottestArticlesUSDTThreshold,
+          readWeight: environment.hottestArticlesReadWeight,
+          commentWeight: environment.hottestArticlesCommentWeight,
+          donationWeight: environment.hottestArticlesDonationWeight,
+          readersThreshold: environment.hottestArticlesReadersThreshold,
+          commentsThreshold: environment.hottestArticlesCommentsThreshold,
         })
         return await query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE * 1.5)
       },
