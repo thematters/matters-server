@@ -234,6 +234,10 @@ export const environment = {
     process.env.MATTERS_HOTTEST_ARTICLES_COMMENTS_THRESHOLD || '3',
     10
   ),
+  channelFloodDetectWindowInSeconds: parseInt(
+    process.env.MATTERS_CHANNEL_FLOOD_DETECT_WINDOW_IN_SECONDS || '86400',
+    10
+  ),
 }
 
 export const contract = {
