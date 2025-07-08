@@ -53,13 +53,12 @@ export const excludeRestrictedAuthors = (
     typeof USER_RESTRICTION_TYPE
   > = USER_RESTRICTION_TYPE.articleNewest
 ) => {
-  builder.whereNotIn(
-    `${table}.author_id`,
-    builder.client
-      .queryBuilder()
-      .select('user_id')
+  builder.whereNotExists((qb) =>
+    qb
+      .select(1)
       .from('user_restriction')
-      .where('type', type)
+      .where('user_restriction.type', type)
+      .where('user_restriction.user_id', qb.client.ref(`${table}.author_id`))
   )
 }
 
@@ -67,14 +66,13 @@ export const excludeExclusiveCampaignArticles = (
   builder: Knex.QueryBuilder,
   table = 'article'
 ) => {
-  builder.whereNotIn(
-    `${table}.id`,
-    builder.client
-      .queryBuilder()
-      .select('article_id')
+  builder.whereNotExists((qb) =>
+    qb
+      .select(1)
       .from('campaign_article')
       .join('campaign', 'campaign_article.campaign_id', 'campaign.id')
       .where('campaign.exclusive', true)
+      .where('campaign_article.article_id', qb.client.ref(`${table}.id`))
   )
 }
 

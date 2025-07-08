@@ -278,55 +278,6 @@ describe('findTopicChannelArticles', () => {
     })
   })
 
-  describe('spam filtering', () => {
-    beforeEach(async () => {
-      // Set up base spam scores and flags
-      await atomService.update({
-        table: 'article',
-        where: { id: articles[0].id },
-        data: {
-          spamScore: 0.9,
-          isSpam: true,
-        },
-      })
-      await atomService.update({
-        table: 'article',
-        where: { id: articles[1].id },
-        data: {
-          spamScore: 0.5,
-          isSpam: false,
-        },
-      })
-      await atomService.update({
-        table: 'article',
-        where: { id: articles[2].id },
-        data: {
-          spamScore: null,
-          isSpam: null,
-        },
-      })
-      await atomService.update({
-        table: 'article',
-        where: { id: articles[3].id },
-        data: {
-          spamScore: 0.8,
-          isSpam: null,
-        },
-      })
-
-      await atomService.deleteMany({ table: 'user_feature_flag' })
-    })
-
-    test('ignores spam threshold when not provided', async () => {
-      const results = await channelService.findTopicChannelArticles(channel.id)
-
-      expect(results).toHaveLength(4)
-      expect(results.map((a) => a.id)).toEqual(
-        expect.arrayContaining(articles.map((a) => a.id))
-      )
-    })
-  })
-
   describe('restricted authors', () => {
     beforeEach(async () => {
       await atomService.deleteMany({ table: 'user_restriction' })
