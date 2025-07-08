@@ -27,10 +27,8 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     throw new ForbiddenError('Only admins can sort articles')
   }
   const channelThreshold = await systemService.getArticleChannelThreshold()
-  const spamThreshold = await systemService.getSpamThreshold()
   const baseQuery = channelService.findTopicChannelArticles(id, {
     channelThreshold: channelThreshold ?? undefined,
-    spamThreshold: spamThreshold ?? undefined,
     datetimeRange: input.filter?.datetimeRange,
     addOrderColumn: input.sort === undefined ? true : false,
     flood: false,
