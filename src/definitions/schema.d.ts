@@ -259,12 +259,14 @@ export type GQLArticle = GQLNode &
     content: Scalars['String']['output']
     /** Different foramts of content. */
     contents: GQLArticleContents
-    /** Article cover's link. */
+    /** Article cover's link, set by author */
     cover?: Maybe<Scalars['String']['output']>
     /** Time of this article was created. */
     createdAt: Scalars['DateTime']['output']
     /** IPFS hash of this article. */
     dataHash: Scalars['String']['output']
+    /** Cover link that is displayed on the article page */
+    displayCover?: Maybe<Scalars['String']['output']>
     /** Whether current viewer has donated to this article */
     donated: Scalars['Boolean']['output']
     /** Total number of donation recieved of this article. */
@@ -6586,6 +6588,11 @@ export type GQLArticleResolvers<
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   dataHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  displayCover?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   donated?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donations?: Resolver<
