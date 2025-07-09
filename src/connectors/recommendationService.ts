@@ -509,7 +509,6 @@ export class RecommendationService {
       ? this.channelService
           .findTopicChannelArticles(channelId, {
             channelThreshold: undefined,
-            spamThreshold: spamThreshold ?? undefined,
             addOrderColumn: true,
           })
           .orderBy('order', 'asc')
@@ -583,7 +582,6 @@ export class RecommendationService {
       ? this.channelService
           .findTopicChannelArticles(channelId, {
             channelThreshold: undefined,
-            spamThreshold: spamThreshold ?? undefined,
             addOrderColumn: true,
           })
           .orderBy('order', 'asc')

@@ -281,14 +281,12 @@ export class ChannelService {
     channelId: string,
     {
       channelThreshold,
-      spamThreshold,
       datetimeRange,
       addOrderColumn = false,
       // false to exclude flood articles, true to query flood articles.
       flood,
     }: {
       channelThreshold?: number
-      spamThreshold?: number
       datetimeRange?: { start: Date; end?: Date }
       flood?: boolean
       addOrderColumn?: boolean
@@ -324,6 +322,11 @@ export class ChannelService {
         'topic_channel_article.pinned': false,
         'article.state': ARTICLE_STATE.active,
       })
+      .where((qb) => {
+        qb.where('article.is_spam', false).orWhere((b) => {
+          b.whereNull('article.is_spam')
+        })
+      })
       .modify(excludeRestrictedModifier)
       .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {
@@ -335,11 +338,6 @@ export class ChannelService {
               channelThreshold
             ).orWhere('topic_channel_article.is_labeled', true)
           })
-        }
-      })
-      .where((builder) => {
-        if (spamThreshold) {
-          builder.modify(excludeSpamModifier, spamThreshold)
         }
       })
 
