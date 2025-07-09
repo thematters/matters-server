@@ -15,12 +15,12 @@ const resolver: GQLArticleResolvers['displayCover'] = async (
 
   // If no cover, get the first image from article content
   const content = await articleService.loadLatestArticleContent(id)
-  const images = extractAssetDataFromHtml(content, 'image')
+  const uuids = extractAssetDataFromHtml(content, 'image')
 
-  if (images.length > 0) {
-    const assets = await systemService.findAssetByUUIDs([images[0]])
-    if (assets && assets.length > 0) {
-      return systemService.findAssetUrl(assets[0].id)
+  if (uuids.length > 0) {
+    const [asset] = await systemService.findAssetByUUIDs(uuids.slice(0, 1))
+    if (asset && asset.id) {
+      return systemService.findAssetUrl(asset.id)
     }
   }
 
