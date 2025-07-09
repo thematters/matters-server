@@ -21,7 +21,7 @@ Parameters:
   lambdaReservedConcurrency:
     Type: Number
     Description: 'The reserved concurrency limit for the Lambda function'
-    Default: 50
+    Default: 10
   sqsArn:
     Type: String
     Description: 'The ARN of the SQS queue to use as trigger'
@@ -54,7 +54,10 @@ Resources:
         - x86_64
       MemorySize: !Ref lambdaMemorySize
       Timeout: !Ref lambdaTimeout
-      ReservedConcurrentExecutions: !Ref lambdaReservedConcurrency
+      ReservedConcurrentExecutions: !If
+        - isProd
+        - !Ref lambdaReservedConcurrency
+        - 1
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:
