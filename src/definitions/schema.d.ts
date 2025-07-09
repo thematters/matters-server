@@ -5,9 +5,9 @@ import {
 } from 'graphql'
 import {
   User as UserModel,
-  Wallet as WalletModel,
   OAuthClientDB as OAuthClientDBModel,
 } from './user.js'
+import { Wallet as WalletModel } from './wallet.js'
 import { Tag as TagModel } from './tag.js'
 import { Collection as CollectionModel } from './collection.js'
 import { Comment as CommentModel } from './comment.js'
@@ -1540,6 +1540,8 @@ export type GQLDirectImageUploadInput = {
   type: GQLAssetType
   url?: InputMaybe<Scalars['String']['input']>
 }
+
+export type GQLDonator = GQLCryptoWallet | GQLUser
 
 /** This type contains content, collections, assets and related data of a draft. */
 export type GQLDraft = GQLNode & {
@@ -3865,7 +3867,7 @@ export type GQLTopDonatorEdge = {
   __typename?: 'TopDonatorEdge'
   cursor: Scalars['String']['output']
   donationCount: Scalars['Int']['output']
-  node: GQLUser
+  node: GQLDonator
 }
 
 export type GQLTopDonatorFilter = {
@@ -4782,6 +4784,7 @@ export type DirectiveResolverFn<
 /** Mapping of union types */
 export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
   ResolversObject<{
+    Donator: WalletModel | UserModel
     FollowingActivity:
       | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<_RefType['Article']>>
@@ -5206,6 +5209,9 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
+  Donator: ResolverTypeWrapper<
+    GQLResolversUnionTypes<GQLResolversTypes>['Donator']
+  >
   Draft: ResolverTypeWrapper<DraftModel>
   DraftAccess: ResolverTypeWrapper<DraftModel>
   DraftConnection: ResolverTypeWrapper<
@@ -5536,7 +5542,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   TopDonatorEdge: ResolverTypeWrapper<
-    Omit<GQLTopDonatorEdge, 'node'> & { node: GQLResolversTypes['User'] }
+    Omit<GQLTopDonatorEdge, 'node'> & { node: GQLResolversTypes['Donator'] }
   >
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
@@ -5886,6 +5892,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
+  Donator: GQLResolversUnionTypes<GQLResolversParentTypes>['Donator']
   Draft: DraftModel
   DraftAccess: DraftModel
   DraftConnection: Omit<GQLDraftConnection, 'edges'> & {
@@ -6133,7 +6140,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     edges?: Maybe<Array<GQLResolversParentTypes['TopDonatorEdge']>>
   }
   TopDonatorEdge: Omit<GQLTopDonatorEdge, 'node'> & {
-    node: GQLResolversParentTypes['User']
+    node: GQLResolversParentTypes['Donator']
   }
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
@@ -7840,6 +7847,13 @@ export type GQLDatetimeRangeResolvers<
   end?: Resolver<Maybe<GQLResolversTypes['DateTime']>, ParentType, ContextType>
   start?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLDonatorResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Donator'] = GQLResolversParentTypes['Donator']
+> = ResolversObject<{
+  __resolveType: TypeResolveFn<'CryptoWallet' | 'User', ParentType, ContextType>
 }>
 
 export type GQLDraftResolvers<
@@ -9927,7 +9941,7 @@ export type GQLTopDonatorEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  node?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Donator'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -10886,6 +10900,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CurationChannel?: GQLCurationChannelResolvers<ContextType>
   DateTime?: GraphQLScalarType
   DatetimeRange?: GQLDatetimeRangeResolvers<ContextType>
+  Donator?: GQLDonatorResolvers<ContextType>
   Draft?: GQLDraftResolvers<ContextType>
   DraftAccess?: GQLDraftAccessResolvers<ContextType>
   DraftConnection?: GQLDraftConnectionResolvers<ContextType>

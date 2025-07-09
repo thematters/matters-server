@@ -1,5 +1,6 @@
 import type {
   GQLAppreciationResolvers,
+  GQLDonatorResolvers,
   GQLCryptoWalletResolvers,
   GQLFollowingActivityResolvers,
   GQLFollowingResolvers,
@@ -86,6 +87,8 @@ const user: {
   UserActivity: GQLUserActivityResolvers
   UserAnalytics: GQLUserAnalyticsResolvers
   UserStatus: GQLUserStatusResolvers
+  Donator: GQLDonatorResolvers
+
   Appreciation: GQLAppreciationResolvers
 
   Following: GQLFollowingResolvers
@@ -176,6 +179,10 @@ const user: {
     changeEmailTimesLeft,
     hasEmailLoginPassword: ({ passwordHash }) => passwordHash !== null,
   },
+  Donator: {
+    __resolveType: ({ __type }: any) => __type,
+  },
+
   Appreciation,
 
   Following,

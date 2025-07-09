@@ -25,6 +25,9 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
     },
   }
 ) => {
+  if (!userId) {
+    return false
+  }
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
   const user = await userService.baseFindById(userId)
@@ -57,6 +60,10 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
     },
   }
 ) => {
+  if (!userId) {
+    return []
+  }
+
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
   const user = await userService.baseFindById(userId)
