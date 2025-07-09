@@ -19,6 +19,7 @@ import type {
 import type { Knex } from 'knex'
 
 import {
+  BLOCKCHAIN_TRANSACTION_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
@@ -1513,19 +1514,45 @@ export class UserService extends BaseService<User> {
     recipientId: string,
     range?: { start?: Date; end?: Date }
   ) => {
-    const query = this.knex('transaction').countDistinct('sender_id').where({
-      recipientId,
-      state: TRANSACTION_STATE.succeeded,
-      purpose: TRANSACTION_PURPOSE.donation,
-    })
+    const query = this.knex('transaction')
+      .leftJoin(
+        'blockchain_transaction',
+        'transaction.id',
+        'blockchain_transaction.transaction_id'
+      )
+      .where({
+        recipientId,
+        'transaction.state': TRANSACTION_STATE.succeeded,
+        'transaction.purpose': TRANSACTION_PURPOSE.donation,
+      })
+      .where((qb) =>
+        qb
+          .where(
+            'blockchain_transaction.state',
+            BLOCKCHAIN_TRANSACTION_STATE.succeeded
+          )
+          .orWhereNull('blockchain_transaction.state')
+      )
+      .whereNot((qb) => {
+        qb.whereNull('transaction.sender_id').whereNull(
+          'blockchain_transaction.from'
+        )
+      })
+      .select(
+        this.knex.raw(
+          'DISTINCT transaction.sender_id, blockchain_transaction.from'
+        )
+      )
+
     if (range?.start) {
-      query.where('created_at', '>=', range.start)
+      query.where('transaction.created_at', '>=', range.start)
     }
     if (range?.end) {
-      query.where('created_at', '<', range.end)
+      query.where('transaction.created_at', '<', range.end)
     }
-    const result = await query.first()
-    return parseInt(result ? (result.count as string) : '0', 10)
+
+    const count = await this.knex(query.as('donators')).count()
+    return parseInt(count[0].count as string, 10)
   }
 
   /**
@@ -1545,10 +1572,10 @@ export class UserService extends BaseService<User> {
       .whereNotNull('sender_id')
 
     if (range?.start) {
-      query.where('created_at', '>=', range.start)
+      query.where('transaction.created_at', '>=', range.start)
     }
     if (range?.end) {
-      query.where('created_at', '<', range.end)
+      query.where('transaction.created_at', '<', range.end)
     }
 
     query
