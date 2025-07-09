@@ -1558,18 +1558,44 @@ export class UserService extends BaseService<User> {
   /**
    * Top donators to this recipient
    */
-  public topDonators = async (
+  public findTopDonators = (
     recipientId: string,
-    range?: { start?: Date; end?: Date },
-    pagination?: { skip?: number; take?: number }
-  ) => {
-    const query = this.knex('transaction')
+    range?: { start?: Date; end?: Date }
+  ): Knex.QueryBuilder<{
+    id: string
+    address: string
+    donationCount: number
+    latestDonationAt: Date
+  }> => {
+    const query = this.knexRO('transaction')
       .where({
         recipientId,
         state: TRANSACTION_STATE.succeeded,
         purpose: TRANSACTION_PURPOSE.donation,
       })
-      .whereNotNull('sender_id')
+      .leftJoin(
+        'blockchain_transaction',
+        'transaction.id',
+        'blockchain_transaction.transaction_id'
+      )
+      .where({
+        recipientId,
+        'transaction.state': TRANSACTION_STATE.succeeded,
+        'transaction.purpose': TRANSACTION_PURPOSE.donation,
+      })
+      .where((qb) =>
+        qb
+          .where(
+            'blockchain_transaction.state',
+            BLOCKCHAIN_TRANSACTION_STATE.succeeded
+          )
+          .orWhereNull('blockchain_transaction.state')
+      )
+      .whereNot((qb) => {
+        qb.whereNull('transaction.sender_id').whereNull(
+          'blockchain_transaction.from'
+        )
+      })
 
     if (range?.start) {
       query.where('transaction.created_at', '>=', range.start)
@@ -1578,32 +1604,14 @@ export class UserService extends BaseService<User> {
       query.where('transaction.created_at', '<', range.end)
     }
 
-    query
-      .groupBy('sender_id')
+    return query
+      .groupBy('sender_id', 'from')
       .select(
-        'sender_id',
-        this.knex.raw('COUNT(sender_id)'),
-        this.knex.raw('MAX(created_at)')
+        'transaction.sender_id as id',
+        this.knexRO.raw('blockchain_transaction.from as address'),
+        this.knexRO.raw('count(1) AS donation_count'),
+        this.knexRO.raw('max(created_at) AS latest_donation_at')
       )
-      .orderBy([
-        { column: 'count', order: 'desc' },
-        { column: 'max', order: 'desc' },
-      ])
-
-    if (pagination) {
-      const { skip, take } = pagination
-      if (skip) {
-        query.offset(skip)
-      }
-      if (take || take === 0) {
-        query.limit(take)
-      }
-    }
-
-    return (await query).map((item) => ({
-      senderId: item.senderId,
-      count: parseInt(item.count, 10),
-    }))
   }
 
   /*********************************
