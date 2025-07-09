@@ -42,6 +42,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
       notificationService,
       connections: { knex },
       queues: { revisionQueue },
+      publicationService,
     },
   }
 ) => {
@@ -104,7 +105,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
       articleService.findConnections({ entranceId: article.id }),
     ])
     // add job to publish queue
-    const newArticleVersion = await articleService.createNewArticleVersion(
+    const newArticleVersion = await publicationService.createNewArticleVersion(
       article.id,
       viewer.id,
       { license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4 }

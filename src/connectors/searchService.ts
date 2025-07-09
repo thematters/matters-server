@@ -4,15 +4,20 @@ import type { Knex } from 'knex'
 import {
   ARTICLE_STATE,
   USER_ACTION,
+  TAG_ACTION,
   USER_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_EXCLUDE,
+  QUEUE_URL,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { normalizeSearchKey } from '#common/utils/index.js'
-import { AtomService } from '#connectors/index.js'
+import * as cheerio from 'cheerio'
 import { simplecc } from 'simplecc-wasm'
+
+import { AtomService } from './atomService.js'
+import { aws } from './aws/index.js'
 
 const logger = getLogger('service-search')
 
@@ -25,6 +30,7 @@ export class SearchService {
   private knex: Knex
   private knexRO: Knex
   private knexSearch: Knex
+  private aws: typeof aws
 
   public constructor(connections: Connections) {
     this.connections = connections
@@ -32,6 +38,7 @@ export class SearchService {
     this.knex = this.connections.knex
     this.knexRO = this.connections.knexRO
     this.knexSearch = this.connections.knexSearch
+    this.aws = aws
   }
 
   public searchArticles = async ({
@@ -537,4 +544,257 @@ export class SearchService {
     this.knex('search_history')
       .where({ userId, archived: false })
       .update({ archived: true })
+
+  public triggerIndexingUser = async (userId: string) => {
+    this.aws.sqsSendMessage({
+      messageBody: { userId },
+      queueUrl: QUEUE_URL.searchIndexUser,
+    })
+  }
+  public indexUsers = async (userIds: string[]) => {
+    if (userIds.length === 0) {
+      return
+    }
+    const dedupedUserIds = [...new Set(userIds)]
+    // Get user data from main database
+    const users = await this.knexRO
+      .with('user_followers', (builder) => {
+        builder
+          .from('action_user')
+          .select(
+            'target_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_followers'),
+            this.knexRO.raw('MAX(created_at) AS last_followed_at')
+          )
+          .where({ action: USER_ACTION.follow })
+          .whereIn('target_id', dedupedUserIds)
+          .groupBy('target_id')
+      })
+      .from('user')
+      .select([
+        'id',
+        'user_name',
+        'display_name',
+        'description',
+        'state',
+        'created_at',
+        'user_followers.num_followers',
+        'user_followers.last_followed_at',
+      ])
+      .whereIn('id', dedupedUserIds)
+      .leftJoin('user_followers', 'user.id', 'user_followers.target_id')
+
+    // Transform data for search index
+    const now = new Date().toISOString()
+    const rows = await Promise.all(
+      users.map(async (user) => {
+        return {
+          id: user.id,
+          userName: user.userName?.toLowerCase() || '',
+          displayName: simplecc(user.displayName?.toLowerCase() || '', 't2s'),
+          displayNameOrig: user.displayName,
+          description: simplecc(user.description?.toLowerCase() || '', 't2s'),
+          state: user.state,
+          createdAt: user.createdAt.toISOString(),
+          numFollowers: user.numFollowers,
+          lastFollowedAt: user.lastFollowedAt?.toISOString(),
+          indexedAt: now,
+        }
+      })
+    )
+
+    // Upsert into search index
+    await this.knexSearch('search_index.user')
+      .insert(rows)
+      .onConflict('id')
+      .merge()
+  }
+
+  public triggerIndexingTag = async (tagId: string) => {
+    this.aws.sqsSendMessage({
+      messageBody: { tagId },
+      queueUrl: QUEUE_URL.searchIndexTag,
+    })
+  }
+
+  public indexTags = async (tagIds: string[]) => {
+    if (tagIds.length === 0) {
+      return
+    }
+    const dedupedTagIds = [...new Set(tagIds)]
+
+    // Get tag data from main database
+    const tags = await this.knexRO
+      .with('tag_followers', (builder) => {
+        builder
+          .from('action_tag')
+          .select(
+            'target_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_followers'),
+            this.knexRO.raw('MAX(created_at) AS last_followed_at')
+          )
+          .where({ action: TAG_ACTION.follow })
+          .whereIn('target_id', dedupedTagIds)
+          .groupBy('target_id')
+      })
+      .with('tag_articles', (builder) => {
+        builder
+          .from('article_tag')
+          .join('article', 'article_tag.article_id', 'article.id')
+          .select(
+            'tag_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_articles'),
+            this.knexRO.raw('COUNT(DISTINCT author_id) ::int AS num_authors')
+          )
+          .where('article.state', ARTICLE_STATE.active)
+          .whereIn('tag_id', dedupedTagIds)
+          .groupBy('tag_id')
+      })
+      .from('tag')
+      .select([
+        'id',
+        'content',
+        'description',
+        'created_at',
+        'tag_articles.num_articles',
+        'tag_articles.num_authors',
+        'tag_followers.num_followers',
+        'tag_followers.last_followed_at',
+      ])
+      .whereIn('id', dedupedTagIds)
+      .leftJoin('tag_followers', 'tag.id', 'tag_followers.target_id')
+      .leftJoin('tag_articles', 'tag.id', 'tag_articles.tag_id')
+
+    // Transform data for search index
+    const now = new Date().toISOString()
+    const rows = await Promise.all(
+      tags.map(async (tag) => {
+        return {
+          id: tag.id,
+          content: simplecc(tag.content?.toLowerCase() || '', 't2s'),
+          contentOrig: tag.content,
+          description: simplecc(tag.description?.toLowerCase() || '', 't2s'),
+          createdAt: tag.createdAt.toISOString(),
+          numArticles: tag.numArticles,
+          numAuthors: tag.numAuthors,
+          numFollowers: tag.numFollowers,
+          lastFollowedAt: tag.lastFollowedAt?.toISOString(),
+          indexedAt: now,
+        }
+      })
+    )
+
+    // Upsert into search index
+    await this.knexSearch('search_index.tag')
+      .insert(rows)
+      .onConflict('id')
+      .merge()
+  }
+
+  public triggerIndexingArticle = async (articleId: string) => {
+    this.aws.sqsSendMessage({
+      messageBody: { articleId },
+      queueUrl: QUEUE_URL.searchIndexArticle,
+    })
+  }
+
+  public updateArticleReadData = async (articleId: string) => {
+    const { numViews, lastReadAt } = (await this.knexRO('article_read_count')
+      .select(
+        'article_id',
+        this.knexRO.raw('COUNT(*) OVER() ::integer AS num_views'),
+        this.knexRO.raw('MAX(created_at) OVER() AS last_read_at')
+      )
+      .whereNotNull('user_id')
+      .where('article_id', articleId)
+      .first()) || { numViews: 0, lastReadAt: null }
+    await this.knexSearch('search_index.article')
+      .where('id', articleId)
+      .update({
+        numViews: numViews,
+        lastReadAt: lastReadAt,
+      })
+  }
+
+  public indexArticles = async (articleIds: string[]) => {
+    if (articleIds.length === 0) {
+      return
+    }
+    const dedupedArticleIds = [...new Set(articleIds)]
+
+    // Gather article data from main database
+    const articles = await this.knexRO
+      .with('article_views', (builder) => {
+        builder
+          .from('article_read_count')
+          .select(
+            'article_id',
+            this.knexRO.raw('COUNT(*) ::int AS num_views'),
+            this.knexRO.raw('MAX(created_at) AS last_read_at')
+          )
+          .whereNotNull('user_id')
+          .whereIn('article_id', dedupedArticleIds)
+          .groupBy('article_id')
+      })
+      .from({ a: 'article' })
+      .leftJoin('article_version_newest as avn', 'a.id', 'avn.article_id')
+      .leftJoin('article_content as ac', 'avn.content_id', 'ac.id')
+      .leftJoin('user as author', 'author.id', 'a.author_id')
+      .leftJoin('article_views', 'article_views.article_id', 'a.id')
+      .select([
+        'a.id',
+        'a.author_id',
+        'a.state',
+        this.knexRO.raw('author.state AS author_state'),
+        'a.created_at',
+        'avn.title',
+        'avn.summary',
+        'ac.content',
+        'article_views.num_views',
+        'article_views.last_read_at',
+      ])
+      .whereIn('a.id', dedupedArticleIds)
+
+    // Transform data for search index
+    const now = new Date().toISOString()
+    const rows = await Promise.all(
+      articles.map(async (article: any) => {
+        // Extract plain text from HTML content
+        let text = ''
+        try {
+          if (article.content) {
+            const $ = cheerio.load(article.content)
+            text = $('body')
+              .children()
+              .toArray()
+              .map((e) => $(e).text().trim())
+              .filter(Boolean)
+              .join('\n')
+          }
+        } catch (err) {
+          logger.error('Failed to extract article text', err)
+        }
+
+        return {
+          id: article.id,
+          title: simplecc((article.title || '').toLowerCase(), 't2s'),
+          summary: simplecc((article.summary || '').toLowerCase(), 't2s'),
+          textContentConverted: simplecc(text.toLowerCase(), 't2s'),
+          authorId: article.authorId,
+          state: article.state,
+          authorState: article.authorState,
+          createdAt: article?.createdAt?.toISOString(),
+          numViews: article.numViews,
+          lastReadAt: article?.lastReadAt?.toISOString(),
+          indexedAt: now,
+        }
+      })
+    )
+
+    // Upsert into search index
+    await this.knexSearch('search_index.article')
+      .insert(rows)
+      .onConflict('id')
+      .merge()
+  }
 }

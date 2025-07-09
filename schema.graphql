@@ -2695,7 +2695,7 @@ type Recommendation {
   newest(input: RecommendationNewestInput!): ArticleConnection!
 
   """Global articles sort by latest activity time."""
-  hottest(input: ConnectionArgs!): ArticleConnection!
+  hottest(input: RecommendInput!): ArticleConnection!
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!

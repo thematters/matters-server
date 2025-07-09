@@ -31,7 +31,7 @@ export const genCacheKey = ({
   return [prefix, ...keys].join(':')
 }
 
-export class CacheService {
+export class Cache {
   private prefix: string
   private redis: Redis | Cluster
 

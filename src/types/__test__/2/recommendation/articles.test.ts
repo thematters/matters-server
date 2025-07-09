@@ -17,6 +17,7 @@ import {
 import {
   AtomService,
   ArticleService,
+  PublicationService,
   PaymentService,
   CampaignService,
   SystemService,
@@ -34,6 +35,7 @@ import {
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let publicationService: PublicationService
 let paymentService: PaymentService
 let campaignService: CampaignService
 let systemService: SystemService
@@ -42,6 +44,7 @@ let userService: UserService
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   atomService = new AtomService(connections)
   paymentService = new PaymentService(connections)
   campaignService = new CampaignService(connections)
@@ -55,7 +58,7 @@ afterAll(async () => {
 
 describe('hottest articles', () => {
   const GET_VIEWER_RECOMMENDATION_HOTTEST = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
+    query ($input: RecommendInput!) {
       viewer {
         recommendation {
           hottest(input: $input) {
@@ -360,7 +363,7 @@ describe('user recommendations', () => {
     // create more than MAX_TAKE articles
     await Promise.all(
       Array.from({ length: MAX_TAKE + 1 }, (_, i) =>
-        articleService.createArticle({
+        publicationService.createArticle({
           authorId: '1',
           title: `Test Article ${i}`,
           content: `Test Content ${i}`,
@@ -389,7 +392,7 @@ describe('user recommendations', () => {
   test('newest allows unlimited fetch for users with unlimitedArticleFetch flag', async () => {
     // make sure there are more than MAX_TAKE articles
     const spamThreshold = await systemService.getSpamThreshold()
-    const records = await articleService.latestArticles({
+    const records = await articleService.findNewestArticles({
       spamThreshold: spamThreshold ?? undefined,
     })
     expect(records.length).toBeGreaterThan(MAX_TAKE)

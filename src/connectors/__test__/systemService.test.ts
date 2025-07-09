@@ -11,12 +11,10 @@ import {
   ASSET_TYPE,
 } from '#common/enums/index.js'
 import { AssetNotFoundError } from '#common/errors.js'
-import {
-  SystemService,
-  AtomService,
-  MomentService,
-  ChannelService,
-} from '#connectors/index.js'
+import { AtomService } from '../atomService.js'
+import { ChannelService } from '../channel/channelService.js'
+import { MomentService } from '../momentService.js'
+import { SystemService } from '../systemService.js'
 
 import { genConnections, closeConnections } from './utils.js'
 

@@ -4,9 +4,10 @@ import { CACHE_TTL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { NetworkError, UnknownError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { CacheService } from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
 import axios from 'axios'
+
+import { Cache } from '../cache/index.js'
 
 const logger = getLogger('service-exchange-rate')
 
@@ -47,11 +48,11 @@ const EXCHANGE_RATES_DATA_API_URL =
 
 export class ExchangeRate {
   public expire: number
-  private cache: CacheService
+  private cache: Cache
   private slackService: SlackService
 
   public constructor(redis: Redis | Cluster) {
-    this.cache = new CacheService('exchangeRate', redis)
+    this.cache = new Cache('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
     this.slackService = new SlackService()
   }
@@ -90,6 +91,49 @@ export class ExchangeRate {
       rate: data.rate,
       updatedAt: new Date(data.updatedAt),
     }
+  }
+
+  public updateTokenRates = async (): Promise<void> => {
+    await this.updateRatesToCache(await this.fetchTokenRates())
+  }
+
+  public updateFiatRates = async (): Promise<void> => {
+    await this.updateRatesToCache(await this.fetchFiatRates())
+  }
+
+  private updateRatesToCache = async (rates: Rate[]): Promise<void> => {
+    for (const rate of rates) {
+      await this.cache.storeObject({
+        keys: this.genCacheKeys(rate),
+        data: rate,
+        expire: this.expire,
+      })
+    }
+  }
+
+  private fetchTokenRates = async (): Promise<Rate[]> => {
+    const data = await this.requestCoingeckoAPI(
+      tokenCurrencies,
+      quoteCurrencies
+    )
+    const rates: Rate[] = []
+    for (const t of tokenCurrencies) {
+      for (const q of quoteCurrencies) {
+        rates.push(this.parseCoingeckoData(data, { from: t, to: q }))
+      }
+    }
+    return rates
+  }
+
+  private fetchFiatRates = async (): Promise<Rate[]> => {
+    const rates: Rate[] = []
+    for (const f of fiatCurrencies) {
+      const data = await this.requestExchangeRatesDataAPI(f, quoteCurrencies)
+      for (const q of quoteCurrencies) {
+        rates.push(this.parseExchangeRateData(data, { from: f, to: q }))
+      }
+    }
+    return rates
   }
 
   private fetchRate = async ({ from, to }: Pair): Promise<Rate | never> => {

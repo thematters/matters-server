@@ -12,14 +12,13 @@ import {
 import { PaymentQueueJobDataError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { numMinus, numRound, numTimes } from '#common/utils/index.js'
-import {
-  AtomService,
-  ExchangeRate,
-  PaymentService,
-  NotificationService,
-} from '#connectors/index.js'
 import SlackService from '#connectors/slack/index.js'
 import * as Sentry from '@sentry/node'
+
+import { AtomService } from '../atomService.js'
+import { ExchangeRate } from '../exchangeRate/index.js'
+import { NotificationService } from '../notification/notificationService.js'
+import { PaymentService } from '../paymentService.js'
 
 import { getOrCreateQueue } from './utils.js'
 

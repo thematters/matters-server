@@ -33,9 +33,11 @@ import {
 import { isTest } from '#common/environment.js'
 import { AssetNotFoundError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
-import { BaseService, CacheService } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
+
+import { BaseService } from './baseService.js'
+import { Cache } from './cache/index.js'
 const logger = getLogger('service-system')
 
 export class SystemService extends BaseService<BaseDBSchema> {
@@ -176,11 +178,11 @@ export class SystemService extends BaseService<BaseDBSchema> {
    * Use to determine whether a article is spam by its spam score
    */
   public getSpamThreshold: () => Promise<number | null> = async () => {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.SPAM_THRESHOLD,
       this.connections.objectCacheRedis
     )
-    const value = (await cacheService.getObject({
+    const value = (await cache.getObject({
       keys: { id: 'spam_threshold' },
       getter: this._getSpamThreshold,
       expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
@@ -203,11 +205,11 @@ export class SystemService extends BaseService<BaseDBSchema> {
    * Use to determine whether a article is in a channel by its score
    */
   public getArticleChannelThreshold = async (): Promise<number | null> => {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.ARTICLE_CHANNEL_THRESHOLD,
       this.connections.objectCacheRedis
     )
-    const value = (await cacheService.getObject({
+    const value = (await cache.getObject({
       keys: { id: 'article_channel_threshold' },
       getter: this._getArticleChannelThreshold,
       expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,

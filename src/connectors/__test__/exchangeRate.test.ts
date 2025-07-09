@@ -1,6 +1,6 @@
 import type { Connections } from '#definitions/index.js'
 
-import { ExchangeRate } from '#connectors/index.js'
+import { ExchangeRate } from '../exchangeRate/index.js'
 
 import { genConnections, closeConnections } from './utils.js'
 
@@ -131,5 +131,19 @@ describe('exchangeRate', () => {
     expect(await exchangeRate.getRate('HKD', 'USD')).toEqual(
       rates[rates.length - 1]
     )
+  })
+  test('update token rates', async () => {
+    await exchangeRate.updateTokenRates()
+    // Verify that the cache was updated
+    const tokenRates = await exchangeRate.getRates('LIKE')
+    expect(tokenRates.length).toBe(3) // LIKE to TWD, HKD, USD
+    expect(tokenRates[0].from).toBe('LIKE')
+  })
+  test('update fiat rates', async () => {
+    await exchangeRate.updateFiatRates()
+    // Verify that the cache was updated
+    const fiatRates = await exchangeRate.getRates('HKD')
+    expect(fiatRates.length).toBe(3) // HKD to TWD, HKD, USD
+    expect(fiatRates[0].from).toBe('HKD')
   })
 })

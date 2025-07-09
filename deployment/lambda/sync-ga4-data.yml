@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: lambda to sync ga4 article data
+
+Parameters:
+  imageUri:
+    Type: String
+    Description: "The Amazon ECR image URI"
+  mattersEnv:
+    Type: String
+    Description: 'Lambda environment, which will determine the ssm parameter path to query'
+
+Conditions:
+  isProd: !Equals
+    - !Ref mattersEnv
+    - "production"
+
+Resources:
+  Lambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: >-
+        A Lambda to sync ga articles data of matters.town.
+      Code:
+        ImageUri: !Ref imageUri
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - syncGa4Data.handler
+      Environment:
+        Variables:
+          MATTERS_ENV: !Ref mattersEnv
+      Architectures:
+        - x86_64
+      MemorySize: 256
+      Timeout: 900
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !If
+            - isProd
+            - sg-0a1928a3b07644413
+            - sg-08ca5c76639a365d3
+        SubnetIds:
+          - !If
+            - isProd
+            - subnet-0415147ddf68a48f2
+            - subnet-0c6a762428d442ec3
+
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  LambdaRolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref LambdaRole
+      PolicyName: "syncGaDataLambda"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "ssm:GetParameter"
+              - "ssm:GetParametersByPath"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:"
+                - !Ref "AWS::Partition"
+                - ":ssm:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - !If
+                  - isProd
+                  - ":parameter/prod/matters-server/"
+                  - ":parameter/dev/matters-server/"
+
+  CronEvent1:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(5 minutes)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent1LambdaTarget
+          Input: |
+            {
+              "type": "today"
+            }
+  CronEvent1Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent1.Arn
+  CronEvent2:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(30 minutes)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent2LambdaTarget
+          Input: |
+            {
+              "type": "yesterday"
+            }
+  CronEvent2Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent2.Arn
+  CronEvent3:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 hour)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent3LambdaTarget
+          Input: |
+            {
+              "type": "2 days ago"
+            }
+  CronEvent3Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent3.Arn
+  CronEvent4:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "rate(1 hour)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent4LambdaTarget
+          Input: |
+            {
+              "type": "3 days ago"
+            }
+  CronEvent4Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent4.Arn

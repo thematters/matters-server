@@ -12,6 +12,7 @@ import { getLogger } from '#common/logger.js'
 import { getViewerFromReq } from '#common/utils/index.js'
 import {
   ArticleService,
+  PublicationService,
   AtomService,
   CommentService,
   DraftService,
@@ -144,6 +145,7 @@ export const graphql = async (app: Express) => {
       userService: new UserService(connections),
       userWorkService: new UserWorkService(connections),
       articleService: new ArticleService(connections),
+      publicationService: new PublicationService(connections),
       momentService: new MomentService(connections),
       commentService: new CommentService(connections),
       draftService: new DraftService(connections),

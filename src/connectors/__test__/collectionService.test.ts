@@ -2,7 +2,7 @@ import type { Connections, Article } from '#definitions/index.js'
 import {
   CollectionService,
   AtomService,
-  ArticleService,
+  PublicationService,
   UserService,
 } from '#connectors/index.js'
 import { USER_STATE } from '#common/enums/index.js'
@@ -12,7 +12,7 @@ import { genConnections, closeConnections } from './utils.js'
 
 let collectionService: CollectionService
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 let userService: UserService
 let connections: Connections
 
@@ -21,7 +21,7 @@ beforeAll(async () => {
   collectionService = new CollectionService(connections)
   userService = new UserService(connections)
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -33,7 +33,7 @@ describe('collection', () => {
   let articles: Article[]
   beforeAll(async () => {
     for (let i = 0; i < 5; i++) {
-      await articleService.createArticle({
+      await publicationService.createArticle({
         authorId,
         title: `test ${i}`,
         content: `test ${i}`,

@@ -9,22 +9,20 @@ import {
   NODE_TYPES,
 } from '#common/enums/index.js'
 
-import {
-  ChannelService,
-  AtomService,
-  ArticleService,
-} from '#connectors/index.js'
+import { PublicationService } from '../../article/publicationService.js'
+import { AtomService } from '../../atomService.js'
+import { ChannelService } from '../../channel/channelService.js'
 import { genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
-let articleService: ArticleService
+let publicationService: PublicationService
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -544,7 +542,7 @@ describe('togglePinChannelArticles', () => {
     })
 
     // create more articles
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: `Test Article 1`,
       content: `Content for Test Article 1`,
       authorId: '1',

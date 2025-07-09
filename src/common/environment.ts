@@ -61,6 +61,12 @@ export const environment = {
     process.env.MATTERS_AWS_IPFS_PUBLICATION_QUEUE_URL || '',
   awsBlockchainPaymentQueueUrl:
     process.env.MATTERS_AWS_BLOCKCHAIN_PAYMENT_QUEUE_URL || '',
+  awsSearchIndexUserQueueUrl:
+    process.env.MATTERS_AWS_SEARCH_INDEX_USER_QUEUE_URL || '',
+  awsSearchIndexTagQueueUrl:
+    process.env.MATTERS_AWS_SEARCH_INDEX_TAG_QUEUE_URL || '',
+  awsSearchIndexArticleQueueUrl:
+    process.env.MATTERS_AWS_SEARCH_INDEX_ARTICLE_QUEUE_URL || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
@@ -102,6 +108,7 @@ export const environment = {
   objectCachePort: (process.env.MATTERS_OBJECT_CACHE_PORT || 6379) as number,
   mattyId: process.env.MATTERS_MATTY_ID || '',
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
+  newFeatureTagId: process.env.MATTERS_NEW_FEATURE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
@@ -166,6 +173,71 @@ export const environment = {
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
   languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
+  deleteNoticeCacheTTL: parseInt(
+    process.env.MATTERS_DELETE_NOTICE_CACHE_TTL || '180',
+    10
+  ), // 3 minutes by default
+  userRetentionSendmailQueueUrl:
+    process.env.MATTERS_USER_RETENTION_SENDMAIL_QUEUE_URL || '',
+  userRetentionIntervalInDays: parseInt(
+    process.env.MATTERS_USER_RETENTION_INTERVAL_IN_DAYS || '6',
+    10
+  ),
+  subscriptionTrialExpire: process.env.MATTERS_SUBSCRIPTION_TRIAL_EXPIRE || '',
+  motorBadgeThreshold: parseInt(
+    process.env.MATTERS_MOTOR_BADGE_THRESHOLD || '100',
+    10
+  ),
+  ga4PropertyId: process.env.MATTERS_GA4_PROPERTY_ID || '',
+  ga4ProjectId: process.env.MATTERS_GA4_PROJECT_ID || '',
+  ga4ClientEmail: process.env.MATTERS_GA4_CLIENT_EMAIL || '',
+  ga4PrivateKey: process.env.MATTERS_GA4_PRIVATE_KEY || '',
+  // IPFS related
+  storachaProofS3Bucket: process.env.MATTERS_STORACHA_PROOF_S3_BUCKET,
+  storachaProofS3Key: process.env.MATTERS_STORACHA_PROOF_S3_KEY,
+  storachaPrivateKey: process.env.MATTERS_STORACHA_PRIVATE_KEY,
+  pinataJwt: process.env.MATTERS_PINATA_JWT,
+  pinataGateway: process.env.MATTERS_PINATA_GATEWAY,
+  pinataGroupId: process.env.MATTERS_PINATA_GROUP_ID,
+  uploadTimeoutMs: parseInt(
+    process.env.MATTERS_UPLOAD_TIMEOUT_MS || '30000',
+    10
+  ),
+  uploadImageThreshold: parseInt(
+    process.env.MATTERS_UPLOAD_IMAGE_THRESHOLD || '20',
+    10
+  ),
+  hottestArticlesDays: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_DAYS || '5',
+    10
+  ),
+  hottestArticlesHKDThreshold: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_HKD_THRESHOLD || '1'
+  ),
+  hottestArticlesUSDTThreshold: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_USDT_THRESHOLD || '0.1'
+  ),
+  hottestArticlesReadWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_READ_WEIGHT || '0.3'
+  ),
+  hottestArticlesCommentWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_COMMENT_WEIGHT || '0.4'
+  ),
+  hottestArticlesDonationWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_ARTICLES_DONATION_WEIGHT || '0.3'
+  ),
+  hottestArticlesReadersThreshold: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_READERS_THRESHOLD || '5',
+    10
+  ),
+  hottestArticlesCommentsThreshold: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_COMMENTS_THRESHOLD || '3',
+    10
+  ),
+  channelFloodDetectWindowInSeconds: parseInt(
+    process.env.MATTERS_CHANNEL_FLOOD_DETECT_WINDOW_IN_SECONDS || '86400',
+    10
+  ),
 }
 
 export const contract = {

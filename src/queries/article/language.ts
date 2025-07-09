@@ -11,6 +11,7 @@ const resolver: GQLArticleResolvers['language'] = async (
       articleService,
       atomService,
       systemService,
+      publicationService,
       connections: { redis },
     },
   }
@@ -34,23 +35,25 @@ const resolver: GQLArticleResolvers['language'] = async (
   }
 
   // Detect language
-  articleService.detectLanguage(articleVersionId).then((language) => {
-    if (!language) {
-      return
-    }
+  publicationService
+    .detectLanguage(articleVersionId)
+    .then((language: string | null) => {
+      if (!language) {
+        return
+      }
 
-    atomService.update({
-      table: 'article_version',
-      where: { id: articleVersionId },
-      data: { language },
-    })
+      atomService.update({
+        table: 'article_version',
+        where: { id: articleVersionId },
+        data: { language },
+      })
 
-    // invalidate article
-    invalidateFQC({
-      node: { type: NODE_TYPES.Article, id: articleId },
-      redis,
+      // invalidate article
+      invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: articleId },
+        redis: redis,
+      })
     })
-  })
 
   return null
 }

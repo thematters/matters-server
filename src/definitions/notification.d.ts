@@ -32,7 +32,6 @@ type NotificationType =
 
 interface NotificationRequiredParams {
   event: NotificationType
-  recipientId: string
 }
 
 interface NotificationEntity<
@@ -320,7 +319,7 @@ interface NoticeCircleNewUnsubscriberParams extends NotificationRequiredParams {
 
 interface NoticeCircleNewBroadcastCommentsParams
   extends NotificationRequiredParams {
-  event: BundledNoticeType
+  event: BUNDLED_NOTICE_TYPE
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
@@ -330,7 +329,7 @@ interface NoticeCircleNewBroadcastCommentsParams
 
 interface NoticeCircleNewDiscussionCommentsParams
   extends NotificationRequiredParams {
-  event: BundledNoticeType
+  event: BUNDLED_NOTICE_TYPE
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
@@ -406,6 +405,12 @@ interface NoticeBadgeGrandSlamAwardedParams extends NotificationRequiredParams {
   recipientId: string
 }
 
+interface NoticeWriteChallengeAnnouncementParams
+  extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_announcement
+  data: { link: string; campaignId: string; messages: Record<Language, string> }
+}
+
 export type NotificationParams =
   // User
   | NoticeUserNewFollowerParams
@@ -458,8 +463,7 @@ export type NotificationParams =
   | NoticeCommentReportedParams
   | NoticeWriteChallengeAppliedParams
   | NoticeBadgeGrandSlamAwardedParams
-
-type NoticeUserId = string
+  | NoticeWriteChallengeAnnouncementParams
 
 interface NoticeEntity {
   type: NoticeEntityType
@@ -498,6 +502,54 @@ export type NoticeItem = NoticeDetail & {
   entities?: NoticeEntitiesMap
 }
 
+type BasePutParams = {
+  type: BaseNoticeType
+  entities?: NotificationEntity[]
+  actorId?: NoticeUserId | null
+  data?: NoticeData | null
+
+  resend?: boolean // used by circle invitation notice
+
+  bundle?: {
+    disabled?: boolean
+    mergeData?: boolean // used by circle bundled notice
+  }
+}
+
+export type PutNoticesParams = BasePutParams & {
+  recipientIds: NoticeUserId[]
+  messages?: NoticeMessage[] | null
+}
+
+export type PutNoticeParams = BasePutParams & {
+  recipientId: NoticeUserId
+  message?: NoticeMessage | null
+}
+
+type BasePutParams = {
+  type: BaseNoticeType
+  entities?: NotificationEntity[]
+  actorId?: NoticeUserId | null
+  data?: NoticeData | null
+
+  resend?: boolean // used by circle invitation notice
+
+  bundle?: {
+    disabled?: boolean
+    mergeData?: boolean // used by circle bundled notice
+  }
+}
+
+export type PutNoticesParams = BasePutParams & {
+  recipientIds: NoticeUserId[]
+  messages?: NoticeMessage[] | null
+}
+
+export type PutNoticeParams = BasePutParams & {
+  recipientId: NoticeUserId
+  message?: NoticeMessage | null
+}
+
 // DB schema
 
 export interface Notice {
@@ -519,10 +571,48 @@ export interface NoticeDetail {
   createdAt: Date
 }
 
+export interface NoticeActor {
+  id: string
+  noticeId: string
+  actorId: string
+  createdAt: Date
+}
+
 export interface NoticeEntity {
   id: string
   type: NoticeEntityType
   noticeId: string
   entityTypeId: string
   entityId: string
+}
+
+export interface UserNotifySetting {
+  id: string
+  userId: string
+  enable: boolean
+  mention: boolean
+  userNewFollower: boolean
+  newComment: boolean
+  newLike: boolean
+  articleNewSubscription: boolean
+  articleSubscribedNewComment: boolean
+  reportFeedback: boolean
+  email: boolean
+  tag: boolean
+  circleNewFollower: boolean
+  circleNewDiscussion: boolean
+  circleNewSubscriber: boolean
+  circleNewUnsubscriber: boolean
+  circleMemberBroadcast: boolean
+  circleMemberNewDiscussion: boolean
+  circleMemberNewDiscussionReply: boolean
+  inCircleNewArticle: boolean
+  inCircleNewBroadcast: boolean
+  inCircleNewBroadcastReply: boolean
+  inCircleNewDiscussion: boolean
+  inCircleNewDiscussionReply: boolean
+  articleNewCollected: boolean
+  circleMemberNewBroadcastReply: boolean
+  createdAt: Date
+  updatedAt: Date
 }

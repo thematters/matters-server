@@ -12,6 +12,12 @@ Parameters:
   lambdaCMD:
     Type: String
     Description: 'lambda CMD setting'
+  lambdaTimeout:
+    Type: Number
+    Description: 'lambda timeout setting'
+  lambdaMemorySize:
+    Type: Number
+    Description: 'lambda memory size setting'
   cronExpression:
     Type: String
     Description: 'cron expression setting'
@@ -36,8 +42,8 @@ Resources:
           MATTERS_ENV: !Ref mattersEnv
       Architectures:
         - x86_64
-      MemorySize: 512
-      Timeout: 900
+      MemorySize: !Ref lambdaMemorySize
+      Timeout: !Ref lambdaTimeout
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:

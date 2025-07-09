@@ -9,7 +9,7 @@ import {
   fromGlobalId,
   circleChunk,
 } from '#common/utils/index.js'
-import { CacheService } from '#connectors/index.js'
+import { Cache } from '#connectors/index.js'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
@@ -56,7 +56,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
    * new algo
    */
   if (input.newAlgo) {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.RECOMMENDATION_AUTHORS,
       objectCacheRedis
     )
@@ -71,7 +71,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
       channelId = channel?.id
     }
 
-    const authorIds = await cacheService.getObject({
+    const authorIds = await cache.getObject({
       keys: {
         type: 'recommendationAuthors',
         args: {

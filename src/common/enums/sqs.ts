@@ -20,4 +20,9 @@ export const QUEUE_URL = {
 
   // blockchain payment
   blockchainPayment: environment?.awsBlockchainPaymentQueueUrl,
+
+  // search index
+  searchIndexUser: environment?.awsSearchIndexUserQueueUrl,
+  searchIndexTag: environment?.awsSearchIndexTagQueueUrl,
+  searchIndexArticle: environment?.awsSearchIndexArticleQueueUrl,
 } as const

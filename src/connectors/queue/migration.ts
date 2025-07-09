@@ -14,15 +14,14 @@ import {
 import { isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { makeSummary } from '#common/utils/index.js'
-import {
-  UserService,
-  NotificationService,
-  SystemService,
-  DraftService,
-} from '#connectors/index.js'
 import { medium } from '#connectors/medium/index.js'
 import { UserHasUsername } from '#definitions/index.js'
 import { createRequire } from 'node:module'
+
+import { DraftService } from '../draftService.js'
+import { NotificationService } from '../notification/notificationService.js'
+import { SystemService } from '../systemService.js'
+import { UserService } from '../userService.js'
 
 import { getOrCreateQueue } from './utils.js'
 

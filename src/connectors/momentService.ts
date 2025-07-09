@@ -14,12 +14,11 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { shortHash, extractMentionIds, stripHtml } from '#common/utils/index.js'
-import {
-  AtomService,
-  UserService,
-  NotificationService,
-} from '#connectors/index.js'
 import { createRequire } from 'node:module'
+
+import { AtomService } from './atomService.js'
+import { NotificationService } from './notification/notificationService.js'
+import { UserService } from './userService.js'
 
 const require = createRequire(import.meta.url)
 const {

@@ -14,6 +14,7 @@ import {
 import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   ArticleService,
+  PublicationService,
   AtomService,
   PaymentService,
   UserService,
@@ -31,12 +32,14 @@ import {
 let connections: Connections
 let userService: UserService
 let articleService: ArticleService
+let publicationService: PublicationService
 let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   atomService = new AtomService(connections)
 }, 30000)
 
@@ -510,7 +513,7 @@ describe('articles versions', () => {
 
     const content = 'test content'
     const description = 'test description'
-    await articleService.createNewArticleVersion(
+    await publicationService.createNewArticleVersion(
       article.id,
       article.authorId,
       { content },
@@ -619,17 +622,17 @@ describe('article connections', () => {
 
   test('query article connections', async () => {
     // Create test articles
-    const [article1] = await articleService.createArticle({
+    const [article1] = await publicationService.createArticle({
       title: 'Test Article 1',
       content: 'Test content 1',
       authorId: '1',
     })
-    const [article2] = await articleService.createArticle({
+    const [article2] = await publicationService.createArticle({
       title: 'Test Article 2',
       content: 'Test content 2',
       authorId: '1',
     })
-    const [article3] = await articleService.createArticle({
+    const [article3] = await publicationService.createArticle({
       title: 'Test Article 3',
       content: 'Test content 3',
       authorId: '1',

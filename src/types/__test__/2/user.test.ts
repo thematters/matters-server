@@ -14,7 +14,7 @@ import {
 import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
   UserService,
-  ArticleService,
+  PublicationService,
   PaymentService,
   MomentService,
 } from '#connectors/index.js'
@@ -32,14 +32,14 @@ import {
 
 let connections: Connections
 let userService: UserService
-let articleService: ArticleService
+let publicationService: PublicationService
 let momentService: MomentService
 let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   momentService = new MomentService(connections)
   paymentService = new PaymentService(connections)
 }, 50000)
@@ -1372,7 +1372,7 @@ describe('query user writings', () => {
   })
   test('find some writings', async () => {
     await momentService.create({ content: 'test' }, user)
-    await articleService.createArticle({
+    await publicationService.createArticle({
       title: 'test',
       content: 'test',
       authorId: user.id,

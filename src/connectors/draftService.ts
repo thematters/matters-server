@@ -1,7 +1,8 @@
 import type { Draft, Connections } from '#definitions/index.js'
 
 import { PUBLISH_STATE } from '#common/enums/index.js'
-import { BaseService } from '#connectors/index.js'
+
+import { BaseService } from './baseService.js'
 
 export class DraftService extends BaseService<Draft> {
   public constructor(connections: Connections) {
@@ -48,5 +49,8 @@ export class DraftService extends BaseService<Draft> {
       .from(this.table)
       .where({ authorId, archived: false })
       .andWhereNot({ publishState: PUBLISH_STATE.published })
-      .orderBy('updated_at', 'desc')
+      .orderBy([
+        { column: 'publish_at', order: 'asc', nulls: 'last' },
+        { column: 'updated_at', order: 'desc' },
+      ])
 }

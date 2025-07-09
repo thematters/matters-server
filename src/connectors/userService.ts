@@ -3,7 +3,6 @@ import type {
   Article,
   ItemData,
   UserOAuthLikeCoin,
-  UserOauthLikecoinDB,
   UserOAuthLikeCoinAccountType,
   UserNotifySetting,
   User,
@@ -89,13 +88,6 @@ import {
   genDisplayName,
   RatelimitCounter,
 } from '#common/utils/index.js'
-import {
-  AtomService,
-  BaseService,
-  CacheService,
-  OAuthService,
-  NotificationService,
-} from '#connectors/index.js'
 import { Twitter } from '#connectors/oauth/index.js'
 import axios from 'axios'
 import { compare } from 'bcrypt'
@@ -115,17 +107,26 @@ import {
 } from 'viem'
 import { mainnet, polygon, sepolia } from 'viem/chains'
 
+import { PublicationService } from './article/publicationService.js'
+import { AtomService } from './atomService.js'
+import { BaseService } from './baseService.js'
+import { Cache } from './cache/index.js'
 import { LikeCoin } from './likecoin/index.js'
+import { NotificationService } from './notification/notificationService.js'
+import { OAuthService } from './oauthService.js'
+import { SearchService } from './searchService.js'
 
 const logger = getLogger('service-user')
 
 export class UserService extends BaseService<User> {
   public likecoin: LikeCoin
+  public searchService: SearchService
 
   public constructor(connections: Connections) {
     super('user', connections)
 
     this.likecoin = new LikeCoin(connections)
+    this.searchService = new SearchService(connections)
   }
 
   /*********************************
@@ -222,6 +223,9 @@ export class UserService extends BaseService<User> {
     const atomService = new AtomService(this.connections)
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
+
+    // index user to search service
+    this.searchService.triggerIndexingUser(user.id)
 
     // send email
     if (user.email && user.displayName) {
@@ -463,11 +467,13 @@ export class UserService extends BaseService<User> {
         if (count > CHANGE_EMAIL_TIMES_LIMIT_PER_DAY) {
           throw new ActionFailedError('email change too frequent')
         }
-        notificationService.mail.sendEmailChange({
-          to: user.email,
-          newEmail: email,
-          language: user.language,
-        })
+        if (user.emailVerified) {
+          notificationService.mail.sendEmailChange({
+            to: user.email,
+            newEmail: email,
+            language: user.language,
+          })
+        }
       }
       return this.baseUpdate(user.id, {
         email,
@@ -596,6 +602,7 @@ export class UserService extends BaseService<User> {
         previous: oldUserName,
       },
     })
+    this.searchService.triggerIndexingUser(userId)
     return await this.baseUpdate(userId, data)
   }
 
@@ -688,6 +695,8 @@ export class UserService extends BaseService<User> {
       //   WHERE
       //     owner = ${id}
       // `)
+
+      this.searchService.triggerIndexingUser(id)
 
       return user
     })
@@ -860,16 +869,18 @@ export class UserService extends BaseService<User> {
       targetId,
       action: USER_ACTION.follow,
     }
-    return this.models.upsert({
+    const result = await this.models.upsert({
       where: data,
       create: data,
       update: data,
       table: 'action_user',
     })
+    this.searchService.triggerIndexingUser(targetId)
+    return result
   }
 
-  public unfollow = async (userId: string, targetId: string) =>
-    this.knex
+  public unfollow = async (userId: string, targetId: string) => {
+    const result = await this.knex
       .from('action_user')
       .where({
         targetId,
@@ -877,6 +888,9 @@ export class UserService extends BaseService<User> {
         action: USER_ACTION.follow,
       })
       .del()
+    this.searchService.triggerIndexingUser(targetId)
+    return result
+  }
 
   public countFollowees = async (userId: string) => {
     const result = await this.knex('action_user')
@@ -1622,7 +1636,7 @@ export class UserService extends BaseService<User> {
       likerId,
     })
 
-    await this.baseUpdateOrCreate<UserOauthLikecoinDB>({
+    await this.baseUpdateOrCreate<UserOAuthLikeCoin>({
       where: { likerId },
       data: {
         likerId,
@@ -1774,6 +1788,20 @@ export class UserService extends BaseService<User> {
   ) => {
     const table = 'user_feature_flag'
     await this.models.create({ table, data: { userId: id, type } })
+    if (type === USER_FEATURE_FLAG_TYPE.bypassSpamDetection) {
+      const articles = await this.models.findMany({
+        table: 'article',
+        where: { authorId: id },
+      })
+      if (articles.length > 0) {
+        const publicationService = new PublicationService(this.connections)
+        await Promise.all(
+          articles.map((article) =>
+            publicationService.runPostProcessing(article, false)
+          )
+        )
+      }
+    }
   }
 
   public removeFeatureFlag = async (
@@ -2660,11 +2688,11 @@ export class UserService extends BaseService<User> {
    *                               *
    *********************************/
   public updateLastSeen = async (id: string, threshold = HOUR) => {
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.USER_LAST_SEEN,
       this.connections.objectCacheRedis
     )
-    const _lastSeen = (await cacheService.getObject({
+    const _lastSeen = (await cache.getObject({
       keys: { id },
       getter: async () => {
         const { lastSeen } = await this.knex(this.table)
@@ -2693,11 +2721,11 @@ export class UserService extends BaseService<User> {
       return true
     }
 
-    const cacheService = new CacheService(
+    const cache = new Cache(
       CACHE_PREFIX.EMAIL_DOMAIL_WHITELIST,
       this.connections.objectCacheRedis
     )
-    const whiteListEmailDomain = (await cacheService.getObject({
+    const whiteListEmailDomain = (await cache.getObject({
       keys: { type: 'email_domain' },
       getter: this._getEmailDomainWhiteList,
       expire: CACHE_TTL.STATIC,

@@ -2,7 +2,7 @@ import type { Connections } from '#definitions/index.js'
 
 import { FEATURE_NAME, FEATURE_FLAG } from '#common/enums/index.js'
 import {
-  ArticleService,
+  PublicationService,
   AtomService,
   SystemService,
 } from '#connectors/index.js'
@@ -10,13 +10,13 @@ import {
 import { testClient, genConnections, closeConnections } from '../../utils.js'
 
 let connections: Connections
-let articleService: ArticleService
+let publicationService: PublicationService
 let atomService: AtomService
 let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
-  articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
   atomService = new AtomService(connections)
   systemService = new SystemService(connections)
 }, 30000)
@@ -37,11 +37,12 @@ const GET_ARTICLE_LANGUAGE = /* GraphQL */ `
 describe('article language resolver', () => {
   test('skips language detection for spam articles', async () => {
     // Create article marked as spam by admin
-    const [{ id: articleId, shortHash }] = await articleService.createArticle({
-      title: 'Spam Article',
-      content: 'This is a spam article content',
-      authorId: '1',
-    })
+    const [{ id: articleId, shortHash }] =
+      await publicationService.createArticle({
+        title: 'Spam Article',
+        content: 'This is a spam article content',
+        authorId: '1',
+      })
     await atomService.update({
       table: 'article',
       where: { id: articleId },
@@ -68,11 +69,12 @@ describe('article language resolver', () => {
     })
 
     // Create article with high spam score
-    const [{ id: articleId, shortHash }] = await articleService.createArticle({
-      title: 'High Spam Score Article',
-      content: 'This is an article with high spam score content',
-      authorId: '1',
-    })
+    const [{ id: articleId, shortHash }] =
+      await publicationService.createArticle({
+        title: 'High Spam Score Article',
+        content: 'This is an article with high spam score content',
+        authorId: '1',
+      })
     await atomService.update({
       table: 'article',
       where: { id: articleId },

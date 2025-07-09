@@ -4,7 +4,7 @@ import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from '#common/enums/index.js'
 import { contract } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { alchemy, AlchemyNetwork } from '#connectors/alchemy/index.js'
-import { CacheService } from '#connectors/index.js'
+import { Cache } from '#connectors/index.js'
 
 interface OpenSeaNFTAsset {
   id: any
@@ -25,14 +25,14 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
     },
   }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS, objectCacheRedis)
+  const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
   const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
-  const assets = (await cacheService.getObject({
+  const assets = (await cache.getObject({
     keys: { type: 'traveloggers', id: owner },
     getter: () =>
       alchemy.getNFTs({
@@ -57,14 +57,14 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
     },
   }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS, objectCacheRedis)
+  const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
 
-  const assets = (await cacheService.getObject({
+  const assets = (await cache.getObject({
     keys: { type: 'traveloggers', id: owner },
     getter: () =>
       alchemy.getNFTs({

@@ -1,8 +1,9 @@
 import { QUEUE_URL } from '#common/enums/index.js'
-import { aws } from '#connectors/index.js'
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail.js'
 
-class MailService {
+import { aws } from '../aws/index.js'
+
+export class MailService {
   private aws: typeof aws
   public constructor() {
     this.aws = aws

@@ -5,6 +5,7 @@ import _get from 'lodash/get.js'
 import {
   AtomService,
   ArticleService,
+  PublicationService,
   PaymentService,
   CollectionService,
 } from '#connectors/index.js'
@@ -30,10 +31,12 @@ import {
 let connections: Connections
 let atomService: AtomService
 let articleService: ArticleService
+let publicationService: PublicationService
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
+  publicationService = new PublicationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -173,7 +176,7 @@ describe('edit article', () => {
   let articleId: string
   let articleGlobalId: string
   beforeEach(async () => {
-    const [{ id: _articleId }] = await articleService.createArticle({
+    const [{ id: _articleId }] = await publicationService.createArticle({
       title: titleOriginal,
       content: contentOriginal,
       authorId,
@@ -1070,7 +1073,7 @@ describe('edit article', () => {
     const articleContent = await articleService.loadLatestArticleContent(
       article.id
     )
-    const [article2, articleVersion2] = await articleService.createArticle({
+    const [article2, articleVersion2] = await publicationService.createArticle({
       title: articleVersion.title,
       content: articleContent,
       authorId: article.authorId,
