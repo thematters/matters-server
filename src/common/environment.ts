@@ -9,7 +9,7 @@ export const isDev = process.env.MATTERS_ENV === 'development'
 export const isStage = process.env.MATTERS_ENV === 'stage'
 export const isProd = process.env.MATTERS_ENV === 'production'
 
-const isLambda = process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined
+export const isLambda = process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined
 
 if (isLambda) {
   // write process.env by parameter store

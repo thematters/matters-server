@@ -6,7 +6,7 @@ import {
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
-import { environment } from '#common/environment.js'
+import { environment, isLambda } from '#common/environment.js'
 import { AsyncLocalStorage } from 'async_hooks'
 import util from 'node:util'
 import { createLogger, format, transports } from 'winston'
@@ -36,7 +36,12 @@ const customFormatter = format.printf(
 const createWinstonLogger = (name: string, level: LoggingLevel) =>
   createLogger({
     level,
-    format: format.combine(
+    format: isLambda ?
+    format.combine(
+      format.splat(),
+      format.label({ label: name }),
+    ) :
+    format.combine(
       format.splat(),
       format.errors({ stack: true }),
       setContext(),
