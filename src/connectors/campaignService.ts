@@ -107,7 +107,10 @@ export class CampaignService {
       table: 'campaign_stage',
       where: { campaignId },
     })
+    return this.addStages(campaignId, stages)
+  }
 
+  public addStages = async (campaignId: string, stages: Stage[]) => {
     if (stages.length > 0) {
       const knex = this.connections.knex
       return knex<CampaignStage>('campaign_stage')
