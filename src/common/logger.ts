@@ -36,21 +36,18 @@ const customFormatter = format.printf(
 const createWinstonLogger = (name: string, level: LoggingLevel) =>
   createLogger({
     level,
-    format: isLambda ?
-    format.combine(
-      format.splat(),
-      format.label({ label: name }),
-    ) :
-    format.combine(
-      format.splat(),
-      format.errors({ stack: true }),
-      setContext(),
-      format.label({ label: name }),
-      format.timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss',
-      }),
-      customFormatter
-    ),
+    format: isLambda
+      ? format.combine(format.splat(), format.label({ label: name }))
+      : format.combine(
+          format.splat(),
+          format.errors({ stack: true }),
+          setContext(),
+          format.label({ label: name }),
+          format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss',
+          }),
+          customFormatter
+        ),
     transports: [new transports.Console({ level })],
   })
 

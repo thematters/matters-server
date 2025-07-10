@@ -12,7 +12,7 @@ import {
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import * as Sentry from '@sentry/node'
-import axios, { type AxiosRequestConfig } from 'axios'
+import axios, { type AxiosRequestConfig, type AxiosError } from 'axios'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -670,23 +670,36 @@ export class LikeCoin {
   }
 
   private requestIsCivicLiker = async ({ likerId }: { likerId: string }) => {
-    let res: any
-    try {
-      res = await this.request({
-        endpoint: `/users/id/${likerId}/min`,
-        method: 'GET',
-        timeout: 2000,
-      })
-    } catch (e: any) {
-      const code = e.response?.status as any
-      if (code === 404) {
-        logger.warn(`likerId ${likerId} not exist`)
-        return false
+    const maxRetries = 3
+    let attempt = 0
+    while (attempt < maxRetries) {
+      try {
+        const res = await this.request({
+          endpoint: `/users/id/${likerId}/min`,
+          method: 'GET',
+          timeout: 2000,
+        })
+        return !!_.get(res, 'data.isSubscribedCivicLiker')
+      } catch (e: unknown) {
+        const code = (e as AxiosError).response?.status as unknown as number
+        if (code === 404) {
+          logger.warn(`likerId ${likerId} not exist`)
+          return false
+        }
+        attempt++
+        if (attempt >= maxRetries) {
+          throw e
+        }
+        logger.warn(
+          `requestIsCivicLiker attempt %s failed for likerId %s with %s, retrying...`,
+          attempt,
+          likerId,
+          (e as AxiosError)?.message
+        )
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt))
       }
-      throw e
     }
-    logger.info('civicLiker response:', res?.data)
-    return !!_.get(res, 'data.isSubscribedCivicLiker')
+    return false
   }
 
   private findLiker = async ({
