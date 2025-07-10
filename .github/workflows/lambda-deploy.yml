@@ -366,7 +366,7 @@ jobs:
             mattersEnv=${{ env.MATTERS_ENV }},
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=notify.handler,
-            lambdaTimeout=10,
+            lambdaTimeout=40,
             lambdaMemorySize=256,
             sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:notice-${{ env.SQS_ENV }},
             sqsBatchSize=2,
