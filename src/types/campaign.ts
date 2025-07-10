@@ -36,6 +36,7 @@ export default /* GraphQL */ `
     applicationPeriod: DatetimeRangeInput
     writingPeriod: DatetimeRangeInput
     stages: [CampaignStageInput!]
+    newStages: [CampaignStageInput!]
     state: CampaignState
     featuredDescription: [TranslationInput!]
     channelEnabled: Boolean
