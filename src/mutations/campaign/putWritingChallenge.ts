@@ -33,6 +33,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       writingPeriod,
       state,
       stages,
+      newStages,
       featuredDescription,
       channelEnabled,
       exclusive,
@@ -76,6 +77,10 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   }
   if (stages) {
     validateStages(stages)
+  }
+
+  if (newStages) {
+    validateStages(newStages)
   }
 
   let announcementIds: string[] = []
@@ -273,6 +278,46 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     )
     await Promise.all(
       stages.map(async (stage, index) => {
+        for (const trans of stage.name) {
+          await translationService.updateOrCreateTranslation({
+            table: 'campaign_stage',
+            field: 'name',
+            id: campaiginStages[index].id,
+            language: trans.language,
+            text: trans.text,
+          })
+        }
+        if (stage.description && stage.description.length > 0) {
+          for (const trans of stage.description) {
+            await translationService.updateOrCreateTranslation({
+              table: 'campaign_stage',
+              field: 'description',
+              id: campaiginStages[index].id,
+              language: trans.language,
+              text: trans.text,
+            })
+          }
+        }
+      })
+    )
+  }
+
+  if (newStages) {
+    const campaiginStages = await campaignService.addStages(
+      campaign.id,
+      newStages.map((stage) => ({
+        name: stage.name[0].text,
+        description:
+          stage.description && stage.description.length > 0
+            ? stage.description[0].text
+            : '',
+        period: stage.period
+          ? [stage.period.start, stage.period.end]
+          : undefined,
+      }))
+    )
+    await Promise.all(
+      newStages.map(async (stage, index) => {
         for (const trans of stage.name) {
           await translationService.updateOrCreateTranslation({
             table: 'campaign_stage',

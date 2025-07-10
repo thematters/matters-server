@@ -316,8 +316,11 @@ type Article implements Node & PinnableWork {
   """Article title."""
   title: String!
 
-  """Article cover's link."""
+  """Article cover's link, set by author"""
   cover: String
+
+  """Cover link that is displayed on the article page"""
+  displayCover: String
 
   """
   List of assets are belonged to this article (Only the author can access currently).
@@ -893,6 +896,7 @@ input PutWritingChallengeInput {
   applicationPeriod: DatetimeRangeInput
   writingPeriod: DatetimeRangeInput
   stages: [CampaignStageInput!]
+  newStages: [CampaignStageInput!]
   state: CampaignState
   featuredDescription: [TranslationInput!]
   channelEnabled: Boolean

@@ -26,6 +26,7 @@ import * as contents from './contents/index.js'
 import articleCover from './cover.js'
 import createdAt from './createdAt.js'
 import dataHash from './dataHash.js'
+import displayCover from './displayCover.js'
 import donated from './donated.js'
 import donationCount from './donationCount.js'
 import donations from './donations.js'
@@ -91,6 +92,7 @@ const schema: GQLResolvers = {
     appreciateLeft,
     author,
     cover: articleCover,
+    displayCover,
     assets,
     collection: connections,
     connections,

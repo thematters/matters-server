@@ -82,8 +82,11 @@ export default /* GraphQL */ `
     "Article title."
     title: String!
 
-    "Article cover's link."
+    "Article cover's link, set by author"
     cover: String
+
+    "Cover link that is displayed on the article page"
+    displayCover: String
 
     "List of assets are belonged to this article (Only the author can access currently)."
     assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
