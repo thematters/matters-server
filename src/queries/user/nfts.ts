@@ -20,18 +20,16 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   _,
   {
     dataSources: {
-      userService,
+      atomService,
       connections: { objectCacheRedis },
     },
   }
 ) => {
-  if (!userId) {
-    return false
-  }
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
-  const user = await userService.baseFindById(userId)
-  const owner = user?.ethAddress || address
+  const owner = userId
+    ? (await atomService.userIdLoader.load(userId))?.ethAddress || address
+    : address
   const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
@@ -55,19 +53,16 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   _,
   {
     dataSources: {
-      userService,
+      atomService,
       connections: { objectCacheRedis },
     },
   }
 ) => {
-  if (!userId) {
-    return []
-  }
-
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
-  const user = await userService.baseFindById(userId)
-  const owner = user?.ethAddress || address
+  const owner = userId
+    ? (await atomService.userIdLoader.load(userId))?.ethAddress || address
+    : address
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
 
