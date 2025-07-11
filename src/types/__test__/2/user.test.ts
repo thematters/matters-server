@@ -272,7 +272,12 @@ const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
         topDonators(input: $input) {
           edges {
             node {
-              userName
+              ... on User {
+                userName
+              }
+              ... on CryptoWallet {
+                address
+              }
             }
             donationCount
           }
@@ -432,10 +437,10 @@ describe('user query fields', () => {
 
   test('retrive UserSettings by visitors', async () => {
     const server = await testClient({ connections })
-    const res = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
-    const { data } = res
+    expect(errors).toBeUndefined()
     const settings = _get(data, 'viewer.settings')
     expect(settings.language).toBe('en')
     expect(settings.currency).toBe('USD')
@@ -518,11 +523,12 @@ describe('user query fields', () => {
 
   test('retrive topDonators by visitor', async () => {
     const server = await testClient({ connections })
-    const { data } = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_TOPDONATORS,
       variables: { input: {} },
     })
-    const donators = _get(data, 'viewer.analytics.topDonators')
+    expect(errors).toBeUndefined()
+    const donators = data.viewer.analytics.topDonators
     expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
 
