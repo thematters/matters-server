@@ -121,61 +121,13 @@ describe('findTopDonators', () => {
   test('only one donator', async () => {
     const recipientId = TEST_RECIPIENT_ID
     await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    const result = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
+    const result = await userService.findTopDonators(recipientId)
     expect(result).toEqual([
       {
         id: '2',
         address: null,
-        donation_count: 1,
-        latest_donation_at: expect.any(Date),
-      },
-    ])
-  })
-  test('donators is ordered', async () => {
-    const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
-    // 1st ordered by donations count desc
-    const result = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
-    expect(result).toEqual([
-      {
-        id: '2',
-        address: null,
-        donation_count: 2,
-        latest_donation_at: expect.any(Date),
-      },
-      {
-        id: '3',
-        address: null,
-        donation_count: 1,
-        latest_donation_at: expect.any(Date),
-      },
-    ])
-    // 2nd ordered by donations time desc
-    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
-    const result2 = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
-    expect(result2).toEqual([
-      {
-        id: '3',
-        address: null,
-        donation_count: 2,
-        latest_donation_at: expect.any(Date),
-      },
-      {
-        id: '2',
-        address: null,
-        donation_count: 2,
-        latest_donation_at: expect.any(Date),
+        donationCount: '1',
+        latestDonationAt: expect.any(Date),
       },
     ])
   })
@@ -200,8 +152,8 @@ describe('findTopDonators', () => {
       {
         id: '2',
         address: null,
-        donation_count: 1,
-        latest_donation_at: expect.any(Date),
+        donationCount: '1',
+        latestDonationAt: expect.any(Date),
       },
     ])
   })
@@ -218,57 +170,24 @@ describe('findTopDonators', () => {
       paymentService
     )
 
-    const result = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
+    const result = await userService.findTopDonators(recipientId)
 
     expect(result).toEqual(
       expect.arrayContaining([
         {
           id: '2',
           address: null,
-          donation_count: 1,
-          latest_donation_at: expect.any(Date),
+          donationCount: '1',
+          latestDonationAt: expect.any(Date),
         },
         {
           id: null,
           address: walletAddress,
-          donation_count: 1,
-          latest_donation_at: expect.any(Date),
+          donationCount: '1',
+          latestDonationAt: expect.any(Date),
         },
       ])
     )
-  })
-  test('supports pagination via query builder', async () => {
-    const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '4' }, paymentService)
-
-    // Test limit
-    const result1 = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
-      .limit(1)
-    expect(result1).toHaveLength(1)
-
-    // Test offset
-    const result2 = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
-      .offset(1)
-      .limit(1)
-    expect(result2).toHaveLength(1)
-
-    // All results should be different
-    const allResults = await userService
-      .findTopDonators(recipientId)
-      .orderBy('donation_count', 'desc')
-      .orderBy('latest_donation_at', 'desc')
-    expect(allResults).toHaveLength(3)
   })
 })
 

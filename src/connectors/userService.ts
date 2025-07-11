@@ -1568,11 +1568,6 @@ export class UserService extends BaseService<User> {
     latestDonationAt: Date
   }> => {
     const query = this.knexRO('transaction')
-      .where({
-        recipientId,
-        state: TRANSACTION_STATE.succeeded,
-        purpose: TRANSACTION_PURPOSE.donation,
-      })
       .leftJoin(
         'blockchain_transaction',
         'transaction.id',
@@ -1610,7 +1605,7 @@ export class UserService extends BaseService<User> {
         'transaction.sender_id as id',
         this.knexRO.raw('blockchain_transaction.from as address'),
         this.knexRO.raw('count(1) AS donation_count'),
-        this.knexRO.raw('max(created_at) AS latest_donation_at')
+        this.knexRO.raw('max(transaction.created_at) AS latest_donation_at')
       )
   }
 
