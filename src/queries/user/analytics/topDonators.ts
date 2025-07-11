@@ -2,7 +2,7 @@ import type { GQLUserAnalyticsResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
-  connectionFromQuery,
+  connectionFromQueryOffsetBased,
 } from '#common/utils/index.js'
 
 const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
@@ -17,7 +17,7 @@ const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
     start: input?.filter?.inRangeStart,
     end: input?.filter?.inRangeEnd,
   }
-  const connection = await connectionFromQuery<{
+  const connection = await connectionFromQueryOffsetBased<{
     id: string
     address: string
     donationCount: number
@@ -25,7 +25,10 @@ const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   }>({
     query: userService.findTopDonators(id, range),
     args: input,
-    orderBy: { column: 'donationCount', order: 'desc' },
+    orderBy: [
+      { column: 'donationCount', order: 'desc' },
+      { column: 'latestDonationAt', order: 'desc' },
+    ],
   })
   return {
     ...connection,
