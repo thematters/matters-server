@@ -180,7 +180,8 @@ export const connectionFromArrayWithKeys = <
  * Cursor based pagination is preferred because it's more efficient and more robust for varying sequence of data.
  * Offset based pagination is used as a fallback when cursor based pagination can not be applied for reasons like:
  *  1. nulls last ordering.
- *  2. numbered pages use cases, which need to calculate offset based on page number.
+ *  2. multiple columns ordering.
+ *  3. numbered pages use cases, which need to calculate offset based on page number.
  */
 export const connectionFromQuery = async <T extends { id: string }>({
   query,
@@ -205,7 +206,12 @@ export const connectionFromQuery = async <T extends { id: string }>({
     })
   }
 
-  return connectionFromQueryOffsetBased({ query, args, orderBy, maxTake })
+  return connectionFromQueryOffsetBased({
+    query,
+    args,
+    orderBy: [orderBy],
+    maxTake,
+  })
 }
 
 /**
@@ -214,10 +220,11 @@ export const connectionFromQuery = async <T extends { id: string }>({
  * Note:
  *   This implementation does not support:
  *    1. nulls last ordering.
- *    2. numbered pages use cases, which need to calculate offset based on page number.
+ *    2. multiple columns ordering.
+ *    3. numbered pages use cases, which need to calculate offset based on page number.
  *   In such cases, use offset based pagination instead.
  */
-const connectionFromQueryCursorBased = async <T extends { id: string }>({
+export const connectionFromQueryCursorBased = async <T extends { id: string }>({
   query,
   args,
   orderBy,
@@ -358,14 +365,14 @@ const connectionFromQueryCursorBased = async <T extends { id: string }>({
  * Construct a GQL connection from knex query using offset based pagination.
  * This is used as a fallback when cursor-based pagination is not available.
  */
-const connectionFromQueryOffsetBased = async <T extends { id: string }>({
+export const connectionFromQueryOffsetBased = async <T extends { id: string }>({
   query: baseQuery,
   args,
   orderBy,
   maxTake,
 }: {
   query: Knex.QueryBuilder<T>
-  orderBy: { column: keyof T; order: 'asc' | 'desc' }
+  orderBy: Array<{ column: keyof T; order: 'asc' | 'desc' }>
   args: ConnectionArguments
   maxTake?: number
 }): Promise<Connection<T>> => {
@@ -385,7 +392,7 @@ const connectionFromQueryOffsetBased = async <T extends { id: string }>({
     .modify(selectWithTotalCount)
     .from(
       baseQuery
-        .orderBy(orderBy.column as string, orderBy.order, 'last')
+        .orderBy(orderBy)
         .modify((builder) => {
           if (maxTake) {
             builder.limit(maxTake)

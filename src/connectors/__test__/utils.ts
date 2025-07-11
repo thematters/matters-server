@@ -92,7 +92,7 @@ export const createDonationTx = async (
     provider,
     state,
   }: {
-    senderId: string
+    senderId: string | null
     recipientId: string
     targetId?: string
     currency?: keyof typeof PAYMENT_CURRENCY
@@ -125,7 +125,7 @@ export const createTx = async (
     amount,
     provider,
   }: {
-    senderId: string
+    senderId: string | null
     recipientId: string
     purpose: TRANSACTION_PURPOSE
     currency: keyof typeof PAYMENT_CURRENCY
@@ -145,7 +145,7 @@ export const createTx = async (
     provider: provider ?? PAYMENT_PROVIDER.matters,
     providerTxId: String(Math.random()),
     recipientId,
-    senderId,
+    senderId: senderId as string,
     targetId: targetId ?? '1',
     targetType: TRANSACTION_TARGET_TYPE.article,
   })

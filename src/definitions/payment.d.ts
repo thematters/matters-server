@@ -3,6 +3,7 @@ import type {
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
+  BLOCKCHAIN_TRANSACTION_STATE,
 } from '#common/enums/index.js'
 
 export interface PayoutAccount {

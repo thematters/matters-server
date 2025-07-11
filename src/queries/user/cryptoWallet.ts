@@ -1,10 +1,14 @@
 import type { GQLUserInfoResolvers } from '#definitions/index.js'
 
 const resolver: GQLUserInfoResolvers['cryptoWallet'] = async (
-  { id },
+  { id, ethAddress },
   _,
   { dataSources: { userService, atomService } }
 ) => {
+  if (ethAddress) {
+    return { address: ethAddress }
+  }
+
   if (id === undefined) {
     return null
   }
@@ -21,7 +25,7 @@ const resolver: GQLUserInfoResolvers['cryptoWallet'] = async (
   })
 
   if (wallet) {
-    // userId to override id
+    // user.id to override wallet.id
     return { id, userId: id, address: wallet.address }
   }
 

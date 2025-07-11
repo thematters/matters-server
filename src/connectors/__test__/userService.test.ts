@@ -4,6 +4,12 @@ import {
   CACHE_PREFIX,
   APPRECIATION_PURPOSE,
   ARTICLE_ACTION,
+  BLOCKCHAIN_TRANSACTION_STATE,
+  TRANSACTION_STATE,
+  TRANSACTION_PURPOSE,
+  PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
+  TRANSACTION_TARGET_TYPE,
 } from '#common/enums/index.js'
 import { ActionFailedError } from '#common/errors.js'
 import { ArticleService } from '../article/articleService.js'
@@ -37,8 +43,71 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-describe('countDonators', () => {
+const createBlockchainDonationTx = async (
+  {
+    recipientId,
+    fromAddress,
+    toAddress,
+    targetId,
+    amount,
+    txHash,
+    chainId,
+    currency,
+    provider,
+    state,
+  }: {
+    recipientId: string
+    fromAddress: string
+    toAddress?: string
+    targetId?: string
+    amount?: number
+    txHash?: string
+    chainId?: number
+    currency?: keyof typeof PAYMENT_CURRENCY
+    provider?: PAYMENT_PROVIDER
+    state?: BLOCKCHAIN_TRANSACTION_STATE
+  },
+  paymentService: PaymentService
+) => {
+  // Create a transaction without sender_id (null sender for blockchain tx)
+  const transaction = await paymentService.createTransaction({
+    amount: amount ?? 100,
+    fee: 0,
+    purpose: TRANSACTION_PURPOSE.donation,
+    currency: currency ?? PAYMENT_CURRENCY.USDT,
+    state: TRANSACTION_STATE.succeeded,
+    provider: provider ?? PAYMENT_PROVIDER.matters,
+    providerTxId: txHash ?? `tx_${Math.random()}`,
+    recipientId,
+    senderId: undefined, // No user sender for blockchain transactions
+    targetId: targetId ?? '1',
+    targetType: TRANSACTION_TARGET_TYPE.article,
+  })
+
+  // Create the blockchain transaction record
+  await connections.knex('blockchain_transaction').insert({
+    transaction_id: transaction.id,
+    chain_id: chainId ?? 1,
+    tx_hash: txHash ?? `0x${Math.random().toString(16).slice(2)}`,
+    state: state ?? BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+    from: fromAddress,
+    to: toAddress ?? '0x0000000000000000000000000000000000000000',
+    block_number: Math.floor(Math.random() * 1000000),
+  })
+
+  return transaction
+}
+
+describe('findTopDonators', () => {
   beforeEach(async () => {
+    await connections
+      .knex('blockchain_transaction')
+      .whereIn('transaction_id', function () {
+        this.select('id')
+          .from('transaction')
+          .where({ recipientId: TEST_RECIPIENT_ID })
+      })
+      .del()
     await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
@@ -46,32 +115,20 @@ describe('countDonators', () => {
   })
   test('not existed recipientId', async () => {
     const recipientId = '0'
-    const result = await userService.topDonators(recipientId)
+    const result = await userService.findTopDonators(recipientId)
     expect(result).toEqual([])
   })
   test('only one donator', async () => {
     const recipientId = TEST_RECIPIENT_ID
     await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    const result = await userService.topDonators(recipientId)
-    expect(result).toEqual([{ senderId: '2', count: 1 }])
-  })
-  test('donators is ordered', async () => {
-    const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
-    // 1st ordered by donations count desc
-    const result = await userService.topDonators(recipientId)
+    const result = await userService.findTopDonators(recipientId)
     expect(result).toEqual([
-      { senderId: '2', count: 2 },
-      { senderId: '3', count: 1 },
-    ])
-    // 2rd ordered by donations time desc
-    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
-    const result2 = await userService.topDonators(recipientId)
-    expect(result2).toEqual([
-      { senderId: '3', count: 2 },
-      { senderId: '2', count: 2 },
+      {
+        id: '2',
+        address: null,
+        donationCount: '1',
+        latestDonationAt: expect.any(Date),
+      },
     ])
   })
   test('call with range', async () => {
@@ -84,47 +141,66 @@ describe('countDonators', () => {
       { recipientId, senderId: '2' },
       paymentService
     )
-    const result = await userService.topDonators(recipientId, {
-      start: tx1.createdAt,
-      end: tx2.createdAt,
-    })
-    expect(result).toEqual([{ senderId: '2', count: 1 }])
-  })
-  test('call with pagination', async () => {
-    const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
-    await createDonationTx({ recipientId, senderId: '4' }, paymentService)
-    const result1 = await userService.topDonators(recipientId, undefined, {
-      skip: 1,
-    })
-    expect(result1).toEqual([
-      { senderId: '3', count: 1 },
-      { senderId: '2', count: 1 },
+    const result = await userService
+      .findTopDonators(recipientId, {
+        start: tx1.createdAt,
+        end: tx2.createdAt,
+      })
+      .orderBy('donation_count', 'desc')
+      .orderBy('latest_donation_at', 'desc')
+    expect(result).toEqual([
+      {
+        id: '2',
+        address: null,
+        donationCount: '1',
+        latestDonationAt: expect.any(Date),
+      },
     ])
-    const result2 = await userService.topDonators(recipientId, undefined, {
-      take: 1,
-    })
-    expect(result2).toEqual([{ senderId: '4', count: 1 }])
-    const result3 = await userService.topDonators(recipientId, undefined, {
-      take: 1,
-      skip: 1,
-    })
-    expect(result3).toEqual([{ senderId: '3', count: 1 }])
-    // edge cases
-    const result4 = await userService.topDonators(recipientId, undefined, {
-      take: 0,
-    })
-    expect(result4).toEqual([])
-    const result5 = await userService.topDonators(recipientId, undefined, {
-      skip: 3,
-    })
-    expect(result5).toEqual([])
+  })
+  test('supports blockchain donations', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress = '0x1234567890123456789012345678901234567890'
+
+    // Create user donation
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+
+    // Create blockchain donation
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress },
+      paymentService
+    )
+
+    const result = await userService.findTopDonators(recipientId)
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          id: '2',
+          address: null,
+          donationCount: '1',
+          latestDonationAt: expect.any(Date),
+        },
+        {
+          id: null,
+          address: walletAddress,
+          donationCount: '1',
+          latestDonationAt: expect.any(Date),
+        },
+      ])
+    )
   })
 })
 
 describe('countDonators', () => {
   beforeEach(async () => {
+    await connections
+      .knex('blockchain_transaction')
+      .whereIn('transaction_id', function () {
+        this.select('id')
+          .from('transaction')
+          .where({ recipientId: TEST_RECIPIENT_ID })
+      })
+      .del()
     await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
@@ -171,6 +247,193 @@ describe('countDonators', () => {
       end: tx4.createdAt,
     })
     expect(count5).toBe(1)
+  })
+  test('count crypto wallet donators only', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress1 = '0x1234567890123456789012345678901234567890'
+    const walletAddress2 = '0x0987654321098765432109876543210987654321'
+
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress1 },
+      paymentService
+    )
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress2 },
+      paymentService
+    )
+
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(2)
+  })
+  test('count both user and crypto wallet donators', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress1 = '0x1234567890123456789012345678901234567890'
+    const walletAddress2 = '0x0987654321098765432109876543210987654321'
+
+    // Create user donations
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
+
+    // Create crypto wallet donations
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress1 },
+      paymentService
+    )
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress2 },
+      paymentService
+    )
+
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(4) // 2 users + 2 crypto wallets
+  })
+  test('do not double count same crypto wallet address', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress = '0x1234567890123456789012345678901234567890'
+
+    // Create multiple donations from the same wallet
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress },
+      paymentService
+    )
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress },
+      paymentService
+    )
+
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(1) // Only count unique wallet addresses
+  })
+  test('do not double count user who also donated via crypto wallet', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const senderId = '2'
+    const walletAddress = '0x1234567890123456789012345678901234567890'
+
+    // Create user donation
+    await createDonationTx({ recipientId, senderId }, paymentService)
+
+    // Create crypto wallet donation from different address
+    await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress },
+      paymentService
+    )
+
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(2) // User and crypto wallet are counted separately
+  })
+  test('count with range filters crypto wallet donations', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress1 = '0x1234567890123456789012345678901234567890'
+    const walletAddress2 = '0x0987654321098765432109876543210987654321'
+
+    const tx1 = await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress1 },
+      paymentService
+    )
+    const tx2 = await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress2 },
+      paymentService
+    )
+
+    // Count only donations in the range of first transaction
+    const count = await userService.countDonators(recipientId, {
+      start: tx1.createdAt,
+      end: tx2.createdAt,
+    })
+    expect(count).toBe(1) // Only the first transaction
+  })
+  test('handle mixed donations with range filter', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress = '0x1234567890123456789012345678901234567890'
+
+    const userTx = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
+    const walletTx = await createBlockchainDonationTx(
+      { recipientId, fromAddress: walletAddress },
+      paymentService
+    )
+
+    // Count donations in range that includes both
+    const count = await userService.countDonators(recipientId, {
+      start: userTx.createdAt,
+      end: walletTx.createdAt,
+    })
+    expect(count).toBe(1) // Only the user transaction in this range
+  })
+  test('handle null sender_id transactions without blockchain_transaction record', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+
+    // Create a transaction with null sender_id but no blockchain_transaction record
+    await paymentService.createTransaction({
+      amount: 100,
+      fee: 0,
+      purpose: TRANSACTION_PURPOSE.donation,
+      currency: PAYMENT_CURRENCY.HKD,
+      state: TRANSACTION_STATE.succeeded,
+      provider: PAYMENT_PROVIDER.matters,
+      providerTxId: `tx_${Math.random()}`,
+      recipientId,
+      senderId: undefined,
+      targetId: '1',
+      targetType: TRANSACTION_TARGET_TYPE.article,
+    })
+
+    // Should not count null sender with no blockchain transaction
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(0)
+  })
+  test('ignore failed blockchain transactions', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress = '0x1234567890123456789012345678901234567890'
+
+    // Create a failed blockchain transaction
+    await createBlockchainDonationTx(
+      {
+        recipientId,
+        fromAddress: walletAddress,
+        state: BLOCKCHAIN_TRANSACTION_STATE.reverted,
+      },
+      paymentService
+    )
+
+    // Should not count failed transactions
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(0)
+  })
+  test('ignore non-donation transactions', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    const walletAddress = '0x1234567890123456789012345678901234567890'
+
+    // Create a non-donation transaction
+    const transaction = await paymentService.createTransaction({
+      amount: 100,
+      fee: 0,
+      purpose: TRANSACTION_PURPOSE.addCredit,
+      currency: PAYMENT_CURRENCY.USDT,
+      state: TRANSACTION_STATE.succeeded,
+      provider: PAYMENT_PROVIDER.matters,
+      providerTxId: `tx_${Math.random()}`,
+      recipientId,
+      senderId: undefined,
+      targetId: '1',
+      targetType: TRANSACTION_TARGET_TYPE.article,
+    })
+
+    await connections.knex('blockchain_transaction').insert({
+      transaction_id: transaction.id,
+      chain_id: 1,
+      tx_hash: `0x${Math.random().toString(16).slice(2)}`,
+      state: TRANSACTION_STATE.succeeded,
+      from: walletAddress,
+      to: '0x0000000000000000000000000000000000000000',
+      block_number: Math.floor(Math.random() * 1000000),
+    })
+
+    // Should not count non-donation transactions
+    const count = await userService.countDonators(recipientId)
+    expect(count).toBe(0)
   })
 })
 

@@ -2,14 +2,13 @@ import type { GQLUserAnalyticsResolvers } from '#definitions/index.js'
 
 import {
   connectionFromArray,
-  connectionFromPromisedArray,
-  fromConnectionArgs,
+  connectionFromQueryOffsetBased,
 } from '#common/utils/index.js'
 
 const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { id },
   { input },
-  { dataSources: { atomService, userService } }
+  { dataSources: { userService, atomService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -18,20 +17,30 @@ const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
     start: input?.filter?.inRangeStart,
     end: input?.filter?.inRangeEnd,
   }
-  const pagination = fromConnectionArgs(input)
-
-  const donatorsCount = await userService.countDonators(id, range)
-  const connection = await connectionFromPromisedArray(
-    userService.topDonators(id, range, pagination),
-    input,
-    donatorsCount
-  )
+  const connection = await connectionFromQueryOffsetBased<{
+    id: string
+    address: string
+    donationCount: number
+    latestDonationAt: Date
+  }>({
+    query: userService.findTopDonators(id, range),
+    args: input,
+    orderBy: [
+      { column: 'donationCount', order: 'desc' },
+      { column: 'latestDonationAt', order: 'desc' },
+    ],
+  })
   return {
     ...connection,
     edges: connection.edges.map(async (edge) => ({
-      cursor: edge.cursor,
-      node: await atomService.userIdLoader.load(edge.node.senderId),
-      donationCount: edge.node.count,
+      ...edge,
+      node: edge.node.id
+        ? {
+            __type: 'User',
+            ...(await atomService.userIdLoader.load(edge.node.id)),
+          }
+        : { __type: 'CryptoWallet', address: edge.node.address },
+      donationCount: edge.node.donationCount,
     })),
   } as any
 }

@@ -360,9 +360,11 @@ export default /* GraphQL */ `
     edges: [TopDonatorEdge!]
   }
 
+  union Donator = User | CryptoWallet
+
   type TopDonatorEdge {
     cursor: String!
-    node: User!
+    node: Donator!
     donationCount: Int!
   }
 

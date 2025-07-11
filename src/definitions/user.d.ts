@@ -76,12 +76,6 @@ export type Viewer = (User & ViewerBase) | ViewerBase
 
 export type AuthMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
-export interface Wallet {
-  id: string
-  userId: string
-  address: string
-}
-
 export interface SocialAccount {
   userId: string
   type: keyof typeof SOCIAL_LOGIN_TYPE
