@@ -196,7 +196,10 @@ type Mutation {
   """Remove a social login from current user."""
   removeSocialLogin(input: RemoveSocialLoginInput!): User!
 
-  """Logout user."""
+  """Refresh access token using refresh token."""
+  refreshToken: AuthResult!
+
+  """Logout user from current session."""
   userLogout: Boolean!
 
   """Reset Liker ID"""
@@ -2974,7 +2977,9 @@ type Badge {
 
 type AuthResult {
   auth: Boolean!
-  token: String
+  token: String @deprecated(reason: "Use accessToken instead")
+  accessToken: String
+  refreshToken: String
   type: AuthResultType!
   user: User
 }
@@ -2983,6 +2988,7 @@ enum AuthResultType {
   Login
   Signup
   LinkAccount
+  TokenRefresh
 }
 
 type SigningMessageResult {

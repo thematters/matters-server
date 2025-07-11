@@ -175,7 +175,7 @@ export class OAuthService extends BaseService<OAuthClientDB> {
         JSON.parse(environment.OICDPrivateKey || '{}').private_key,
         {
           expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-          issuer: 'matters.news',
+          issuer: environment.siteDomain,
           algorithm: 'RS256',
         }
       )

@@ -2,13 +2,15 @@ import type { User } from '#definitions/index.js'
 
 import {
   COOKIE_LANGUAGE,
-  COOKIE_TOKEN_NAME,
+  COOKIE_ACCESS_TOKEN_NAME,
+  COOKIE_REFRESH_TOKEN_NAME,
   COOKIE_USER_GROUP,
-  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+  COOKIE_EXPIRES_IN_MS,
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 import { extractRootDomain, getUserGroup } from '#common/utils/index.js'
 import { CookieOptions, Request, Response } from 'express'
+import jwt from 'jsonwebtoken'
 
 /**
  * Provides standardized cookie configuration with security best practices:
@@ -17,7 +19,13 @@ import { CookieOptions, Request, Response } from 'express'
  * - domain: Controls cross-subdomain accessibility
  * - sameSite: Manages cross-site request behavior
  */
-const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
+const getCookieOptions = ({
+  req,
+  expires,
+}: {
+  req: Request
+  expires?: Date
+}): CookieOptions => {
   // e.g. server.matters.town
   const hostname = req.hostname
   const tld = extractRootDomain(hostname) // e.g. matters.town
@@ -36,7 +44,7 @@ const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
   const isVercelPreview = hostname.includes('.vercel.app')
 
   return {
-    maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+    expires,
     httpOnly: true,
     secure: true,
     ...(localOrigin || isVercelPreview ? {} : { domain }), // Only set domain if it's defined
@@ -57,12 +65,14 @@ const getCookieOptions = ({ req }: { req: Request }): CookieOptions => {
 export const setCookie = ({
   req,
   res,
-  token,
+  accessToken,
+  refreshToken,
   user,
 }: {
   req: Request
   res: Response
-  token?: string
+  accessToken?: string
+  refreshToken?: string
   user: User
 }) => {
   if (isTest) {
@@ -70,18 +80,35 @@ export const setCookie = ({
     return
   }
 
-  const cookieOptions = getCookieOptions({ req })
+  // cookie:accessToken - Contains user authentication JWT (1 hour)
+  if (accessToken) {
+    const payload = jwt.decode(accessToken) as { exp: number }
+    const accessCookieOptions = getCookieOptions({
+      req,
+      expires: new Date(payload.exp * 1000),
+    })
+    res.cookie(COOKIE_ACCESS_TOKEN_NAME, accessToken, accessCookieOptions)
+  }
 
-  // cookie:token - Contains user authentication JWT
-  if (token) {
-    res.cookie(COOKIE_TOKEN_NAME, token, cookieOptions)
+  // cookie:refreshToken - Contains refresh token (30 days)
+  if (refreshToken) {
+    const payload = jwt.decode(refreshToken) as { exp: number }
+    const refreshCookieOptions = getCookieOptions({
+      req,
+      expires: new Date(payload.exp * 1000),
+    })
+    res.cookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken, refreshCookieOptions)
   }
 
   // cookie:user_group - Used for feature targeting and analytics
-  res.cookie(COOKIE_USER_GROUP, getUserGroup(user), cookieOptions)
+  const baseCookieOptions = getCookieOptions({
+    req,
+    expires: new Date(Date.now() + COOKIE_EXPIRES_IN_MS),
+  })
+  res.cookie(COOKIE_USER_GROUP, getUserGroup(user), baseCookieOptions)
 
   // cookie:language - Stores user language preference
-  res.cookie(COOKIE_LANGUAGE, user.language, cookieOptions)
+  res.cookie(COOKIE_LANGUAGE, user.language, baseCookieOptions)
 }
 
 /**
@@ -95,8 +122,11 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   // clearCookie needs matching domain and path values
   const cookieOptions = getCookieOptions({ req })
 
-  // cookie:token
-  res.clearCookie(COOKIE_TOKEN_NAME, cookieOptions)
+  // cookie:accessToken
+  res.clearCookie(COOKIE_ACCESS_TOKEN_NAME, cookieOptions)
+
+  // cookie:refreshToken
+  res.clearCookie(COOKIE_REFRESH_TOKEN_NAME, cookieOptions)
 
   // cookie:user_group
   res.clearCookie(COOKIE_USER_GROUP, cookieOptions)

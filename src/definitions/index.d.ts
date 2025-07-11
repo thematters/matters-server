@@ -124,6 +124,7 @@ import type {
   UserRestriction,
   UsernameEditHistory,
   UserFeatureFlag,
+  RefreshToken,
 } from './user.js'
 import type { CryptoWallet, CryptoWalletSignature } from './wallet.js'
 import type { BasedContext } from '@apollo/server'
@@ -298,6 +299,7 @@ export interface TableTypeMap {
   curation_channel_article: CurationChannelArticle
   channel_announcement: ChannelAnnouncement
   topic_channel_feedback: TopicChannelFeedback
+  refresh_token: RefreshToken
 }
 
 export type TableTypeMapKey = keyof TableTypeMap

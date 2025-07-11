@@ -54,12 +54,12 @@ interface BaseInput {
 
 export const defaultTestUser = {
   email: 'test1@matters.news',
-  password: '123',
+  password: '12345678',
   userName: 'test1',
 }
 export const adminUser = {
   email: 'admin1@matters.news',
-  password: '123',
+  password: '12345678',
 }
 
 export const getUserContext = async (
