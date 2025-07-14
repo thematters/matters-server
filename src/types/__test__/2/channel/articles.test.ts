@@ -530,6 +530,83 @@ describe('TopicChannel.articles', () => {
       expect(errors).toBeUndefined()
     })
   })
+
+  describe('oss parameter', () => {
+    let channel: TopicChannel
+    let articles: Article[]
+
+    beforeEach(async () => {
+      channel = await channelService.createTopicChannel({
+        name: 'test-topic',
+        providerId: 'test-provider-id',
+        enabled: true,
+      })
+
+      articles = await atomService.findMany({
+        table: 'article',
+        where: {},
+        take: 4,
+      })
+
+      await Promise.all(
+        articles.map((article) =>
+          atomService.create({
+            table: 'topic_channel_article',
+            data: {
+              articleId: article.id,
+              channelId: channel.id,
+              enabled: true,
+              pinned: false,
+            },
+          })
+        )
+      )
+    })
+
+    test('non-admin cannot use oss parameter', async () => {
+      const server = await testClient({ connections, isAuth: true })
+
+      const { errors } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            oss: true,
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    })
+
+    test('admin can use oss parameter', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            oss: true,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.channel.articles.edges).toHaveLength(4)
+    })
+  })
 })
 
 describe('CurationChannel.articles', () => {
@@ -638,6 +715,100 @@ describe('CurationChannel.articles', () => {
       })
 
       expect(errors).toBeUndefined()
+    })
+  })
+
+  describe('oss parameter', () => {
+    let channel: CurationChannel
+    let articles: Article[]
+
+    beforeEach(async () => {
+      channel = await channelService.createCurationChannel({
+        name: 'test-curation',
+        state: CURATION_CHANNEL_STATE.published,
+      })
+
+      articles = await atomService.findMany({
+        table: 'article',
+        where: {},
+        take: 4,
+      })
+
+      await Promise.all(
+        articles.map((article) =>
+          atomService.create({
+            table: 'curation_channel_article',
+            data: {
+              articleId: article.id,
+              channelId: channel.id,
+              pinned: false,
+            },
+          })
+        )
+      )
+    })
+
+    test('non-admin cannot use oss parameter', async () => {
+      const server = await testClient({ connections, isAuth: true })
+
+      const { errors } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            oss: true,
+          },
+        },
+      })
+
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    })
+
+    test('admin can use oss parameter', async () => {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+            oss: true,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.channel.articles.edges).toHaveLength(4)
+    })
+
+    test('oss parameter defaults to false', async () => {
+      const server = await testClient({ connections })
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_CHANNEL_ARTICLES,
+        variables: {
+          channelInput: {
+            shortHash: channel.shortHash,
+          },
+          articleInput: {
+            first: 10,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.channel.articles.edges).toHaveLength(4)
     })
   })
 })

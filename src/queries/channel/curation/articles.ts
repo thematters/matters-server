@@ -19,9 +19,13 @@ const resolver: GQLCurationChannelResolvers['articles'] = async (
     },
   }
 ) => {
+  const { oss } = input
   const isAdmin = viewer.hasRole('admin')
   const sort = input.sort ?? 'newest'
 
+  if (oss === true && !isAdmin) {
+    throw new ForbiddenError('Only admins can access OSS')
+  }
   if (sort !== 'newest' && !isAdmin) {
     throw new ForbiddenError('Only admins can sort articles')
   }
@@ -85,7 +89,7 @@ const resolver: GQLCurationChannelResolvers['articles'] = async (
     args: input,
     orderBy,
     // oss use offset based pagination
-    cursorColumn: isAdmin ? undefined : 'id',
+    cursorColumn: oss ? undefined : 'id',
   })
 
   return {

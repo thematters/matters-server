@@ -948,6 +948,7 @@ export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLChannelArticlesFilter>
   first?: InputMaybe<Scalars['Int']['input']>
+  oss?: InputMaybe<Scalars['Boolean']['input']>
   sort?: InputMaybe<GQLArticlesSort>
 }
 

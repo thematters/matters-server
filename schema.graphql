@@ -4058,6 +4058,7 @@ input ChannelArticlesInput {
   first: Int
   sort: ArticlesSort
   filter: ChannelArticlesFilter
+  oss: Boolean = false
 }
 
 input ChannelArticlesFilter {

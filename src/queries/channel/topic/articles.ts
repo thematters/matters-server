@@ -22,7 +22,11 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     },
   }
 ) => {
+  const { oss } = input
   const isAdmin = viewer.hasRole('admin')
+  if (oss === true && !isAdmin) {
+    throw new ForbiddenError('Only admins can access OSS')
+  }
   if (input.sort !== undefined && !isAdmin) {
     throw new ForbiddenError('Only admins can sort articles')
   }
@@ -108,8 +112,8 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     args: input,
     orderBy,
     // OSS can see all articles and uses offset based pagination
-    maxTake: isAdmin ? undefined : MAX_ITEM_COUNT,
-    cursorColumn: isAdmin ? undefined : 'id',
+    maxTake: oss ? undefined : MAX_ITEM_COUNT,
+    cursorColumn: oss ? undefined : 'id',
   })
 
   return {
