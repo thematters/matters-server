@@ -43,6 +43,7 @@ export default /* GraphQL */ `
     first: Int
     sort: ArticlesSort
     filter: ChannelArticlesFilter
+    oss: Boolean = false
   }
 
 
