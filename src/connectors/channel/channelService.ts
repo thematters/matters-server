@@ -308,11 +308,15 @@ export class ChannelService {
   ) => {
     const knexRO = this.connections.knexRO
 
-    // First, get the channel to access pinnedArticles
+    // get the channel to access pinnedArticles
     const channel = await this.models.findUnique({
       table: 'topic_channel',
       where: { id: channelId },
     })
+    // const subChannels = await this.models.findMany({
+    //   table: 'topic_channel',
+    //   where: { parentId: channelId },
+    // })
 
     if (!channel) {
       throw new EntityNotFoundError('Channel not found')
@@ -323,13 +327,12 @@ export class ChannelService {
     const pinnedQuery = knexRO
       .select(
         'article.*',
-        'topic_channel_article.created_at as channel_article_created_at'
+        // `channel_article_created_at` is used in RecommentdationService.
+        // values of pinned articles are set to `now()` so those articles can be excluded from recommentdation pools
+        'now() as channel_article_created_at'
       )
-      .from('topic_channel_article')
-      .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
+      .from('article')
       .where({
-        'topic_channel_article.channel_id': channelId,
-        'topic_channel_article.enabled': true,
         'article.state': ARTICLE_STATE.active,
       })
       .whereIn('article.id', pinnedArticleIds)

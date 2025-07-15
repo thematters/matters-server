@@ -5,6 +5,7 @@ export const up = async (knex) => {
     t.specificType('pinned_articles', 'bigint ARRAY')
     t.string('provider_id').nullable().alter()
     t.bigint('parent_id').nullable().references('id').inTable('topic_channel')
+    t.index('parent_id')
   })
 }
 
