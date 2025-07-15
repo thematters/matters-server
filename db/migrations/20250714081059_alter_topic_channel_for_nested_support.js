@@ -4,7 +4,7 @@ export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.specificType('pinned_articles', 'bigint ARRAY')
     t.string('provider_id').nullable().alter()
-    t.integer('parent_id').nullable().references('id').inTable('topic_channel')
+    t.bigint('parent_id').nullable().references('id').inTable('topic_channel')
   })
 }
 

@@ -79,6 +79,99 @@ describe('updateOrCreateChannel', () => {
     expect(channel.name).toBe(dataWithoutDescription.name)
     expect(channel.note).toBeNull()
   })
+
+  test('creates channel with subChannelIds and sets parent-child relationships', async () => {
+    // Create sub-channels first
+    const subChannel1 = await channelService.createTopicChannel({
+      name: 'sub-channel-1',
+      note: 'sub channel 1',
+      providerId: 'sub1',
+      enabled: true,
+    })
+    const subChannel2 = await channelService.createTopicChannel({
+      name: 'sub-channel-2',
+      note: 'sub channel 2',
+      providerId: 'sub2',
+      enabled: true,
+    })
+
+    // Create parent channel with subChannelIds
+    const parentChannel = await channelService.createTopicChannel({
+      name: 'parent-channel',
+      note: 'parent channel',
+      providerId: 'parent',
+      enabled: true,
+      subChannelIds: [subChannel1.id, subChannel2.id],
+    })
+
+    expect(parentChannel).toBeDefined()
+    expect(parentChannel.name).toBe('parent-channel')
+
+    // Verify parent-child relationships were set
+    const updatedSubChannel1 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel1.id },
+    })
+    const updatedSubChannel2 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel2.id },
+    })
+
+    expect(updatedSubChannel1.parentId).toBe(parentChannel.id)
+    expect(updatedSubChannel2.parentId).toBe(parentChannel.id)
+  })
+
+  test('creates channel without subChannelIds - no parent relationships', async () => {
+    const channel = await channelService.createTopicChannel({
+      name: 'standalone-channel',
+      note: 'standalone channel',
+      providerId: 'standalone',
+      enabled: true,
+    })
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toBe('standalone-channel')
+    expect(channel.parentId).toBeNull()
+  })
+
+  test('creates channel with empty subChannelIds array', async () => {
+    const channel = await channelService.createTopicChannel({
+      name: 'empty-subs-channel',
+      note: 'channel with empty sub array',
+      providerId: 'empty',
+      enabled: true,
+      subChannelIds: [],
+    })
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toBe('empty-subs-channel')
+  })
+
+  test('handles single subChannelId', async () => {
+    // Create sub-channel first
+    const subChannel = await channelService.createTopicChannel({
+      name: 'single-sub-channel',
+      providerId: 'single-sub',
+      enabled: true,
+    })
+
+    // Create parent channel with single subChannelId
+    const parentChannel = await channelService.createTopicChannel({
+      name: 'single-parent-channel',
+      enabled: true,
+      subChannelIds: [subChannel.id],
+    })
+
+    expect(parentChannel).toBeDefined()
+
+    // Verify parent-child relationship was set
+    const updatedSubChannel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel.id },
+    })
+
+    expect(updatedSubChannel.parentId).toBe(parentChannel.id)
+  })
 })
 
 describe('setArticleChannels', () => {
