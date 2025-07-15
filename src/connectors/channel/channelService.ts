@@ -276,7 +276,7 @@ export class ChannelService {
   /**
    * Find articles for a topic channel with order column considering pinned flag
    */
-  public findTopicChannelArticles = (
+  public findTopicChannelArticles = async (
     channelId: string,
     {
       channelThreshold,
@@ -294,6 +294,19 @@ export class ChannelService {
     }
   ) => {
     const knexRO = this.connections.knexRO
+
+    // First, get the channel to access pinnedArticles
+    const channel = await this.models.findUnique({
+      table: 'topic_channel',
+      where: { id: channelId },
+    })
+
+    if (!channel) {
+      throw new EntityNotFoundError('Channel not found')
+    }
+
+    const pinnedArticleIds = channel.pinnedArticles || []
+
     const pinnedQuery = knexRO
       .select(
         'article.*',
@@ -304,9 +317,9 @@ export class ChannelService {
       .where({
         'topic_channel_article.channel_id': channelId,
         'topic_channel_article.enabled': true,
-        'topic_channel_article.pinned': true,
         'article.state': ARTICLE_STATE.active,
       })
+      .whereIn('article.id', pinnedArticleIds)
 
     const unpinnedQuery = knexRO
       .select(
@@ -318,7 +331,6 @@ export class ChannelService {
       .where({
         'topic_channel_article.channel_id': channelId,
         'topic_channel_article.enabled': true,
-        'topic_channel_article.pinned': false,
         'article.state': ARTICLE_STATE.active,
       })
       .where((qb) => {
@@ -340,12 +352,28 @@ export class ChannelService {
         }
       })
 
+    // Exclude pinned articles from unpinned query
+    if (pinnedArticleIds.length > 0) {
+      unpinnedQuery.whereNotIn('article.id', pinnedArticleIds)
+    }
+
     if (addOrderColumn) {
-      pinnedQuery.select(
-        knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
+      // For pinned articles, use the order in the pinnedArticles array
+      if (pinnedArticleIds.length > 0) {
+        const orderCaseStatements = pinnedArticleIds
+          .map((id, index) => `WHEN '${id}' THEN ${index + 1}`)
+          .join(' ')
+        pinnedQuery.select(
+          knexRO.raw(
+            `CASE article.id ${orderCaseStatements} ELSE ${
+              pinnedArticleIds.length + 1
+            } END AS order`
+          )
         )
-      )
+      } else {
+        pinnedQuery.select(knexRO.raw('1 AS order'))
+      }
+
       unpinnedQuery.select(
         knexRO.raw(
           'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
@@ -365,7 +393,7 @@ export class ChannelService {
       if (datetimeRange.end) {
         filteredQuery.where(`${alias}.created_at`, '<=', datetimeRange.end)
       }
-      return filteredQuery
+      return { query: filteredQuery }
     }
 
     if (flood !== undefined) {
@@ -390,21 +418,25 @@ export class ChannelService {
         .select('*')
         .from('ranked')
       if (flood === true) {
-        return floodBaseQuery.where(
-          'rank',
-          '>',
-          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
-        )
+        return {
+          query: floodBaseQuery.where(
+            'rank',
+            '>',
+            CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+          ),
+        }
       } else {
-        return floodBaseQuery.where(
-          'rank',
-          '<=',
-          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
-        )
+        return {
+          query: floodBaseQuery.where(
+            'rank',
+            '<=',
+            CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+          ),
+        }
       }
     }
 
-    return query
+    return { query }
   }
 
   public isFlood = async ({
@@ -424,10 +456,10 @@ export class ChannelService {
         args: { channelId },
       },
       getter: async () => {
-        const articles = await this.findTopicChannelArticles(channelId, {
+        const { query } = await this.findTopicChannelArticles(channelId, {
           flood: true,
         })
-        return articles.map((a) => a.id)
+        return (await query).map((a) => a.id)
       },
       expire: CACHE_TTL.SHORT,
     })

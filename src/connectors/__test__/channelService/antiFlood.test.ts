@@ -95,23 +95,27 @@ beforeEach(async () => {
 
 describe('filter out flood articles', () => {
   test('limits articles from same author within time window', async () => {
-    const results = await channelService.findTopicChannelArticles(channel.id, {
-      flood: false,
-    })
+    const { query } = await channelService.findTopicChannelArticles(
+      channel.id,
+      {
+        flood: false,
+      }
+    )
+    const results = await query
 
     // Should only include 3 (2 today, and 1 tomorrow) articles from author1 (the first two chronologically)
     // and 1 article from author2
     expect(results).toHaveLength(4)
 
-    const author1Results = results.filter((a) => a.authorId === '1')
+    const author1Results = results.filter((a: any) => a.authorId === '1')
     expect(author1Results).toHaveLength(3)
-    expect(author1Results.map((a) => a.id)).toEqual([
+    expect(author1Results.map((a: any) => a.id)).toEqual([
       author1Articles[0].id,
       author1Articles[1].id,
       author1Articles[3].id,
     ])
 
-    const author2Results = results.filter((a) => a.authorId === '2')
+    const author2Results = results.filter((a: any) => a.authorId === '2')
     expect(author2Results).toHaveLength(1)
 
     const isFlood = await channelService.isFlood({
@@ -121,9 +125,13 @@ describe('filter out flood articles', () => {
     expect(isFlood).toBe(false)
   })
   test('returns flood articles when flood is true', async () => {
-    const results = await channelService.findTopicChannelArticles(channel.id, {
-      flood: true,
-    })
+    const { query } = await channelService.findTopicChannelArticles(
+      channel.id,
+      {
+        flood: true,
+      }
+    )
+    const results = await query
     expect(results).toHaveLength(1)
     expect(results[0].id).toBe(author1Articles[2].id)
 
