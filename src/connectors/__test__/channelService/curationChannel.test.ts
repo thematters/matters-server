@@ -6,7 +6,6 @@ import type {
 import {
   CURATION_CHANNEL_COLOR,
   CURATION_CHANNEL_STATE,
-  NODE_TYPES,
 } from '#common/enums/index.js'
 
 import { PublicationService } from '../../article/publicationService.js'
@@ -526,7 +525,7 @@ describe('findActiveCurationChannels', () => {
   })
 })
 
-describe('togglePinChannelArticles', () => {
+describe('togglePinCurationChannelArticles', () => {
   let curationChannel: CurationChannel
   let articles: Article[]
   const articleIds = ['1', '2', '3', '4', '5', '6', '7']
@@ -565,9 +564,8 @@ describe('togglePinChannelArticles', () => {
 
   describe('Curation Channel', () => {
     test.only('pins articles within limit', async () => {
-      const result = await channelService.togglePinChannelArticles({
+      const result = await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [articles[0].id, articles[1].id],
         pinned: true,
       })
@@ -585,17 +583,15 @@ describe('togglePinChannelArticles', () => {
 
     test('unpins articles', async () => {
       // First pin some articles
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [articles[0].id, articles[1].id],
         pinned: true,
       })
 
       // Then unpin one
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [articles[0].id],
         pinned: false,
       })
@@ -623,9 +619,8 @@ describe('togglePinChannelArticles', () => {
 
       // Try to pin 3 articles (limit is 2)
       await expect(
-        channelService.togglePinChannelArticles({
+        channelService.togglePinCurationChannelArticles({
           channelId: customChannel.id,
-          channelType: NODE_TYPES.CurationChannel,
           articleIds: [articles[0].id, articles[1].id, articles[2].id],
           pinned: true,
         })
@@ -634,15 +629,13 @@ describe('togglePinChannelArticles', () => {
 
     test('automatically unpins oldest articles when exceeding pin limit', async () => {
       // First pin 3 articles (max limit)
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: articleIds.slice(0, 1),
         pinned: true,
       })
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: articleIds.slice(1, 3),
         pinned: true,
       })
@@ -655,9 +648,8 @@ describe('togglePinChannelArticles', () => {
       expect(initialPinned).toHaveLength(3)
 
       // Try to pin one more article
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [articles[3].id],
         pinned: true,
       })
@@ -674,17 +666,15 @@ describe('togglePinChannelArticles', () => {
 
     test('handles multiple new pins when exceeding limit', async () => {
       // First pin 2 articles
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: articleIds.slice(0, 2),
         pinned: true,
       })
 
       // Try to pin 2 more articles (exceeding limit by 1)
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [articles[2].id, articles[3].id],
         pinned: true,
       })
@@ -703,9 +693,8 @@ describe('togglePinChannelArticles', () => {
 
   describe('Error Cases', () => {
     test('handles empty article ids array', async () => {
-      const result = await channelService.togglePinChannelArticles({
+      const result = await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [],
         pinned: true,
       })
@@ -715,9 +704,8 @@ describe('togglePinChannelArticles', () => {
 
     test('allows unpinning even when over limit', async () => {
       // First pin some articles
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
-        channelType: NODE_TYPES.CurationChannel,
         articleIds: [articles[0].id, articles[1].id],
         pinned: true,
       })
@@ -730,9 +718,8 @@ describe('togglePinChannelArticles', () => {
 
       // Should still be able to unpin
       await expect(
-        channelService.togglePinChannelArticles({
+        channelService.togglePinCurationChannelArticles({
           channelId: curationChannel.id,
-          channelType: NODE_TYPES.CurationChannel,
           articleIds: [articles[0].id, articles[1].id],
           pinned: false,
         })

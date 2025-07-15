@@ -10,7 +10,9 @@ export interface TopicChannel {
   shortHash: string
   name: string
   note?: string
-  providerId: string
+  providerId: string | null
+  parentId: string | null
+  pinnedArticles: string[]
   enabled: boolean
   order: number
   createdAt: Date
@@ -33,8 +35,6 @@ export interface TopicChannelArticle {
   score?: number
   isLabeled: boolean
   enabled: boolean
-  pinned: boolean
-  pinnedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

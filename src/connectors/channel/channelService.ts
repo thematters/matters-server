@@ -1,7 +1,6 @@
 import type {
   ArticleVersion,
   CampaignChannel,
-  CurationChannel,
   Connections,
   ValueOf,
   TopicChannelFeedback,
@@ -601,23 +600,18 @@ export class ChannelService {
     return pinnedQuery.union(unpinnedQuery)
   }
 
-  public togglePinChannelArticles = async ({
+  public togglePinCurationChannelArticles = async ({
     channelId,
-    channelType,
     articleIds,
     pinned,
   }: {
     channelId: string
-    channelType: NODE_TYPES.TopicChannel | NODE_TYPES.CurationChannel
     articleIds: string[]
     pinned: boolean
   }) => {
     // Get channel to check pin limit
     const channel = await this.models.findUnique({
-      table:
-        channelType === NODE_TYPES.TopicChannel
-          ? 'topic_channel'
-          : 'curation_channel',
+      table: 'curation_channel',
       where: { id: channelId },
     })
 
@@ -629,10 +623,7 @@ export class ChannelService {
       return channel
     }
 
-    const maxPinAmount =
-      channelType === NODE_TYPES.TopicChannel
-        ? TOPIC_CHANNEL_PIN_LIMIT
-        : (channel as CurationChannel).pinAmount
+    const maxPinAmount = channel.pinAmount
 
     // If pinning, check if it would exceed the limit
     if (pinned) {
@@ -642,20 +633,14 @@ export class ChannelService {
         )
       }
       const currentPinnedCount = await this.models.count({
-        table:
-          channelType === NODE_TYPES.TopicChannel
-            ? 'topic_channel_article'
-            : 'curation_channel_article',
+        table: 'curation_channel_article',
         where: {
           channelId,
           pinned: true,
         },
       })
       const unpinnedArticleCount = await this.models.count({
-        table:
-          channelType === NODE_TYPES.TopicChannel
-            ? 'topic_channel_article'
-            : 'curation_channel_article',
+        table: 'curation_channel_article',
         where: { channelId, pinned: false },
         whereIn: ['articleId', articleIds],
       })
@@ -663,10 +648,7 @@ export class ChannelService {
       if (currentPinnedCount + unpinnedArticleCount > maxPinAmount) {
         // Find oldest pinned articles to unpin
         const oldestPinnedArticles = await this.models.findMany({
-          table:
-            channelType === NODE_TYPES.TopicChannel
-              ? 'topic_channel_article'
-              : 'curation_channel_article',
+          table: 'curation_channel_article',
           where: { channelId, pinned: true },
           orderBy: [{ column: 'pinned_at', order: 'asc' }],
           take: unpinnedArticleCount - (maxPinAmount - currentPinnedCount),
@@ -674,10 +656,7 @@ export class ChannelService {
 
         // Unpin oldest articles to make room
         await this.models.updateMany({
-          table:
-            channelType === NODE_TYPES.TopicChannel
-              ? 'topic_channel_article'
-              : 'curation_channel_article',
+          table: 'curation_channel_article',
           where: { channelId },
           whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
           data: {
@@ -691,10 +670,7 @@ export class ChannelService {
     // Update pin status for articles
     const now = new Date()
     await this.models.updateMany({
-      table:
-        channelType === NODE_TYPES.TopicChannel
-          ? 'topic_channel_article'
-          : 'curation_channel_article',
+      table: 'curation_channel_article',
       where: { channelId },
       whereIn: ['articleId', articleIds],
       data: {
@@ -704,6 +680,64 @@ export class ChannelService {
     })
 
     return channel
+  }
+
+  public togglePinTopicChannelArticles = async ({
+    channelId,
+    articleIds,
+    pinned,
+  }: {
+    channelId: string
+    articleIds: string[]
+    pinned: boolean
+  }) => {
+    // Get channel to check current pinned articles
+    const channel = await this.models.findUnique({
+      table: 'topic_channel',
+      where: { id: channelId },
+    })
+
+    if (!channel) {
+      throw new EntityNotFoundError('channel not found')
+    }
+
+    if (articleIds.length === 0) {
+      return channel
+    }
+
+    // Current pinned articles array (empty array if null)
+    const currentPinnedArticles = channel.pinnedArticles || []
+
+    let newPinnedArticles: string[]
+
+    if (pinned) {
+      // Add articles to pinned list
+      const newPinnedSet = new Set([
+        ...articleIds,
+        ...currentPinnedArticles.map(String),
+      ])
+      newPinnedArticles = Array.from(newPinnedSet).slice(
+        0,
+        TOPIC_CHANNEL_PIN_LIMIT
+      )
+    } else {
+      // Remove articles from pinned list
+      const articlesToUnpin = new Set(articleIds)
+      newPinnedArticles = currentPinnedArticles
+        .map(String)
+        .filter((id) => !articlesToUnpin.has(id))
+    }
+
+    // Update the channel with new pinned articles
+    const updatedChannel = await this.models.update({
+      table: 'topic_channel',
+      where: { id: channelId },
+      data: {
+        pinnedArticles: newPinnedArticles,
+      },
+    })
+
+    return updatedChannel
   }
 
   public createPositiveFeedback = async ({

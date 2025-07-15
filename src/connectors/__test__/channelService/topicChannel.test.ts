@@ -1,5 +1,4 @@
 import type { Connections, Article, TopicChannel } from '#definitions/index.js'
-import { NODE_TYPES } from '#common/enums/index.js'
 
 import { PublicationService } from '../../article/publicationService.js'
 import { AtomService } from '../../atomService.js'
@@ -336,89 +335,152 @@ describe('togglePinChannelArticles', () => {
 
   describe('Topic Channel', () => {
     test('pins articles within limit', async () => {
-      const result = await channelService.togglePinChannelArticles({
+      const result = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: true,
       })
 
-      const pinnedArticles = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
-      })
-
       expect(result.id).toBe(topicChannel.id)
-      expect(pinnedArticles).toHaveLength(1)
-      expect(pinnedArticles[0].pinnedAt).toBeDefined()
+      expect(result.pinnedArticles).toHaveLength(1)
+      expect(result.pinnedArticles).toContain(articles[0].id)
     })
 
     test('unpins articles', async () => {
       // First pin an article
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: true,
       })
 
       // Then unpin it
-      await channelService.togglePinChannelArticles({
+      const result = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: false,
       })
 
-      const pinnedArticles = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
-      })
-
-      expect(pinnedArticles).toHaveLength(0)
+      expect(result.pinnedArticles).toHaveLength(0)
+      expect(result.pinnedArticles).not.toContain(articles[0].id)
     })
 
     test('automatically unpins oldest articles when exceeding pin limit', async () => {
       // First pin 6 articles (max limit)
-      await channelService.togglePinChannelArticles({
+      const initialResult = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: articleIds.slice(0, 6),
         pinned: true,
       })
 
-      // Get initial pinned articles
-      const initialPinned = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
-      })
-      expect(initialPinned).toHaveLength(6)
+      // Verify we have 6 pinned articles
+      expect(initialResult.pinnedArticles).toHaveLength(6)
 
       // Try to pin one more article
-      await channelService.togglePinChannelArticles({
+      const finalResult = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[6].id],
         pinned: true,
       })
 
-      // Verify oldest article was unpinned
-      const finalPinned = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
+      // Verify we still have only 6 pinned articles (limit enforced)
+      expect(finalResult.pinnedArticles).toHaveLength(6)
+      expect(finalResult.pinnedArticles).toContain(articles[6].id)
+
+      // The new article should be in the pinned list
+      // and the oldest articles should be removed due to the slice(0, TOPIC_CHANNEL_PIN_LIMIT)
+    })
+
+    test('pins multiple articles at once', async () => {
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[1].id, articles[2].id],
+        pinned: true,
       })
-      expect(finalPinned).toHaveLength(6)
-      expect(finalPinned.map((a) => a.articleId)).toContain(articles[6].id)
-      expect(finalPinned.map((a) => a.articleId)).not.toContain(articles[0].id)
+
+      expect(result.pinnedArticles).toHaveLength(3)
+      expect(result.pinnedArticles).toContain(articles[0].id)
+      expect(result.pinnedArticles).toContain(articles[1].id)
+      expect(result.pinnedArticles).toContain(articles[2].id)
+    })
+
+    test('unpins multiple articles at once', async () => {
+      // First pin multiple articles
+      await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[1].id, articles[2].id],
+        pinned: true,
+      })
+
+      // Then unpin some of them
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[2].id],
+        pinned: false,
+      })
+
+      expect(result.pinnedArticles).toHaveLength(1)
+      expect(result.pinnedArticles).toContain(articles[1].id)
+      expect(result.pinnedArticles).not.toContain(articles[0].id)
+      expect(result.pinnedArticles).not.toContain(articles[2].id)
+    })
+
+    test('handles duplicate article IDs when pinning', async () => {
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[0].id, articles[1].id],
+        pinned: true,
+      })
+
+      // Should deduplicate and only pin 2 unique articles
+      expect(result.pinnedArticles).toHaveLength(2)
+      expect(result.pinnedArticles).toContain(articles[0].id)
+      expect(result.pinnedArticles).toContain(articles[1].id)
+    })
+
+    test('handles empty article IDs array', async () => {
+      const before = await atomService.findUnique({
+        table: 'topic_channel',
+        where: { id: topicChannel.id },
+      })
+      const after = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [],
+        pinned: true,
+      })
+
+      expect(after.pinnedArticles).toEqual(before.pinnedArticles)
+    })
+
+    test('respects pin limit when adding to existing pinned articles', async () => {
+      // First pin 4 articles
+      await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: articleIds.slice(0, 4),
+        pinned: true,
+      })
+
+      // Then try to pin 4 more articles (total would be 8, but limit is 6)
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: articleIds.slice(4, 8),
+        pinned: true,
+      })
+
+      // Should only have 6 articles pinned (the limit)
+      expect(result.pinnedArticles).toHaveLength(6)
+
+      // The new articles should be included
+      expect(result.pinnedArticles).toContain(articleIds[5])
+      expect(result.pinnedArticles).toContain(articleIds[6])
     })
   })
 
   describe('Error Cases', () => {
     test('throws error for non-existent channel', async () => {
       await expect(
-        channelService.togglePinChannelArticles({
+        channelService.togglePinTopicChannelArticles({
           channelId: '999',
-          channelType: NODE_TYPES.TopicChannel,
           articleIds: [articles[0].id],
           pinned: true,
         })

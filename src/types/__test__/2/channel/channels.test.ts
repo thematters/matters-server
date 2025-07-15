@@ -423,7 +423,6 @@ describe('channels query', () => {
           enabled: true,
           isLabeled: true,
           score: 0.8,
-          pinned: true,
         },
       })
       await atomService.create({
@@ -434,8 +433,13 @@ describe('channels query', () => {
           enabled: true,
           isLabeled: false,
           score: 0.6,
-          pinned: false,
         },
+      })
+
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel1.id },
+        data: { pinnedArticles: [article.id] },
       })
 
       const { data, errors } = await server.executeOperation({
@@ -519,7 +523,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -575,7 +578,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -631,7 +633,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -699,7 +700,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -767,7 +767,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
