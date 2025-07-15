@@ -1,5 +1,4 @@
 import type { Connections, Article } from '#definitions/index.js'
-import { NODE_TYPES } from '#common/enums/index.js'
 
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
@@ -76,9 +75,8 @@ describe('findTopicChannelArticles', () => {
 
   test('orders pinned articles before unpinned articles', async () => {
     // Pin first article
-    await channelService.togglePinChannelArticles({
+    await channelService.togglePinTopicChannelArticles({
       channelId: channel.id,
-      channelType: NODE_TYPES.TopicChannel,
       articleIds: [articles[0].id],
       pinned: true,
     })
@@ -94,16 +92,14 @@ describe('findTopicChannelArticles', () => {
 
   test('orders pinned articles by pinnedAt DESC', async () => {
     // Pin two articles at different times
-    await channelService.togglePinChannelArticles({
+    await channelService.togglePinTopicChannelArticles({
       channelId: channel.id,
-      channelType: NODE_TYPES.TopicChannel,
       articleIds: [articles[1].id],
       pinned: true,
     })
 
-    await channelService.togglePinChannelArticles({
+    await channelService.togglePinTopicChannelArticles({
       channelId: channel.id,
-      channelType: NODE_TYPES.TopicChannel,
       articleIds: [articles[0].id],
       pinned: true,
     })
@@ -186,26 +182,6 @@ describe('findTopicChannelArticles', () => {
 
     beforeEach(async () => {
       await Promise.all([
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[0].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[1].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[2].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[3].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
         atomService.update({
           table: 'article',
           where: { id: articles[0].id },
@@ -326,9 +302,8 @@ describe('findTopicChannelArticles', () => {
       })
 
       // Pin an article from a restricted author
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinTopicChannelArticles({
         channelId: channel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: true,
       })

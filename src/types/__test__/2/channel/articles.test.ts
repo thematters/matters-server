@@ -96,26 +96,6 @@ describe('TopicChannel.articles', () => {
 
       await Promise.all([
         atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[0].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[1].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[2].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[3].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
           table: 'article',
           where: { id: articles[0].id },
           data: { createdAt: oneDayBefore }, // 1 day before
@@ -240,7 +220,6 @@ describe('TopicChannel.articles', () => {
               articleId: article.id,
               channelId: channel.id,
               enabled: true,
-              pinned: false,
             },
           })
         )
@@ -423,15 +402,14 @@ describe('TopicChannel.articles', () => {
               channelId: channel.id,
               enabled: true,
               createdAt: new Date(2024, 0, index + 1), // Jan 1, 2, 3, 4
-              pinned: false,
             },
           })
         )
       )
       await atomService.update({
-        table: 'topic_channel_article',
-        where: { articleId: articles[0].id, channelId: channel.id },
-        data: { pinned: true },
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
       })
     })
 

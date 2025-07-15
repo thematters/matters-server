@@ -54,23 +54,27 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
   )
 
   // Map article channels to ArticleTopicChannel type
-  return articleChannels.map(async (ac) => ({
-    channel: {
-      ...(channelMap.get(ac.channelId) as any),
-      __type: 'TopicChannel',
-    },
-    score: ac.score,
-    isLabeled: ac.isLabeled,
-    enabled: ac.enabled,
-    classicfiedAt: ac.createdAt,
-    pinned: ac.pinned,
-    antiFlooded:
-      ac.createdAt > floodDetectWindow &&
-      (await channelService.isFlood({
-        articleId,
-        channelId: ac.channelId,
-      })),
-  }))
+  return articleChannels.map(async (ac) => {
+    const channel = channelMap.get(ac.channelId)
+    const pinnedArticles = channel?.pinnedArticles || []
+    return {
+      channel: {
+        ...(channel as any),
+        __type: 'TopicChannel',
+      },
+      score: ac.score,
+      isLabeled: ac.isLabeled,
+      enabled: ac.enabled,
+      classicfiedAt: ac.createdAt,
+      pinned: pinnedArticles.includes(articleId),
+      antiFlooded:
+        ac.createdAt > floodDetectWindow &&
+        (await channelService.isFlood({
+          articleId,
+          channelId: ac.channelId,
+        })),
+    }
+  })
 }
 
 export default resolver

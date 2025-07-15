@@ -120,13 +120,14 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     ...connection,
     edges: await Promise.all(
       connection.edges.map(async (edge) => {
-        const article = await atomService.findFirst({
-          table: 'topic_channel_article',
-          where: { articleId: edge.node.id, channelId: id },
+        const channel = await atomService.findUnique({
+          table: 'topic_channel',
+          where: { id },
         })
+        const pinnedArticles = channel?.pinnedArticles || []
         return {
           ...edge,
-          pinned: article.pinned,
+          pinned: pinnedArticles.includes(edge.node.id),
         }
       })
     ),
