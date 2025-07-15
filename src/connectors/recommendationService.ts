@@ -505,17 +505,20 @@ export class RecommendationService {
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
     const spamThreshold = await this.systemService.getSpamThreshold()
     const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
-    const articlesQuery = channelId
-      ? this.channelService
-          .findTopicChannelArticles(channelId, {
-            channelThreshold: undefined,
-            addOrderColumn: true,
-          })
-          .orderBy('order', 'asc')
-      : this.articleService.findNewestArticles({
-          excludeChannelArticles: false,
-          spamThreshold: spamThreshold ?? undefined,
+    let articlesQuery
+    if (channelId) {
+      const { query: baseQuery } =
+        await this.channelService.findTopicChannelArticles(channelId, {
+          channelThreshold: undefined,
+          addOrderColumn: true,
         })
+      articlesQuery = baseQuery.orderBy('order', 'asc')
+    } else {
+      articlesQuery = this.articleService.findNewestArticles({
+        excludeChannelArticles: false,
+        spamThreshold: spamThreshold ?? undefined,
+      })
+    }
 
     const { query: scoreQuery, column: articleScoreColumn } =
       await this.addRecommendationScoreColumn({
@@ -578,17 +581,20 @@ export class RecommendationService {
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
     const spamThreshold = await this.systemService.getSpamThreshold()
     const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
-    const articlesQuery = channelId
-      ? this.channelService
-          .findTopicChannelArticles(channelId, {
-            channelThreshold: undefined,
-            addOrderColumn: true,
-          })
-          .orderBy('order', 'asc')
-      : this.articleService.findNewestArticles({
-          excludeChannelArticles: false,
-          spamThreshold: spamThreshold ?? undefined,
+    let articlesQuery
+    if (channelId) {
+      const { query: baseQuery } =
+        await this.channelService.findTopicChannelArticles(channelId, {
+          channelThreshold: undefined,
+          addOrderColumn: true,
         })
+      articlesQuery = baseQuery.orderBy('order', 'asc')
+    } else {
+      articlesQuery = this.articleService.findNewestArticles({
+        excludeChannelArticles: false,
+        spamThreshold: spamThreshold ?? undefined,
+      })
+    }
 
     const { query: scoreQuery, column: articleScoreColumn } =
       await this.addRecommendationScoreColumn({

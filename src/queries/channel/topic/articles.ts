@@ -27,12 +27,15 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     throw new ForbiddenError('Only admins can sort articles')
   }
   const channelThreshold = await systemService.getArticleChannelThreshold()
-  const baseQuery = channelService.findTopicChannelArticles(id, {
-    channelThreshold: channelThreshold ?? undefined,
-    datetimeRange: input.filter?.datetimeRange,
-    addOrderColumn: input.sort === undefined ? true : false,
-    flood: false,
-  })
+  const { query: baseQuery } = await channelService.findTopicChannelArticles(
+    id,
+    {
+      channelThreshold: channelThreshold ?? undefined,
+      datetimeRange: input.filter?.datetimeRange,
+      addOrderColumn: input.sort === undefined ? true : false,
+      flood: false,
+    }
+  )
 
   let query: Knex.QueryBuilder = baseQuery
 
