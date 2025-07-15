@@ -66,16 +66,29 @@ export class ChannelService {
     note,
     providerId,
     enabled,
+    subChannelIds,
   }: {
     name: string
-    providerId: string
-    enabled: boolean
     note?: string
+    providerId?: string
+    enabled: boolean
+    subChannelIds?: string[]
   }) => {
-    return this.models.create({
+    const channel = await this.models.create({
       table: 'topic_channel',
       data: { shortHash: shortHash(), name, note, providerId, enabled },
     })
+
+    if (subChannelIds && subChannelIds.length > 0) {
+      for (const subChannelId of subChannelIds) {
+        await this.models.update({
+          table: 'topic_channel',
+          where: { id: subChannelId },
+          data: { parentId: channel.id },
+        })
+      }
+    }
+    return channel
   }
 
   public updateTopicChannel = async ({
