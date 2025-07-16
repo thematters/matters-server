@@ -36,6 +36,7 @@ import {
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import uniqBy from 'lodash/uniqBy.js'
 
 import { ArticleService } from '../article/articleService.js'
 import { AtomService } from '../atomService.js'
@@ -477,6 +478,30 @@ export class ChannelService {
     }
 
     return { query }
+  }
+
+  public findArticleTopicChannels = async (articleId: string) => {
+    const articleChannels = await this.models.findMany({
+      table: 'topic_channel_article',
+      where: { articleId, enabled: true },
+    })
+    const channels = await this.connections
+      .knexRO('topic_channel')
+      .select('*')
+      .whereIn(
+        'id',
+        articleChannels.map((c) => c.channelId)
+      )
+
+    const parentChannels = await this.connections
+      .knexRO('topic_channel')
+      .select('*')
+      .whereIn(
+        'id',
+        channels.map((c) => c.parentId).filter((id) => id !== null)
+      )
+
+    return uniqBy([...parentChannels, ...channels], 'id')
   }
 
   public isFlood = async ({
