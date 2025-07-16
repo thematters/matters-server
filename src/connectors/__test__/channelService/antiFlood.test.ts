@@ -107,15 +107,15 @@ describe('filter out flood articles', () => {
     // and 1 article from author2
     expect(results).toHaveLength(4)
 
-    const author1Results = results.filter((a: any) => a.authorId === '1')
+    const author1Results = results.filter((a) => a.authorId === '1')
     expect(author1Results).toHaveLength(3)
-    expect(author1Results.map((a: any) => a.id)).toEqual([
+    expect(author1Results.map((a) => a.id)).toEqual([
       author1Articles[0].id,
       author1Articles[1].id,
       author1Articles[3].id,
     ])
 
-    const author2Results = results.filter((a: any) => a.authorId === '2')
+    const author2Results = results.filter((a) => a.authorId === '2')
     expect(author2Results).toHaveLength(1)
 
     const isFlood = await channelService.isFlood({
