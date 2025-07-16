@@ -134,8 +134,8 @@ describe('findTopicChannelArticles', () => {
     const results = await query.orderBy('order', 'asc')
 
     // Find the positions of our test articles in unpinned section
-    const article2Index = results.findIndex((a: any) => a.id === articles[2].id)
-    const article3Index = results.findIndex((a: any) => a.id === articles[3].id)
+    const article2Index = results.findIndex((a) => a.id === articles[2].id)
+    const article3Index = results.findIndex((a) => a.id === articles[3].id)
 
     expect(article2Index).toBeLessThan(article3Index) // More recent article should come first
   })
@@ -174,7 +174,7 @@ describe('findTopicChannelArticles', () => {
     const results = await query
 
     expect(results).toHaveLength(3)
-    const resultIds = results.map((a: any) => a.id)
+    const resultIds = results.map((a) => a.id)
     for (const id of [articles[0].id, articles[2].id, articles[3].id]) {
       expect(resultIds).toContain(id)
     }
@@ -224,7 +224,7 @@ describe('findTopicChannelArticles', () => {
       const results = await query
 
       expect(results).toHaveLength(2)
-      expect(results.map((a: any) => a.id)).toEqual(
+      expect(results.map((a) => a.id)).toEqual(
         expect.arrayContaining([articles[1].id, articles[2].id])
       )
     })
@@ -242,7 +242,7 @@ describe('findTopicChannelArticles', () => {
       const results = await query
 
       expect(results).toHaveLength(3)
-      expect(results.map((a: any) => a.id)).toEqual(
+      expect(results.map((a) => a.id)).toEqual(
         expect.arrayContaining([articles[1].id, articles[2].id, articles[3].id])
       )
     })
@@ -282,7 +282,7 @@ describe('findTopicChannelArticles', () => {
       )
       const results = await query
 
-      expect(results.map((a: any) => a.id)).not.toContain(articles[0].id)
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
     })
 
     test('includes articles from non-restricted authors', async () => {
@@ -330,7 +330,7 @@ describe('findTopicChannelArticles', () => {
       const results = await query
 
       // Should still include the pinned article from restricted author
-      expect(results.map((a: any) => a.id)).toContain(articles[0].id)
+      expect(results.map((a) => a.id)).toContain(articles[0].id)
 
       await atomService.deleteMany({ table: 'user_restriction' })
     })
@@ -348,7 +348,7 @@ describe('findTopicChannelArticles', () => {
     )
     const after = await afterQuery
 
-    expect(after.map((a: any) => a.id)).not.toContain(before[0].id)
+    expect(after.map((a) => a.id)).not.toContain(before[0].id)
 
     await atomService.deleteMany({ table: 'campaign_article' })
     await atomService.deleteMany({ table: 'campaign_user' })
