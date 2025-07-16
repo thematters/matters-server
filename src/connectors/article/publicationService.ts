@@ -541,7 +541,7 @@ export class PublicationService extends BaseService<Article> {
     }))
     const spamThreshold = (await this.systemService.getSpamThreshold()) || 1
     const spamScore = _spamScore ?? 1
-    return _isSpam ?? (pypassSpam ? false : spamScore > spamThreshold)
+    return _isSpam ?? (pypassSpam ? false : spamScore >= spamThreshold)
   }
 
   public detectLanguage = async (articleVersionId: string) => {
