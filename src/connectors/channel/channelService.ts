@@ -96,17 +96,39 @@ export class ChannelService {
     name,
     note,
     enabled,
+    subChannelIds,
   }: {
     id: string
     name?: string
     note?: string
     enabled?: boolean
+    subChannelIds?: string[]
   }) => {
-    return this.models.update({
+    const channel = await this.models.update({
       table: 'topic_channel',
       where: { id },
       data: { name, note, enabled },
     })
+
+    if (subChannelIds && subChannelIds.length > 0) {
+      // First, clear existing parent relationships for this channel
+      await this.models.update({
+        table: 'topic_channel',
+        where: { parentId: id },
+        data: { parentId: null },
+      })
+
+      // Then set new parent relationships
+      for (const subChannelId of subChannelIds) {
+        await this.models.update({
+          table: 'topic_channel',
+          where: { id: subChannelId },
+          data: { parentId: id },
+        })
+      }
+    }
+
+    return channel
   }
 
   public updateOrCreateCampaignChannel = async ({
