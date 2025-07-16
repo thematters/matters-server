@@ -534,7 +534,6 @@ describe('TopicChannel.articles', () => {
               articleId: article.id,
               channelId: channel.id,
               enabled: true,
-              pinned: false,
             },
           })
         )
