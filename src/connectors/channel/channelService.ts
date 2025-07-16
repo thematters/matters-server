@@ -313,10 +313,11 @@ export class ChannelService {
       table: 'topic_channel',
       where: { id: channelId },
     })
-    // const subChannels = await this.models.findMany({
-    //   table: 'topic_channel',
-    //   where: { parentId: channelId },
-    // })
+    const subChannels = await this.models.findMany({
+      table: 'topic_channel',
+      where: { parentId: channelId },
+    })
+    const channelIds = [channel.id, ...subChannels.map(({ id }) => id)]
 
     if (!channel) {
       throw new EntityNotFoundError('Channel not found')
@@ -327,9 +328,9 @@ export class ChannelService {
     const pinnedQuery = knexRO
       .select(
         'article.*',
-        // `channel_article_created_at` is used in RecommentdationService.
-        // values of pinned articles are set to `now()` so those articles can be excluded from recommentdation pools
-        'now() as channel_article_created_at'
+        // `channel_article_created_at` column is used in `RecommentdationService`.
+        // values of pinned articles are set to `now()` so those articles can be excluded from recommendation pools
+        knexRO.raw('now() as channel_article_created_at')
       )
       .from('article')
       .where({
@@ -342,13 +343,14 @@ export class ChannelService {
         'article.*',
         'topic_channel_article.created_at as channel_article_created_at'
       )
+      .distinctOn('article.id')
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
-        'topic_channel_article.channel_id': channelId,
         'topic_channel_article.enabled': true,
         'article.state': ARTICLE_STATE.active,
       })
+      .whereIn('topic_channel_article.channel_id', channelIds)
       .where((qb) => {
         qb.where('article.is_spam', false).orWhere((b) => {
           b.whereNull('article.is_spam')

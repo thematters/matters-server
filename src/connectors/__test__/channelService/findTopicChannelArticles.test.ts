@@ -1,4 +1,4 @@
-import type { Connections, Article } from '#definitions/index.js'
+import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
@@ -8,7 +8,7 @@ import { genConnections, closeConnections, createCampaign } from '../utils.js'
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
-let channel: any
+let channel: TopicChannel
 let articles: Article[]
 let campaignService: CampaignService
 
@@ -37,8 +37,9 @@ beforeEach(async () => {
   articles = await atomService.findMany({
     table: 'article',
     where: {},
-    take: 4,
+    take: 6,
   })
+  expect(articles).toHaveLength(6)
 
   // Add articles to channel
   await channelService.setArticleTopicChannels({
@@ -302,6 +303,8 @@ describe('findTopicChannelArticles', () => {
       const results = await query
 
       expect(results.length).toBeGreaterThan(0)
+
+      await atomService.deleteMany({ table: 'user_restriction' })
     })
 
     test('pinned articles are not excluded', async () => {
@@ -328,6 +331,8 @@ describe('findTopicChannelArticles', () => {
 
       // Should still include the pinned article from restricted author
       expect(results.map((a: any) => a.id)).toContain(articles[0].id)
+
+      await atomService.deleteMany({ table: 'user_restriction' })
     })
   })
 
@@ -349,5 +354,78 @@ describe('findTopicChannelArticles', () => {
     await atomService.deleteMany({ table: 'campaign_user' })
     await atomService.deleteMany({ table: 'campaign_stage' })
     await atomService.deleteMany({ table: 'campaign' })
+  })
+
+  describe('sub-channel functionality', () => {
+    let subChannel1: TopicChannel
+    let subChannel2: TopicChannel
+
+    beforeEach(async () => {
+      // Create sub-channels
+      subChannel1 = await channelService.createTopicChannel({
+        name: 'sub-channel-1',
+        providerId: 'sub-provider-id-1',
+        enabled: true,
+      })
+
+      subChannel2 = await channelService.createTopicChannel({
+        name: 'sub-channel-2',
+        providerId: 'sub-provider-id-2',
+        enabled: true,
+      })
+
+      // Set parent relationship
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: subChannel1.id },
+        data: { parentId: channel.id },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: subChannel2.id },
+        data: { parentId: channel.id },
+      })
+    })
+
+    test('includes articles from sub-channels', async () => {
+      const { query: beforeQuery } =
+        await channelService.findTopicChannelArticles(channel.id)
+      const beforeResults = await beforeQuery
+
+      // Add articles to sub-channels
+      await channelService.setArticleTopicChannels({
+        articleId: articles[4].id,
+        channelIds: [subChannel1.id],
+      })
+      await channelService.setArticleTopicChannels({
+        articleId: articles[5].id,
+        channelIds: [subChannel2.id],
+      })
+
+      const { query: afterQuery } =
+        await channelService.findTopicChannelArticles(channel.id)
+      const afterResults = await afterQuery
+
+      expect(beforeResults.length + 2).toBe(afterResults.length)
+    })
+
+    test('avoids duplicate articles when article is in both parent and sub-channel', async () => {
+      // Add the same article to both parent and sub-channel
+      await channelService.setArticleTopicChannels({
+        articleId: articles[0].id,
+        channelIds: [subChannel1.id],
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      // Should not have duplicates - article[0] should appear only once
+      const article0Count = results.filter(
+        (a) => a.id === articles[0].id
+      ).length
+      expect(article0Count).toBe(1)
+    })
   })
 })
