@@ -5,7 +5,7 @@ import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   _,
-  { input: { id: globalId, providerId, name, note, enabled } },
+  { input: { id: globalId, providerId, name, note, enabled, subChannels } },
   { dataSources: { translationService, channelService } }
 ) => {
   if (name) {
@@ -35,6 +35,9 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
       name: name ? name[0].text : '',
       note: note ? note[0].text : '',
       enabled: enabled ?? true,
+      subChannelIds: subChannels?.map(
+        (subChannel) => fromGlobalId(subChannel).id
+      ),
     })
   } else {
     const { id, type } = fromGlobalId(globalId)
@@ -47,6 +50,9 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
       name: name ? name[0].text : undefined,
       note: note ? note[0].text : undefined,
       enabled,
+      subChannelIds: subChannels?.map(
+        (subChannel) => fromGlobalId(subChannel).id
+      ),
     })
   }
 

@@ -4034,7 +4034,7 @@ type TopicChannel implements Channel {
   shortHash: String!
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
-  providerId: String!
+  providerId: String
   enabled: Boolean!
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }
@@ -4110,6 +4110,7 @@ input PutTopicChannelInput {
   name: [TranslationInput!]
   note: [TranslationInput!]
   enabled: Boolean
+  subChannels: [ID!]
 }
 
 input PutCurationChannelInput {

@@ -276,6 +276,194 @@ describe('manage topic channels', () => {
     expect(data.putTopicChannel.enabled).toBe(false)
   })
 
+  test('create channel with sub-channels', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // First create sub-channels
+    const subChannel1 = await channelService.createTopicChannel({
+      name: 'sub-channel-1',
+      providerId: 'sub-provider-1',
+      enabled: true,
+    })
+    const subChannel2 = await channelService.createTopicChannel({
+      name: 'sub-channel-2',
+      providerId: 'sub-provider-2',
+      enabled: true,
+    })
+
+    const providerId = 'test-provider-parent-' + Date.now()
+    const name = [{ text: 'Parent Channel', language: 'en' }]
+    const subChannels = [
+      toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel1.id }),
+      toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel2.id }),
+    ]
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId,
+          name,
+          enabled: true,
+          subChannels,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putTopicChannel.nameEn).toBe('Parent Channel')
+
+    // Verify sub-channels have correct parent
+    const updatedSubChannel1 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel1.id },
+    })
+    const updatedSubChannel2 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel2.id },
+    })
+
+    const parentChannelId = fromGlobalId(data.putTopicChannel.id).id
+    expect(updatedSubChannel1.parentId).toBe(parentChannelId)
+    expect(updatedSubChannel2.parentId).toBe(parentChannelId)
+  })
+
+  test('update channel with sub-channels', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // Create parent and sub-channels
+    const parentChannel = await channelService.createTopicChannel({
+      name: 'parent-channel',
+      enabled: true,
+    })
+
+    const subChannel1 = await channelService.createTopicChannel({
+      name: 'sub-channel-1',
+      enabled: true,
+    })
+    const subChannel2 = await channelService.createTopicChannel({
+      name: 'sub-channel-2',
+      enabled: true,
+    })
+    const subChannel3 = await channelService.createTopicChannel({
+      name: 'sub-channel-3',
+      enabled: true,
+    })
+
+    // First set sub-channels
+    await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          id: toGlobalId({
+            type: NODE_TYPES.TopicChannel,
+            id: parentChannel.id,
+          }),
+          subChannels: [
+            toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel1.id }),
+            toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel2.id }),
+          ],
+        },
+      },
+    })
+
+    // Verify initial sub-channels
+    let updatedSubChannel1 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel1.id },
+    })
+    let updatedSubChannel2 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel2.id },
+    })
+    let updatedSubChannel3 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel3.id },
+    })
+
+    expect(updatedSubChannel1.parentId).toBe(parentChannel.id)
+    expect(updatedSubChannel2.parentId).toBe(parentChannel.id)
+    expect(updatedSubChannel3.parentId).toBeNull()
+
+    // Update sub-channels (remove subChannel1, keep subChannel2, add subChannel3)
+    const { errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          id: toGlobalId({
+            type: NODE_TYPES.TopicChannel,
+            id: parentChannel.id,
+          }),
+          subChannels: [
+            toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel2.id }),
+            toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel3.id }),
+          ],
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+
+    // Verify updated sub-channels
+    updatedSubChannel1 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel1.id },
+    })
+    updatedSubChannel2 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel2.id },
+    })
+    updatedSubChannel3 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel3.id },
+    })
+
+    expect(updatedSubChannel1.parentId).toBeNull() // Removed from parent
+    expect(updatedSubChannel2.parentId).toBe(parentChannel.id) // Still child
+    expect(updatedSubChannel3.parentId).toBe(parentChannel.id) // Added as child
+  })
+
+  test('create channel without sub-channels', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const providerId = 'test-provider-no-subs-' + Date.now()
+    const name = [{ text: 'Channel Without Subs', language: 'en' }]
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId,
+          name,
+          enabled: true,
+          // No subChannels provided
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putTopicChannel.nameEn).toBe('Channel Without Subs')
+
+    // Should work fine without sub-channels
+    const createdChannel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: fromGlobalId(data.putTopicChannel.id).id },
+    })
+    expect(createdChannel.providerId).toBe(providerId)
+  })
+
   test('set article channels', async () => {
     const server = await testClient({
       connections,
@@ -408,14 +596,13 @@ describe('manage topic channels', () => {
       table: 'topic_channel',
       where: {},
     })
-    expect(channels.length).toBe(5)
 
     const { data, errors } = await adminServer.executeOperation({
       query: QUERY_CHANNELS_BY_ADMIN,
     })
     expect(errors).toBeUndefined()
     expect(data.channels).toBeDefined()
-    expect(data.channels.length).toBe(5)
+    expect(data.channels.length).toBe(channels.length)
 
     // disable channel
 
@@ -439,7 +626,7 @@ describe('manage topic channels', () => {
       }
     )
     expect(errors2).toBeUndefined()
-    expect(data2.channels.length).toBe(5)
+    expect(data2.channels.length).toBe(channels.length)
 
     for (const channel of data2.channels) {
       if (channel.id === globalId) {
@@ -447,13 +634,17 @@ describe('manage topic channels', () => {
       }
     }
 
+    const enabledChannels = await atomService.findMany({
+      table: 'topic_channel',
+      where: { enabled: true },
+    })
     // query by normal user
     const { data: data3, errors: errors3 } =
       await normalServer.executeOperation({
         query: QUERY_CHANNELS,
       })
     expect(errors3).toBeUndefined()
-    expect(data3.channels.length).toBe(1)
+    expect(data3.channels.length).toBe(enabledChannels.length)
   })
 
   test('non-auth users cannot manage channels', async () => {
