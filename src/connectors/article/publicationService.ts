@@ -526,6 +526,24 @@ export class PublicationService extends BaseService<Article> {
     return score
   }
 
+  public isSpam = async (articleId: string) => {
+    const {
+      spamScore: _spamScore,
+      isSpam: _isSpam,
+      authorId,
+    } = await this.models.articleIdLoader.load(articleId)
+    const pypassSpam = !!(await this.models.findFirst({
+      table: 'user_feature_flag',
+      where: {
+        userId: authorId,
+        type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+      },
+    }))
+    const spamThreshold = (await this.systemService.getSpamThreshold()) || 1
+    const spamScore = _spamScore ?? 1
+    return _isSpam ?? (pypassSpam ? false : spamScore > spamThreshold)
+  }
+
   public detectLanguage = async (articleVersionId: string) => {
     const languageDetector = new LanguageDetector()
 
