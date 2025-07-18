@@ -84,6 +84,14 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     validateStages(newStages)
   }
 
+  if (navbarTitle) {
+    for (const trans of navbarTitle) {
+      if (trans.text.length > 32) {
+        throw new UserInputError('Navbar title is too long')
+      }
+    }
+  }
+
   let announcementIds: string[] = []
   if (announcementGlobalIds && announcementGlobalIds.length > 0) {
     announcementIds = announcementGlobalIds.map((id) => fromGlobalId(id).id)
