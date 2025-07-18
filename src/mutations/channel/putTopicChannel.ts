@@ -5,7 +5,17 @@ import { fromGlobalId } from '#common/utils/index.js'
 
 const resolver: GQLMutationResolvers['putTopicChannel'] = async (
   _,
-  { input: { id: globalId, providerId, name, note, enabled, subChannels } },
+  {
+    input: {
+      id: globalId,
+      providerId,
+      name,
+      note,
+      navbarTitle,
+      enabled,
+      subChannels,
+    },
+  },
   { dataSources: { translationService, channelService } }
 ) => {
   if (name) {
@@ -22,6 +32,13 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
       }
     }
   }
+  if (navbarTitle) {
+    for (const trans of navbarTitle) {
+      if (trans.text.length > 32) {
+        throw new UserInputError('Navbar title is too long')
+      }
+    }
+  }
 
   let channel: TopicChannel
   if (!globalId) {
@@ -32,8 +49,9 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
     }
     channel = await channelService.createTopicChannel({
       providerId,
-      name: name ? name[0].text : '',
-      note: note ? note[0].text : '',
+      name: name ? name[0]?.text : '',
+      note: note ? note[0]?.text : '',
+      navbarTitle: navbarTitle ? navbarTitle[0]?.text : undefined,
       enabled: enabled ?? true,
       subChannelIds: subChannels?.map(
         (subChannel) => fromGlobalId(subChannel).id
@@ -47,8 +65,9 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
 
     channel = await channelService.updateTopicChannel({
       id,
-      name: name ? name[0].text : undefined,
-      note: note ? note[0].text : undefined,
+      name: name ? name[0]?.text : undefined,
+      note: note ? note[0]?.text : undefined,
+      navbarTitle: navbarTitle ? navbarTitle[0]?.text : undefined,
       enabled,
       subChannelIds: subChannels?.map(
         (subChannel) => fromGlobalId(subChannel).id
@@ -75,6 +94,19 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
       await translationService.updateOrCreateTranslation({
         table: 'topic_channel',
         field: 'note',
+        id: channel.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  // create or update navbar title translations
+  if (navbarTitle) {
+    for (const trans of navbarTitle) {
+      await translationService.updateOrCreateTranslation({
+        table: 'topic_channel',
+        field: 'navbar_title',
         id: channel.id,
         language: trans.language,
         text: trans.text,

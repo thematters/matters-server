@@ -9,11 +9,13 @@ export default /* GraphQL */ `
   interface Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
   }
 
   type TopicChannel implements Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
 
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
@@ -27,6 +29,7 @@ export default /* GraphQL */ `
   type CurationChannel implements Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
 
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
@@ -106,6 +109,7 @@ export default /* GraphQL */ `
     providerId: String
     name: [TranslationInput!]
     note: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     enabled: Boolean
     subChannels: [ID!]
   }
@@ -114,6 +118,7 @@ export default /* GraphQL */ `
     id: ID
     name: [TranslationInput!]
     note: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     pinAmount: Int
     color: Color
     activePeriod: DatetimeRangeInput

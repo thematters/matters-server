@@ -90,6 +90,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: false,
+      navbarTitle: 'test',
     })
 
     const { data, errors } = await server.executeOperation({
@@ -172,6 +173,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: enabledCampaign.id,
       enabled: true,
+      navbarTitle: 'test',
     })
 
     const disabledCampaign = await campaignService.createWritingChallenge({
@@ -181,6 +183,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: disabledCampaign.id,
       enabled: false,
+      navbarTitle: 'test',
     })
 
     const { data, errors } = await server.executeOperation({
@@ -261,6 +264,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: true,
+      navbarTitle: 'test',
     })
     await channelService.updateChannelOrder(
       { type: NODE_TYPES.Campaign, id: campaign.id },
