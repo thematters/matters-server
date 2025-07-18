@@ -18,13 +18,19 @@ const resolver: GQLWritingChallengeResolvers['navbarTitle'] = async (
         language,
       })
     : null
+  if (navbarTitleTranslation) {
+    return navbarTitleTranslation.text
+  }
+  if (campaignChannel?.navbarTitle) {
+    return campaignChannel.navbarTitle
+  }
   const nameTranslation = await translationService.findTranslation({
     table: 'campaign',
     field: 'name',
     id,
     language,
   })
-  return navbarTitleTranslation?.text ?? nameTranslation?.text ?? name
+  return nameTranslation?.text ?? name
 }
 
 export default resolver

@@ -12,15 +12,19 @@ const resolver: GQLCurationChannelResolvers['navbarTitle'] = async (
     id,
     language,
   })
+  if (navbarTitleTranslation) {
+    return navbarTitleTranslation.text
+  }
+  if (navbarTitle) {
+    return navbarTitle
+  }
   const nameTranslation = await translationService.findTranslation({
     table: 'curation_channel',
     field: 'name',
     id,
     language,
   })
-  return (
-    navbarTitleTranslation?.text ?? nameTranslation?.text ?? navbarTitle ?? name
-  )
+  return nameTranslation?.text ?? name
 }
 
 export default resolver
