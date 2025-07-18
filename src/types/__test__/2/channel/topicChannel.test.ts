@@ -32,6 +32,9 @@ describe('manage topic channels', () => {
         noteEn: note(input: { language: en })
         noteZhHant: note(input: { language: zh_hant })
         noteZhHans: note(input: { language: zh_hans })
+        navbarTitleEn: navbarTitle(input: { language: en })
+        navbarTitleZhHant: navbarTitle(input: { language: zh_hant })
+        navbarTitleZhHans: navbarTitle(input: { language: zh_hans })
         enabled
       }
     }
@@ -661,5 +664,139 @@ describe('manage topic channels', () => {
     })
 
     expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
+
+  test('create channel with navbarTitle', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const providerId = 'test-provider-' + Date.now()
+    const name = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'new channel ' + lang,
+      language: lang,
+    }))
+    const navbarTitle = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'navbar title ' + lang,
+      language: lang,
+    }))
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId,
+          name,
+          navbarTitle,
+          enabled: true,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putTopicChannel.navbarTitleEn).toBe('navbar title en')
+    expect(data.putTopicChannel.navbarTitleZhHans).toBe('navbar title zh_hans')
+    expect(data.putTopicChannel.navbarTitleZhHant).toBe('navbar title zh_hant')
+  })
+
+  test('update navbarTitle', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // First create a channel
+    const providerId = 'test-provider-' + Date.now()
+    const { data: createData } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId,
+          name: [{ text: 'test channel', language: 'en' }],
+          enabled: true,
+        },
+      },
+    })
+
+    // Update navbarTitle
+    const newNavbarTitle = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'updated navbar title ' + lang,
+      language: lang,
+    }))
+
+    const { data: updateData, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          id: createData.putTopicChannel.id,
+          navbarTitle: newNavbarTitle,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(updateData.putTopicChannel.navbarTitleEn).toBe(
+      'updated navbar title en'
+    )
+    expect(updateData.putTopicChannel.navbarTitleZhHans).toBe(
+      'updated navbar title zh_hans'
+    )
+    expect(updateData.putTopicChannel.navbarTitleZhHant).toBe(
+      'updated navbar title zh_hant'
+    )
+  })
+
+  test('navbarTitle fallback to name when not provided', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const providerId = 'test-provider-' + Date.now()
+    const name = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'fallback name ' + lang,
+      language: lang,
+    }))
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId,
+          name,
+          enabled: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    // When navbarTitle is not provided, it should fallback to name
+    expect(data.putTopicChannel.navbarTitleEn).toBe('fallback name en')
+    expect(data.putTopicChannel.navbarTitleZhHans).toBe('fallback name zh_hans')
+    expect(data.putTopicChannel.navbarTitleZhHant).toBe('fallback name zh_hant')
+  })
+
+  test('navbarTitle validation - too long', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          providerId: 'test-provider-' + Date.now(),
+          name: [{ text: 'test', language: 'en' }],
+          navbarTitle: [{ text: 'a'.repeat(33), language: 'en' }], // 33 characters, exceeds 32 limit
+          enabled: true,
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Navbar title is too long')
   })
 })

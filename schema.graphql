@@ -4114,6 +4114,7 @@ input PutTopicChannelInput {
   providerId: String
   name: [TranslationInput!]
   note: [TranslationInput!]
+  navbarTitle: [TranslationInput!]
   enabled: Boolean
   subChannels: [ID!]
 }
@@ -4122,6 +4123,7 @@ input PutCurationChannelInput {
   id: ID
   name: [TranslationInput!]
   note: [TranslationInput!]
+  navbarTitle: [TranslationInput!]
   pinAmount: Int
   color: Color
   activePeriod: DatetimeRangeInput

@@ -109,6 +109,7 @@ export default /* GraphQL */ `
     providerId: String
     name: [TranslationInput!]
     note: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     enabled: Boolean
     subChannels: [ID!]
   }
@@ -117,6 +118,7 @@ export default /* GraphQL */ `
     id: ID
     name: [TranslationInput!]
     note: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     pinAmount: Int
     color: Color
     activePeriod: DatetimeRangeInput

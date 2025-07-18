@@ -113,8 +113,8 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   if (!globalId) {
     // create new campaign
     campaign = await campaignService.createWritingChallenge({
-      name: name ? name[0].text : '',
-      description: description ? description[0].text : '',
+      name: name ? name[0]?.text : '',
+      description: description ? description[0]?.text : '',
       coverId: _cover?.id,
       link,
       applicationPeriod: applicationPeriod && [
@@ -126,7 +126,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       creatorId: viewer.id,
       managerIds,
       featuredDescription: featuredDescription
-        ? featuredDescription[0].text
+        ? featuredDescription[0]?.text
         : '',
       exclusive,
     })
@@ -168,7 +168,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
 
     const data = {
-      name: name && name[0].text,
+      name: name && name[0]?.text,
       cover: _cover?.id,
       link,
       applicationPeriod:
@@ -178,7 +178,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         writingPeriod &&
         toDatetimeRangeString(writingPeriod.start, writingPeriod.end),
       state,
-      featuredDescription: featuredDescription && featuredDescription[0].text,
+      featuredDescription: featuredDescription && featuredDescription[0]?.text,
       managerIds,
       exclusive,
     }

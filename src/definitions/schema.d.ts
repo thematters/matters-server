@@ -3058,6 +3058,7 @@ export type GQLPutCurationChannelInput = {
   color?: InputMaybe<GQLColor>
   id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   pinAmount?: InputMaybe<Scalars['Int']['input']>
   state?: InputMaybe<GQLCurationChannelState>
@@ -3141,6 +3142,7 @@ export type GQLPutTopicChannelInput = {
   enabled?: InputMaybe<Scalars['Boolean']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   providerId?: InputMaybe<Scalars['String']['input']>
   subChannels?: InputMaybe<Array<Scalars['ID']['input']>>

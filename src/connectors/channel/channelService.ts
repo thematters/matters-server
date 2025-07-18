@@ -67,17 +67,26 @@ export class ChannelService {
     note,
     providerId,
     enabled,
+    navbarTitle,
     subChannelIds,
   }: {
     name: string
     note?: string
     providerId?: string
     enabled: boolean
+    navbarTitle?: string
     subChannelIds?: string[]
   }) => {
     const channel = await this.models.create({
       table: 'topic_channel',
-      data: { shortHash: shortHash(), name, note, providerId, enabled },
+      data: {
+        shortHash: shortHash(),
+        name,
+        note,
+        providerId,
+        enabled,
+        navbarTitle,
+      },
     })
 
     if (subChannelIds && subChannelIds.length > 0) {
@@ -97,18 +106,20 @@ export class ChannelService {
     name,
     note,
     enabled,
+    navbarTitle,
     subChannelIds,
   }: {
     id: string
     name?: string
     note?: string
     enabled?: boolean
+    navbarTitle?: string
     subChannelIds?: string[]
   }) => {
     const channel = await this.models.update({
       table: 'topic_channel',
       where: { id },
-      data: { name, note, enabled },
+      data: { name, note, enabled, navbarTitle },
     })
 
     if (subChannelIds && subChannelIds.length > 0) {
@@ -152,6 +163,7 @@ export class ChannelService {
     color = CURATION_CHANNEL_COLOR.gray,
     activePeriod = [new Date(0), new Date(0)],
     state = CURATION_CHANNEL_STATE.editing,
+    navbarTitle,
   }: {
     name: string
     note?: string
@@ -159,6 +171,7 @@ export class ChannelService {
     color?: ValueOf<typeof CURATION_CHANNEL_COLOR>
     activePeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CURATION_CHANNEL_STATE>
+    navbarTitle?: string
   }) => {
     return this.models.create({
       table: 'curation_channel',
@@ -170,6 +183,7 @@ export class ChannelService {
         color,
         activePeriod: toDatetimeRangeString(activePeriod[0], activePeriod[1]),
         state,
+        navbarTitle,
       },
     })
   }
@@ -182,6 +196,7 @@ export class ChannelService {
     color,
     activePeriod,
     state,
+    navbarTitle,
   }: {
     id: string
     name?: string
@@ -190,6 +205,7 @@ export class ChannelService {
     color?: ValueOf<typeof CURATION_CHANNEL_COLOR>
     activePeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CURATION_CHANNEL_STATE>
+    navbarTitle?: string
   }) => {
     return this.models.update({
       table: 'curation_channel',
@@ -203,6 +219,7 @@ export class ChannelService {
           ? toDatetimeRangeString(activePeriod[0], activePeriod[1])
           : undefined,
         state,
+        navbarTitle,
       },
     })
   }
