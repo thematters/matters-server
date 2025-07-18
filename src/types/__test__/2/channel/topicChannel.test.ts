@@ -156,7 +156,7 @@ describe('manage topic channels', () => {
     expect(createdChannel.providerId).toBe(providerId)
   })
 
-  test('requires providerId for new channel', async () => {
+  test('requires providerId or subChannels for new channel', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
@@ -173,8 +173,57 @@ describe('manage topic channels', () => {
       },
     })
 
-    expect(errors[0].message).toBe(
-      'Provider ID is required for creating topic channel'
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
+  test('create channel with subChannels but no providerId', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // First create a sub-channel to use
+    const subChannel = await channelService.createTopicChannel({
+      name: 'sub-channel-for-test',
+      providerId: 'sub-provider-test',
+      enabled: true,
+    })
+
+    const name = [{ text: 'Channel with SubChannels Only', language: 'en' }]
+    const subChannels = [
+      toGlobalId({ type: NODE_TYPES.TopicChannel, id: subChannel.id }),
+    ]
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_TOPIC_CHANNEL,
+      variables: {
+        input: {
+          name,
+          enabled: true,
+          subChannels,
+          // No providerId provided
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putTopicChannel.nameEn).toBe('Channel with SubChannels Only')
+
+    // Verify the channel was created without providerId
+    const createdChannel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: fromGlobalId(data.putTopicChannel.id).id },
+    })
+    expect(createdChannel.providerId).toBeNull()
+
+    // Verify sub-channel has correct parent
+    const updatedSubChannel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel.id },
+    })
+    expect(updatedSubChannel.parentId).toBe(
+      fromGlobalId(data.putTopicChannel.id).id
     )
   })
 
@@ -195,7 +244,7 @@ describe('manage topic channels', () => {
       },
     })
 
-    expect(errors[0].message).toBe('Wrong channel global ID')
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 
   test('handles partial updates', async () => {
