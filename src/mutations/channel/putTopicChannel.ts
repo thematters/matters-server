@@ -25,9 +25,9 @@ const resolver: GQLMutationResolvers['putTopicChannel'] = async (
 
   let channel: TopicChannel
   if (!globalId) {
-    if (!providerId) {
+    if (!providerId && !subChannels?.length) {
       throw new UserInputError(
-        'Provider ID is required for creating topic channel'
+        'Provider ID or subChannels is required for creating topic channel'
       )
     }
     channel = await channelService.createTopicChannel({
