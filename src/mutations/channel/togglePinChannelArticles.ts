@@ -26,14 +26,18 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
       ) {
         throw new UserInputError('Invalid channel ID')
       }
-      const channel = await channelService.togglePinChannelArticles({
-        channelId: id,
-        channelType: type as
-          | NODE_TYPES.TopicChannel
-          | NODE_TYPES.CurationChannel,
-        articleIds,
-        pinned,
-      })
+      const channel =
+        type === NODE_TYPES.TopicChannel
+          ? await channelService.togglePinTopicChannelArticles({
+              channelId: id,
+              articleIds,
+              pinned,
+            })
+          : await channelService.togglePinCurationChannelArticles({
+              channelId: id,
+              articleIds,
+              pinned,
+            })
       return { ...channel, __type: type }
     })
   )

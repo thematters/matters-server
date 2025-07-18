@@ -3133,6 +3133,7 @@ export type GQLPutTopicChannelInput = {
   name?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   providerId?: InputMaybe<Scalars['String']['input']>
+  subChannels?: InputMaybe<Array<Scalars['ID']['input']>>
 }
 
 export type GQLPutUserFeatureFlagsInput = {
@@ -3892,7 +3893,7 @@ export type GQLTopicChannel = GQLChannel & {
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
-  providerId: Scalars['String']['output']
+  providerId?: Maybe<Scalars['String']['output']>
   shortHash: Scalars['String']['output']
 }
 
@@ -9978,7 +9979,11 @@ export type GQLTopicChannelResolvers<
     ContextType,
     Partial<GQLTopicChannelNoteArgs>
   >
-  providerId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  providerId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>

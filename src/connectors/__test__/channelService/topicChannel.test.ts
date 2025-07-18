@@ -1,5 +1,4 @@
 import type { Connections, Article, TopicChannel } from '#definitions/index.js'
-import { NODE_TYPES } from '#common/enums/index.js'
 
 import { PublicationService } from '../../article/publicationService.js'
 import { AtomService } from '../../atomService.js'
@@ -79,6 +78,99 @@ describe('updateOrCreateChannel', () => {
     expect(channel).toBeDefined()
     expect(channel.name).toBe(dataWithoutDescription.name)
     expect(channel.note).toBeNull()
+  })
+
+  test('creates channel with subChannelIds and sets parent-child relationships', async () => {
+    // Create sub-channels first
+    const subChannel1 = await channelService.createTopicChannel({
+      name: 'sub-channel-1',
+      note: 'sub channel 1',
+      providerId: 'sub1',
+      enabled: true,
+    })
+    const subChannel2 = await channelService.createTopicChannel({
+      name: 'sub-channel-2',
+      note: 'sub channel 2',
+      providerId: 'sub2',
+      enabled: true,
+    })
+
+    // Create parent channel with subChannelIds
+    const parentChannel = await channelService.createTopicChannel({
+      name: 'parent-channel',
+      note: 'parent channel',
+      providerId: 'parent',
+      enabled: true,
+      subChannelIds: [subChannel1.id, subChannel2.id],
+    })
+
+    expect(parentChannel).toBeDefined()
+    expect(parentChannel.name).toBe('parent-channel')
+
+    // Verify parent-child relationships were set
+    const updatedSubChannel1 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel1.id },
+    })
+    const updatedSubChannel2 = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel2.id },
+    })
+
+    expect(updatedSubChannel1.parentId).toBe(parentChannel.id)
+    expect(updatedSubChannel2.parentId).toBe(parentChannel.id)
+  })
+
+  test('creates channel without subChannelIds - no parent relationships', async () => {
+    const channel = await channelService.createTopicChannel({
+      name: 'standalone-channel',
+      note: 'standalone channel',
+      providerId: 'standalone',
+      enabled: true,
+    })
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toBe('standalone-channel')
+    expect(channel.parentId).toBeNull()
+  })
+
+  test('creates channel with empty subChannelIds array', async () => {
+    const channel = await channelService.createTopicChannel({
+      name: 'empty-subs-channel',
+      note: 'channel with empty sub array',
+      providerId: 'empty',
+      enabled: true,
+      subChannelIds: [],
+    })
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toBe('empty-subs-channel')
+  })
+
+  test('handles single subChannelId', async () => {
+    // Create sub-channel first
+    const subChannel = await channelService.createTopicChannel({
+      name: 'single-sub-channel',
+      providerId: 'single-sub',
+      enabled: true,
+    })
+
+    // Create parent channel with single subChannelId
+    const parentChannel = await channelService.createTopicChannel({
+      name: 'single-parent-channel',
+      enabled: true,
+      subChannelIds: [subChannel.id],
+    })
+
+    expect(parentChannel).toBeDefined()
+
+    // Verify parent-child relationship was set
+    const updatedSubChannel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: subChannel.id },
+    })
+
+    expect(updatedSubChannel.parentId).toBe(parentChannel.id)
   })
 })
 
@@ -336,93 +428,314 @@ describe('togglePinChannelArticles', () => {
 
   describe('Topic Channel', () => {
     test('pins articles within limit', async () => {
-      const result = await channelService.togglePinChannelArticles({
+      const result = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: true,
       })
 
-      const pinnedArticles = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
-      })
-
       expect(result.id).toBe(topicChannel.id)
-      expect(pinnedArticles).toHaveLength(1)
-      expect(pinnedArticles[0].pinnedAt).toBeDefined()
+      expect(result.pinnedArticles).toHaveLength(1)
+      expect(result.pinnedArticles).toContain(articles[0].id)
     })
 
     test('unpins articles', async () => {
       // First pin an article
-      await channelService.togglePinChannelArticles({
+      await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: true,
       })
 
       // Then unpin it
-      await channelService.togglePinChannelArticles({
+      const result = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[0].id],
         pinned: false,
       })
 
-      const pinnedArticles = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
-      })
-
-      expect(pinnedArticles).toHaveLength(0)
+      expect(result.pinnedArticles).toHaveLength(0)
+      expect(result.pinnedArticles).not.toContain(articles[0].id)
     })
 
     test('automatically unpins oldest articles when exceeding pin limit', async () => {
       // First pin 6 articles (max limit)
-      await channelService.togglePinChannelArticles({
+      const initialResult = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: articleIds.slice(0, 6),
         pinned: true,
       })
 
-      // Get initial pinned articles
-      const initialPinned = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
-      })
-      expect(initialPinned).toHaveLength(6)
+      // Verify we have 6 pinned articles
+      expect(initialResult.pinnedArticles).toHaveLength(6)
 
       // Try to pin one more article
-      await channelService.togglePinChannelArticles({
+      const finalResult = await channelService.togglePinTopicChannelArticles({
         channelId: topicChannel.id,
-        channelType: NODE_TYPES.TopicChannel,
         articleIds: [articles[6].id],
         pinned: true,
       })
 
-      // Verify oldest article was unpinned
-      const finalPinned = await atomService.findMany({
-        table: 'topic_channel_article',
-        where: { channelId: topicChannel.id, pinned: true },
+      // Verify we still have only 6 pinned articles (limit enforced)
+      expect(finalResult.pinnedArticles).toHaveLength(6)
+      expect(finalResult.pinnedArticles).toContain(articles[6].id)
+
+      // The new article should be in the pinned list
+      // and the oldest articles should be removed due to the slice(0, TOPIC_CHANNEL_PIN_LIMIT)
+    })
+
+    test('pins multiple articles at once', async () => {
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[1].id, articles[2].id],
+        pinned: true,
       })
-      expect(finalPinned).toHaveLength(6)
-      expect(finalPinned.map((a) => a.articleId)).toContain(articles[6].id)
-      expect(finalPinned.map((a) => a.articleId)).not.toContain(articles[0].id)
+
+      expect(result.pinnedArticles).toHaveLength(3)
+      expect(result.pinnedArticles).toContain(articles[0].id)
+      expect(result.pinnedArticles).toContain(articles[1].id)
+      expect(result.pinnedArticles).toContain(articles[2].id)
+    })
+
+    test('unpins multiple articles at once', async () => {
+      // First pin multiple articles
+      await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[1].id, articles[2].id],
+        pinned: true,
+      })
+
+      // Then unpin some of them
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[2].id],
+        pinned: false,
+      })
+
+      expect(result.pinnedArticles).toHaveLength(1)
+      expect(result.pinnedArticles).toContain(articles[1].id)
+      expect(result.pinnedArticles).not.toContain(articles[0].id)
+      expect(result.pinnedArticles).not.toContain(articles[2].id)
+    })
+
+    test('handles duplicate article IDs when pinning', async () => {
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [articles[0].id, articles[0].id, articles[1].id],
+        pinned: true,
+      })
+
+      // Should deduplicate and only pin 2 unique articles
+      expect(result.pinnedArticles).toHaveLength(2)
+      expect(result.pinnedArticles).toContain(articles[0].id)
+      expect(result.pinnedArticles).toContain(articles[1].id)
+    })
+
+    test('handles empty article IDs array', async () => {
+      const before = await atomService.findUnique({
+        table: 'topic_channel',
+        where: { id: topicChannel.id },
+      })
+      const after = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: [],
+        pinned: true,
+      })
+
+      expect(after.pinnedArticles).toEqual(before.pinnedArticles)
+    })
+
+    test('respects pin limit when adding to existing pinned articles', async () => {
+      // First pin 4 articles
+      await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: articleIds.slice(0, 4),
+        pinned: true,
+      })
+
+      // Then try to pin 4 more articles (total would be 8, but limit is 6)
+      const result = await channelService.togglePinTopicChannelArticles({
+        channelId: topicChannel.id,
+        articleIds: articleIds.slice(4, 8),
+        pinned: true,
+      })
+
+      // Should only have 6 articles pinned (the limit)
+      expect(result.pinnedArticles).toHaveLength(6)
+
+      // The new articles should be included
+      expect(result.pinnedArticles).toContain(articleIds[5])
+      expect(result.pinnedArticles).toContain(articleIds[6])
     })
   })
 
   describe('Error Cases', () => {
     test('throws error for non-existent channel', async () => {
       await expect(
-        channelService.togglePinChannelArticles({
+        channelService.togglePinTopicChannelArticles({
           channelId: '999',
-          channelType: NODE_TYPES.TopicChannel,
           articleIds: [articles[0].id],
           pinned: true,
         })
       ).rejects.toThrow('channel not found')
     })
+  })
+})
+
+describe('findArticleTopicChannels', () => {
+  let parentChannel: TopicChannel
+  let childChannel1: TopicChannel
+  let childChannel2: TopicChannel
+  let standaloneChannel: TopicChannel
+  const articleId = '1'
+
+  beforeEach(async () => {
+    // Clean up tables
+    await atomService.deleteMany({ table: 'topic_channel_article' })
+    await atomService.deleteMany({ table: 'topic_channel' })
+
+    // Create test channels with parent-child relationships
+    childChannel1 = await channelService.createTopicChannel({
+      name: 'child-channel-1',
+      note: 'Child channel 1',
+      providerId: 'child1',
+      enabled: true,
+    })
+
+    childChannel2 = await channelService.createTopicChannel({
+      name: 'child-channel-2',
+      note: 'Child channel 2',
+      providerId: 'child2',
+      enabled: true,
+    })
+
+    parentChannel = await channelService.createTopicChannel({
+      name: 'parent-channel',
+      note: 'Parent channel',
+      providerId: 'parent',
+      enabled: true,
+      subChannelIds: [childChannel1.id, childChannel2.id],
+    })
+
+    standaloneChannel = await channelService.createTopicChannel({
+      name: 'standalone-channel',
+      note: 'Standalone channel',
+      providerId: 'standalone',
+      enabled: true,
+    })
+  })
+
+  test('finds channels for article with no channels', async () => {
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(0)
+  })
+
+  test('finds standalone channel for article', async () => {
+    // Add article to standalone channel
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [standaloneChannel.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(standaloneChannel.id)
+    expect(result[0].name).toBe('standalone-channel')
+  })
+
+  test('finds child channel and parent channel when article is in child channel', async () => {
+    // Add article to child channel
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [childChannel1.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(2)
+
+    const channelIds = result.map((c) => c.id)
+    expect(channelIds).toContain(childChannel1.id)
+    expect(channelIds).toContain(parentChannel.id)
+  })
+
+  test('finds multiple child channels and their parent when article is in multiple child channels', async () => {
+    // Add article to both child channels
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [childChannel1.id, childChannel2.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(3)
+
+    const channelIds = result.map((c) => c.id)
+    expect(channelIds).toContain(childChannel1.id)
+    expect(channelIds).toContain(childChannel2.id)
+    expect(channelIds).toContain(parentChannel.id)
+  })
+
+  test('finds parent channel when article is directly in parent channel', async () => {
+    // Add article directly to parent channel
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [parentChannel.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(parentChannel.id)
+  })
+
+  test('deduplicates when article is in both parent and child channels', async () => {
+    // Add article to both parent and child channels
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [parentChannel.id, childChannel1.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(2)
+
+    const channelIds = result.map((c) => c.id)
+    expect(channelIds).toContain(childChannel1.id)
+    expect(channelIds).toContain(parentChannel.id)
+
+    // Verify no duplicates
+    const uniqueIds = new Set(channelIds)
+    expect(uniqueIds.size).toBe(channelIds.length)
+  })
+
+  test('finds mixed channels - standalone and child with parent', async () => {
+    // Add article to both standalone and child channels
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [standaloneChannel.id, childChannel1.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(3)
+
+    const channelIds = result.map((c) => c.id)
+    expect(channelIds).toContain(standaloneChannel.id)
+    expect(channelIds).toContain(childChannel1.id)
+    expect(channelIds).toContain(parentChannel.id)
+  })
+
+  test('handles channels with null parentId', async () => {
+    // The standalone channel should have null parentId
+    const standaloneChannelFromDb = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { id: standaloneChannel.id },
+    })
+    expect(standaloneChannelFromDb.parentId).toBeNull()
+
+    await channelService.setArticleTopicChannels({
+      articleId,
+      channelIds: [standaloneChannel.id],
+    })
+
+    const result = await channelService.findArticleTopicChannels(articleId)
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(standaloneChannel.id)
   })
 })

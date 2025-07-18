@@ -17,7 +17,7 @@ export default /* GraphQL */ `
 
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
-    providerId: String! @auth(mode: "${AUTH_MODE.admin}") @privateCache
+    providerId: String @auth(mode: "${AUTH_MODE.admin}") @privateCache
 
     enabled: Boolean!
 
@@ -107,6 +107,7 @@ export default /* GraphQL */ `
     name: [TranslationInput!]
     note: [TranslationInput!]
     enabled: Boolean
+    subChannels: [ID!]
   }
 
   input PutCurationChannelInput {

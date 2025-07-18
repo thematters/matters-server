@@ -1,7 +1,6 @@
 import type {
   ArticleVersion,
   CampaignChannel,
-  CurationChannel,
   Connections,
   ValueOf,
   TopicChannelFeedback,
@@ -37,6 +36,7 @@ import {
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import uniqBy from 'lodash/uniqBy.js'
 
 import { ArticleService } from '../article/articleService.js'
 import { AtomService } from '../atomService.js'
@@ -67,16 +67,29 @@ export class ChannelService {
     note,
     providerId,
     enabled,
+    subChannelIds,
   }: {
     name: string
-    providerId: string
-    enabled: boolean
     note?: string
+    providerId?: string
+    enabled: boolean
+    subChannelIds?: string[]
   }) => {
-    return this.models.create({
+    const channel = await this.models.create({
       table: 'topic_channel',
       data: { shortHash: shortHash(), name, note, providerId, enabled },
     })
+
+    if (subChannelIds && subChannelIds.length > 0) {
+      for (const subChannelId of subChannelIds) {
+        await this.models.update({
+          table: 'topic_channel',
+          where: { id: subChannelId },
+          data: { parentId: channel.id },
+        })
+      }
+    }
+    return channel
   }
 
   public updateTopicChannel = async ({
@@ -84,17 +97,39 @@ export class ChannelService {
     name,
     note,
     enabled,
+    subChannelIds,
   }: {
     id: string
     name?: string
     note?: string
     enabled?: boolean
+    subChannelIds?: string[]
   }) => {
-    return this.models.update({
+    const channel = await this.models.update({
       table: 'topic_channel',
       where: { id },
       data: { name, note, enabled },
     })
+
+    if (subChannelIds && subChannelIds.length > 0) {
+      // First, clear existing parent relationships for this channel
+      await this.models.update({
+        table: 'topic_channel',
+        where: { parentId: id },
+        data: { parentId: null },
+      })
+
+      // Then set new parent relationships
+      for (const subChannelId of subChannelIds) {
+        await this.models.update({
+          table: 'topic_channel',
+          where: { id: subChannelId },
+          data: { parentId: id },
+        })
+      }
+    }
+
+    return channel
   }
 
   public updateOrCreateCampaignChannel = async ({
@@ -277,7 +312,7 @@ export class ChannelService {
   /**
    * Find articles for a topic channel with order column considering pinned flag
    */
-  public findTopicChannelArticles = (
+  public findTopicChannelArticles = async (
     channelId: string,
     {
       channelThreshold,
@@ -295,33 +330,50 @@ export class ChannelService {
     }
   ) => {
     const knexRO = this.connections.knexRO
+
+    // get the channel to access pinnedArticles
+    const channel = await this.models.findUnique({
+      table: 'topic_channel',
+      where: { id: channelId },
+    })
+    const subChannels = await this.models.findMany({
+      table: 'topic_channel',
+      where: { parentId: channelId },
+    })
+    const channelIds = [channel.id, ...subChannels.map(({ id }) => id)]
+
+    if (!channel) {
+      throw new EntityNotFoundError('Channel not found')
+    }
+
+    const pinnedArticleIds = channel.pinnedArticles || []
+
     const pinnedQuery = knexRO
       .select(
         'article.*',
-        'topic_channel_article.created_at as channel_article_created_at'
+        // `channel_article_created_at` column is used in `RecommentdationService`.
+        // values of pinned articles are set to `now()` so those articles can be excluded from recommendation pools
+        knexRO.raw('now() as channel_article_created_at')
       )
-      .from('topic_channel_article')
-      .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
+      .from('article')
       .where({
-        'topic_channel_article.channel_id': channelId,
-        'topic_channel_article.enabled': true,
-        'topic_channel_article.pinned': true,
         'article.state': ARTICLE_STATE.active,
       })
+      .whereIn('article.id', pinnedArticleIds)
 
     const unpinnedQuery = knexRO
       .select(
         'article.*',
         'topic_channel_article.created_at as channel_article_created_at'
       )
+      .distinctOn('article.id')
       .from('topic_channel_article')
       .leftJoin('article', 'topic_channel_article.article_id', 'article.id')
       .where({
-        'topic_channel_article.channel_id': channelId,
         'topic_channel_article.enabled': true,
-        'topic_channel_article.pinned': false,
         'article.state': ARTICLE_STATE.active,
       })
+      .whereIn('topic_channel_article.channel_id', channelIds)
       .where((qb) => {
         qb.where('article.is_spam', false).orWhere((b) => {
           b.whereNull('article.is_spam')
@@ -341,12 +393,28 @@ export class ChannelService {
         }
       })
 
+    // Exclude pinned articles from unpinned query
+    if (pinnedArticleIds.length > 0) {
+      unpinnedQuery.whereNotIn('article.id', pinnedArticleIds)
+    }
+
     if (addOrderColumn) {
-      pinnedQuery.select(
-        knexRO.raw(
-          'RANK() OVER (ORDER BY topic_channel_article.pinned_at DESC) AS order'
+      // For pinned articles, use the order in the pinnedArticles array
+      if (pinnedArticleIds.length > 0) {
+        const orderCaseStatements = pinnedArticleIds
+          .map((id, index) => `WHEN '${id}' THEN ${index + 1}`)
+          .join(' ')
+        pinnedQuery.select(
+          knexRO.raw(
+            `CASE article.id ${orderCaseStatements} ELSE ${
+              pinnedArticleIds.length + 1
+            } END AS order`
+          )
         )
-      )
+      } else {
+        pinnedQuery.select(knexRO.raw('1 AS order'))
+      }
+
       unpinnedQuery.select(
         knexRO.raw(
           'RANK() OVER (ORDER BY article.created_at DESC) + 100 AS order'
@@ -366,7 +434,7 @@ export class ChannelService {
       if (datetimeRange.end) {
         filteredQuery.where(`${alias}.created_at`, '<=', datetimeRange.end)
       }
-      return filteredQuery
+      return { query: filteredQuery }
     }
 
     if (flood !== undefined) {
@@ -391,21 +459,49 @@ export class ChannelService {
         .select('*')
         .from('ranked')
       if (flood === true) {
-        return floodBaseQuery.where(
-          'rank',
-          '>',
-          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
-        )
+        return {
+          query: floodBaseQuery.where(
+            'rank',
+            '>',
+            CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+          ),
+        }
       } else {
-        return floodBaseQuery.where(
-          'rank',
-          '<=',
-          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
-        )
+        return {
+          query: floodBaseQuery.where(
+            'rank',
+            '<=',
+            CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+          ),
+        }
       }
     }
 
-    return query
+    return { query }
+  }
+
+  public findArticleTopicChannels = async (articleId: string) => {
+    const articleChannels = await this.models.findMany({
+      table: 'topic_channel_article',
+      where: { articleId, enabled: true },
+    })
+    const channels = await this.connections
+      .knexRO('topic_channel')
+      .select('*')
+      .whereIn(
+        'id',
+        articleChannels.map((c) => c.channelId)
+      )
+
+    const parentChannels = await this.connections
+      .knexRO('topic_channel')
+      .select('*')
+      .whereIn(
+        'id',
+        channels.map((c) => c.parentId).filter((id) => id !== null)
+      )
+
+    return uniqBy([...parentChannels, ...channels], 'id')
   }
 
   public isFlood = async ({
@@ -425,10 +521,10 @@ export class ChannelService {
         args: { channelId },
       },
       getter: async () => {
-        const articles = await this.findTopicChannelArticles(channelId, {
+        const { query } = await this.findTopicChannelArticles(channelId, {
           flood: true,
         })
-        return articles.map((a) => a.id)
+        return (await query).map((a) => a.id)
       },
       expire: CACHE_TTL.SHORT,
     })
@@ -601,23 +697,18 @@ export class ChannelService {
     return pinnedQuery.union(unpinnedQuery)
   }
 
-  public togglePinChannelArticles = async ({
+  public togglePinCurationChannelArticles = async ({
     channelId,
-    channelType,
     articleIds,
     pinned,
   }: {
     channelId: string
-    channelType: NODE_TYPES.TopicChannel | NODE_TYPES.CurationChannel
     articleIds: string[]
     pinned: boolean
   }) => {
     // Get channel to check pin limit
     const channel = await this.models.findUnique({
-      table:
-        channelType === NODE_TYPES.TopicChannel
-          ? 'topic_channel'
-          : 'curation_channel',
+      table: 'curation_channel',
       where: { id: channelId },
     })
 
@@ -629,10 +720,7 @@ export class ChannelService {
       return channel
     }
 
-    const maxPinAmount =
-      channelType === NODE_TYPES.TopicChannel
-        ? TOPIC_CHANNEL_PIN_LIMIT
-        : (channel as CurationChannel).pinAmount
+    const maxPinAmount = channel.pinAmount
 
     // If pinning, check if it would exceed the limit
     if (pinned) {
@@ -642,20 +730,14 @@ export class ChannelService {
         )
       }
       const currentPinnedCount = await this.models.count({
-        table:
-          channelType === NODE_TYPES.TopicChannel
-            ? 'topic_channel_article'
-            : 'curation_channel_article',
+        table: 'curation_channel_article',
         where: {
           channelId,
           pinned: true,
         },
       })
       const unpinnedArticleCount = await this.models.count({
-        table:
-          channelType === NODE_TYPES.TopicChannel
-            ? 'topic_channel_article'
-            : 'curation_channel_article',
+        table: 'curation_channel_article',
         where: { channelId, pinned: false },
         whereIn: ['articleId', articleIds],
       })
@@ -663,10 +745,7 @@ export class ChannelService {
       if (currentPinnedCount + unpinnedArticleCount > maxPinAmount) {
         // Find oldest pinned articles to unpin
         const oldestPinnedArticles = await this.models.findMany({
-          table:
-            channelType === NODE_TYPES.TopicChannel
-              ? 'topic_channel_article'
-              : 'curation_channel_article',
+          table: 'curation_channel_article',
           where: { channelId, pinned: true },
           orderBy: [{ column: 'pinned_at', order: 'asc' }],
           take: unpinnedArticleCount - (maxPinAmount - currentPinnedCount),
@@ -674,10 +753,7 @@ export class ChannelService {
 
         // Unpin oldest articles to make room
         await this.models.updateMany({
-          table:
-            channelType === NODE_TYPES.TopicChannel
-              ? 'topic_channel_article'
-              : 'curation_channel_article',
+          table: 'curation_channel_article',
           where: { channelId },
           whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
           data: {
@@ -691,10 +767,7 @@ export class ChannelService {
     // Update pin status for articles
     const now = new Date()
     await this.models.updateMany({
-      table:
-        channelType === NODE_TYPES.TopicChannel
-          ? 'topic_channel_article'
-          : 'curation_channel_article',
+      table: 'curation_channel_article',
       where: { channelId },
       whereIn: ['articleId', articleIds],
       data: {
@@ -704,6 +777,64 @@ export class ChannelService {
     })
 
     return channel
+  }
+
+  public togglePinTopicChannelArticles = async ({
+    channelId,
+    articleIds,
+    pinned,
+  }: {
+    channelId: string
+    articleIds: string[]
+    pinned: boolean
+  }) => {
+    // Get channel to check current pinned articles
+    const channel = await this.models.findUnique({
+      table: 'topic_channel',
+      where: { id: channelId },
+    })
+
+    if (!channel) {
+      throw new EntityNotFoundError('channel not found')
+    }
+
+    if (articleIds.length === 0) {
+      return channel
+    }
+
+    // Current pinned articles array (empty array if null)
+    const currentPinnedArticles = channel.pinnedArticles || []
+
+    let newPinnedArticles: string[]
+
+    if (pinned) {
+      // Add articles to pinned list
+      const newPinnedSet = new Set([
+        ...articleIds,
+        ...currentPinnedArticles.map(String),
+      ])
+      newPinnedArticles = Array.from(newPinnedSet).slice(
+        0,
+        TOPIC_CHANNEL_PIN_LIMIT
+      )
+    } else {
+      // Remove articles from pinned list
+      const articlesToUnpin = new Set(articleIds)
+      newPinnedArticles = currentPinnedArticles
+        .map(String)
+        .filter((id) => !articlesToUnpin.has(id))
+    }
+
+    // Update the channel with new pinned articles
+    const updatedChannel = await this.models.update({
+      table: 'topic_channel',
+      where: { id: channelId },
+      data: {
+        pinnedArticles: newPinnedArticles,
+      },
+    })
+
+    return updatedChannel
   }
 
   public createPositiveFeedback = async ({

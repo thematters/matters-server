@@ -1,5 +1,4 @@
-import type { Connections, Article } from '#definitions/index.js'
-import { NODE_TYPES } from '#common/enums/index.js'
+import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
@@ -9,7 +8,7 @@ import { genConnections, closeConnections, createCampaign } from '../utils.js'
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
-let channel: any
+let channel: TopicChannel
 let articles: Article[]
 let campaignService: CampaignService
 
@@ -38,8 +37,9 @@ beforeEach(async () => {
   articles = await atomService.findMany({
     table: 'article',
     where: {},
-    take: 4,
+    take: 6,
   })
+  expect(articles).toHaveLength(6)
 
   // Add articles to channel
   await channelService.setArticleTopicChannels({
@@ -68,53 +68,49 @@ describe('findTopicChannelArticles', () => {
       enabled: true,
     })
 
-    const results = await channelService.findTopicChannelArticles(
+    const { query } = await channelService.findTopicChannelArticles(
       emptyChannel.id
     )
+    const results = await query
     expect(results).toHaveLength(0)
   })
 
   test('orders pinned articles before unpinned articles', async () => {
-    // Pin first article
-    await channelService.togglePinChannelArticles({
-      channelId: channel.id,
-      channelType: NODE_TYPES.TopicChannel,
-      articleIds: [articles[0].id],
-      pinned: true,
+    // Pin first article by updating the channel's pinnedArticles array
+    await atomService.update({
+      table: 'topic_channel',
+      where: { id: channel.id },
+      data: { pinnedArticles: [articles[0].id] },
     })
 
-    const results = await channelService
-      .findTopicChannelArticles(channel.id, { addOrderColumn: true })
-      .orderBy('order', 'asc')
+    const { query } = await channelService.findTopicChannelArticles(
+      channel.id,
+      { addOrderColumn: true }
+    )
+    const results = await query.orderBy('order', 'asc')
 
     expect(results).toHaveLength(4)
     expect(results[0].id).toBe(articles[0].id) // Pinned should be first
     expect(results[1].id).not.toBe(articles[0].id) // Rest should be unpinned
   })
 
-  test('orders pinned articles by pinnedAt DESC', async () => {
-    // Pin two articles at different times
-    await channelService.togglePinChannelArticles({
-      channelId: channel.id,
-      channelType: NODE_TYPES.TopicChannel,
-      articleIds: [articles[1].id],
-      pinned: true,
+  test('orders pinned articles by pinnedArticles array order', async () => {
+    // Pin two articles in specific order
+    await atomService.update({
+      table: 'topic_channel',
+      where: { id: channel.id },
+      data: { pinnedArticles: [articles[1].id, articles[0].id] },
     })
 
-    await channelService.togglePinChannelArticles({
-      channelId: channel.id,
-      channelType: NODE_TYPES.TopicChannel,
-      articleIds: [articles[0].id],
-      pinned: true,
-    })
-
-    const results = await channelService
-      .findTopicChannelArticles(channel.id, { addOrderColumn: true })
-      .orderBy('order', 'asc')
+    const { query } = await channelService.findTopicChannelArticles(
+      channel.id,
+      { addOrderColumn: true }
+    )
+    const results = await query.orderBy('order', 'asc')
 
     expect(results).toHaveLength(4)
-    expect(results[0].id).toBe(articles[0].id) // Most recently pinned
-    expect(results[1].id).toBe(articles[1].id) // Pinned earlier
+    expect(results[0].id).toBe(articles[1].id) // First in pinnedArticles array
+    expect(results[1].id).toBe(articles[0].id) // Second in pinnedArticles array
   })
 
   test('orders unpinned articles by article.created_at DESC', async () => {
@@ -131,9 +127,11 @@ describe('findTopicChannelArticles', () => {
       data: { createdAt: baseTime },
     })
 
-    const results = await channelService
-      .findTopicChannelArticles(channel.id, { addOrderColumn: true })
-      .orderBy('order', 'asc')
+    const { query } = await channelService.findTopicChannelArticles(
+      channel.id,
+      { addOrderColumn: true }
+    )
+    const results = await query.orderBy('order', 'asc')
 
     // Find the positions of our test articles in unpinned section
     const article2Index = results.findIndex((a) => a.id === articles[2].id)
@@ -167,9 +165,13 @@ describe('findTopicChannelArticles', () => {
       data: { score: 0.1, isLabeled: true },
     })
 
-    const results = await channelService.findTopicChannelArticles(channel.id, {
-      channelThreshold: 0.5,
-    })
+    const { query } = await channelService.findTopicChannelArticles(
+      channel.id,
+      {
+        channelThreshold: 0.5,
+      }
+    )
+    const results = await query
 
     expect(results).toHaveLength(3)
     const resultIds = results.map((a) => a.id)
@@ -186,26 +188,6 @@ describe('findTopicChannelArticles', () => {
 
     beforeEach(async () => {
       await Promise.all([
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[0].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[1].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[2].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
-        atomService.update({
-          table: 'topic_channel_article',
-          where: { articleId: articles[3].id, channelId: channel.id },
-          data: { pinned: false },
-        }),
         atomService.update({
           table: 'article',
           where: { id: articles[0].id },
@@ -233,12 +215,13 @@ describe('findTopicChannelArticles', () => {
       const start = baseTime
       const end = oneDayAfter
 
-      const results = await channelService.findTopicChannelArticles(
+      const { query } = await channelService.findTopicChannelArticles(
         channel.id,
         {
           datetimeRange: { start, end },
         }
       )
+      const results = await query
 
       expect(results).toHaveLength(2)
       expect(results.map((a) => a.id)).toEqual(
@@ -250,12 +233,13 @@ describe('findTopicChannelArticles', () => {
       const start = baseTime
       const end = twoDaysAfter
 
-      const results = await channelService.findTopicChannelArticles(
+      const { query } = await channelService.findTopicChannelArticles(
         channel.id,
         {
           datetimeRange: { start, end },
         }
       )
+      const results = await query
 
       expect(results).toHaveLength(3)
       expect(results.map((a) => a.id)).toEqual(
@@ -267,13 +251,13 @@ describe('findTopicChannelArticles', () => {
       const start = new Date(twoDaysAfter.getTime() + 86400000) // 3 day after
       const end = new Date(twoDaysAfter.getTime() + 172800000) // 4 day after
 
-      const results = await channelService.findTopicChannelArticles(
+      const { query } = await channelService.findTopicChannelArticles(
         channel.id,
         {
           datetimeRange: { start, end },
         }
       )
-
+      const results = await query
       expect(results).toHaveLength(0)
     })
   })
@@ -293,7 +277,10 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      const results = await channelService.findTopicChannelArticles(channel.id)
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
 
       expect(results.map((a) => a.id)).not.toContain(articles[0].id)
     })
@@ -310,9 +297,14 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      const results = await channelService.findTopicChannelArticles(channel.id)
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
 
       expect(results.length).toBeGreaterThan(0)
+
+      await atomService.deleteMany({ table: 'user_restriction' })
     })
 
     test('pinned articles are not excluded', async () => {
@@ -325,27 +317,36 @@ describe('findTopicChannelArticles', () => {
         },
       })
 
-      // Pin an article from a restricted author
-      await channelService.togglePinChannelArticles({
-        channelId: channel.id,
-        channelType: NODE_TYPES.TopicChannel,
-        articleIds: [articles[0].id],
-        pinned: true,
+      // Pin an article from a restricted author by updating the channel's pinnedArticles array
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
       })
 
-      const results = await channelService.findTopicChannelArticles(channel.id)
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
 
       // Should still include the pinned article from restricted author
       expect(results.map((a) => a.id)).toContain(articles[0].id)
+
+      await atomService.deleteMany({ table: 'user_restriction' })
     })
   })
 
   test('excludes articles that are part of a writing challenge', async () => {
-    const before = await channelService.findTopicChannelArticles(channel.id)
+    const { query: beforeQuery } =
+      await channelService.findTopicChannelArticles(channel.id)
+    const before = await beforeQuery
 
     await createCampaign(campaignService, before[0])
 
-    const after = await channelService.findTopicChannelArticles(channel.id)
+    const { query: afterQuery } = await channelService.findTopicChannelArticles(
+      channel.id
+    )
+    const after = await afterQuery
 
     expect(after.map((a) => a.id)).not.toContain(before[0].id)
 
@@ -353,5 +354,78 @@ describe('findTopicChannelArticles', () => {
     await atomService.deleteMany({ table: 'campaign_user' })
     await atomService.deleteMany({ table: 'campaign_stage' })
     await atomService.deleteMany({ table: 'campaign' })
+  })
+
+  describe('sub-channel functionality', () => {
+    let subChannel1: TopicChannel
+    let subChannel2: TopicChannel
+
+    beforeEach(async () => {
+      // Create sub-channels
+      subChannel1 = await channelService.createTopicChannel({
+        name: 'sub-channel-1',
+        providerId: 'sub-provider-id-1',
+        enabled: true,
+      })
+
+      subChannel2 = await channelService.createTopicChannel({
+        name: 'sub-channel-2',
+        providerId: 'sub-provider-id-2',
+        enabled: true,
+      })
+
+      // Set parent relationship
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: subChannel1.id },
+        data: { parentId: channel.id },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: subChannel2.id },
+        data: { parentId: channel.id },
+      })
+    })
+
+    test('includes articles from sub-channels', async () => {
+      const { query: beforeQuery } =
+        await channelService.findTopicChannelArticles(channel.id)
+      const beforeResults = await beforeQuery
+
+      // Add articles to sub-channels
+      await channelService.setArticleTopicChannels({
+        articleId: articles[4].id,
+        channelIds: [subChannel1.id],
+      })
+      await channelService.setArticleTopicChannels({
+        articleId: articles[5].id,
+        channelIds: [subChannel2.id],
+      })
+
+      const { query: afterQuery } =
+        await channelService.findTopicChannelArticles(channel.id)
+      const afterResults = await afterQuery
+
+      expect(beforeResults.length + 2).toBe(afterResults.length)
+    })
+
+    test('avoids duplicate articles when article is in both parent and sub-channel', async () => {
+      // Add the same article to both parent and sub-channel
+      await channelService.setArticleTopicChannels({
+        articleId: articles[0].id,
+        channelIds: [subChannel1.id],
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      // Should not have duplicates - article[0] should appear only once
+      const article0Count = results.filter(
+        (a) => a.id === articles[0].id
+      ).length
+      expect(article0Count).toBe(1)
+    })
   })
 })

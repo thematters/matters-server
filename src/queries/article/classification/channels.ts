@@ -1,29 +1,19 @@
-import type { GQLTopicChannelClassificationResolvers } from '#definitions/index.js'
+import type {
+  GQLTopicChannelClassificationResolvers,
+  TopicChannel,
+} from '#definitions/index.js'
 
-import {
-  ARTICLE_CHANNEL_JOB_STATE,
-  USER_FEATURE_FLAG_TYPE,
-} from '#common/enums/index.js'
+import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
+import flatten from 'lodash/flatten.js'
+import uniqBy from 'lodash/uniqBy.js'
 
 const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
-  { id: articleId, authorId, isSpam: _isSpam, spamScore: _spamScore },
+  { id: articleId },
   _,
-  { dataSources: { atomService, channelService, systemService } }
+  { dataSources: { atomService, channelService, publicationService } }
 ) => {
-  // TODO: move to ArticleService
-  const pypassSpam = !!(await atomService.findFirst({
-    table: 'user_feature_flag',
-    where: {
-      userId: authorId,
-      type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
-    },
-  }))
-  const spamThreshold = (await systemService.getSpamThreshold()) || 1
-  const spamScore = _spamScore ?? 1
-  const isSpam = _isSpam ?? (pypassSpam ? false : spamScore > spamThreshold)
-
-  if (isSpam) {
+  if (await publicationService.isSpam(articleId)) {
     return []
   }
 
@@ -54,23 +44,63 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
   )
 
   // Map article channels to ArticleTopicChannel type
-  return articleChannels.map(async (ac) => ({
-    channel: {
-      ...(channelMap.get(ac.channelId) as any),
-      __type: 'TopicChannel',
-    },
-    score: ac.score,
-    isLabeled: ac.isLabeled,
-    enabled: ac.enabled,
-    classicfiedAt: ac.createdAt,
-    pinned: ac.pinned,
-    antiFlooded:
-      ac.createdAt > floodDetectWindow &&
-      (await channelService.isFlood({
-        articleId,
-        channelId: ac.channelId,
-      })),
-  }))
+  const result = await Promise.all(
+    articleChannels.map(async (ac) => {
+      const channel = channelMap.get(ac.channelId) as TopicChannel
+      // if channel has parentId, and parentId is not in channelMap (means this parent channel is not labeled directly),
+      // then it has parent channel to add to result
+      const hasParentToAdd =
+        channel.parentId && channel.enabled && !channelMap.get(channel.parentId)
+      const parentChannel = hasParentToAdd
+        ? await atomService.findUnique({
+            table: 'topic_channel',
+            where: { id: channel.parentId as string },
+          })
+        : null
+      return [
+        {
+          channel: {
+            ...channel,
+            __type: 'TopicChannel',
+          },
+          score: ac.score,
+          isLabeled: ac.isLabeled,
+          enabled: ac.enabled,
+          classicfiedAt: ac.createdAt,
+          pinned: channel.pinnedArticles?.includes(articleId) || false,
+          antiFlooded:
+            ac.createdAt > floodDetectWindow &&
+            (await channelService.isFlood({
+              articleId,
+              channelId: ac.channelId,
+            })),
+        },
+        ...(hasParentToAdd
+          ? [
+              {
+                channel: {
+                  ...(parentChannel as TopicChannel),
+                  __type: 'TopicChannel',
+                },
+                score: null,
+                isLabeled: false,
+                enabled: ac.enabled,
+                classicfiedAt: ac.createdAt,
+                pinned:
+                  parentChannel?.pinnedArticles?.includes(articleId) || false,
+                antiFlooded:
+                  ac.createdAt > floodDetectWindow &&
+                  (await channelService.isFlood({
+                    articleId,
+                    channelId: parentChannel?.id as string,
+                  })),
+              },
+            ]
+          : []),
+      ]
+    })
+  )
+  return uniqBy(flatten(result), 'channel.id')
 }
 
 export default resolver
