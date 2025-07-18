@@ -3164,6 +3164,7 @@ export type GQLPutWritingChallengeInput = {
   link?: InputMaybe<Scalars['String']['input']>
   managers?: InputMaybe<Array<Scalars['ID']['input']>>
   name?: InputMaybe<Array<GQLTranslationInput>>
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   newStages?: InputMaybe<Array<GQLCampaignStageInput>>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>

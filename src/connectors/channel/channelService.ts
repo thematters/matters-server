@@ -135,12 +135,13 @@ export class ChannelService {
   public updateOrCreateCampaignChannel = async ({
     campaignId,
     enabled,
-  }: Pick<CampaignChannel, 'campaignId' | 'enabled'>) => {
+    navbarTitle,
+  }: Pick<CampaignChannel, 'campaignId' | 'enabled' | 'navbarTitle'>) => {
     return this.models.upsert({
       table: 'campaign_channel',
       where: { campaignId },
-      create: { campaignId, enabled },
-      update: { enabled },
+      create: { campaignId, enabled, navbarTitle },
+      update: { enabled, navbarTitle },
     })
   }
 

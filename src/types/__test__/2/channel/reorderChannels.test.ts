@@ -51,6 +51,7 @@ describe('reorderChannels', () => {
     const campaignChannel = await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: true,
+      navbarTitle: 'test',
     })
 
     // Prepare global IDs

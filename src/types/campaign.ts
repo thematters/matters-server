@@ -29,6 +29,7 @@ export default /* GraphQL */ `
   input PutWritingChallengeInput {
     id: ID
     name: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     cover: ID
     description: [TranslationInput!]
     link: String

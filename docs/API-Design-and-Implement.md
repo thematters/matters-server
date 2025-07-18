@@ -16,7 +16,6 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Create a new file in the appropriate directory (e.g., mutations/ or queries/)
    - Export the resolver as default
    - Import necessary types from definitions
-   - Import needed services and utilities
 
 3. Implement authentication/authorization
    - Check viewer context for authentication

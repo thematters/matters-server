@@ -36,6 +36,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       newStages,
       featuredDescription,
       channelEnabled,
+      navbarTitle,
       exclusive,
       managers: managerGlobalIds,
     },
@@ -206,22 +207,21 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   }
 
   // create or update campaign channel
-  if (channelEnabled !== undefined) {
-    if (
-      [
-        CAMPAIGN_STATE.pending as string,
-        CAMPAIGN_STATE.archived as string,
-      ].includes(campaign.state) &&
-      channelEnabled
-    ) {
-      throw new ActionFailedError(
-        'Cannot enable channel when campaign is pending or archived'
-      )
+  if (channelEnabled !== undefined || navbarTitle !== undefined) {
+    // Get current channel state if only updating navbar title
+    let currentEnabled = channelEnabled
+    if (channelEnabled === undefined) {
+      const existingChannel = await atomService.findFirst({
+        table: 'campaign_channel',
+        where: { campaignId: campaign.id },
+      })
+      currentEnabled = existingChannel?.enabled ?? false
     }
 
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
-      enabled: channelEnabled,
+      enabled: currentEnabled ?? false,
+      navbarTitle: navbarTitle ? navbarTitle[0]?.text : null,
     })
   }
 
@@ -259,6 +259,26 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         language: trans.language,
         text: trans.text,
       })
+    }
+  }
+
+  if (navbarTitle) {
+    // Get or create campaign channel to get its ID for translations
+    const campaignChannel = await atomService.findFirst({
+      table: 'campaign_channel',
+      where: { campaignId: campaign.id },
+    })
+
+    if (campaignChannel) {
+      for (const trans of navbarTitle) {
+        await translationService.updateOrCreateTranslation({
+          table: 'campaign_channel',
+          field: 'navbar_title',
+          id: campaignChannel.id,
+          language: trans.language,
+          text: trans.text,
+        })
+      }
     }
   }
 

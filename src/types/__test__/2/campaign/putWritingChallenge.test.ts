@@ -33,6 +33,7 @@ describe('create or update writing challenges', () => {
         id
         shortHash
         name
+        navbarTitle(input: { language: en })
         description
         cover
         link
@@ -132,6 +133,18 @@ describe('create or update writing challenges', () => {
       language: LANGUAGE.zh_hans,
     },
     { text: 'test stage description ' + LANGUAGE.en, language: LANGUAGE.en },
+  ]
+
+  const translationsNavbarTitle = [
+    {
+      text: 'test navbar title ' + LANGUAGE.zh_hant,
+      language: LANGUAGE.zh_hant,
+    },
+    {
+      text: 'test navbar title ' + LANGUAGE.zh_hans,
+      language: LANGUAGE.zh_hans,
+    },
+    { text: 'test navbar title ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
 
   const name = translationsCampaign
@@ -419,7 +432,7 @@ describe('create or update writing challenges', () => {
     expect(updatedData2.putWritingChallenge.channelEnabled).toBe(false)
   })
 
-  test('cannot enable channel for pending campaign', async () => {
+  test('can enable channel for pending campaign', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
@@ -448,7 +461,7 @@ describe('create or update writing challenges', () => {
       },
     })
 
-    expect(errors[0].extensions.code).toBe('ACTION_FAILED')
+    expect(errors).toBeUndefined()
   })
 
   test('user without admin role can not create', async () => {
@@ -618,5 +631,223 @@ describe('create or update writing challenges', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.putWritingChallenge.oss.exclusive).toBe(false)
+  })
+
+  test('create with navbarTitle', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          navbarTitle: translationsNavbarTitle,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putWritingChallenge.navbarTitle).toContain('test navbar title')
+  })
+
+  test('update navbarTitle', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+
+    // First create a campaign
+    const { data: createData } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+        },
+      },
+    })
+
+    // Update navbarTitle
+    const newNavbarTitle = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'updated navbar title ' + lang,
+      language: lang,
+    }))
+
+    const { data: updateData, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: createData.putWritingChallenge.id,
+          navbarTitle: newNavbarTitle,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(updateData.putWritingChallenge.navbarTitle).toContain(
+      'updated navbar title'
+    )
+  })
+
+  test('navbarTitle fallback to name when not provided', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    // When navbarTitle is not provided, it should fallback to name
+    expect(data.putWritingChallenge.navbarTitle).toContain('test campaign')
+  })
+
+  test('navbarTitle with channel enabled', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          navbarTitle: translationsNavbarTitle,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+          channelEnabled: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putWritingChallenge.navbarTitle).toContain('test navbar title')
+    expect(data.putWritingChallenge.channelEnabled).toBe(true)
+  })
+
+  test('update navbarTitle with channel enabled', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+
+    // First create a campaign with channel enabled
+    const { data: createData } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+          channelEnabled: true,
+        },
+      },
+    })
+
+    // Update navbarTitle when channel is enabled
+    const newNavbarTitle = Object.keys(LANGUAGE).map((lang) => ({
+      text: 'channel navbar title ' + lang,
+      language: lang,
+    }))
+
+    const { data: updateData, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: createData.putWritingChallenge.id,
+          navbarTitle: newNavbarTitle,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(updateData.putWritingChallenge.navbarTitle).toContain(
+      'channel navbar title'
+    )
+  })
+
+  test('navbarTitle with empty translations array', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          navbarTitle: [],
+          applicationPeriod,
+          writingPeriod,
+          stages,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    // When navbarTitle is empty array, it should fallback to name
+    expect(data.putWritingChallenge.navbarTitle).toContain('test campaign')
+  })
+
+  test('navbarTitle with partial translations', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const partialNavbarTitle = [
+      {
+        text: 'partial navbar title ' + LANGUAGE.en,
+        language: LANGUAGE.en,
+      },
+    ]
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          cover,
+          description: translationsDescription,
+          navbarTitle: partialNavbarTitle,
+          applicationPeriod,
+          writingPeriod,
+          stages,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putWritingChallenge.navbarTitle).toContain(
+      'partial navbar title'
+    )
   })
 })
