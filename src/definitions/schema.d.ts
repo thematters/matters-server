@@ -922,7 +922,12 @@ export type GQLChain = 'Optimism' | 'Polygon'
 
 export type GQLChannel = {
   id: Scalars['ID']['output']
+  navbarTitle: Scalars['String']['output']
   shortHash: Scalars['String']['output']
+}
+
+export type GQLChannelNavbarTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 export type GQLChannelArticleConnection = GQLConnection & {
@@ -1470,6 +1475,7 @@ export type GQLCurationChannel = GQLChannel & {
   color: GQLColor
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
+  navbarTitle: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
   pinAmount: Scalars['Int']['output']
   shortHash: Scalars['String']['output']
@@ -1481,6 +1487,10 @@ export type GQLCurationChannelArticlesArgs = {
 }
 
 export type GQLCurationChannelNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLCurationChannelNavbarTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -3892,6 +3902,7 @@ export type GQLTopicChannel = GQLChannel & {
   enabled: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
+  navbarTitle: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
   providerId?: Maybe<Scalars['String']['output']>
   shortHash: Scalars['String']['output']
@@ -3902,6 +3913,10 @@ export type GQLTopicChannelArticlesArgs = {
 }
 
 export type GQLTopicChannelNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLTopicChannelNavbarTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -4632,6 +4647,7 @@ export type GQLWritingChallenge = GQLCampaign &
     isManager: Scalars['Boolean']['output']
     link: Scalars['String']['output']
     name: Scalars['String']['output']
+    navbarTitle: Scalars['String']['output']
     oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
     shortHash: Scalars['String']['output']
@@ -4653,6 +4669,10 @@ export type GQLWritingChallengeFeaturedDescriptionArgs = {
 }
 
 export type GQLWritingChallengeNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLWritingChallengeNavbarTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -7829,6 +7849,12 @@ export type GQLCurationChannelResolvers<
     ContextType,
     Partial<GQLCurationChannelNameArgs>
   >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLCurationChannelNavbarTitleArgs>
+  >
   note?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -9973,6 +9999,12 @@ export type GQLTopicChannelResolvers<
     ContextType,
     Partial<GQLTopicChannelNameArgs>
   >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLTopicChannelNavbarTitleArgs>
+  >
   note?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -10794,6 +10826,12 @@ export type GQLWritingChallengeResolvers<
     ParentType,
     ContextType,
     Partial<GQLWritingChallengeNameArgs>
+  >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLWritingChallengeNavbarTitleArgs>
   >
   oss?: Resolver<GQLResolversTypes['CampaignOSS'], ParentType, ContextType>
   participants?: Resolver<

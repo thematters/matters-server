@@ -967,6 +967,8 @@ enum CampaignState {
 type WritingChallenge implements Node & Campaign & Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
+  channelEnabled: Boolean!
   name(input: TranslationArgs): String!
   description(input: TranslationArgs): String
   cover: String
@@ -975,7 +977,6 @@ type WritingChallenge implements Node & Campaign & Channel {
   applicationPeriod: DatetimeRange
   writingPeriod: DatetimeRange
   stages: [CampaignStage!]!
-  channelEnabled: Boolean!
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
@@ -4027,11 +4028,13 @@ enum MomentState {
 interface Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
 }
 
 type TopicChannel implements Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
   providerId: String
@@ -4042,6 +4045,7 @@ type TopicChannel implements Channel {
 type CurationChannel implements Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
   pinAmount: Int!

@@ -15,6 +15,7 @@ export interface TopicChannel {
   pinnedArticles: string[]
   enabled: boolean
   order: number
+  navbarTitle: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -24,6 +25,7 @@ export interface CampaignChannel {
   campaignId: string
   order: number
   enabled: boolean
+  navbarTitle: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -59,6 +61,7 @@ export interface CurationChannel {
   activePeriod: string
   order: number
   state: ValueOf<typeof CURATION_CHANNEL_STATE>
+  navbarTitle: string | null
   createdAt: Date
   updatedAt: Date
 }
