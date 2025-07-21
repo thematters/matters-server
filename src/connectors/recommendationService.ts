@@ -59,6 +59,7 @@ export class RecommendationService {
    */
   public findHottestArticles = async ({
     days = 5,
+    decayDays = 3,
     HKDThreshold = 1,
     USDTThreshold = 0.1,
     readWeight = 0.3,
@@ -80,7 +81,7 @@ export class RecommendationService {
     startDate.setDate(startDate.getDate() - days)
 
     const query = this.knexRO
-      .with('source', (qb) => {
+      .with('hottestsource', (qb) => {
         return qb
           .from(
             this.articleService
@@ -115,7 +116,7 @@ export class RecommendationService {
                 'user_id',
                 this.knexRO.raw(
                   'CASE WHEN user_id IS NULL THEN greatest(1 - (extract(epoch FROM now() - updated_at) / (24 * 3600)) / ?, 0) ELSE greatest(1 - (extract(epoch FROM now() - created_at) / (24 * 3600)) / ?, 0) END AS score',
-                  [days, days]
+                  [decayDays, decayDays]
                 )
               )
               .from('article_read_count')
@@ -136,7 +137,7 @@ export class RecommendationService {
                 'comment.target_id',
                 this.knexRO.raw(
                   'greatest(1 - (extract(epoch from now() - comment.created_at) / (24 * 3600)) / ?, 0) AS score',
-                  [days]
+                  [decayDays]
                 )
               )
               .from('comment')
@@ -165,7 +166,7 @@ export class RecommendationService {
                 'target_id',
                 this.knexRO.raw(
                   'greatest(1 - (extract(epoch from now() - created_at) / (24 * 3600)) / ?, 0) AS score',
-                  [days]
+                  [decayDays]
                 )
               )
               .from('transaction')
