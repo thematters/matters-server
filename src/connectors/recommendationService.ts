@@ -196,8 +196,16 @@ export class RecommendationService {
             this.knexRO.raw('coalesce(t3.donation_score, 0) AS donation_score')
           )
           .from('hottest_source')
-          .leftJoin(readersQuery.as('t1'), 'hottest_source.article_id', 't1.article_id')
-          .leftJoin(commentsQuery.as('t2'), 'hottest_source.article_id', 't2.target_id')
+          .leftJoin(
+            readersQuery.as('t1'),
+            'hottest_source.article_id',
+            't1.article_id'
+          )
+          .leftJoin(
+            commentsQuery.as('t2'),
+            'hottest_source.article_id',
+            't2.target_id'
+          )
           .leftJoin(
             donationsQuery.as('t3'),
             'hottest_source.article_id',
