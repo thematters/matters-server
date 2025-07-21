@@ -59,6 +59,7 @@ export class RecommendationService {
    */
   public findHottestArticles = async ({
     days = 5,
+    decayDays = 3,
     HKDThreshold = 1,
     USDTThreshold = 0.1,
     readWeight = 0.3,
@@ -80,7 +81,7 @@ export class RecommendationService {
     startDate.setDate(startDate.getDate() - days)
 
     const query = this.knexRO
-      .with('source', (qb) => {
+      .with('hottest_source', (qb) => {
         return qb
           .from(
             this.articleService
@@ -114,8 +115,8 @@ export class RecommendationService {
                 'article_id',
                 'user_id',
                 this.knexRO.raw(
-                  'greatest(1 - (extract(epoch FROM now() - updated_at) / (24 * 3600)) / ?, 0) AS score',
-                  [days]
+                  'CASE WHEN user_id IS NULL THEN greatest(1 - (extract(epoch FROM now() - updated_at) / (24 * 3600)) / ?, 0) ELSE greatest(1 - (extract(epoch FROM now() - created_at) / (24 * 3600)) / ?, 0) END AS score',
+                  [decayDays, decayDays]
                 )
               )
               .from('article_read_count')
@@ -136,7 +137,7 @@ export class RecommendationService {
                 'comment.target_id',
                 this.knexRO.raw(
                   'greatest(1 - (extract(epoch from now() - comment.created_at) / (24 * 3600)) / ?, 0) AS score',
-                  [days]
+                  [decayDays]
                 )
               )
               .from('comment')
@@ -165,7 +166,7 @@ export class RecommendationService {
                 'target_id',
                 this.knexRO.raw(
                   'greatest(1 - (extract(epoch from now() - created_at) / (24 * 3600)) / ?, 0) AS score',
-                  [days]
+                  [decayDays]
                 )
               )
               .from('transaction')
@@ -186,7 +187,7 @@ export class RecommendationService {
 
         return qb
           .select(
-            'source.article_id',
+            'hottest_source.article_id',
             this.knexRO.raw('coalesce(t1.readers, 0) AS readers'),
             this.knexRO.raw('coalesce(t1.read_score, 0) AS read_score'),
             this.knexRO.raw('coalesce(t2.comments, 0) AS comments'),
@@ -194,12 +195,20 @@ export class RecommendationService {
             this.knexRO.raw('coalesce(t3.donations, 0) AS donations'),
             this.knexRO.raw('coalesce(t3.donation_score, 0) AS donation_score')
           )
-          .from('source')
-          .leftJoin(readersQuery.as('t1'), 'source.article_id', 't1.article_id')
-          .leftJoin(commentsQuery.as('t2'), 'source.article_id', 't2.target_id')
+          .from('hottest_source')
+          .leftJoin(
+            readersQuery.as('t1'),
+            'hottest_source.article_id',
+            't1.article_id'
+          )
+          .leftJoin(
+            commentsQuery.as('t2'),
+            'hottest_source.article_id',
+            't2.target_id'
+          )
           .leftJoin(
             donationsQuery.as('t3'),
-            'source.article_id',
+            'hottest_source.article_id',
             't3.target_id'
           )
       })

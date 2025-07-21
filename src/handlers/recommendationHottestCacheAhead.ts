@@ -17,6 +17,7 @@ export const handler = async () => {
   const recommendationService = new RecommendationService(connections)
   const { query } = await recommendationService.findHottestArticles({
     days: environment.hottestArticlesDays,
+    decayDays: environment.hottestArticlesDecayDays,
     HKDThreshold: environment.hottestArticlesHKDThreshold,
     USDTThreshold: environment.hottestArticlesUSDTThreshold,
     readWeight: environment.hottestArticlesReadWeight,
