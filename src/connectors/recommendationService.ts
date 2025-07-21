@@ -114,7 +114,7 @@ export class RecommendationService {
                 'article_id',
                 'user_id',
                 this.knexRO.raw(
-                  'CASE WHEN user_id IS NULL THEN greatest(1 - (extract(epoch FROM now() - created_at) / (24 * 3600)) / ?, 0)  else greatest(1 - (extract(epoch FROM now() - updated_at) / (24 * 3600)) / ?, 0) end AS score',
+                  'CASE WHEN user_id IS NULL THEN greatest(1 - (extract(epoch FROM now() - updated_at) / (24 * 3600)) / ?, 0) ELSE greatest(1 - (extract(epoch FROM now() - created_at) / (24 * 3600)) / ?, 0) END AS score',
                   [days, days]
                 )
               )
