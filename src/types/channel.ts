@@ -37,7 +37,7 @@ export default /* GraphQL */ `
     color: Color!
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange!
-    state: CurationChannelState! @auth(mode: "${AUTH_MODE.admin}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    state: CurationChannelState! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     articles(input: ChannelArticlesInput!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 

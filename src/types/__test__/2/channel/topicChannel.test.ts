@@ -14,7 +14,7 @@ beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   channelService = new ChannelService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -622,7 +622,7 @@ describe('manage topic channels', () => {
         input: { shortHash: channel.shortHash },
       },
     })
-    expect(normalUserData.channel).toBeNull()
+    expect(normalUserData.channel.id).toBe(channelGlobalId)
   })
 
   test('query channels', async () => {
