@@ -62,6 +62,7 @@ export interface CurationChannel {
   order: number
   state: ValueOf<typeof CURATION_CHANNEL_STATE>
   navbarTitle: string | null
+  showRecommendation: boolean
   createdAt: Date
   updatedAt: Date
 }

@@ -1479,6 +1479,7 @@ export type GQLCurationChannel = GQLChannel & {
   note?: Maybe<Scalars['String']['output']>
   pinAmount: Scalars['Int']['output']
   shortHash: Scalars['String']['output']
+  showRecommendation: Scalars['Boolean']['output']
   state: GQLCurationChannelState
 }
 
@@ -3061,6 +3062,7 @@ export type GQLPutCurationChannelInput = {
   navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   pinAmount?: InputMaybe<Scalars['Int']['input']>
+  showRecommendation?: InputMaybe<Scalars['Boolean']['input']>
   state?: InputMaybe<GQLCurationChannelState>
 }
 
@@ -7866,6 +7868,11 @@ export type GQLCurationChannelResolvers<
   >
   pinAmount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  showRecommendation?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<
     GQLResolversTypes['CurationChannelState'],
     ParentType,

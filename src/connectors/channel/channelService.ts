@@ -164,6 +164,7 @@ export class ChannelService {
     activePeriod = [new Date(0), new Date(0)],
     state = CURATION_CHANNEL_STATE.editing,
     navbarTitle,
+    showRecommendation = false,
   }: {
     name: string
     note?: string
@@ -172,6 +173,7 @@ export class ChannelService {
     activePeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CURATION_CHANNEL_STATE>
     navbarTitle?: string
+    showRecommendation?: boolean
   }) => {
     return this.models.create({
       table: 'curation_channel',
@@ -184,6 +186,7 @@ export class ChannelService {
         activePeriod: toDatetimeRangeString(activePeriod[0], activePeriod[1]),
         state,
         navbarTitle,
+        showRecommendation,
       },
     })
   }
@@ -197,6 +200,7 @@ export class ChannelService {
     activePeriod,
     state,
     navbarTitle,
+    showRecommendation,
   }: {
     id: string
     name?: string
@@ -206,6 +210,7 @@ export class ChannelService {
     activePeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CURATION_CHANNEL_STATE>
     navbarTitle?: string
+    showRecommendation?: boolean
   }) => {
     return this.models.update({
       table: 'curation_channel',
@@ -220,6 +225,7 @@ export class ChannelService {
           : undefined,
         state,
         navbarTitle,
+        showRecommendation,
       },
     })
   }
