@@ -44,6 +44,7 @@ describe('createCurationChannel', () => {
     expect(channel.color).toBe(CURATION_CHANNEL_COLOR.gray) // default value
     expect(channel.state).toBe(CURATION_CHANNEL_STATE.editing) // default value
     expect(channel.activePeriod).toBeDefined() // default value should be set
+    expect(channel.showRecommendation).toBe(false) // default value
   })
 
   test('creates channel with all parameters', async () => {
@@ -54,6 +55,7 @@ describe('createCurationChannel', () => {
       color: CURATION_CHANNEL_COLOR.pink,
       activePeriod: [new Date('2024-01-01'), new Date('2024-12-31')] as const,
       state: CURATION_CHANNEL_STATE.published,
+      showRecommendation: true,
     }
 
     const channel = await channelService.createCurationChannel(channelData)
@@ -64,6 +66,7 @@ describe('createCurationChannel', () => {
     expect(channel.pinAmount).toBe(channelData.pinAmount)
     expect(channel.color).toBe(channelData.color)
     expect(channel.state).toBe(channelData.state)
+    expect(channel.showRecommendation).toBe(channelData.showRecommendation)
     // Check that activePeriod is properly formatted as a datetime range string
     expect(channel.activePeriod).toContain('2024-01-01')
     expect(channel.activePeriod).toContain('2024-12-31')
@@ -89,6 +92,24 @@ describe('createCurationChannel', () => {
     expect(channel.activePeriod).toContain(start.toISOString().split('T')[0])
     expect(channel.activePeriod).toContain(end.toISOString().split('T')[0])
   })
+
+  test('creates channel with showRecommendation enabled', async () => {
+    const channel = await channelService.createCurationChannel({
+      name: 'recommendation-channel',
+      showRecommendation: true,
+    })
+
+    expect(channel.showRecommendation).toBe(true)
+  })
+
+  test('creates channel with showRecommendation disabled', async () => {
+    const channel = await channelService.createCurationChannel({
+      name: 'no-recommendation-channel',
+      showRecommendation: false,
+    })
+
+    expect(channel.showRecommendation).toBe(false)
+  })
 })
 
 describe('updateCurationChannel', () => {
@@ -103,6 +124,7 @@ describe('updateCurationChannel', () => {
       pinAmount: 1,
       color: CURATION_CHANNEL_COLOR.gray,
       state: CURATION_CHANNEL_STATE.editing,
+      showRecommendation: false,
     })
     existingChannelId = channel.id
   })
@@ -119,6 +141,7 @@ describe('updateCurationChannel', () => {
     expect(updatedChannel.pinAmount).toBe(1)
     expect(updatedChannel.color).toBe(CURATION_CHANNEL_COLOR.gray)
     expect(updatedChannel.state).toBe(CURATION_CHANNEL_STATE.editing)
+    expect(updatedChannel.showRecommendation).toBe(false)
   })
 
   test('updates multiple fields', async () => {
@@ -129,6 +152,7 @@ describe('updateCurationChannel', () => {
       pinAmount: 10,
       color: CURATION_CHANNEL_COLOR.pink,
       state: CURATION_CHANNEL_STATE.published,
+      showRecommendation: true,
     }
 
     const updatedChannel = await channelService.updateCurationChannel(updates)
@@ -138,6 +162,7 @@ describe('updateCurationChannel', () => {
     expect(updatedChannel.pinAmount).toBe(updates.pinAmount)
     expect(updatedChannel.color).toBe(updates.color)
     expect(updatedChannel.state).toBe(updates.state)
+    expect(updatedChannel.showRecommendation).toBe(updates.showRecommendation)
   })
 
   test('updates activePeriod', async () => {
@@ -161,6 +186,31 @@ describe('updateCurationChannel', () => {
     expect(updatedChannel.note).toBeNull()
   })
 
+  test('updates showRecommendation field', async () => {
+    const updatedChannel = await channelService.updateCurationChannel({
+      id: existingChannelId,
+      showRecommendation: true,
+    })
+
+    expect(updatedChannel.showRecommendation).toBe(true)
+  })
+
+  test('toggles showRecommendation from true to false', async () => {
+    // First update to true
+    await channelService.updateCurationChannel({
+      id: existingChannelId,
+      showRecommendation: true,
+    })
+
+    // Then toggle to false
+    const updatedChannel = await channelService.updateCurationChannel({
+      id: existingChannelId,
+      showRecommendation: false,
+    })
+
+    expect(updatedChannel.showRecommendation).toBe(false)
+  })
+
   test('preserves unchanged fields', async () => {
     const originalChannel = await atomService.findFirst({
       table: 'curation_channel',
@@ -177,6 +227,9 @@ describe('updateCurationChannel', () => {
     expect(updatedChannel.color).toBe(originalChannel.color)
     expect(updatedChannel.state).toBe(originalChannel.state)
     expect(updatedChannel.activePeriod).toBe(originalChannel.activePeriod)
+    expect(updatedChannel.showRecommendation).toBe(
+      originalChannel.showRecommendation
+    )
   })
 
   test('handles non-existent channel ID', async () => {
@@ -563,7 +616,7 @@ describe('togglePinCurationChannelArticles', () => {
   })
 
   describe('Curation Channel', () => {
-    test.only('pins articles within limit', async () => {
+    test('pins articles within limit', async () => {
       const result = await channelService.togglePinCurationChannelArticles({
         channelId: curationChannel.id,
         articleIds: [articles[0].id, articles[1].id],
