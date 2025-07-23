@@ -4051,6 +4051,7 @@ type CurationChannel implements Channel {
   note(input: TranslationArgs): String
   pinAmount: Int!
   color: Color!
+  showRecommendation: Boolean!
 
   """both activePeriod and state determine if the channel is active"""
   activePeriod: DatetimeRange!
@@ -4128,6 +4129,7 @@ input PutCurationChannelInput {
   color: Color
   activePeriod: DatetimeRangeInput
   state: CurationChannelState
+  showRecommendation: Boolean
 }
 
 input SetArticleTopicChannelsInput {

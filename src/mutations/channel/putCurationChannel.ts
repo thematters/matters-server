@@ -16,6 +16,7 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
       color,
       activePeriod,
       state,
+      showRecommendation,
     },
   },
   { dataSources: { translationService, channelService } }
@@ -58,6 +59,7 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
       color,
       activePeriod: activePeriod && [activePeriod.start, activePeriod.end],
       state,
+      showRecommendation,
     })
   } else {
     const { id, type } = fromGlobalId(globalId)
@@ -73,6 +75,7 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
       color,
       activePeriod: activePeriod && [activePeriod.start, activePeriod.end],
       state,
+      showRecommendation,
     })
   }
 

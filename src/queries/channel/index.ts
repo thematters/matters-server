@@ -36,6 +36,7 @@ const schema: GQLResolvers = {
     activePeriod: ({ activePeriod }) =>
       fromDatetimeRangeString(activePeriod as string),
     articles: CurationChannelArticles,
+    showRecommendation: ({ showRecommendation }) => showRecommendation,
   },
   Channel: {
     __resolveType: ({ __type }: any) => __type,

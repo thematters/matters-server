@@ -53,6 +53,7 @@ describe('manage curation channels', () => {
           end
         }
         state
+        showRecommendation
       }
     }
   `
@@ -117,6 +118,7 @@ describe('manage curation channels', () => {
             end: endDate.toISOString(),
           },
           state: CURATION_CHANNEL_STATE.published,
+          showRecommendation: true,
         },
       },
     })
@@ -129,6 +131,7 @@ describe('manage curation channels', () => {
     expect(data.putCurationChannel.pinAmount).toBe(5)
     expect(data.putCurationChannel.color).toBe(CURATION_CHANNEL_COLOR.pink)
     expect(data.putCurationChannel.state).toBe(CURATION_CHANNEL_STATE.published)
+    expect(data.putCurationChannel.showRecommendation).toBe(true)
     expect(new Date(data.putCurationChannel.activePeriod.start)).toBeInstanceOf(
       Date
     )
@@ -152,6 +155,7 @@ describe('manage curation channels', () => {
           input: {
             name: [{ text: 'Initial Name', language: 'en' }],
             state: CURATION_CHANNEL_STATE.editing,
+            showRecommendation: false,
           },
         },
       })
@@ -168,6 +172,7 @@ describe('manage curation channels', () => {
             pinAmount: 10,
             color: CURATION_CHANNEL_COLOR.red,
             state: CURATION_CHANNEL_STATE.published,
+            showRecommendation: true,
           },
         },
       })
@@ -179,6 +184,7 @@ describe('manage curation channels', () => {
     expect(updateData.putCurationChannel.state).toBe(
       CURATION_CHANNEL_STATE.published
     )
+    expect(updateData.putCurationChannel.showRecommendation).toBe(true)
   })
 
   test('validates datetime range', async () => {
@@ -225,6 +231,7 @@ describe('manage curation channels', () => {
           pinAmount: 5,
           color: CURATION_CHANNEL_COLOR.pink,
           state: CURATION_CHANNEL_STATE.editing,
+          showRecommendation: false,
         },
       },
     })
@@ -236,6 +243,7 @@ describe('manage curation channels', () => {
         input: {
           id: createData.putCurationChannel.id,
           pinAmount: 15,
+          showRecommendation: true,
         },
       },
     })
@@ -250,6 +258,7 @@ describe('manage curation channels', () => {
     expect(updateData.putCurationChannel.state).toBe(
       CURATION_CHANNEL_STATE.editing
     )
+    expect(updateData.putCurationChannel.showRecommendation).toBe(true)
   })
 
   test('creates curation channel with navbarTitle successfully', async () => {
@@ -272,6 +281,7 @@ describe('manage curation channels', () => {
             { text: '導航標題', language: 'zh_hant' },
           ],
           state: CURATION_CHANNEL_STATE.editing,
+          showRecommendation: true,
         },
       },
     })
@@ -281,6 +291,7 @@ describe('manage curation channels', () => {
     expect(data.putCurationChannel.nameZhHant).toBe('測試頻道')
     expect(data.putCurationChannel.navbarTitleEn).toBe('Nav Title')
     expect(data.putCurationChannel.navbarTitleZhHant).toBe('導航標題')
+    expect(data.putCurationChannel.showRecommendation).toBe(true)
   })
 
   test('updates curation channel navbarTitle successfully', async () => {
@@ -299,6 +310,7 @@ describe('manage curation channels', () => {
             name: [{ text: 'Initial Name', language: 'en' }],
             navbarTitle: [{ text: 'Initial Nav Title', language: 'en' }],
             state: CURATION_CHANNEL_STATE.editing,
+            showRecommendation: false,
           },
         },
       })
@@ -312,6 +324,7 @@ describe('manage curation channels', () => {
           input: {
             id: createData.putCurationChannel.id,
             navbarTitle: [{ text: 'Updated Nav Title', language: 'en' }],
+            showRecommendation: true,
           },
         },
       })
@@ -321,6 +334,7 @@ describe('manage curation channels', () => {
     expect(updateData.putCurationChannel.navbarTitleEn).toBe(
       'Updated Nav Title'
     )
+    expect(updateData.putCurationChannel.showRecommendation).toBe(true)
   })
 
   test('validates navbarTitle length', async () => {
@@ -361,6 +375,7 @@ describe('manage curation channels', () => {
             { text: '測試頻道', language: 'zh_hant' },
           ],
           state: CURATION_CHANNEL_STATE.editing,
+          showRecommendation: false,
         },
       },
     })
@@ -370,6 +385,46 @@ describe('manage curation channels', () => {
     expect(data.putCurationChannel.nameZhHant).toBe('測試頻道')
     expect(data.putCurationChannel.navbarTitleEn).toBe('Test Channel')
     expect(data.putCurationChannel.navbarTitleZhHant).toBe('測試頻道')
+    expect(data.putCurationChannel.showRecommendation).toBe(false)
+  })
+
+  test('creates and updates curation channel with showRecommendation field', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // Create channel with showRecommendation: false
+    const { data: createData, errors: createErrors } =
+      await server.executeOperation({
+        query: PUT_CURATION_CHANNEL,
+        variables: {
+          input: {
+            name: [{ text: 'Test Channel', language: 'en' }],
+            state: CURATION_CHANNEL_STATE.editing,
+            showRecommendation: false,
+          },
+        },
+      })
+    expect(createErrors).toBeUndefined()
+    expect(createData.putCurationChannel.showRecommendation).toBe(false)
+
+    // Update to showRecommendation: true
+    const { data: updateData, errors: updateErrors } =
+      await server.executeOperation({
+        query: PUT_CURATION_CHANNEL,
+        variables: {
+          input: {
+            id: createData.putCurationChannel.id,
+            showRecommendation: true,
+          },
+        },
+      })
+
+    expect(updateErrors).toBeUndefined()
+    expect(updateData.putCurationChannel.showRecommendation).toBe(true)
+    expect(updateData.putCurationChannel.nameEn).toBe('Test Channel') // Other fields unchanged
   })
 })
 

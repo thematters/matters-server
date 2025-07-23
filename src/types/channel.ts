@@ -35,6 +35,7 @@ export default /* GraphQL */ `
     note(input: TranslationArgs): String
     pinAmount: Int!
     color: Color!
+    showRecommendation: Boolean!
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange!
     state: CurationChannelState! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -123,6 +124,7 @@ export default /* GraphQL */ `
     color: Color
     activePeriod: DatetimeRangeInput
     state: CurationChannelState
+    showRecommendation: Boolean
   }
 
   input SetArticleTopicChannelsInput {
