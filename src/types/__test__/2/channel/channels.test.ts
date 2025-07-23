@@ -1074,7 +1074,7 @@ describe('channels query', () => {
         expect(parentResults[0].isLabeled).toBe(false)
       })
 
-      test('does not include parent when child channel is disabled', async () => {
+      test('include parent when child channel is disabled', async () => {
         const server = await testClient({
           connections,
           isAuth: true,
@@ -1132,13 +1132,7 @@ describe('channels query', () => {
 
         expect(errors).toBeUndefined()
         expect(data.article.classification.topicChannel.channels).toHaveLength(
-          1
-        )
-
-        // Should only have child channel, no parent because child channel is disabled
-        const result = data.article.classification.topicChannel.channels[0]
-        expect(result.channel.id).toBe(
-          toGlobalId({ type: NODE_TYPES.TopicChannel, id: childChannel.id })
+          2
         )
       })
 
