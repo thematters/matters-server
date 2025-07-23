@@ -7,7 +7,7 @@
 - Name test files with `.test.ts` suffix
 - Group related tests in describe blocks
 - Use clear, descriptive test names
-- Example: `src/types/__test__/2/channel/articles.test.ts`
+- Example: `src/types/__test__/2/channel/articles.test.ts` (related compiled file `build/types/__test__/2/channel/articles.test.js`)
 
 ### Setup and Teardown
 ```typescript
@@ -270,4 +270,10 @@ The test database is seeded with predefined data in `db/seeds/` directory:
        expect(data.articles.edges.length).toBeGreaterThan(0)
      })
    })
+   ```
+
+   ## Commend to Test A Single Test File
+
+   ```bash
+   npm run build && MATTERS_ENV=test node --experimental-vm-modules --no-experimental-fetch node_modules/.bin/jest build/types/__test__/2/channel/articles.test.js
    ```

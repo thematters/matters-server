@@ -1996,7 +1996,7 @@ export class PaymentService extends BaseService<Transaction> {
     txState: TRANSACTION_STATE
     txRemark?: string
     blockchainTxId: string
-    blockchainTxState: string
+    blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE
   }) => {
     const trx = await this.knex.transaction()
     try {

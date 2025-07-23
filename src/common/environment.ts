@@ -211,6 +211,10 @@ export const environment = {
     process.env.MATTERS_HOTTEST_ARTICLES_DAYS || '5',
     10
   ),
+  hottestArticlesDecayDays: parseInt(
+    process.env.MATTERS_HOTTEST_ARTICLES_DECAY_DAYS || '3',
+    10
+  ),
   hottestArticlesHKDThreshold: parseFloat(
     process.env.MATTERS_HOTTEST_ARTICLES_HKD_THRESHOLD || '1'
   ),

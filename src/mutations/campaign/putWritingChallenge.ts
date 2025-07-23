@@ -36,6 +36,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       newStages,
       featuredDescription,
       channelEnabled,
+      navbarTitle,
       exclusive,
       managers: managerGlobalIds,
     },
@@ -83,6 +84,14 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     validateStages(newStages)
   }
 
+  if (navbarTitle) {
+    for (const trans of navbarTitle) {
+      if (trans.text.length > 32) {
+        throw new UserInputError('Navbar title is too long')
+      }
+    }
+  }
+
   let announcementIds: string[] = []
   if (announcementGlobalIds && announcementGlobalIds.length > 0) {
     announcementIds = announcementGlobalIds.map((id) => fromGlobalId(id).id)
@@ -112,8 +121,8 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   if (!globalId) {
     // create new campaign
     campaign = await campaignService.createWritingChallenge({
-      name: name ? name[0].text : '',
-      description: description ? description[0].text : '',
+      name: name ? name[0]?.text : '',
+      description: description ? description[0]?.text : '',
       coverId: _cover?.id,
       link,
       applicationPeriod: applicationPeriod && [
@@ -125,7 +134,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       creatorId: viewer.id,
       managerIds,
       featuredDescription: featuredDescription
-        ? featuredDescription[0].text
+        ? featuredDescription[0]?.text
         : '',
       exclusive,
     })
@@ -167,7 +176,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
 
     const data = {
-      name: name && name[0].text,
+      name: name && name[0]?.text,
       cover: _cover?.id,
       link,
       applicationPeriod:
@@ -177,7 +186,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         writingPeriod &&
         toDatetimeRangeString(writingPeriod.start, writingPeriod.end),
       state,
-      featuredDescription: featuredDescription && featuredDescription[0].text,
+      featuredDescription: featuredDescription && featuredDescription[0]?.text,
       managerIds,
       exclusive,
     }
@@ -206,22 +215,21 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   }
 
   // create or update campaign channel
-  if (channelEnabled !== undefined) {
-    if (
-      [
-        CAMPAIGN_STATE.pending as string,
-        CAMPAIGN_STATE.archived as string,
-      ].includes(campaign.state) &&
-      channelEnabled
-    ) {
-      throw new ActionFailedError(
-        'Cannot enable channel when campaign is pending or archived'
-      )
+  if (channelEnabled !== undefined || navbarTitle !== undefined) {
+    // Get current channel state if only updating navbar title
+    let currentEnabled = channelEnabled
+    if (channelEnabled === undefined) {
+      const existingChannel = await atomService.findFirst({
+        table: 'campaign_channel',
+        where: { campaignId: campaign.id },
+      })
+      currentEnabled = existingChannel?.enabled ?? false
     }
 
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
-      enabled: channelEnabled,
+      enabled: currentEnabled ?? false,
+      navbarTitle: navbarTitle ? navbarTitle[0]?.text : null,
     })
   }
 
@@ -259,6 +267,26 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         language: trans.language,
         text: trans.text,
       })
+    }
+  }
+
+  if (navbarTitle) {
+    // Get or create campaign channel to get its ID for translations
+    const campaignChannel = await atomService.findFirst({
+      table: 'campaign_channel',
+      where: { campaignId: campaign.id },
+    })
+
+    if (campaignChannel) {
+      for (const trans of navbarTitle) {
+        await translationService.updateOrCreateTranslation({
+          table: 'campaign_channel',
+          field: 'navbar_title',
+          id: campaignChannel.id,
+          language: trans.language,
+          text: trans.text,
+        })
+      }
     }
   }
 

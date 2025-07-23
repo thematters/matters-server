@@ -16,7 +16,6 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Create a new file in the appropriate directory (e.g., mutations/ or queries/)
    - Export the resolver as default
    - Import necessary types from definitions
-   - Import needed services and utilities
 
 3. Implement authentication/authorization
    - Check viewer context for authentication
@@ -53,6 +52,7 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
    - Include all required fields
    - Handle errors appropriately
    - Transform data if needed (e.g., ID to global ID)
+   - **Important:** Avoid returning `null` when cache invalidation is needed, as `invalidateFQC` requires ID information to work properly
    - For mutations, invalidate related cache after database operations using `invalidateFQC` (cache of returned object is handled by `logCache` directive):
      ```typescript
      import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -64,6 +64,10 @@ https://www.apollographql.com/docs/apollo-server/data/resolvers
      })
      return channel
      ```
+   - If the operation might result in no data but cache invalidation is still needed, consider:
+     - Returning an empty object with required fields (like `id`)
+     - Throwing an appropriate error instead of returning `null`
+     - Handling the cache invalidation before the early return
 
 7. Register resolver
    - Import resolver in index file
@@ -135,6 +139,58 @@ const resolver: GQLDraftResolvers['collections'] = async (
   )
 }
 ```
+
+### Cache Invalidation Best Practices
+
+> **Warning:** Cache invalidation requires ID information to work properly. Avoid returning `null` when cache invalidation is needed.
+
+**Common Pitfalls:**
+- Returning `null` from mutations that need cache invalidation
+- Early returns that bypass cache invalidation logic
+- Missing ID information in returned objects
+
+**Best Practices:**
+1. **Always ensure ID is available for cache invalidation:**
+   ```typescript
+   // ❌ Bad: Returns null, cache invalidation fails
+   if (!channel) {
+     return null
+   }
+   
+   // ✅ Good: Handle cache invalidation before early return
+   if (!channel) {
+     // Invalidate cache if needed
+     await invalidateFQC({ 
+       node: { type: NODE_TYPES.Channel, id: input.id }, 
+       redis 
+     })
+     throw new UserInputError('Channel not found')
+   }
+   ```
+
+2. **Return objects with required fields instead of null:**
+   ```typescript
+   // ❌ Bad: Returns null
+   return null
+   
+   // ✅ Good: Returns object with ID for cache invalidation
+   return { id: channelId, __type: 'Channel' }
+   ```
+
+3. **Handle cache invalidation before any early returns:**
+   ```typescript
+   // ✅ Good: Cache invalidation happens regardless of return value
+   await invalidateFQC({ 
+     node: { type: NODE_TYPES.Channel, id }, 
+     redis 
+   })
+   
+   if (!result) {
+     return { id, __type: 'Channel' }
+   }
+   
+   return result
+   ```
 
 ### Unions and Interfaces
 

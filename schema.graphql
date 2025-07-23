@@ -889,6 +889,7 @@ input CampaignsInput {
 input PutWritingChallengeInput {
   id: ID
   name: [TranslationInput!]
+  navbarTitle: [TranslationInput!]
   cover: ID
   description: [TranslationInput!]
   link: String
@@ -967,6 +968,8 @@ enum CampaignState {
 type WritingChallenge implements Node & Campaign & Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
+  channelEnabled: Boolean!
   name(input: TranslationArgs): String!
   description(input: TranslationArgs): String
   cover: String
@@ -975,7 +978,6 @@ type WritingChallenge implements Node & Campaign & Channel {
   applicationPeriod: DatetimeRange
   writingPeriod: DatetimeRange
   stages: [CampaignStage!]!
-  channelEnabled: Boolean!
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
@@ -2846,9 +2848,11 @@ type TopDonatorConnection implements Connection {
   edges: [TopDonatorEdge!]
 }
 
+union Donator = User | CryptoWallet
+
 type TopDonatorEdge {
   cursor: String!
-  node: User!
+  node: Donator!
   donationCount: Int!
 }
 
@@ -4025,14 +4029,16 @@ enum MomentState {
 interface Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
 }
 
 type TopicChannel implements Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
-  providerId: String!
+  providerId: String
   enabled: Boolean!
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }
@@ -4040,6 +4046,7 @@ type TopicChannel implements Channel {
 type CurationChannel implements Channel {
   id: ID!
   shortHash: String!
+  navbarTitle(input: TranslationArgs): String!
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
   pinAmount: Int!
@@ -4056,6 +4063,7 @@ input ChannelArticlesInput {
   first: Int
   sort: ArticlesSort
   filter: ChannelArticlesFilter
+  oss: Boolean = false
 }
 
 input ChannelArticlesFilter {
@@ -4106,13 +4114,16 @@ input PutTopicChannelInput {
   providerId: String
   name: [TranslationInput!]
   note: [TranslationInput!]
+  navbarTitle: [TranslationInput!]
   enabled: Boolean
+  subChannels: [ID!]
 }
 
 input PutCurationChannelInput {
   id: ID
   name: [TranslationInput!]
   note: [TranslationInput!]
+  navbarTitle: [TranslationInput!]
   pinAmount: Int
   color: Color
   activePeriod: DatetimeRangeInput

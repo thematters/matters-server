@@ -7,7 +7,16 @@ import { isValidDatetimeRange } from '#common/utils/validator.js'
 const resolver: GQLMutationResolvers['putCurationChannel'] = async (
   _,
   {
-    input: { id: globalId, name, note, pinAmount, color, activePeriod, state },
+    input: {
+      id: globalId,
+      name,
+      note,
+      navbarTitle,
+      pinAmount,
+      color,
+      activePeriod,
+      state,
+    },
   },
   { dataSources: { translationService, channelService } }
 ) => {
@@ -25,6 +34,13 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
       }
     }
   }
+  if (navbarTitle) {
+    for (const trans of navbarTitle) {
+      if (trans.text.length > 32) {
+        throw new UserInputError('Navbar title is too long')
+      }
+    }
+  }
   if (activePeriod) {
     if (!isValidDatetimeRange(activePeriod)) {
       throw new UserInputError('Invalid datetime range')
@@ -35,8 +51,9 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
   if (!globalId) {
     // create new channel
     channel = await channelService.createCurationChannel({
-      name: name ? name[0].text : '',
-      note: note ? note[0].text : '',
+      name: name ? name[0]?.text : '',
+      note: note ? note[0]?.text : '',
+      navbarTitle: navbarTitle ? navbarTitle[0]?.text : undefined,
       pinAmount,
       color,
       activePeriod: activePeriod && [activePeriod.start, activePeriod.end],
@@ -49,8 +66,9 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
     }
     channel = await channelService.updateCurationChannel({
       id,
-      name: name ? name[0].text : '',
-      note: note ? note[0].text : '',
+      name: name ? name[0]?.text : '',
+      note: note ? note[0]?.text : '',
+      navbarTitle: navbarTitle ? navbarTitle[0]?.text : undefined,
       pinAmount,
       color,
       activePeriod: activePeriod && [activePeriod.start, activePeriod.end],
@@ -77,6 +95,19 @@ const resolver: GQLMutationResolvers['putCurationChannel'] = async (
       await translationService.updateOrCreateTranslation({
         table: 'curation_channel',
         field: 'note',
+        id: channel.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+  }
+
+  // create or update navbar title translations
+  if (navbarTitle) {
+    for (const trans of navbarTitle) {
+      await translationService.updateOrCreateTranslation({
+        table: 'curation_channel',
+        field: 'navbar_title',
         id: channel.id,
         language: trans.language,
         text: trans.text,

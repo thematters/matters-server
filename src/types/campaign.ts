@@ -29,6 +29,7 @@ export default /* GraphQL */ `
   input PutWritingChallengeInput {
     id: ID
     name: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     cover: ID
     description: [TranslationInput!]
     link: String
@@ -106,6 +107,10 @@ export default /* GraphQL */ `
   type WritingChallenge implements Node & Campaign & Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
+
+    channelEnabled: Boolean!
+
     name(input: TranslationArgs): String!
     description(input: TranslationArgs): String
     cover: String
@@ -116,7 +121,6 @@ export default /* GraphQL */ `
     writingPeriod: DatetimeRange
     stages: [CampaignStage!]!
 
-    channelEnabled: Boolean!
     state: CampaignState!
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!

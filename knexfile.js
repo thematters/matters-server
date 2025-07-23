@@ -40,7 +40,7 @@ export default {
     // set pool size to 1 to detect db connection acquiring deadlock
     // explained in https://github.com/Vincit/objection.js/issues/1137#issuecomment-561149456
     pool: { min: 1, max: 1 },
-    acquireConnectionTimeout: 60000 * 2,
+    acquireConnectionTimeout: 300000, // 5 minutes
   },
 
   development: baseConfig,

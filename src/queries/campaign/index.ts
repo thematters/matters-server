@@ -14,6 +14,7 @@ import description from './description.js'
 import featuredDescription from './featuredDescription.js'
 import managers from './managers.js'
 import name from './name.js'
+import navbarTitle from './navbarTitle.js'
 import participants from './participants.js'
 import stageDescription from './stage/description.js'
 import stageName from './stage/name.js'
@@ -31,6 +32,7 @@ const schema: GQLResolvers = {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Campaign, id }),
     shortHash: ({ shortHash }) => shortHash,
     name,
+    navbarTitle,
     description,
     featuredDescription,
     announcements,

@@ -22,17 +22,24 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     },
   }
 ) => {
+  const { oss } = input
   const isAdmin = viewer.hasRole('admin')
+  if (oss === true && !isAdmin) {
+    throw new ForbiddenError('Only admins can access OSS')
+  }
   if (input.sort !== undefined && !isAdmin) {
     throw new ForbiddenError('Only admins can sort articles')
   }
   const channelThreshold = await systemService.getArticleChannelThreshold()
-  const baseQuery = channelService.findTopicChannelArticles(id, {
-    channelThreshold: channelThreshold ?? undefined,
-    datetimeRange: input.filter?.datetimeRange,
-    addOrderColumn: input.sort === undefined ? true : false,
-    flood: false,
-  })
+  const { query: baseQuery } = await channelService.findTopicChannelArticles(
+    id,
+    {
+      channelThreshold: channelThreshold ?? undefined,
+      datetimeRange: input.filter?.datetimeRange,
+      addOrderColumn: input.sort === undefined ? true : false,
+      flood: false,
+    }
+  )
 
   let query: Knex.QueryBuilder = baseQuery
 
@@ -108,21 +115,22 @@ const resolver: GQLTopicChannelResolvers['articles'] = async (
     args: input,
     orderBy,
     // OSS can see all articles and uses offset based pagination
-    maxTake: isAdmin ? undefined : MAX_ITEM_COUNT,
-    cursorColumn: isAdmin ? undefined : 'id',
+    maxTake: oss ? undefined : MAX_ITEM_COUNT,
+    cursorColumn: oss ? undefined : 'id',
   })
 
   return {
     ...connection,
     edges: await Promise.all(
       connection.edges.map(async (edge) => {
-        const article = await atomService.findFirst({
-          table: 'topic_channel_article',
-          where: { articleId: edge.node.id, channelId: id },
+        const channel = await atomService.findUnique({
+          table: 'topic_channel',
+          where: { id },
         })
+        const pinnedArticles = channel?.pinnedArticles || []
         return {
           ...edge,
-          pinned: article.pinned,
+          pinned: pinnedArticles.includes(edge.node.id),
         }
       })
     ),

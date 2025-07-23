@@ -5,9 +5,9 @@ import {
 } from 'graphql'
 import {
   User as UserModel,
-  Wallet as WalletModel,
   OAuthClientDB as OAuthClientDBModel,
 } from './user.js'
+import { Wallet as WalletModel } from './wallet.js'
 import { Tag as TagModel } from './tag.js'
 import { Collection as CollectionModel } from './collection.js'
 import { Comment as CommentModel } from './comment.js'
@@ -922,7 +922,12 @@ export type GQLChain = 'Optimism' | 'Polygon'
 
 export type GQLChannel = {
   id: Scalars['ID']['output']
+  navbarTitle: Scalars['String']['output']
   shortHash: Scalars['String']['output']
+}
+
+export type GQLChannelNavbarTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 export type GQLChannelArticleConnection = GQLConnection & {
@@ -948,6 +953,7 @@ export type GQLChannelArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLChannelArticlesFilter>
   first?: InputMaybe<Scalars['Int']['input']>
+  oss?: InputMaybe<Scalars['Boolean']['input']>
   sort?: InputMaybe<GQLArticlesSort>
 }
 
@@ -1469,6 +1475,7 @@ export type GQLCurationChannel = GQLChannel & {
   color: GQLColor
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
+  navbarTitle: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
   pinAmount: Scalars['Int']['output']
   shortHash: Scalars['String']['output']
@@ -1480,6 +1487,10 @@ export type GQLCurationChannelArticlesArgs = {
 }
 
 export type GQLCurationChannelNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLCurationChannelNavbarTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -1542,6 +1553,8 @@ export type GQLDirectImageUploadInput = {
   type: GQLAssetType
   url?: InputMaybe<Scalars['String']['input']>
 }
+
+export type GQLDonator = GQLCryptoWallet | GQLUser
 
 /** This type contains content, collections, assets and related data of a draft. */
 export type GQLDraft = GQLNode & {
@@ -3045,6 +3058,7 @@ export type GQLPutCurationChannelInput = {
   color?: InputMaybe<GQLColor>
   id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   pinAmount?: InputMaybe<Scalars['Int']['input']>
   state?: InputMaybe<GQLCurationChannelState>
@@ -3128,8 +3142,10 @@ export type GQLPutTopicChannelInput = {
   enabled?: InputMaybe<Scalars['Boolean']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   providerId?: InputMaybe<Scalars['String']['input']>
+  subChannels?: InputMaybe<Array<Scalars['ID']['input']>>
 }
 
 export type GQLPutUserFeatureFlagsInput = {
@@ -3150,6 +3166,7 @@ export type GQLPutWritingChallengeInput = {
   link?: InputMaybe<Scalars['String']['input']>
   managers?: InputMaybe<Array<Scalars['ID']['input']>>
   name?: InputMaybe<Array<GQLTranslationInput>>
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   newStages?: InputMaybe<Array<GQLCampaignStageInput>>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
@@ -3868,7 +3885,7 @@ export type GQLTopDonatorEdge = {
   __typename?: 'TopDonatorEdge'
   cursor: Scalars['String']['output']
   donationCount: Scalars['Int']['output']
-  node: GQLUser
+  node: GQLDonator
 }
 
 export type GQLTopDonatorFilter = {
@@ -3888,8 +3905,9 @@ export type GQLTopicChannel = GQLChannel & {
   enabled: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
+  navbarTitle: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
-  providerId: Scalars['String']['output']
+  providerId?: Maybe<Scalars['String']['output']>
   shortHash: Scalars['String']['output']
 }
 
@@ -3898,6 +3916,10 @@ export type GQLTopicChannelArticlesArgs = {
 }
 
 export type GQLTopicChannelNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLTopicChannelNavbarTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -4628,6 +4650,7 @@ export type GQLWritingChallenge = GQLCampaign &
     isManager: Scalars['Boolean']['output']
     link: Scalars['String']['output']
     name: Scalars['String']['output']
+    navbarTitle: Scalars['String']['output']
     oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
     shortHash: Scalars['String']['output']
@@ -4649,6 +4672,10 @@ export type GQLWritingChallengeFeaturedDescriptionArgs = {
 }
 
 export type GQLWritingChallengeNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLWritingChallengeNavbarTitleArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
@@ -4785,6 +4812,7 @@ export type DirectiveResolverFn<
 /** Mapping of union types */
 export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
   ResolversObject<{
+    Donator: WalletModel | UserModel
     FollowingActivity:
       | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<_RefType['Article']>>
@@ -5209,6 +5237,9 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
+  Donator: ResolverTypeWrapper<
+    GQLResolversUnionTypes<GQLResolversTypes>['Donator']
+  >
   Draft: ResolverTypeWrapper<DraftModel>
   DraftAccess: ResolverTypeWrapper<DraftModel>
   DraftConnection: ResolverTypeWrapper<
@@ -5539,7 +5570,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   TopDonatorEdge: ResolverTypeWrapper<
-    Omit<GQLTopDonatorEdge, 'node'> & { node: GQLResolversTypes['User'] }
+    Omit<GQLTopDonatorEdge, 'node'> & { node: GQLResolversTypes['Donator'] }
   >
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
@@ -5889,6 +5920,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
+  Donator: GQLResolversUnionTypes<GQLResolversParentTypes>['Donator']
   Draft: DraftModel
   DraftAccess: DraftModel
   DraftConnection: Omit<GQLDraftConnection, 'edges'> & {
@@ -6136,7 +6168,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     edges?: Maybe<Array<GQLResolversParentTypes['TopDonatorEdge']>>
   }
   TopDonatorEdge: Omit<GQLTopDonatorEdge, 'node'> & {
-    node: GQLResolversParentTypes['User']
+    node: GQLResolversParentTypes['Donator']
   }
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
@@ -7820,6 +7852,12 @@ export type GQLCurationChannelResolvers<
     ContextType,
     Partial<GQLCurationChannelNameArgs>
   >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLCurationChannelNavbarTitleArgs>
+  >
   note?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -7848,6 +7886,13 @@ export type GQLDatetimeRangeResolvers<
   end?: Resolver<Maybe<GQLResolversTypes['DateTime']>, ParentType, ContextType>
   start?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLDonatorResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Donator'] = GQLResolversParentTypes['Donator']
+> = ResolversObject<{
+  __resolveType: TypeResolveFn<'CryptoWallet' | 'User', ParentType, ContextType>
 }>
 
 export type GQLDraftResolvers<
@@ -9935,7 +9980,7 @@ export type GQLTopDonatorEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  node?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Donator'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9957,13 +10002,23 @@ export type GQLTopicChannelResolvers<
     ContextType,
     Partial<GQLTopicChannelNameArgs>
   >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLTopicChannelNavbarTitleArgs>
+  >
   note?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
     ContextType,
     Partial<GQLTopicChannelNoteArgs>
   >
-  providerId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  providerId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -10775,6 +10830,12 @@ export type GQLWritingChallengeResolvers<
     ContextType,
     Partial<GQLWritingChallengeNameArgs>
   >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLWritingChallengeNavbarTitleArgs>
+  >
   oss?: Resolver<GQLResolversTypes['CampaignOSS'], ParentType, ContextType>
   participants?: Resolver<
     GQLResolversTypes['CampaignParticipantConnection'],
@@ -10894,6 +10955,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CurationChannel?: GQLCurationChannelResolvers<ContextType>
   DateTime?: GraphQLScalarType
   DatetimeRange?: GQLDatetimeRangeResolvers<ContextType>
+  Donator?: GQLDonatorResolvers<ContextType>
   Draft?: GQLDraftResolvers<ContextType>
   DraftAccess?: GQLDraftAccessResolvers<ContextType>
   DraftConnection?: GQLDraftConnectionResolvers<ContextType>

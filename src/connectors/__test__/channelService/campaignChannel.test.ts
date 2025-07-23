@@ -52,6 +52,7 @@ describe('updateOrCreateCampaignChannel', () => {
     const channel = await channelService.updateOrCreateCampaignChannel({
       campaignId,
       enabled,
+      navbarTitle: 'test',
     })
 
     expect(channel).toBeDefined()
@@ -66,12 +67,14 @@ describe('updateOrCreateCampaignChannel', () => {
     const initialChannel = await channelService.updateOrCreateCampaignChannel({
       campaignId,
       enabled: false,
+      navbarTitle: 'test',
     })
 
     // Then update it to enabled
     const updatedChannel = await channelService.updateOrCreateCampaignChannel({
       campaignId,
       enabled: true,
+      navbarTitle: 'test',
     })
 
     expect(updatedChannel.id).toBe(initialChannel.id)

@@ -44,6 +44,8 @@ describe('manage curation channels', () => {
         nameZhHant: name(input: { language: zh_hant })
         noteEn: note(input: { language: en })
         noteZhHant: note(input: { language: zh_hant })
+        navbarTitleEn: navbarTitle(input: { language: en })
+        navbarTitleZhHant: navbarTitle(input: { language: zh_hant })
         pinAmount
         color
         activePeriod {
@@ -248,6 +250,126 @@ describe('manage curation channels', () => {
     expect(updateData.putCurationChannel.state).toBe(
       CURATION_CHANNEL_STATE.editing
     )
+  })
+
+  test('creates curation channel with navbarTitle successfully', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_CURATION_CHANNEL,
+      variables: {
+        input: {
+          name: [
+            { text: 'Test Channel', language: 'en' },
+            { text: '測試頻道', language: 'zh_hant' },
+          ],
+          navbarTitle: [
+            { text: 'Nav Title', language: 'en' },
+            { text: '導航標題', language: 'zh_hant' },
+          ],
+          state: CURATION_CHANNEL_STATE.editing,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putCurationChannel.nameEn).toBe('Test Channel')
+    expect(data.putCurationChannel.nameZhHant).toBe('測試頻道')
+    expect(data.putCurationChannel.navbarTitleEn).toBe('Nav Title')
+    expect(data.putCurationChannel.navbarTitleZhHant).toBe('導航標題')
+  })
+
+  test('updates curation channel navbarTitle successfully', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // First create a channel
+    const { data: createData, errors: createErrors } =
+      await server.executeOperation({
+        query: PUT_CURATION_CHANNEL,
+        variables: {
+          input: {
+            name: [{ text: 'Initial Name', language: 'en' }],
+            navbarTitle: [{ text: 'Initial Nav Title', language: 'en' }],
+            state: CURATION_CHANNEL_STATE.editing,
+          },
+        },
+      })
+    expect(createErrors).toBeUndefined()
+
+    // Then update navbarTitle
+    const { data: updateData, errors: updateErrors } =
+      await server.executeOperation({
+        query: PUT_CURATION_CHANNEL,
+        variables: {
+          input: {
+            id: createData.putCurationChannel.id,
+            navbarTitle: [{ text: 'Updated Nav Title', language: 'en' }],
+          },
+        },
+      })
+
+    expect(updateErrors).toBeUndefined()
+    expect(updateData.putCurationChannel.nameEn).toBe('Initial Name')
+    expect(updateData.putCurationChannel.navbarTitleEn).toBe(
+      'Updated Nav Title'
+    )
+  })
+
+  test('validates navbarTitle length', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const longNavbarTitle = 'a'.repeat(33) // 33 characters, exceeds 32 limit
+
+    const { errors } = await server.executeOperation({
+      query: PUT_CURATION_CHANNEL,
+      variables: {
+        input: {
+          name: [{ text: 'Test Channel', language: 'en' }],
+          navbarTitle: [{ text: longNavbarTitle, language: 'en' }],
+        },
+      },
+    })
+
+    expect(errors[0].message).toBe('Navbar title is too long')
+  })
+
+  test('navbarTitle falls back to name when not provided', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_CURATION_CHANNEL,
+      variables: {
+        input: {
+          name: [
+            { text: 'Test Channel', language: 'en' },
+            { text: '測試頻道', language: 'zh_hant' },
+          ],
+          state: CURATION_CHANNEL_STATE.editing,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.putCurationChannel.nameEn).toBe('Test Channel')
+    expect(data.putCurationChannel.nameZhHant).toBe('測試頻道')
+    expect(data.putCurationChannel.navbarTitleEn).toBe('Test Channel')
+    expect(data.putCurationChannel.navbarTitleZhHant).toBe('測試頻道')
   })
 })
 

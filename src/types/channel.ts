@@ -9,15 +9,17 @@ export default /* GraphQL */ `
   interface Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
   }
 
   type TopicChannel implements Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
 
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
-    providerId: String! @auth(mode: "${AUTH_MODE.admin}") @privateCache
+    providerId: String @auth(mode: "${AUTH_MODE.admin}") @privateCache
 
     enabled: Boolean!
 
@@ -27,6 +29,7 @@ export default /* GraphQL */ `
   type CurationChannel implements Channel {
     id: ID!
     shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
 
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
@@ -34,7 +37,7 @@ export default /* GraphQL */ `
     color: Color!
     "both activePeriod and state determine if the channel is active"
     activePeriod: DatetimeRange!
-    state: CurationChannelState! @auth(mode: "${AUTH_MODE.admin}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    state: CurationChannelState! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     articles(input: ChannelArticlesInput!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
@@ -43,6 +46,7 @@ export default /* GraphQL */ `
     first: Int
     sort: ArticlesSort
     filter: ChannelArticlesFilter
+    oss: Boolean = false
   }
 
 
@@ -105,13 +109,16 @@ export default /* GraphQL */ `
     providerId: String
     name: [TranslationInput!]
     note: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     enabled: Boolean
+    subChannels: [ID!]
   }
 
   input PutCurationChannelInput {
     id: ID
     name: [TranslationInput!]
     note: [TranslationInput!]
+    navbarTitle: [TranslationInput!]
     pinAmount: Int
     color: Color
     activePeriod: DatetimeRangeInput

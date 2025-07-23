@@ -10,9 +10,12 @@ export interface TopicChannel {
   shortHash: string
   name: string
   note?: string
-  providerId: string
+  providerId: string | null
+  parentId: string | null
+  pinnedArticles: string[]
   enabled: boolean
   order: number
+  navbarTitle: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -22,6 +25,7 @@ export interface CampaignChannel {
   campaignId: string
   order: number
   enabled: boolean
+  navbarTitle: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -33,8 +37,6 @@ export interface TopicChannelArticle {
   score?: number
   isLabeled: boolean
   enabled: boolean
-  pinned: boolean
-  pinnedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -59,6 +61,7 @@ export interface CurationChannel {
   activePeriod: string
   order: number
   state: ValueOf<typeof CURATION_CHANNEL_STATE>
+  navbarTitle: string | null
   createdAt: Date
   updatedAt: Date
 }

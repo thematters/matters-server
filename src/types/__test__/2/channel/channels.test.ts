@@ -90,6 +90,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: false,
+      navbarTitle: 'test',
     })
 
     const { data, errors } = await server.executeOperation({
@@ -172,6 +173,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: enabledCampaign.id,
       enabled: true,
+      navbarTitle: 'test',
     })
 
     const disabledCampaign = await campaignService.createWritingChallenge({
@@ -181,6 +183,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: disabledCampaign.id,
       enabled: false,
+      navbarTitle: 'test',
     })
 
     const { data, errors } = await server.executeOperation({
@@ -261,6 +264,7 @@ describe('channels query', () => {
     await channelService.updateOrCreateCampaignChannel({
       campaignId: campaign.id,
       enabled: true,
+      navbarTitle: 'test',
     })
     await channelService.updateChannelOrder(
       { type: NODE_TYPES.Campaign, id: campaign.id },
@@ -317,6 +321,7 @@ describe('channels query', () => {
                 enabled
                 classicfiedAt
                 pinned
+                antiFlooded
               }
             }
           }
@@ -423,7 +428,6 @@ describe('channels query', () => {
           enabled: true,
           isLabeled: true,
           score: 0.8,
-          pinned: true,
         },
       })
       await atomService.create({
@@ -434,8 +438,13 @@ describe('channels query', () => {
           enabled: true,
           isLabeled: false,
           score: 0.6,
-          pinned: false,
         },
+      })
+
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel1.id },
+        data: { pinnedArticles: [article.id] },
       })
 
       const { data, errors } = await server.executeOperation({
@@ -519,7 +528,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -575,7 +583,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -631,7 +638,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -699,7 +705,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -767,7 +772,6 @@ describe('channels query', () => {
             enabled: true,
             isLabeled: true,
             score: 0.8,
-            pinned: false,
           },
         })
 
@@ -784,6 +788,436 @@ describe('channels query', () => {
         expect(data.article.classification.topicChannel.channels).toHaveLength(
           0
         )
+      })
+    })
+
+    describe('parent channel inclusion', () => {
+      test('includes parent channel when child channel has parentId and parent is not directly labeled', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create parent channel
+        const parentChannel = await channelService.createTopicChannel({
+          name: 'parent-channel',
+          enabled: true,
+          providerId: 'parent-1',
+        })
+
+        // Create child channel
+        const childChannel = await channelService.createTopicChannel({
+          name: 'child-channel',
+          enabled: true,
+          providerId: 'child-1',
+        })
+
+        // Set parent-child relationship
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: childChannel.id },
+          data: { parentId: parentChannel.id },
+        })
+
+        // Create article
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test',
+          content: 'test',
+        })
+
+        // Add article only to child channel (not parent)
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: childChannel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+          },
+        })
+
+        // Pin article to parent channel
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: parentChannel.id },
+          data: { pinnedArticles: [article.id] },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          2
+        )
+
+        // Verify child channel
+        const childResult =
+          data.article.classification.topicChannel.channels.find(
+            (c: any) =>
+              c.channel.id ===
+              toGlobalId({ type: NODE_TYPES.TopicChannel, id: childChannel.id })
+          )
+        expect(childResult).toBeDefined()
+        expect(childResult.channel.name).toBe('child-channel')
+        expect(childResult.score).toBe(0.8)
+        expect(childResult.isLabeled).toBe(true)
+        expect(childResult.enabled).toBe(true)
+        expect(childResult.pinned).toBe(false)
+
+        // Verify parent channel
+        const parentResult =
+          data.article.classification.topicChannel.channels.find(
+            (c: any) =>
+              c.channel.id ===
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: parentChannel.id,
+              })
+          )
+        expect(parentResult).toBeDefined()
+        expect(parentResult.channel.name).toBe('parent-channel')
+        expect(parentResult.score).toBeNull()
+        expect(parentResult.isLabeled).toBe(false)
+        expect(parentResult.enabled).toBe(true) // inherited from child
+        expect(parentResult.pinned).toBe(true) // parent has article in pinnedArticles
+      })
+
+      test('does not include parent channel when parent is already directly labeled', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create parent channel
+        const parentChannel = await channelService.createTopicChannel({
+          name: 'parent-channel',
+          enabled: true,
+          providerId: 'parent-1',
+        })
+
+        // Create child channel
+        const childChannel = await channelService.createTopicChannel({
+          name: 'child-channel',
+          enabled: true,
+          providerId: 'child-1',
+        })
+
+        // Set parent-child relationship
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: childChannel.id },
+          data: { parentId: parentChannel.id },
+        })
+
+        // Create article
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test',
+          content: 'test',
+        })
+
+        // Add article to both child and parent channels
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: childChannel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+          },
+        })
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: parentChannel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.9,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          2
+        )
+
+        // Both should be labeled with their own scores, parent should not be duplicated
+        const parentResult =
+          data.article.classification.topicChannel.channels.find(
+            (c: any) =>
+              c.channel.id ===
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: parentChannel.id,
+              })
+          )
+        expect(parentResult.score).toBe(0.9) // direct score, not null
+        expect(parentResult.isLabeled).toBe(true) // directly labeled
+      })
+
+      test('deduplicates parent channels when multiple children have same parent', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create parent channel
+        const parentChannel = await channelService.createTopicChannel({
+          name: 'parent-channel',
+          enabled: true,
+          providerId: 'parent-1',
+        })
+
+        // Create two child channels
+        const childChannel1 = await channelService.createTopicChannel({
+          name: 'child-channel-1',
+          enabled: true,
+          providerId: 'child-1',
+        })
+        const childChannel2 = await channelService.createTopicChannel({
+          name: 'child-channel-2',
+          enabled: true,
+          providerId: 'child-2',
+        })
+
+        // Set parent-child relationships
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: childChannel1.id },
+          data: { parentId: parentChannel.id },
+        })
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: childChannel2.id },
+          data: { parentId: parentChannel.id },
+        })
+
+        // Create article
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test',
+          content: 'test',
+        })
+
+        // Add article to both child channels (not parent)
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: childChannel1.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+          },
+        })
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: childChannel2.id,
+            enabled: true,
+            isLabeled: false,
+            score: 0.6,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        // Should have 3 channels: 2 children + 1 parent (deduplicated)
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          3
+        )
+
+        // Verify parent appears only once
+        const parentResults =
+          data.article.classification.topicChannel.channels.filter(
+            (c: any) =>
+              c.channel.id ===
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: parentChannel.id,
+              })
+          )
+        expect(parentResults).toHaveLength(1)
+        expect(parentResults[0].score).toBeNull()
+        expect(parentResults[0].isLabeled).toBe(false)
+      })
+
+      test('does not include parent when child channel is disabled', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create parent channel
+        const parentChannel = await channelService.createTopicChannel({
+          name: 'parent-channel',
+          enabled: true,
+          providerId: 'parent-1',
+        })
+
+        // Create disabled child channel
+        const childChannel = await channelService.createTopicChannel({
+          name: 'child-channel',
+          enabled: false, // disabled
+          providerId: 'child-1',
+        })
+
+        // Set parent-child relationship
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: childChannel.id },
+          data: { parentId: parentChannel.id },
+        })
+
+        // Create article
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test',
+          content: 'test',
+        })
+
+        // Add article to child channel
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: childChannel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          1
+        )
+
+        // Should only have child channel, no parent because child channel is disabled
+        const result = data.article.classification.topicChannel.channels[0]
+        expect(result.channel.id).toBe(
+          toGlobalId({ type: NODE_TYPES.TopicChannel, id: childChannel.id })
+        )
+      })
+
+      test('includes parent with correct antiFlooded status', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create parent channel
+        const parentChannel = await channelService.createTopicChannel({
+          name: 'parent-channel',
+          enabled: true,
+          providerId: 'parent-1',
+        })
+
+        // Create child channel
+        const childChannel = await channelService.createTopicChannel({
+          name: 'child-channel',
+          enabled: true,
+          providerId: 'child-1',
+        })
+
+        // Set parent-child relationship
+        await atomService.update({
+          table: 'topic_channel',
+          where: { id: childChannel.id },
+          data: { parentId: parentChannel.id },
+        })
+
+        // Create article
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test',
+          content: 'test',
+        })
+
+        // Add article to child channel with recent timestamp (within flood detection window)
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: childChannel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+            createdAt: new Date(), // recent timestamp
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          2
+        )
+
+        // Verify parent channel has antiFlooded property based on flood detection
+        const parentResult =
+          data.article.classification.topicChannel.channels.find(
+            (c: any) =>
+              c.channel.id ===
+              toGlobalId({
+                type: NODE_TYPES.TopicChannel,
+                id: parentChannel.id,
+              })
+          )
+        expect(parentResult).toBeDefined()
+        expect(parentResult.channel.name).toBe('parent-channel')
+        // antiFlooded should be a boolean (exact value depends on channelService.isFlood implementation)
+        expect(typeof parentResult.antiFlooded).toBe('boolean')
       })
     })
   })

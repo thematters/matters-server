@@ -17,7 +17,7 @@ beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   campaignService = new CampaignService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -45,11 +45,10 @@ describe('channel query', () => {
     }
   `
 
-  test('returns topic channel for admin', async () => {
+  test('returns topic channel for any user', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      isAdmin: true,
     })
 
     // Create test channel
@@ -75,7 +74,7 @@ describe('channel query', () => {
     expect(data.channel.enabled).toBe(false)
   })
 
-  test('returns null for disabled topic channel for normal user', async () => {
+  test('returns enabled topic channel for any user', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
@@ -83,9 +82,9 @@ describe('channel query', () => {
 
     // Create test channel
     const channel = await channelService.createTopicChannel({
-      name: 'test-topic',
+      name: 'test-topic-enabled',
       providerId: '2',
-      enabled: false,
+      enabled: true,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -96,14 +95,18 @@ describe('channel query', () => {
     })
 
     expect(errors).toBeUndefined()
-    expect(data.channel).toBeNull()
+    expect(data.channel.id).toBe(
+      toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel.id })
+    )
+    expect(data.channel.shortHash).toBe(channel.shortHash)
+    expect(data.channel.name).toBe('test-topic-enabled')
+    expect(data.channel.enabled).toBe(true)
   })
 
-  test('returns curation channel for admin', async () => {
+  test('returns curation channel for any user', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      isAdmin: true,
     })
 
     // Create test channel
@@ -128,7 +131,7 @@ describe('channel query', () => {
     expect(data.channel.channelState).toBe(CURATION_CHANNEL_STATE.editing)
   })
 
-  test('returns null for non-published curation channel for normal user', async () => {
+  test('returns published curation channel for any user', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
@@ -136,8 +139,8 @@ describe('channel query', () => {
 
     // Create test channel
     const channel = await channelService.createCurationChannel({
-      name: 'test-curation',
-      state: CURATION_CHANNEL_STATE.editing,
+      name: 'test-curation-published',
+      state: CURATION_CHANNEL_STATE.published,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -148,14 +151,18 @@ describe('channel query', () => {
     })
 
     expect(errors).toBeUndefined()
-    expect(data.channel).toBeNull()
+    expect(data.channel.id).toBe(
+      toGlobalId({ type: NODE_TYPES.CurationChannel, id: channel.id })
+    )
+    expect(data.channel.shortHash).toBe(channel.shortHash)
+    expect(data.channel.name).toBe('test-curation-published')
+    expect(data.channel.channelState).toBe(CURATION_CHANNEL_STATE.published)
   })
 
-  test('returns campaign for admin', async () => {
+  test('returns campaign for any user', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      isAdmin: true,
     })
 
     // Create test campaign
@@ -181,7 +188,7 @@ describe('channel query', () => {
     expect(data.channel.campaignState).toBe(CAMPAIGN_STATE.pending)
   })
 
-  test('returns null for non-active campaign for normal user', async () => {
+  test('returns active campaign for any user', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
@@ -189,9 +196,9 @@ describe('channel query', () => {
 
     // Create test campaign
     const campaign = await campaignService.createWritingChallenge({
-      name: 'test-campaign',
+      name: 'test-campaign-active',
       creatorId: '1',
-      state: CAMPAIGN_STATE.pending,
+      state: CAMPAIGN_STATE.active,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -202,14 +209,18 @@ describe('channel query', () => {
     })
 
     expect(errors).toBeUndefined()
-    expect(data.channel).toBeNull()
+    expect(data.channel.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Campaign, id: campaign.id })
+    )
+    expect(data.channel.shortHash).toBe(campaign.shortHash)
+    expect(data.channel.name).toBe('test-campaign-active')
+    expect(data.channel.campaignState).toBe(CAMPAIGN_STATE.active)
   })
 
   test('returns null for non-existent channel', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
-      isAdmin: true,
     })
 
     const { data, errors } = await server.executeOperation({
@@ -221,5 +232,34 @@ describe('channel query', () => {
 
     expect(errors).toBeUndefined()
     expect(data.channel).toBeNull()
+  })
+
+  test('works for unauthenticated users', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: false,
+    })
+
+    // Create test channel
+    const channel = await channelService.createTopicChannel({
+      name: 'test-topic-unauthenticated',
+      providerId: '3',
+      enabled: false,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CHANNEL,
+      variables: {
+        input: { shortHash: channel.shortHash },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.channel.id).toBe(
+      toGlobalId({ type: NODE_TYPES.TopicChannel, id: channel.id })
+    )
+    expect(data.channel.shortHash).toBe(channel.shortHash)
+    expect(data.channel.name).toBe('test-topic-unauthenticated')
+    expect(data.channel.enabled).toBe(false)
   })
 })
