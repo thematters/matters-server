@@ -156,6 +156,9 @@ export class ArticleService extends BaseService<Article> {
     }
 
     if (excludeChannelArticles) {
+      const channelIds = this.knexRO.raw(
+        `WITH base AS (SELECT id FROM topic_channel WHERE enabled=true) SELECT id FROM base UNION SELECT id FROM topic_channel WHERE parent_id IN (SELECT id FROM base)`
+      )
       query
         .leftJoin(
           this.knexRO
@@ -164,8 +167,8 @@ export class ArticleService extends BaseService<Article> {
             .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
             .where({
               'tca.enabled': true,
-              'tc.enabled': true,
             })
+            .whereRaw('tc.id IN (?)', [channelIds])
             .as('enabled_article_channels'),
           'article.id',
           'enabled_article_channels.article_id'

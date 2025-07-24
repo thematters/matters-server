@@ -50,7 +50,7 @@ const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
       // if channel has parentId, and parentId is not in channelMap (means this parent channel is not labeled directly),
       // then it has parent channel to add to result
       const hasParentToAdd =
-        channel.parentId && channel.enabled && !channelMap.get(channel.parentId)
+        channel.parentId && !channelMap.get(channel.parentId)
       const parentChannel = hasParentToAdd
         ? await atomService.findUnique({
             table: 'topic_channel',
