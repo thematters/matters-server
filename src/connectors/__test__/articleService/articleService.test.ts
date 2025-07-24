@@ -433,18 +433,41 @@ describe('latestArticles', () => {
       content: 'test content 3',
       authorId: '1',
     })
+    const [article4] = await publicationService.createArticle({
+      title: 'test4',
+      content: 'test content 4',
+      authorId: '1',
+    })
 
-    // create channels
-    const channel1 = await channelService.createTopicChannel({
-      name: 'test',
-      note: 'test',
-      providerId: 'test-latest',
+    // create child channels first
+    const childChannel = await channelService.createTopicChannel({
+      name: 'child',
+      note: 'child channel',
+      providerId: 'test-child',
       enabled: true,
     })
-    const channel2 = await channelService.createTopicChannel({
-      name: 'test2',
-      note: 'test2',
-      providerId: 'test-latest2',
+
+    const disabledChildChannel = await channelService.createTopicChannel({
+      name: 'disabled-child',
+      note: 'disabled child channel',
+      providerId: 'test-disabled-child',
+      enabled: false,
+    })
+
+    // create parent channel and establish parent-child relationships
+    const parentChannel = await channelService.createTopicChannel({
+      name: 'parent',
+      note: 'parent channel',
+      providerId: 'test-parent',
+      enabled: true,
+      subChannelIds: [childChannel.id, disabledChildChannel.id],
+    })
+
+    // create standalone disabled channel
+    const disabledStandaloneChannel = await channelService.createTopicChannel({
+      name: 'disabled-standalone',
+      note: 'disabled standalone channel',
+      providerId: 'test-disabled-standalone',
       enabled: false,
     })
 
@@ -453,7 +476,7 @@ describe('latestArticles', () => {
       table: 'topic_channel_article',
       data: {
         articleId: article1.id,
-        channelId: channel1.id,
+        channelId: parentChannel.id,
         score: articleChannelThreshold + 0.1,
         enabled: true,
       },
@@ -462,7 +485,7 @@ describe('latestArticles', () => {
       table: 'topic_channel_article',
       data: {
         articleId: article2.id,
-        channelId: channel2.id, // disabled channel
+        channelId: childChannel.id, // enabled child channel
         score: articleChannelThreshold + 0.1,
         enabled: true,
       },
@@ -471,7 +494,7 @@ describe('latestArticles', () => {
       table: 'topic_channel_article',
       data: {
         articleId: article3.id,
-        channelId: channel2.id, // disabled channel
+        channelId: disabledChildChannel.id, // disabled child channel
         score: articleChannelThreshold + 0.1,
         enabled: true,
       },
@@ -479,10 +502,10 @@ describe('latestArticles', () => {
     await atomService.create({
       table: 'topic_channel_article',
       data: {
-        articleId: article3.id,
-        channelId: channel1.id,
+        articleId: article4.id,
+        channelId: disabledStandaloneChannel.id, // disabled standalone channel
         score: articleChannelThreshold + 0.1,
-        enabled: false, // disabled article channel
+        enabled: true,
       },
     })
 
@@ -492,14 +515,28 @@ describe('latestArticles', () => {
     const articlesExcludedChannel = await articleService.findNewestArticles({
       excludeChannelArticles: true,
     })
+
+    // All articles should be included when not excluding channel articles
     expect(articles.map(({ id }) => id)).toContain(article1.id)
     expect(articles.map(({ id }) => id)).toContain(article2.id)
     expect(articles.map(({ id }) => id)).toContain(article3.id)
+    expect(articles.map(({ id }) => id)).toContain(article4.id)
+
+    // When excluding channel articles:
+    // - article1 should be excluded (parent channel is enabled)
+    // - article2 should be excluded (child channel is enabled and parent is enabled)
+    // - article3 should be excluded (child channel is disabled but parent is enabled)
+    // - article4 should be included (standalone channel is disabled)
     expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
       article1.id
     )
-    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article2.id)
-    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article3.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article2.id
+    )
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article3.id
+    )
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article4.id)
   })
 
   test('writing challenge articles are excluded', async () => {
