@@ -219,9 +219,10 @@ export const connectionFromQuery = async <T extends { id: string }>({
  *
  * Note:
  *   This implementation does not support:
- *    1. nulls last ordering.
- *    2. multiple columns ordering.
- *    3. numbered pages use cases, which need to calculate offset based on page number.
+ *    1. ordering columns have duplicate values.
+ *    2. nulls last ordering.
+ *    3. multiple columns ordering.
+ *    4. numbered pages use cases, which need to calculate offset based on page number.
  *   In such cases, use offset based pagination instead.
  */
 export const connectionFromQueryCursorBased = async <T extends { id: string }>({
