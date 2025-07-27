@@ -14,6 +14,7 @@ import {
   RECOMMENDATION_TOP_PERCENTILE,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG,
+  RECOMMENDATION_HOTTEST_MAX_TAKE,
   USER_RESTRICTION_TYPE,
   USER_STATE,
 } from '#common/enums/index.js'
@@ -67,12 +68,42 @@ export class RecommendationService {
     donationWeight = 0.3,
     readersThreshold = 5,
     commentsThreshold = 3,
-  } = {}): Promise<{
-    query: Knex.QueryBuilder<
-      { articleId: string },
-      Array<{ articleId: string }>
-    >
-  }> => {
+  }): Promise<Array<{ articleId: string }>> => {
+    const { query } = await this._findHottestArticles({
+      days,
+      decayDays,
+      HKDThreshold,
+      USDTThreshold,
+      readWeight,
+      commentWeight,
+      donationWeight,
+      readersThreshold,
+      commentsThreshold,
+    })
+    return await query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE)
+  }
+
+  private _findHottestArticles = async ({
+    days,
+    decayDays,
+    HKDThreshold,
+    USDTThreshold,
+    readWeight,
+    commentWeight,
+    donationWeight,
+    readersThreshold,
+    commentsThreshold,
+  }: {
+    days: number
+    decayDays: number
+    HKDThreshold: number
+    USDTThreshold: number
+    readWeight: number
+    commentWeight: number
+    donationWeight: number
+    readersThreshold: number
+    commentsThreshold: number
+  }) => {
     const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
       'article'
     )
@@ -233,7 +264,7 @@ export class RecommendationService {
       .from('with_score')
       .orderBy('score', 'desc')
 
-    return { query } as any
+    return { query }
   }
 
   public createIcymiTopic = async ({

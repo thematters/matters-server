@@ -52,8 +52,8 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
       keys: {
         type: 'recommendationHottest',
       },
-      getter: async () => {
-        const { query } = await recommendationService.findHottestArticles({
+      getter: async () =>
+        await recommendationService.findHottestArticles({
           days: environment.hottestArticlesDays,
           decayDays: environment.hottestArticlesDecayDays,
           HKDThreshold: environment.hottestArticlesHKDThreshold,
@@ -63,9 +63,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
           donationWeight: environment.hottestArticlesDonationWeight,
           readersThreshold: environment.hottestArticlesReadersThreshold,
           commentsThreshold: environment.hottestArticlesCommentsThreshold,
-        })
-        return await query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE * 1.5)
-      },
+        }),
       expire: CACHE_TTL.LONG,
     })
     // TODO: add created_at to table and use it as filter here
