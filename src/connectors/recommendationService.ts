@@ -94,6 +94,7 @@ export class RecommendationService {
                 excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
                 excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
                 excludeExclusiveCampaignArticles: true,
+                excludeComplaintAreaArticles: true,
                 datetimeRange: {
                   start: startDate,
                 },
