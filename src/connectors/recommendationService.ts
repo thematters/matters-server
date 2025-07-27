@@ -80,7 +80,11 @@ export class RecommendationService {
       readersThreshold,
       commentsThreshold,
     })
-    return await query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE)
+    const results = await query
+    return results
+      .sort((a, b) => b.score - a.score)
+      .slice(0, RECOMMENDATION_HOTTEST_MAX_TAKE)
+      .map((r) => ({ articleId: r.articleId }))
   }
 
   private _findHottestArticles = async ({
@@ -220,6 +224,7 @@ export class RecommendationService {
         return qb
           .select(
             'hottest_source.article_id',
+            'hottest_source.author_id',
             this.knexRO.raw('coalesce(t1.readers, 0) AS readers'),
             this.knexRO.raw('coalesce(t1.read_score, 0) AS read_score'),
             this.knexRO.raw('coalesce(t2.comments, 0) AS comments'),
@@ -244,25 +249,20 @@ export class RecommendationService {
             't3.target_id'
           )
       })
-      .with('with_score', (qb) => {
-        return qb
-          .from('base')
-          .select(
-            'article_id',
-            this.knexRO.raw(
-              '(? * base.read_score + ? * base.comment_score + ? * base.donation_score) as score',
-              [readWeight, commentWeight, donationWeight]
-            )
-          )
-          .where((w) => {
-            return w
-              .where('readers', '>=', readersThreshold)
-              .orWhere('comments', '>=', commentsThreshold)
-          })
+      .select(
+        'article_id',
+        'author_id',
+        this.knexRO.raw(
+          '(? * base.read_score + ? * base.comment_score + ? * base.donation_score) as score',
+          [readWeight, commentWeight, donationWeight]
+        )
+      )
+      .from('base')
+      .where((w) => {
+        return w
+          .where('readers', '>=', readersThreshold)
+          .orWhere('comments', '>=', commentsThreshold)
       })
-      .select('article_id')
-      .from('with_score')
-      .orderBy('score', 'desc')
 
     return { query }
   }
