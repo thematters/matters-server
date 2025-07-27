@@ -28,6 +28,7 @@ import {
   USER_STATE,
   USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
@@ -95,6 +96,7 @@ export class ArticleService extends BaseService<Article> {
       excludeRestrictedAuthors,
       excludeExclusiveCampaignArticles,
       excludeChannelArticles,
+      excludeComplaintAreaArticles,
       datetimeRange,
     }: {
       state?: ValueOf<typeof ARTICLE_STATE>
@@ -106,6 +108,7 @@ export class ArticleService extends BaseService<Article> {
       excludeRestrictedAuthors?: ValueOf<typeof USER_RESTRICTION_TYPE>
       excludeExclusiveCampaignArticles?: boolean
       excludeChannelArticles?: boolean
+      excludeComplaintAreaArticles?: boolean
       datetimeRange?: { start: Date; end?: Date }
     } = { state: ARTICLE_STATE.active }
   ) => {
@@ -146,6 +149,14 @@ export class ArticleService extends BaseService<Article> {
 
     if (excludeExclusiveCampaignArticles) {
       query.modify(excludeExclusiveCampaignArticlesModifier)
+    }
+
+    if (excludeComplaintAreaArticles) {
+      const complaintAreaArticleIds = this.knexRO
+        .select('entrance_id')
+        .from('article_connection')
+        .where('article_id', environment.ComplaintAreaArticleId)
+      query.whereRaw('article.id NOT IN (?)', [complaintAreaArticleIds])
     }
 
     if (datetimeRange) {

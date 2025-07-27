@@ -242,6 +242,8 @@ export const environment = {
     process.env.MATTERS_CHANNEL_FLOOD_DETECT_WINDOW_IN_SECONDS || '86400',
     10
   ),
+  ComplaintAreaArticleId:
+    process.env.MATTERS_COMPLAINT_AREA_ARTICLE_ID || '8079',
 }
 
 export const contract = {
