@@ -25,6 +25,8 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
+import { quantile, median } from 'd3-array'
+import keyBy from 'lodash/keyBy.js'
 
 import { ArticleService } from './article/articleService.js'
 import { AtomService } from './atomService.js'
@@ -69,6 +71,9 @@ export class RecommendationService {
     donationWeight = 0.3,
     readersThreshold = 5,
     commentsThreshold = 3,
+    normalizeCutFactor = 0.95,
+    normalizeDecayFactor = 0.15,
+    normalizeEpsilonFactor = 0.5,
   }): Promise<Array<{ articleId: string }>> => {
     const { query } = await this._findHottestArticles({
       days,
@@ -82,8 +87,46 @@ export class RecommendationService {
       commentsThreshold,
     })
     const results = await query
-    return results
-      .sort((a, b) => b.score - a.score)
+
+    // Get unique author IDs from results
+    const authorIds = [...new Set(results.map((r) => r.authorId))]
+
+    // Fetch follower counts for all authors
+    const followerCounts = await this.countUsersFollowers(authorIds)
+
+    // Prepare data for normalization
+    const userFollowers = authorIds.map((authorId) => ({
+      authorId,
+      followers: followerCounts[authorId] || 0,
+    }))
+
+    // Prepare comparison data
+    const sorted = userFollowers.map((d) => d.followers).sort((a, b) => a - b)
+    const medianFollowers = median(sorted) || 0
+    const cut = quantile(sorted, normalizeCutFactor) || 0
+    const epsilon = medianFollowers * normalizeEpsilonFactor
+
+    // Create follower map for quick lookup
+    const followerMap = keyBy(userFollowers, 'authorId')
+
+    // Apply normalization to results
+    const normalizedResults = results.map((result) => {
+      const followerData = followerMap[result.authorId]
+      const followers = followerData ? followerData.followers : 0
+      const f = Math.min(followers, cut)
+      const rawFactor =
+        ((medianFollowers * epsilon) / (f + epsilon)) ** normalizeDecayFactor
+      const factor = Math.min(rawFactor, 1)
+
+      return {
+        ...result,
+        newScore: result.score * factor,
+      }
+    })
+
+    // Sort by normalized score and return
+    return normalizedResults
+      .sort((a, b) => b.newScore - a.newScore)
       .slice(0, RECOMMENDATION_HOTTEST_MAX_TAKE)
       .map((r) => ({ articleId: r.articleId }))
   }
