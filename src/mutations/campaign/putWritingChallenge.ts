@@ -86,7 +86,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 
   if (navbarTitle) {
     for (const trans of navbarTitle) {
-      if (trans.text.length > 32) {
+      if (trans.text.length > 50) {
         throw new UserInputError('Navbar title is too long')
       }
     }
