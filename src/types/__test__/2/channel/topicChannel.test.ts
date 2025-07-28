@@ -840,7 +840,7 @@ describe('manage topic channels', () => {
         input: {
           providerId: 'test-provider-' + Date.now(),
           name: [{ text: 'test', language: 'en' }],
-          navbarTitle: [{ text: 'a'.repeat(33), language: 'en' }], // 33 characters, exceeds 32 limit
+          navbarTitle: [{ text: 'a'.repeat(51), language: 'en' }], // 51 characters, exceeds 50 limit
           enabled: true,
         },
       },
