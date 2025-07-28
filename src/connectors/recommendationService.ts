@@ -340,7 +340,7 @@ export class RecommendationService {
 
     // Update with actual counts
     results.forEach((result) => {
-      followerCounts[result.user_id] = result.count
+      followerCounts[result.userId] = result.count
     })
 
     return followerCounts
