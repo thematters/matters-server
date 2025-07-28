@@ -17,6 +17,7 @@ import {
   RECOMMENDATION_HOTTEST_MAX_TAKE,
   USER_RESTRICTION_TYPE,
   USER_STATE,
+  USER_ACTION,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -265,6 +266,41 @@ export class RecommendationService {
       })
 
     return { query }
+  }
+
+  public countUsersFollowers = async (
+    userIds: string[]
+  ): Promise<{
+    [userId: string]: number
+  }> => {
+    if (userIds.length === 0) {
+      return {}
+    }
+
+    const results = await this.knexRO
+      .select(
+        'target_id AS user_id',
+        this.knexRO.raw('COUNT(distinct user_id)::int AS count')
+      )
+      .from('action_user')
+      .whereIn('target_id', userIds)
+      .where({ action: USER_ACTION.follow })
+      .groupBy('target_id')
+
+    // Convert results to the expected format
+    const followerCounts: { [userId: string]: number } = {}
+
+    // Initialize all requested userIds with 0
+    userIds.forEach((userId) => {
+      followerCounts[userId] = 0
+    })
+
+    // Update with actual counts
+    results.forEach((result) => {
+      followerCounts[result.user_id] = result.count
+    })
+
+    return followerCounts
   }
 
   public createIcymiTopic = async ({
