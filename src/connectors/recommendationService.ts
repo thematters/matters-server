@@ -200,7 +200,7 @@ export class RecommendationService {
                 )
               )
               .from('article_read_count')
-              .where('updated_at', '>=', startDate)
+              .where('created_at', '>=', startDate)
               .as('t1_source')
           )
           .groupBy('article_id')
