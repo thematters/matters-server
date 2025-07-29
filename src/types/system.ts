@@ -539,10 +539,10 @@ export default /* GraphQL */ `
 
   type IcymiTopic implements Node {
     id: ID!
-    title: String!
+    title(input: TranslationArgs): String!
     articles: [Article!]!
     pinAmount: Int!
-    note: String
+    note(input: TranslationArgs): String
     state: IcymiTopicState!
     publishedAt: DateTime
     archivedAt: DateTime
@@ -622,10 +622,10 @@ export default /* GraphQL */ `
 
   input PutIcymiTopicInput {
     id: ID
-    title: String
+    title: [TranslationInput!]
     articles: [ID!]
     pinAmount: Int
-    note: String
+    note: [TranslationInput!]
     state: IcymiTopicState
   }
 

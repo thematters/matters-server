@@ -2,7 +2,11 @@ import type { Connections } from '#definitions/index.js'
 
 import _ from 'lodash'
 
-import { NODE_TYPES, MATTERS_CHOICE_TOPIC_STATE } from '#common/enums/index.js'
+import {
+  NODE_TYPES,
+  MATTERS_CHOICE_TOPIC_STATE,
+  LANGUAGE,
+} from '#common/enums/index.js'
 import { RecommendationService, AtomService } from '#connectors/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 
@@ -104,6 +108,27 @@ describe('icymi topic', () => {
         }
       }
     `
+    const GET_OSS_ICYMI_TOPIC_WITH_TRANSLATION = /* GraphQL */ `
+      query (
+        $input: NodeInput!
+        $titleInput: TranslationArgs
+        $noteInput: TranslationArgs
+      ) {
+        node(input: $input) {
+          id
+          ... on IcymiTopic {
+            title(input: $titleInput)
+            articles {
+              id
+            }
+            note(input: $noteInput)
+            state
+            publishedAt
+            archivedAt
+          }
+        }
+      }
+    `
     const GET_OSS_ICYMI_TOPICS = /* GraphQL */ `
       query ($input: ConnectionArgs!) {
         oss {
@@ -128,12 +153,12 @@ describe('icymi topic', () => {
         }
       }
     `
-    const title = 'test title'
+    const title = [{ language: 'en', text: 'test title' }]
     const pinAmount = 3
     const articles = ['1', '2', '3'].map((id) =>
       toGlobalId({ type: NODE_TYPES.Article, id })
     )
-    const note = 'test note'
+    const note = [{ language: 'en', text: 'test note' }]
     test('only admin can mutate icymit topic', async () => {
       const server = await testClient({ connections })
       const { errors: errorsVisitor } = await server.executeOperation({
@@ -178,6 +203,33 @@ describe('icymi topic', () => {
       expect(data2.putIcymiTopic.publishedAt).toBeNull()
       expect(data2.putIcymiTopic.archivedAt).toBeNull()
     })
+
+    test('validates title and note length limits', async () => {
+      const adminServer = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      // Test title too long
+      const longTitle = [{ language: 'en', text: 'a'.repeat(101) }]
+      const { errors: titleErrors } = await adminServer.executeOperation({
+        query: PUT_ICYMI_TOPIC,
+        variables: { input: { title: longTitle, pinAmount: 3 } },
+      })
+      expect(titleErrors).toBeDefined()
+      expect(titleErrors?.[0]?.message).toContain('Title is too long')
+
+      // Test note too long
+      const longNote = [{ language: 'en', text: 'a'.repeat(201) }]
+      const { errors: noteErrors } = await adminServer.executeOperation({
+        query: PUT_ICYMI_TOPIC,
+        variables: { input: { title, note: longNote, pinAmount: 3 } },
+      })
+      expect(noteErrors).toBeDefined()
+      expect(noteErrors?.[0]?.message).toContain('Note is too long')
+    })
+
     test('only admin can views icymit topics list', async () => {
       const server = await testClient({ connections })
       const { data: dataVisitor } = await server.executeOperation({
@@ -215,6 +267,71 @@ describe('icymi topic', () => {
       })
       expect(data).toBeDefined()
     })
+
+    test('query icymi topic with translation arguments', async () => {
+      const adminServer = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      // Create a topic with multiple translations
+      const multiLangTitle = [
+        { language: LANGUAGE.en, text: 'English Title' },
+        { language: LANGUAGE.zh_hans, text: '中文标题' },
+      ]
+      const multiLangNote = [
+        { language: LANGUAGE.en, text: 'English Note' },
+        { language: LANGUAGE.zh_hans, text: '中文备注' },
+      ]
+
+      const { data: createData } = await adminServer.executeOperation({
+        query: PUT_ICYMI_TOPIC,
+        variables: {
+          input: {
+            title: multiLangTitle,
+            note: multiLangNote,
+            pinAmount: 3,
+          },
+        },
+      })
+
+      const topicId = createData.putIcymiTopic.id
+
+      // Test querying with English translation
+      const { data: enData } = await adminServer.executeOperation({
+        query: GET_OSS_ICYMI_TOPIC_WITH_TRANSLATION,
+        variables: {
+          input: { id: topicId },
+          titleInput: { language: 'en' },
+          noteInput: { language: 'en' },
+        },
+      })
+      expect(enData.node.title).toBe('English Title')
+      expect(enData.node.note).toBe('English Note')
+
+      // Test querying with Chinese translation
+      const { data: zhData } = await adminServer.executeOperation({
+        query: GET_OSS_ICYMI_TOPIC_WITH_TRANSLATION,
+        variables: {
+          input: { id: topicId },
+          titleInput: { language: 'zh_hans' },
+          noteInput: { language: 'zh_hans' },
+        },
+      })
+      expect(zhData.node.title).toBe('中文标题')
+      expect(zhData.node.note).toBe('中文备注')
+
+      // Test querying without translation args (should use viewer language)
+      const { data: defaultData } = await adminServer.executeOperation({
+        query: GET_OSS_ICYMI_TOPIC_WITH_TRANSLATION,
+        variables: {
+          input: { id: topicId },
+        },
+      })
+      expect(defaultData.node.title).toBeDefined()
+      expect(defaultData.node.note).toBeDefined()
+    })
   })
 
   const GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC = /* GraphQL */ `
@@ -236,6 +353,27 @@ describe('icymi topic', () => {
       }
     }
   `
+
+  const GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC_WITH_TRANSLATION = /* GraphQL */ `
+    query ($titleInput: TranslationArgs, $noteInput: TranslationArgs) {
+      viewer {
+        recommendation {
+          icymiTopic {
+            id
+            title(input: $titleInput)
+            articles {
+              id
+            }
+            note(input: $noteInput)
+            state
+            publishedAt
+            archivedAt
+          }
+        }
+      }
+    }
+  `
+
   test('query null', async () => {
     const server = await testClient({ connections })
     await atomService.updateMany({
@@ -267,5 +405,77 @@ describe('icymi topic', () => {
     expect(data.viewer.recommendation.icymiTopic.articles.length).toBe(
       articleIds.length
     )
+  })
+
+  test('query with translation arguments', async () => {
+    // Create and publish a topic with translations using the service directly
+    const multiLangTitle = [
+      { language: LANGUAGE.en, text: 'Published English Title' },
+      { language: LANGUAGE.zh_hant, text: '已發佈中文標題' },
+    ]
+    const multiLangNote = [
+      { language: LANGUAGE.en, text: 'Published English Note' },
+      { language: LANGUAGE.zh_hant, text: '已發佈中文備註' },
+    ]
+
+    const topic = await recommendationService.createIcymiTopic({
+      title: multiLangTitle[0].text,
+      articleIds: ['1', '2', '3'],
+      pinAmount: 3,
+      note: multiLangNote[0].text,
+    })
+
+    // Add translations using translation service
+    const { TranslationService } = await import('#connectors/index.js')
+    const translationService = new TranslationService(connections)
+
+    for (const trans of multiLangTitle) {
+      await translationService.updateOrCreateTranslation({
+        table: 'matters_choice_topic',
+        field: 'title',
+        id: topic.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+
+    for (const trans of multiLangNote) {
+      await translationService.updateOrCreateTranslation({
+        table: 'matters_choice_topic',
+        field: 'note',
+        id: topic.id,
+        language: trans.language,
+        text: trans.text,
+      })
+    }
+
+    await recommendationService.publishIcymiTopic(topic.id)
+
+    // Test viewer query with English translation
+    const server = await testClient({ connections })
+    const { data: enData } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC_WITH_TRANSLATION,
+      variables: {
+        titleInput: { language: 'en' },
+        noteInput: { language: 'en' },
+      },
+    })
+    expect(enData.viewer.recommendation.icymiTopic.title).toBe(
+      'Published English Title'
+    )
+    expect(enData.viewer.recommendation.icymiTopic.note).toBe(
+      'Published English Note'
+    )
+
+    // Test viewer query with Chinese translation
+    const { data: zhData } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_ICYMI_TOPIC_WITH_TRANSLATION,
+      variables: {
+        titleInput: { language: LANGUAGE.zh_hant },
+        noteInput: { language: LANGUAGE.zh_hant },
+      },
+    })
+    expect(zhData.viewer.recommendation.icymiTopic.title).toBe('已發佈中文標題')
+    expect(zhData.viewer.recommendation.icymiTopic.note).toBe('已發佈中文備註')
   })
 })
