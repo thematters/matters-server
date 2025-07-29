@@ -207,16 +207,16 @@ export class RecommendationService {
         const commentsQuery = this.knexRO
           .select(
             'target_id',
-            this.knexRO.raw('count(id)::int AS comments'),
+            this.knexRO.raw('count(author_id)::int AS comments'),
             this.knexRO.raw('sum(score) AS comment_score')
           )
           .from(
             this.knexRO
               .select(
-                'comment.id',
                 'comment.target_id',
+                'comment.author_id',
                 this.knexRO.raw(
-                  'greatest(1 - (extract(epoch from now() - comment.created_at) / (24 * 3600)) / ?, 0) AS score',
+                  'greatest(1 - (extract(epoch from now() - min(comment.created_at)) / (24 * 3600)) / ?, 0) AS score',
                   [decayDays]
                 )
               )
@@ -230,6 +230,7 @@ export class RecommendationService {
                 this.knexRO.ref('article.author_id')
               )
               .where('comment.created_at', '>=', startDate)
+              .groupBy(['comment.target_id', 'comment.author_id'])
               .as('t2_source')
           )
           .groupBy('target_id')
