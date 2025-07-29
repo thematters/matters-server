@@ -9,11 +9,11 @@ import flatten from 'lodash/flatten.js'
 import uniqBy from 'lodash/uniqBy.js'
 
 const resolver: GQLTopicChannelClassificationResolvers['channels'] = async (
-  { id: articleId },
+  { id: articleId, channelEnabled },
   _,
   { dataSources: { atomService, channelService, publicationService } }
 ) => {
-  if (await publicationService.isSpam(articleId)) {
+  if ((await publicationService.isSpam(articleId)) || !channelEnabled) {
     return []
   }
 
