@@ -382,6 +382,7 @@ export class ChannelService {
       .from('article')
       .where({
         'article.state': ARTICLE_STATE.active,
+        'article.channel_enabled': true,
       })
       .whereIn('article.id', pinnedArticleIds)
 
@@ -396,6 +397,7 @@ export class ChannelService {
       .where({
         'topic_channel_article.enabled': true,
         'article.state': ARTICLE_STATE.active,
+        'article.channel_enabled': true,
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
       .where((qb) => {
