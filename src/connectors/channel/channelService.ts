@@ -929,6 +929,13 @@ export class ChannelService {
         state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
       },
     })
+    if (channelIds.length === 0) {
+      await this.models.update({
+        table: 'article',
+        where: { id: articleId },
+        data: { channelEnabled: false },
+      })
+    }
     const autoResolved = await this.tryAutoResolveArticleFeedback(articleId)
     return autoResolved || feedback
   }

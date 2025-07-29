@@ -38,6 +38,11 @@ describe('feedback methods', () => {
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'topic_channel_feedback' })
     await atomService.deleteMany({ table: 'topic_channel_article' })
+    await atomService.update({
+      table: 'article',
+      where: { id: '1' },
+      data: { channelEnabled: true },
+    })
   })
 
   describe('createPositiveFeedback', () => {
@@ -80,6 +85,13 @@ describe('feedback methods', () => {
       expect(feedback?.userId).toBe(userId)
       expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
       expect(feedback?.channelIds).toEqual(channelIds)
+
+      // Verify article channelEnabled is not changed when channelIds is not empty
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: articleId },
+      })
+      expect(article?.channelEnabled).toBe(true) // Should remain true (default value)
     })
 
     test('creates negative feedback with empty channelIds', async () => {
@@ -112,6 +124,13 @@ describe('feedback methods', () => {
         where: { articleId },
       })
       expect(articleChannels.every((channel) => !channel.enabled)).toBe(true)
+
+      // Verify article channelEnabled is set to false
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: articleId },
+      })
+      expect(article?.channelEnabled).toBe(false)
     })
 
     test('creates negative feedback with matching channelIds', async () => {
@@ -146,6 +165,13 @@ describe('feedback methods', () => {
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([channel1.id, channel2.id])
       expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+
+      // Verify article channelEnabled is not changed when channelIds is not empty
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: articleId },
+      })
+      expect(article?.channelEnabled).toBe(true) // Should remain true (default value)
     })
 
     test('creates negative feedback with non-matching channelIds', async () => {
@@ -172,6 +198,13 @@ describe('feedback methods', () => {
       expect(feedback?.type).toBe(TOPIC_CHANNEL_FEEDBACK_TYPE.NEGATIVE)
       expect(feedback?.channelIds).toEqual([channel2.id])
       expect(feedback?.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+
+      // Verify article channelEnabled is not changed when channelIds is not empty
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: articleId },
+      })
+      expect(article?.channelEnabled).toBe(true) // Should remain true (default value)
     })
   })
 
@@ -724,6 +757,13 @@ describe('feedback methods', () => {
       })
 
       expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+
+      // Verify article channelEnabled is not changed when channelIds is not empty
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: '1' },
+      })
+      expect(article?.channelEnabled).toBe(true) // Should remain true (default value)
     })
 
     test('auto-resolves immediately when channelIds is empty and no labeled channels exist', async () => {
@@ -734,6 +774,13 @@ describe('feedback methods', () => {
       })
 
       expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.RESOLVED)
+
+      // Verify article channelEnabled is set to false
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: '1' },
+      })
+      expect(article?.channelEnabled).toBe(false)
     })
 
     test('remains pending when channelIds is empty but labeled channels exist', async () => {
@@ -775,6 +822,13 @@ describe('feedback methods', () => {
       })
 
       expect(feedback.state).toBe(TOPIC_CHANNEL_FEEDBACK_STATE.PENDING)
+
+      // Verify article channelEnabled is not changed when channelIds is not empty
+      const article = await atomService.findFirst({
+        table: 'article',
+        where: { id: '1' },
+      })
+      expect(article?.channelEnabled).toBe(true) // Should remain true (default value)
     })
   })
 

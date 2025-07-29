@@ -21,6 +21,7 @@ export interface Article {
   spamScore: number | null
   isSpam: boolean | null
   isAd: boolean | null
+  channelEnabled: boolean
 }
 
 export interface ArticleVersion {
