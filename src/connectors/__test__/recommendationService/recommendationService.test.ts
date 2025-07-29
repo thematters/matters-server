@@ -8,6 +8,7 @@ import {
   COMMENT_STATE,
   ARTICLE_ACTION,
   DAY,
+  USER_ACTION,
 } from '#common/enums/index.js'
 import {
   RecommendationService,
@@ -642,6 +643,62 @@ describe('recommandation', () => {
       const { query } = await recommendationService.recommendTags(channel.id)
       const tags = await query
       expect(tags.length).toEqual(0)
+    })
+  })
+
+  describe('countUsersFollowers', () => {
+    let user1: User
+    let user2: User
+    let user3: User
+
+    beforeEach(async () => {
+      // Create test users
+      const randomUserName = uuidv4()
+      user1 = await userService.create({ userName: `user1 ${randomUserName}` })
+      user2 = await userService.create({ userName: `user2 ${randomUserName}` })
+      user3 = await userService.create({ userName: `user3 ${randomUserName}` })
+    })
+
+    const createFollowAction = async (followerId: string, targetId: string) => {
+      return atomService.create({
+        table: 'action_user',
+        data: {
+          userId: followerId,
+          targetId,
+          action: USER_ACTION.follow,
+        },
+      })
+    }
+
+    test('returns empty object for empty userIds array', async () => {
+      const result = await recommendationService.countUsersFollowers([])
+      expect(result).toEqual({})
+    })
+
+    test('returns zero counts for users with no followers', async () => {
+      const result = await recommendationService.countUsersFollowers([
+        user1.id,
+        user2.id,
+        user3.id,
+      ])
+
+      expect(result).toEqual({
+        [user1.id]: 0,
+        [user2.id]: 0,
+        [user3.id]: 0,
+      })
+    })
+
+    test('counts followers correctly for single user', async () => {
+      // user2 and user3 follow user1
+      await createFollowAction(user2.id, user1.id)
+      await createFollowAction(user3.id, user1.id)
+
+      const result = await recommendationService.countUsersFollowers([user1.id])
+
+      expect(result).toEqual({
+        [user1.id]: 2,
+      })
     })
   })
 })

@@ -1,8 +1,4 @@
-import {
-  CACHE_PREFIX,
-  CACHE_TTL,
-  RECOMMENDATION_HOTTEST_MAX_TAKE,
-} from '#common/enums/index.js'
+import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { Cache } from '#connectors/cache/index.js'
 import { RecommendationService } from '#connectors/recommendationService.js'
@@ -15,7 +11,7 @@ export const handler = async () => {
     connections.objectCacheRedis
   )
   const recommendationService = new RecommendationService(connections)
-  const { query } = await recommendationService.findHottestArticles({
+  const articleIds = await recommendationService.findHottestArticles({
     days: environment.hottestArticlesDays,
     decayDays: environment.hottestArticlesDecayDays,
     HKDThreshold: environment.hottestArticlesHKDThreshold,
@@ -26,7 +22,6 @@ export const handler = async () => {
     readersThreshold: environment.hottestArticlesReadersThreshold,
     commentsThreshold: environment.hottestArticlesCommentsThreshold,
   })
-  const articleIds = await query.limit(RECOMMENDATION_HOTTEST_MAX_TAKE)
   await cache.storeObject({
     keys: {
       type: 'recommendationHottest',

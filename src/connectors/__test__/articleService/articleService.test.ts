@@ -22,6 +22,7 @@ import { ChannelService } from '../../channel/channelService.js'
 import { SystemService } from '../../systemService.js'
 import { UserService } from '../../userService.js'
 import { UserWorkService } from '../../userWorkService.js'
+import { environment } from '#common/environment.js'
 
 import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
@@ -259,6 +260,76 @@ describe('findArticles', () => {
     })
     expect(result4.length).toBe(0)
     await atomService.deleteMany({ table: 'user_restriction' })
+  })
+
+  test('excludeComplaintAreaArticles', async () => {
+    // Monkey patch the environment variable
+    environment.ComplaintAreaArticleId = '1'
+
+    // Get baseline articles without exclusion
+    const result1 = await articleService.findArticles({})
+    expect(result1.length).toBeGreaterThan(0)
+
+    // Test without exclusion - should return same results
+    const result2 = await articleService.findArticles({
+      excludeComplaintAreaArticles: false,
+    })
+    expect(result2.length).toBe(result1.length)
+
+    // Test with exclusion - should return same results if no complaint area connections exist
+    const result3 = await articleService.findArticles({
+      excludeComplaintAreaArticles: true,
+    })
+    expect(result3.length).toBe(result1.length)
+
+    // Create test articles that will be connected to complaint area
+    const [article1] = await publicationService.createArticle({
+      title: 'Test Article 1',
+      content: 'Test content 1',
+      authorId: '1',
+    })
+    const [article2] = await publicationService.createArticle({
+      title: 'Test Article 2',
+      content: 'Test content 2',
+      authorId: '1',
+    })
+
+    // Create connections to complaint area article (using environment default ID)
+    await atomService.create({
+      table: 'article_connection',
+      data: {
+        entranceId: article1.id,
+        articleId: environment.ComplaintAreaArticleId, // Default complaint area article ID from environment
+        order: 1,
+      },
+    })
+    await atomService.create({
+      table: 'article_connection',
+      data: {
+        entranceId: article2.id,
+        articleId: environment.ComplaintAreaArticleId, // Default complaint area article ID from environment
+        order: 1,
+      },
+    })
+
+    // Test with exclusion - should exclude articles connected to complaint area
+    const result4 = await articleService.findArticles({
+      excludeComplaintAreaArticles: true,
+    })
+    expect(result4.length).toBeLessThan(result1.length + 2) // Should exclude the 2 new articles
+
+    // Verify the excluded articles are not in the results
+    const excludedArticleIds = result4.map((article) => article.id)
+    expect(excludedArticleIds).not.toContain(article1.id)
+    expect(excludedArticleIds).not.toContain(article2.id)
+
+    // Test without exclusion - should include all articles
+    const result5 = await articleService.findArticles({
+      excludeComplaintAreaArticles: false,
+    })
+    const includedArticleIds = result5.map((article) => article.id)
+    expect(includedArticleIds).toContain(article1.id)
+    expect(includedArticleIds).toContain(article2.id)
   })
 })
 
