@@ -1277,62 +1277,6 @@ describe('channels query', () => {
         expect(errors).toBeUndefined()
         expect(data.article.classification.topicChannel.enable).toBe(false)
       })
-
-      test('returns empty channels array when channelEnabled is false even with channels', async () => {
-        const server = await testClient({
-          connections,
-          isAuth: true,
-          isAdmin: true,
-        })
-
-        // Create a channel
-        const channel = await channelService.createTopicChannel({
-          name: 'test-channel',
-          enabled: true,
-          providerId: 'test-provider',
-        })
-
-        // Create an article with channelEnabled = false
-        const [article] = await publicationService.createArticle({
-          authorId: '1',
-          title: 'test channel disabled with channels',
-          content: 'test content',
-        })
-
-        // Set channelEnabled to false
-        await atomService.update({
-          table: 'article',
-          where: { id: article.id },
-          data: { channelEnabled: false },
-        })
-
-        // Add article to channel
-        await atomService.create({
-          table: 'topic_channel_article',
-          data: {
-            articleId: article.id,
-            channelId: channel.id,
-            enabled: true,
-            isLabeled: true,
-            score: 0.8,
-          },
-        })
-
-        const { data, errors } = await server.executeOperation({
-          query: QUERY_ARTICLE_TOPIC_CHANNELS,
-          variables: {
-            input: {
-              shortHash: article.shortHash,
-            },
-          },
-        })
-
-        expect(errors).toBeUndefined()
-        expect(data.article.classification.topicChannel.enable).toBe(false)
-        expect(data.article.classification.topicChannel.channels).toHaveLength(
-          0
-        )
-      })
     })
   })
 })
