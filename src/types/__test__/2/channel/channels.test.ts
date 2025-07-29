@@ -311,6 +311,7 @@ describe('channels query', () => {
           id
           classification {
             topicChannel {
+              enable
               channels {
                 channel {
                   id
@@ -1212,6 +1213,125 @@ describe('channels query', () => {
         expect(parentResult.channel.name).toBe('parent-channel')
         // antiFlooded should be a boolean (exact value depends on channelService.isFlood implementation)
         expect(typeof parentResult.antiFlooded).toBe('boolean')
+      })
+    })
+
+    describe('enable field', () => {
+      test('returns true when article channelEnabled is true', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create an article with channelEnabled = true (default)
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test channel enabled',
+          content: 'test content',
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.enable).toBe(true)
+      })
+
+      test('returns false when article channelEnabled is false', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create an article with channelEnabled = false
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test channel disabled',
+          content: 'test content',
+        })
+
+        // Set channelEnabled to false
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { channelEnabled: false },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.enable).toBe(false)
+      })
+
+      test('returns empty channels array when channelEnabled is false even with channels', async () => {
+        const server = await testClient({
+          connections,
+          isAuth: true,
+          isAdmin: true,
+        })
+
+        // Create a channel
+        const channel = await channelService.createTopicChannel({
+          name: 'test-channel',
+          enabled: true,
+          providerId: 'test-provider',
+        })
+
+        // Create an article with channelEnabled = false
+        const [article] = await publicationService.createArticle({
+          authorId: '1',
+          title: 'test channel disabled with channels',
+          content: 'test content',
+        })
+
+        // Set channelEnabled to false
+        await atomService.update({
+          table: 'article',
+          where: { id: article.id },
+          data: { channelEnabled: false },
+        })
+
+        // Add article to channel
+        await atomService.create({
+          table: 'topic_channel_article',
+          data: {
+            articleId: article.id,
+            channelId: channel.id,
+            enabled: true,
+            isLabeled: true,
+            score: 0.8,
+          },
+        })
+
+        const { data, errors } = await server.executeOperation({
+          query: QUERY_ARTICLE_TOPIC_CHANNELS,
+          variables: {
+            input: {
+              shortHash: article.shortHash,
+            },
+          },
+        })
+
+        expect(errors).toBeUndefined()
+        expect(data.article.classification.topicChannel.enable).toBe(false)
+        expect(data.article.classification.topicChannel.channels).toHaveLength(
+          0
+        )
       })
     })
   })
