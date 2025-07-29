@@ -501,6 +501,9 @@ type ArticleClassification {
 }
 
 type TopicChannelClassification {
+  """whether user enable channel classification"""
+  enable: Boolean!
+
   """
   Which channels this article is in, null for not classified, empty for not in any channel
   """

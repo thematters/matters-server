@@ -184,7 +184,11 @@ export class ArticleService extends BaseService<Article> {
           'article.id',
           'enabled_article_channels.article_id'
         )
-        .whereNull('enabled_article_channels.article_id')
+        .where((builder) => {
+          builder
+            .whereNull('enabled_article_channels.article_id')
+            .orWhere('article.channel_enabled', false)
+        })
     }
 
     return query
