@@ -539,6 +539,73 @@ describe('latestArticles', () => {
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article4.id)
   })
 
+  test('articles with channel_enabled=false are not excluded even when in enabled channels', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // create articles
+    const [article1] = await publicationService.createArticle({
+      title: 'test channel disabled',
+      content: 'test content 1',
+      authorId: '1',
+    })
+    const [article2] = await publicationService.createArticle({
+      title: 'test channel enabled',
+      content: 'test content 2',
+      authorId: '1',
+    })
+
+    // create enabled channel
+    const enabledChannel = await channelService.createTopicChannel({
+      name: 'enabled-channel',
+      note: 'enabled channel',
+      providerId: 'test-enabled-channel',
+      enabled: true,
+    })
+
+    // create article channels for both articles
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article1.id,
+        channelId: enabledChannel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article2.id,
+        channelId: enabledChannel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+
+    // Set article1's channel_enabled to false
+    await atomService.update({
+      table: 'article',
+      where: { id: article1.id },
+      data: { channelEnabled: false },
+    })
+
+    const articlesExcludedChannel = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+    })
+
+    // article1 should be included (channel_enabled=false overrides channel membership)
+    // article2 should be excluded (channel_enabled=true and in enabled channel)
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article1.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article2.id
+    )
+  })
+
   test('writing challenge articles are excluded', async () => {
     // Create test articles
     const [article1] = await publicationService.createArticle({
