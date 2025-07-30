@@ -1815,6 +1815,14 @@ export type GQLIcymiTopic = GQLNode & {
   title: Scalars['String']['output']
 }
 
+export type GQLIcymiTopicNoteArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLIcymiTopicTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
 export type GQLIcymiTopicConnection = GQLConnection & {
   __typename?: 'IcymiTopicConnection'
   edges: Array<GQLIcymiTopicEdge>
@@ -3098,10 +3106,10 @@ export type GQLPutDraftInput = {
 export type GQLPutIcymiTopicInput = {
   articles?: InputMaybe<Array<Scalars['ID']['input']>>
   id?: InputMaybe<Scalars['ID']['input']>
-  note?: InputMaybe<Scalars['String']['input']>
+  note?: InputMaybe<Array<GQLTranslationInput>>
   pinAmount?: InputMaybe<Scalars['Int']['input']>
   state?: InputMaybe<GQLIcymiTopicState>
-  title?: InputMaybe<Scalars['String']['input']>
+  title?: InputMaybe<Array<GQLTranslationInput>>
 }
 
 export type GQLPutMomentInput = {
@@ -8154,7 +8162,12 @@ export type GQLIcymiTopicResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  note?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  note?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    Partial<GQLIcymiTopicNoteArgs>
+  >
   pinAmount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   publishedAt?: Resolver<
     Maybe<GQLResolversTypes['DateTime']>,
@@ -8166,7 +8179,12 @@ export type GQLIcymiTopicResolvers<
     ParentType,
     ContextType
   >
-  title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  title?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLIcymiTopicTitleArgs>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
