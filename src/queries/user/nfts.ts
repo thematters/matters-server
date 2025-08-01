@@ -20,24 +20,20 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   _,
   {
     dataSources: {
-      atomService,
       connections: { objectCacheRedis },
     },
   }
 ) => {
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
-  const owner = userId
-    ? (await atomService.userIdLoader.load(userId))?.ethAddress || address
-    : address
   const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
   const assets = (await cache.getObject({
-    keys: { type: 'traveloggers', id: owner },
+    keys: { type: 'traveloggers', id: userId },
     getter: () =>
       alchemy.getNFTs({
-        owner,
+        owner: address,
         contract: contract.Ethereum.traveloggersAddress,
         network,
         withMetadata,
@@ -53,24 +49,20 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   _,
   {
     dataSources: {
-      atomService,
       connections: { objectCacheRedis },
     },
   }
 ) => {
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
-  const owner = userId
-    ? (await atomService.userIdLoader.load(userId))?.ethAddress || address
-    : address
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
 
   const assets = (await cache.getObject({
-    keys: { type: 'traveloggers', id: owner },
+    keys: { type: 'traveloggers', id: userId },
     getter: () =>
       alchemy.getNFTs({
-        owner,
+        owner: address,
         network,
         contract: contract.Ethereum.traveloggersAddress,
         withMetadata,
