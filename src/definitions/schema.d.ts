@@ -7,7 +7,7 @@ import {
   User as UserModel,
   OAuthClientDB as OAuthClientDBModel,
 } from './user.js'
-import { Wallet as WalletModel } from './wallet.js'
+import { ETHWallet as ETHWalletModel } from './wallet.js'
 import { Tag as TagModel } from './tag.js'
 import { Collection as CollectionModel } from './collection.js'
 import { Comment as CommentModel } from './comment.js'
@@ -4824,7 +4824,7 @@ export type DirectiveResolverFn<
 /** Mapping of union types */
 export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
   ResolversObject<{
-    Donator: WalletModel | UserModel
+    Donator: ETHWalletModel | UserModel
     FollowingActivity:
       | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<_RefType['Article']>>
@@ -5233,7 +5233,7 @@ export type GQLResolversTypes = ResolversObject<{
     GQLResolversInterfaceTypes<GQLResolversTypes>['Connection']
   >
   ConnectionArgs: GQLConnectionArgs
-  CryptoWallet: ResolverTypeWrapper<WalletModel>
+  CryptoWallet: ResolverTypeWrapper<ETHWalletModel>
   CryptoWalletSignaturePurpose: GQLCryptoWalletSignaturePurpose
   CurationChannel: ResolverTypeWrapper<CurationChannelModel>
   CurationChannelState: GQLCurationChannelState
@@ -5918,7 +5918,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ConnectStripeAccountResult: GQLConnectStripeAccountResult
   Connection: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Connection']
   ConnectionArgs: GQLConnectionArgs
-  CryptoWallet: WalletModel
+  CryptoWallet: ETHWalletModel
   CurationChannel: CurationChannelModel
   DateTime: Scalars['DateTime']['output']
   DatetimeRange: GQLDatetimeRange

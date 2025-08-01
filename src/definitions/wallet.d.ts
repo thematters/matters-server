@@ -1,9 +1,8 @@
 import type { GQLSigningMessagePurpose } from './schema.js'
 
 // used in `codegen.json`, not db type
-export interface Wallet {
+export interface ETHWallet {
   address: string
-  userId?: string
 }
 
 export interface CryptoWallet {

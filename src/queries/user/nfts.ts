@@ -16,7 +16,7 @@ interface OpenSeaNFTAsset {
 }
 
 export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
-  { userId, address },
+  { address },
   _,
   {
     dataSources: {
@@ -30,7 +30,7 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
 
   const network = AlchemyNetwork.Mainnet
   const assets = (await cache.getObject({
-    keys: { type: 'traveloggers', id: userId },
+    keys: { type: 'traveloggers', id: address },
     getter: () =>
       alchemy.getNFTs({
         owner: address,
@@ -45,7 +45,7 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
 }
 
 export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
-  { userId, address },
+  { address },
   _,
   {
     dataSources: {
@@ -59,7 +59,7 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   const withMetadata = true
 
   const assets = (await cache.getObject({
-    keys: { type: 'traveloggers', id: userId },
+    keys: { type: 'traveloggers', id: address },
     getter: () =>
       alchemy.getNFTs({
         owner: address,

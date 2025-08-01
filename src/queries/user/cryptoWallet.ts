@@ -6,7 +6,7 @@ const resolver: GQLUserInfoResolvers['cryptoWallet'] = async (
   { dataSources: { atomService } }
 ) => {
   if (ethAddress) {
-    return { userId: id, address: ethAddress }
+    return { address: ethAddress }
   }
   const wallet = await atomService.findFirst({
     table: 'crypto_wallet',
@@ -14,7 +14,7 @@ const resolver: GQLUserInfoResolvers['cryptoWallet'] = async (
   })
 
   if (wallet) {
-    return { userId: id, address: wallet.address }
+    return { address: wallet.address }
   }
 
   return null

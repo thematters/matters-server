@@ -214,8 +214,8 @@ const user: {
   StripeAccount,
 
   CryptoWallet: {
-    id: ({ userId }) =>
-      toGlobalId({ type: NODE_TYPES.CryptoWallet, id: userId ?? '' }),
+    id: ({ address }) =>
+      toGlobalId({ type: NODE_TYPES.CryptoWallet, id: address }),
     address: ({ address }) => address,
     hasNFTs,
     nfts,
