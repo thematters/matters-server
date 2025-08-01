@@ -17,7 +17,7 @@ const resolver: GQLUserInfoResolvers['cryptoWallet'] = async (
     return { userId: id, address: wallet.address }
   }
 
-  return { userId: id, address: '' }
+  return null
 }
 
 export default resolver
