@@ -28,7 +28,7 @@
           "Following": "./user.js#User",
           "Liker": "./user.js#User",
           "Wallet": "./user.js#User",
-          "CryptoWallet": "./wallet.js#Wallet",
+          "CryptoWallet": "./wallet.js#ETHWallet",
           "Tag": "./tag.js#Tag",
           "TagOSS": "./tag.js#Tag",
           "Collection": "./collection.js#Collection",

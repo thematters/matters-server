@@ -375,7 +375,7 @@ describe('findHottestArticles', () => {
 
     // Test with 2-day window (should exclude articles older than 2 days)
     const results2Days = await recommendationService.findHottestArticles({
-      days: 2.5,
+      days: 3,
       readersThreshold: 0,
       commentsThreshold: 0,
     })

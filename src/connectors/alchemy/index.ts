@@ -1,4 +1,4 @@
-import { environment } from '#common/environment.js'
+import { environment, isTest } from '#common/environment.js'
 import axios from 'axios'
 
 const { alchemyApiKey } = environment
@@ -20,6 +20,12 @@ export class Alchemy {
     contract?: string
     withMetadata?: boolean
   }) => {
+    if (isTest) {
+      return {
+        ownedNfts: [],
+      }
+    }
+
     const baseURL = `https://${network}.alchemy.com/nft/v2/${alchemyApiKey}/getNFTs/`
     const result = await axios({
       method: 'get',

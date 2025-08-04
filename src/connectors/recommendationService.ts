@@ -59,6 +59,7 @@ export class RecommendationService {
   /**
    * Query for hottest articles
    *
+   * @param days do not accpet float
    * @see https://observablehq.com/d/2e388b5a7f4c217a
    */
   public findHottestArticles = async ({

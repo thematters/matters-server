@@ -16,28 +16,24 @@ interface OpenSeaNFTAsset {
 }
 
 export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
-  { userId, address },
+  { address },
   _,
   {
     dataSources: {
-      atomService,
       connections: { objectCacheRedis },
     },
   }
 ) => {
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
-  const owner = userId
-    ? (await atomService.userIdLoader.load(userId))?.ethAddress || address
-    : address
   const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
   const assets = (await cache.getObject({
-    keys: { type: 'traveloggers', id: owner },
+    keys: { type: 'traveloggers', id: address },
     getter: () =>
       alchemy.getNFTs({
-        owner,
+        owner: address,
         contract: contract.Ethereum.traveloggersAddress,
         network,
         withMetadata,
@@ -49,28 +45,24 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
 }
 
 export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
-  { userId, address },
+  { address },
   _,
   {
     dataSources: {
-      atomService,
       connections: { objectCacheRedis },
     },
   }
 ) => {
   const cache = new Cache(CACHE_PREFIX.NFTS, objectCacheRedis)
 
-  const owner = userId
-    ? (await atomService.userIdLoader.load(userId))?.ethAddress || address
-    : address
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
 
   const assets = (await cache.getObject({
-    keys: { type: 'traveloggers', id: owner },
+    keys: { type: 'traveloggers', id: address },
     getter: () =>
       alchemy.getNFTs({
-        owner,
+        owner: address,
         network,
         contract: contract.Ethereum.traveloggersAddress,
         withMetadata,
