@@ -17,7 +17,6 @@ import type { Knex } from 'knex'
 import {
   ASSET_TYPE,
   IMAGE_ASSET_TYPE,
-  SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
   FEATURE_NAME,
@@ -46,47 +45,6 @@ export class SystemService extends BaseService<BaseDBSchema> {
   public constructor(connections: Connections) {
     // @ts-ignore
     super('noop', connections)
-  }
-
-  /*********************************
-   *                               *
-   *           Search              *
-   *                               *
-   *********************************/
-  public frequentSearch = async ({
-    key = '',
-    first = 5,
-  }: {
-    key?: string
-    first?: number
-  }) => {
-    const query = this.knexRO('search_history')
-      .select('search_key')
-      .count('id')
-      .whereNot({ searchKey: '' })
-      .whereNotIn(
-        'searchKey',
-        this.knexRO.from('blocked_search_keyword').select('searchKey')
-      )
-      .groupBy('search_key')
-      .orderBy('count', 'desc')
-      .limit(first)
-
-    if (key) {
-      query.where('search_key', 'like', `%${key}%`)
-    } else {
-      query.where(
-        'created_at',
-        '>=',
-        this.knexRO.raw(`now() -  interval '1 days'`)
-      )
-    }
-
-    const result = await query
-
-    return result.map(({ searchKey }) =>
-      (searchKey as string).slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
-    )
   }
 
   /*********************************
