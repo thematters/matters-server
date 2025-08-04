@@ -47,7 +47,6 @@ export class SystemService extends BaseService<BaseDBSchema> {
     super('noop', connections)
   }
 
-
   /*********************************
    *                               *
    *            Features           *

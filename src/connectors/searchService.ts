@@ -527,7 +527,7 @@ export class SearchService {
     return { nodes, totalCount }
   }
 
-  public findFrequentSearch = async ({
+  public findFrequentSearches = async ({
     key = '',
     first = 5,
   }: {
