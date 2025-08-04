@@ -3,7 +3,7 @@ import type { GQLQueryResolvers } from '#definitions/index.js'
 const resolver: GQLQueryResolvers['frequentSearch'] = (
   _,
   { input },
-  { dataSources: { systemService } }
-) => (input.key === '' ? null : systemService.frequentSearch(input))
+  { dataSources: { searchService } }
+) => (input.key === '' ? null : searchService.findFrequentSearch(input))
 
 export default resolver
