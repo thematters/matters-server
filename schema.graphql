@@ -4042,6 +4042,7 @@ type TopicChannel implements Channel {
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
   providerId: String
+  parent: TopicChannel
   enabled: Boolean!
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }

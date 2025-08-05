@@ -3917,6 +3917,7 @@ export type GQLTopicChannel = GQLChannel & {
   name: Scalars['String']['output']
   navbarTitle: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
+  parent?: Maybe<GQLTopicChannel>
   providerId?: Maybe<Scalars['String']['output']>
   shortHash: Scalars['String']['output']
 }
@@ -10040,6 +10041,11 @@ export type GQLTopicChannelResolvers<
     ParentType,
     ContextType,
     Partial<GQLTopicChannelNoteArgs>
+  >
+  parent?: Resolver<
+    Maybe<GQLResolversTypes['TopicChannel']>,
+    ParentType,
+    ContextType
   >
   providerId?: Resolver<
     Maybe<GQLResolversTypes['String']>,
