@@ -311,7 +311,7 @@ describe('channels query', () => {
           id
           classification {
             topicChannel {
-              enable
+              enabled
               channels {
                 channel {
                   id
@@ -1241,7 +1241,7 @@ describe('channels query', () => {
         })
 
         expect(errors).toBeUndefined()
-        expect(data.article.classification.topicChannel.enable).toBe(true)
+        expect(data.article.classification.topicChannel.enabled).toBe(true)
       })
 
       test('returns false when article channelEnabled is false', async () => {
@@ -1275,7 +1275,7 @@ describe('channels query', () => {
         })
 
         expect(errors).toBeUndefined()
-        expect(data.article.classification.topicChannel.enable).toBe(false)
+        expect(data.article.classification.topicChannel.enabled).toBe(false)
       })
     })
   })

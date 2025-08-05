@@ -3942,7 +3942,7 @@ export type GQLTopicChannelClassification = {
   /** Which channels this article is in, null for not classified, empty for not in any channel */
   channels?: Maybe<Array<GQLArticleTopicChannel>>
   /** whether user enable channel classification */
-  enable: Scalars['Boolean']['output']
+  enabled: Scalars['Boolean']['output']
   /** Feedback from author */
   feedback?: Maybe<GQLTopicChannelFeedback>
 }
@@ -10059,7 +10059,7 @@ export type GQLTopicChannelClassificationResolvers<
     ParentType,
     ContextType
   >
-  enable?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   feedback?: Resolver<
     Maybe<GQLResolversTypes['TopicChannelFeedback']>,
     ParentType,
