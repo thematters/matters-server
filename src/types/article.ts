@@ -243,7 +243,7 @@ export default /* GraphQL */ `
 
   type TopicChannelClassification {
     "whether user enable channel classification"
-    enable: Boolean!
+    enabled: Boolean!
     "Which channels this article is in, null for not classified, empty for not in any channel"
     channels: [ArticleTopicChannel!]
     "Feedback from author"

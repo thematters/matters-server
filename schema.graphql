@@ -502,7 +502,7 @@ type ArticleClassification {
 
 type TopicChannelClassification {
   """whether user enable channel classification"""
-  enable: Boolean!
+  enabled: Boolean!
 
   """
   Which channels this article is in, null for not classified, empty for not in any channel
@@ -4042,6 +4042,7 @@ type TopicChannel implements Channel {
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
   providerId: String
+  parent: TopicChannel
   enabled: Boolean!
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }

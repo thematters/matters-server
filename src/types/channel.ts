@@ -20,6 +20,7 @@ export default /* GraphQL */ `
     name(input: TranslationArgs): String!
     note(input: TranslationArgs): String
     providerId: String @auth(mode: "${AUTH_MODE.admin}") @privateCache
+    parent: TopicChannel
 
     enabled: Boolean!
 

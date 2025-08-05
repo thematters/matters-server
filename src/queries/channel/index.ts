@@ -13,6 +13,7 @@ import TopicChannelArticles from './topic/articles.js'
 import TopicChannelName from './topic/name.js'
 import TopicChannelNavbarTitle from './topic/navbarTitle.js'
 import TopicChannelNote from './topic/note.js'
+import TopicChannelParent from './topic/parent.js'
 import TopicChannelFeedback from './topicChannelFeedback.js'
 
 const schema: GQLResolvers = {
@@ -26,6 +27,7 @@ const schema: GQLResolvers = {
     note: TopicChannelNote,
     navbarTitle: TopicChannelNavbarTitle,
     articles: TopicChannelArticles,
+    parent: TopicChannelParent,
   },
   TopicChannelFeedback,
   CurationChannel: {
