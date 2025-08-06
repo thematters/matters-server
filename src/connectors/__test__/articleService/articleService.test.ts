@@ -677,6 +677,92 @@ describe('latestArticles', () => {
     )
   })
 
+  test('articles with multiple enabled channels should not return duplicates', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // Create a test article
+    const [article] = await publicationService.createArticle({
+      title: 'test multiple channels',
+      content: 'test content for multiple channels',
+      authorId: '1',
+    })
+
+    // Create two enabled channels
+    const channel1 = await channelService.createTopicChannel({
+      name: 'channel-1',
+      note: 'first enabled channel',
+      providerId: 'test-channel-1',
+      enabled: true,
+    })
+
+    const channel2 = await channelService.createTopicChannel({
+      name: 'channel-2',
+      note: 'second enabled channel',
+      providerId: 'test-channel-2',
+      enabled: true,
+    })
+
+    // Associate the same article with both channels
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article.id,
+        channelId: channel1.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article.id,
+        channelId: channel2.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+
+    // Test that the query doesn't return duplicates
+    const articlesExcludedChannel = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+    })
+
+    // The article should be excluded (not included) since it's in enabled channels
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article.id
+    )
+
+    // Verify that the article appears only once in the results (if it were included)
+    // This test ensures the DISTINCT fix prevents duplicate article_ids
+    const articleOccurrences = articlesExcludedChannel.filter(
+      (a) => a.id === article.id
+    ).length
+    expect(articleOccurrences).toBe(0) // Should be 0 since it should be excluded
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: {
+        channelEnabled: false,
+      },
+    })
+
+    // Test that the query doesn't return duplicates
+    const articlesExcludedChannel2 = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+    })
+    expect(articlesExcludedChannel2.map(({ id }) => id)).toContain(article.id)
+    const articleOccurrences2 = articlesExcludedChannel2.filter(
+      (a) => a.id === article.id
+    ).length
+    expect(articleOccurrences2).toBe(1) // Should be 1 since it should be included
+  })
+
   test('writing challenge articles are excluded', async () => {
     // Create test articles
     const [article1] = await publicationService.createArticle({
