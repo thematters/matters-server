@@ -344,7 +344,7 @@ describe('manage curation channels', () => {
       isAdmin: true,
     })
 
-    const longNavbarTitle = 'a'.repeat(33) // 33 characters, exceeds 32 limit
+    const longNavbarTitle = 'a'.repeat(51) // 51 characters, exceeds 50 limit
 
     const { errors } = await server.executeOperation({
       query: PUT_CURATION_CHANNEL,
