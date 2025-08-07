@@ -174,7 +174,6 @@ export class ArticleService extends BaseService<Article> {
         .leftJoin(
           this.knexRO
             .select('article_id')
-            .distinct()
             .from('topic_channel_article as tca')
             .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
             .where({
