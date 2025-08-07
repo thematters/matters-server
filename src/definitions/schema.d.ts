@@ -7,7 +7,7 @@ import {
   User as UserModel,
   OAuthClientDB as OAuthClientDBModel,
 } from './user.js'
-import { Wallet as WalletModel } from './wallet.js'
+import { ETHWallet as ETHWalletModel } from './wallet.js'
 import { Tag as TagModel } from './tag.js'
 import { Collection as CollectionModel } from './collection.js'
 import { Comment as CommentModel } from './comment.js'
@@ -1479,6 +1479,7 @@ export type GQLCurationChannel = GQLChannel & {
   note?: Maybe<Scalars['String']['output']>
   pinAmount: Scalars['Int']['output']
   shortHash: Scalars['String']['output']
+  showRecommendation: Scalars['Boolean']['output']
   state: GQLCurationChannelState
 }
 
@@ -1812,6 +1813,14 @@ export type GQLIcymiTopic = GQLNode & {
   publishedAt?: Maybe<Scalars['DateTime']['output']>
   state: GQLIcymiTopicState
   title: Scalars['String']['output']
+}
+
+export type GQLIcymiTopicNoteArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLIcymiTopicTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 export type GQLIcymiTopicConnection = GQLConnection & {
@@ -3061,6 +3070,7 @@ export type GQLPutCurationChannelInput = {
   navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   note?: InputMaybe<Array<GQLTranslationInput>>
   pinAmount?: InputMaybe<Scalars['Int']['input']>
+  showRecommendation?: InputMaybe<Scalars['Boolean']['input']>
   state?: InputMaybe<GQLCurationChannelState>
 }
 
@@ -3096,10 +3106,10 @@ export type GQLPutDraftInput = {
 export type GQLPutIcymiTopicInput = {
   articles?: InputMaybe<Array<Scalars['ID']['input']>>
   id?: InputMaybe<Scalars['ID']['input']>
-  note?: InputMaybe<Scalars['String']['input']>
+  note?: InputMaybe<Array<GQLTranslationInput>>
   pinAmount?: InputMaybe<Scalars['Int']['input']>
   state?: InputMaybe<GQLIcymiTopicState>
-  title?: InputMaybe<Scalars['String']['input']>
+  title?: InputMaybe<Array<GQLTranslationInput>>
 }
 
 export type GQLPutMomentInput = {
@@ -3907,6 +3917,7 @@ export type GQLTopicChannel = GQLChannel & {
   name: Scalars['String']['output']
   navbarTitle: Scalars['String']['output']
   note?: Maybe<Scalars['String']['output']>
+  parent?: Maybe<GQLTopicChannel>
   providerId?: Maybe<Scalars['String']['output']>
   shortHash: Scalars['String']['output']
 }
@@ -3931,6 +3942,8 @@ export type GQLTopicChannelClassification = {
   __typename?: 'TopicChannelClassification'
   /** Which channels this article is in, null for not classified, empty for not in any channel */
   channels?: Maybe<Array<GQLArticleTopicChannel>>
+  /** whether user enable channel classification */
+  enabled: Scalars['Boolean']['output']
   /** Feedback from author */
   feedback?: Maybe<GQLTopicChannelFeedback>
 }
@@ -4812,7 +4825,7 @@ export type DirectiveResolverFn<
 /** Mapping of union types */
 export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
   ResolversObject<{
-    Donator: WalletModel | UserModel
+    Donator: ETHWalletModel | UserModel
     FollowingActivity:
       | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<_RefType['Article']>>
@@ -5221,7 +5234,7 @@ export type GQLResolversTypes = ResolversObject<{
     GQLResolversInterfaceTypes<GQLResolversTypes>['Connection']
   >
   ConnectionArgs: GQLConnectionArgs
-  CryptoWallet: ResolverTypeWrapper<WalletModel>
+  CryptoWallet: ResolverTypeWrapper<ETHWalletModel>
   CryptoWalletSignaturePurpose: GQLCryptoWalletSignaturePurpose
   CurationChannel: ResolverTypeWrapper<CurationChannelModel>
   CurationChannelState: GQLCurationChannelState
@@ -5906,7 +5919,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ConnectStripeAccountResult: GQLConnectStripeAccountResult
   Connection: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Connection']
   ConnectionArgs: GQLConnectionArgs
-  CryptoWallet: WalletModel
+  CryptoWallet: ETHWalletModel
   CurationChannel: CurationChannelModel
   DateTime: Scalars['DateTime']['output']
   DatetimeRange: GQLDatetimeRange
@@ -7866,6 +7879,11 @@ export type GQLCurationChannelResolvers<
   >
   pinAmount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  showRecommendation?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<
     GQLResolversTypes['CurationChannelState'],
     ParentType,
@@ -8145,7 +8163,12 @@ export type GQLIcymiTopicResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  note?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  note?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    Partial<GQLIcymiTopicNoteArgs>
+  >
   pinAmount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   publishedAt?: Resolver<
     Maybe<GQLResolversTypes['DateTime']>,
@@ -8157,7 +8180,12 @@ export type GQLIcymiTopicResolvers<
     ParentType,
     ContextType
   >
-  title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  title?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLIcymiTopicTitleArgs>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -10014,6 +10042,11 @@ export type GQLTopicChannelResolvers<
     ContextType,
     Partial<GQLTopicChannelNoteArgs>
   >
+  parent?: Resolver<
+    Maybe<GQLResolversTypes['TopicChannel']>,
+    ParentType,
+    ContextType
+  >
   providerId?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -10032,6 +10065,7 @@ export type GQLTopicChannelClassificationResolvers<
     ParentType,
     ContextType
   >
+  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   feedback?: Resolver<
     Maybe<GQLResolversTypes['TopicChannelFeedback']>,
     ParentType,

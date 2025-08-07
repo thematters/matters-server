@@ -216,12 +216,11 @@ describe('findHottestArticles', () => {
     await createComment(author2.id, article1.id)
     await createComment(author2.id, frozenAuthorArticle.id)
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).toContain(article1.id)
@@ -235,12 +234,11 @@ describe('findHottestArticles', () => {
     await createComment(author2.id, article1.id)
     await createComment(author2.id, restrictedAuthorArticle.id)
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).toContain(article1.id)
@@ -263,12 +261,11 @@ describe('findHottestArticles', () => {
     await createComment(author1.id, article3.id)
     await createComment(author3.id, article3.id)
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 2,
       commentsThreshold: 2,
     })
-    const results = await query
 
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).toContain(article1.id)
@@ -297,12 +294,11 @@ describe('findHottestArticles', () => {
       paymentService
     )
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     expect(results.length).toBeGreaterThanOrEqual(2)
 
@@ -339,12 +335,11 @@ describe('findHottestArticles', () => {
       data: { updatedAt: fourDaysAgo },
     })
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     expect(results.length).toBeGreaterThanOrEqual(2)
 
@@ -379,13 +374,11 @@ describe('findHottestArticles', () => {
     await createArticleReadCount(author2.id, oldArticle.id, 5)
 
     // Test with 2-day window (should exclude articles older than 2 days)
-    const { query: query2Days } =
-      await recommendationService.findHottestArticles({
-        days: 2.5,
-        readersThreshold: 0,
-        commentsThreshold: 0,
-      })
-    const results2Days = await query2Days
+    const results2Days = await recommendationService.findHottestArticles({
+      days: 3,
+      readersThreshold: 0,
+      commentsThreshold: 0,
+    })
     const articleIds2Days = results2Days.map((r: any) => r.articleId)
 
     expect(articleIds2Days).toContain(article1.id) // 2 days ago, within window
@@ -393,13 +386,11 @@ describe('findHottestArticles', () => {
     expect(articleIds2Days).not.toContain(oldArticle.id) // 6 days ago, outside window
 
     // Test with 7-day window (should include more articles)
-    const { query: query7Days } =
-      await recommendationService.findHottestArticles({
-        days: 7,
-        readersThreshold: 0,
-        commentsThreshold: 0,
-      })
-    const results7Days = await query7Days
+    const results7Days = await recommendationService.findHottestArticles({
+      days: 7,
+      readersThreshold: 0,
+      commentsThreshold: 0,
+    })
     const articleIds7Days = results7Days.map((r: any) => r.articleId)
 
     expect(articleIds7Days).toContain(article1.id)
@@ -429,12 +420,11 @@ describe('findHottestArticles', () => {
 
     await createArticleReadCount(author2.id, article1.id, 5)
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).toContain(article1.id)
@@ -445,12 +435,11 @@ describe('findHottestArticles', () => {
     await createComment(author1.id, article1.id) // Author commenting on own article - excluded
     await createComment(author3.id, article2.id) // Other user commenting - included
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 1,
       commentsThreshold: 1,
     })
-    const results = await query
 
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).toContain(article2.id)
@@ -462,10 +451,9 @@ describe('findHottestArticles', () => {
     await createArticleReadCount(author2.id, article1.id, 2) // Below 5 readers
     await createComment(author3.id, article1.id) // Only 1 comment, below 3
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
     })
-    const results = await query
 
     expect(results).toHaveLength(0)
   })
@@ -473,12 +461,11 @@ describe('findHottestArticles', () => {
   test('handles edge case with no articles in time window', async () => {
     // Test with very short time window (1 hour)
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 1 / 24,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     expect(results).toHaveLength(0)
   })
@@ -495,12 +482,11 @@ describe('findHottestArticles', () => {
     await createArticleReadCount(author2.id, article1.id, 10)
     await createComment(author3.id, article1.id)
 
-    const { query } = await recommendationService.findHottestArticles({
+    const results = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,
       commentsThreshold: 0,
     })
-    const results = await query
 
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).not.toContain(article1.id)

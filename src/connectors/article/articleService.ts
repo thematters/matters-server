@@ -28,6 +28,7 @@ import {
   USER_STATE,
   USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
@@ -95,6 +96,7 @@ export class ArticleService extends BaseService<Article> {
       excludeRestrictedAuthors,
       excludeExclusiveCampaignArticles,
       excludeChannelArticles,
+      excludeComplaintAreaArticles,
       datetimeRange,
     }: {
       state?: ValueOf<typeof ARTICLE_STATE>
@@ -106,6 +108,7 @@ export class ArticleService extends BaseService<Article> {
       excludeRestrictedAuthors?: ValueOf<typeof USER_RESTRICTION_TYPE>
       excludeExclusiveCampaignArticles?: boolean
       excludeChannelArticles?: boolean
+      excludeComplaintAreaArticles?: boolean
       datetimeRange?: { start: Date; end?: Date }
     } = { state: ARTICLE_STATE.active }
   ) => {
@@ -148,6 +151,14 @@ export class ArticleService extends BaseService<Article> {
       query.modify(excludeExclusiveCampaignArticlesModifier)
     }
 
+    if (excludeComplaintAreaArticles) {
+      const complaintAreaArticleIds = this.knexRO
+        .select('entrance_id')
+        .from('article_connection')
+        .where('article_id', environment.ComplaintAreaArticleId)
+      query.whereRaw('article.id NOT IN (?)', [complaintAreaArticleIds])
+    }
+
     if (datetimeRange) {
       query.where('created_at', '>=', datetimeRange.start)
       if (datetimeRange.end) {
@@ -163,6 +174,7 @@ export class ArticleService extends BaseService<Article> {
         .leftJoin(
           this.knexRO
             .select('article_id')
+            .distinct()
             .from('topic_channel_article as tca')
             .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
             .where({
@@ -173,7 +185,11 @@ export class ArticleService extends BaseService<Article> {
           'article.id',
           'enabled_article_channels.article_id'
         )
-        .whereNull('enabled_article_channels.article_id')
+        .where((builder) => {
+          builder
+            .whereNull('enabled_article_channels.article_id')
+            .orWhere('article.channel_enabled', false)
+        })
     }
 
     return query

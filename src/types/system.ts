@@ -46,7 +46,7 @@ export default /* GraphQL */ `
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
-    putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
+    putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
     setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.admin}")
@@ -539,10 +539,10 @@ export default /* GraphQL */ `
 
   type IcymiTopic implements Node {
     id: ID!
-    title: String!
+    title(input: TranslationArgs): String!
     articles: [Article!]!
     pinAmount: Int!
-    note: String
+    note(input: TranslationArgs): String
     state: IcymiTopicState!
     publishedAt: DateTime
     archivedAt: DateTime
@@ -622,10 +622,10 @@ export default /* GraphQL */ `
 
   input PutIcymiTopicInput {
     id: ID
-    title: String
+    title: [TranslationInput!]
     articles: [ID!]
     pinAmount: Int
-    note: String
+    note: [TranslationInput!]
     state: IcymiTopicState
   }
 

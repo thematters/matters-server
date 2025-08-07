@@ -1,9 +1,6 @@
 import type { GQLUserAnalyticsResolvers } from '#definitions/index.js'
 
-import {
-  connectionFromArray,
-  connectionFromQueryOffsetBased,
-} from '#common/utils/index.js'
+import { connectionFromQueryOffsetBased } from '#common/utils/index.js'
 
 const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { id },
@@ -11,7 +8,14 @@ const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { dataSources: { userService, atomService } }
 ) => {
   if (!id) {
-    return connectionFromArray([], input)
+    return {
+      edges: [],
+      pageInfo: {
+        hasPreviousPage: false,
+        hasNextPage: false,
+      },
+      totalCount: 0,
+    }
   }
   const range = {
     start: input?.filter?.inRangeStart,
@@ -42,7 +46,7 @@ const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
         : { __type: 'CryptoWallet', address: edge.node.address },
       donationCount: edge.node.donationCount,
     })),
-  } as any
+  }
 }
 
 export default resolver

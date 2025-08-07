@@ -22,6 +22,7 @@ import { ChannelService } from '../../channel/channelService.js'
 import { SystemService } from '../../systemService.js'
 import { UserService } from '../../userService.js'
 import { UserWorkService } from '../../userWorkService.js'
+import { environment } from '#common/environment.js'
 
 import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
@@ -259,6 +260,76 @@ describe('findArticles', () => {
     })
     expect(result4.length).toBe(0)
     await atomService.deleteMany({ table: 'user_restriction' })
+  })
+
+  test('excludeComplaintAreaArticles', async () => {
+    // Monkey patch the environment variable
+    environment.ComplaintAreaArticleId = '1'
+
+    // Get baseline articles without exclusion
+    const result1 = await articleService.findArticles({})
+    expect(result1.length).toBeGreaterThan(0)
+
+    // Test without exclusion - should return same results
+    const result2 = await articleService.findArticles({
+      excludeComplaintAreaArticles: false,
+    })
+    expect(result2.length).toBe(result1.length)
+
+    // Test with exclusion - should return same results if no complaint area connections exist
+    const result3 = await articleService.findArticles({
+      excludeComplaintAreaArticles: true,
+    })
+    expect(result3.length).toBe(result1.length)
+
+    // Create test articles that will be connected to complaint area
+    const [article1] = await publicationService.createArticle({
+      title: 'Test Article 1',
+      content: 'Test content 1',
+      authorId: '1',
+    })
+    const [article2] = await publicationService.createArticle({
+      title: 'Test Article 2',
+      content: 'Test content 2',
+      authorId: '1',
+    })
+
+    // Create connections to complaint area article (using environment default ID)
+    await atomService.create({
+      table: 'article_connection',
+      data: {
+        entranceId: article1.id,
+        articleId: environment.ComplaintAreaArticleId, // Default complaint area article ID from environment
+        order: 1,
+      },
+    })
+    await atomService.create({
+      table: 'article_connection',
+      data: {
+        entranceId: article2.id,
+        articleId: environment.ComplaintAreaArticleId, // Default complaint area article ID from environment
+        order: 1,
+      },
+    })
+
+    // Test with exclusion - should exclude articles connected to complaint area
+    const result4 = await articleService.findArticles({
+      excludeComplaintAreaArticles: true,
+    })
+    expect(result4.length).toBeLessThan(result1.length + 2) // Should exclude the 2 new articles
+
+    // Verify the excluded articles are not in the results
+    const excludedArticleIds = result4.map((article) => article.id)
+    expect(excludedArticleIds).not.toContain(article1.id)
+    expect(excludedArticleIds).not.toContain(article2.id)
+
+    // Test without exclusion - should include all articles
+    const result5 = await articleService.findArticles({
+      excludeComplaintAreaArticles: false,
+    })
+    const includedArticleIds = result5.map((article) => article.id)
+    expect(includedArticleIds).toContain(article1.id)
+    expect(includedArticleIds).toContain(article2.id)
   })
 })
 
@@ -537,6 +608,159 @@ describe('latestArticles', () => {
       article3.id
     )
     expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article4.id)
+  })
+
+  test('articles with channel_enabled=false are not excluded even when in enabled channels', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // create articles
+    const [article1] = await publicationService.createArticle({
+      title: 'test channel disabled',
+      content: 'test content 1',
+      authorId: '1',
+    })
+    const [article2] = await publicationService.createArticle({
+      title: 'test channel enabled',
+      content: 'test content 2',
+      authorId: '1',
+    })
+
+    // create enabled channel
+    const enabledChannel = await channelService.createTopicChannel({
+      name: 'enabled-channel',
+      note: 'enabled channel',
+      providerId: 'test-enabled-channel',
+      enabled: true,
+    })
+
+    // create article channels for both articles
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article1.id,
+        channelId: enabledChannel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article2.id,
+        channelId: enabledChannel.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+
+    // Set article1's channel_enabled to false
+    await atomService.update({
+      table: 'article',
+      where: { id: article1.id },
+      data: { channelEnabled: false },
+    })
+
+    const articlesExcludedChannel = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+    })
+
+    // article1 should be included (channel_enabled=false overrides channel membership)
+    // article2 should be excluded (channel_enabled=true and in enabled channel)
+    expect(articlesExcludedChannel.map(({ id }) => id)).toContain(article1.id)
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article2.id
+    )
+  })
+
+  test('articles with multiple enabled channels should not return duplicates', async () => {
+    const articleChannelThreshold = 0.5
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.article_channel,
+      flag: FEATURE_FLAG.on,
+      value: articleChannelThreshold,
+    })
+
+    // Create a test article
+    const [article] = await publicationService.createArticle({
+      title: 'test multiple channels',
+      content: 'test content for multiple channels',
+      authorId: '1',
+    })
+
+    // Create two enabled channels
+    const channel1 = await channelService.createTopicChannel({
+      name: 'channel-1',
+      note: 'first enabled channel',
+      providerId: 'test-channel-1',
+      enabled: true,
+    })
+
+    const channel2 = await channelService.createTopicChannel({
+      name: 'channel-2',
+      note: 'second enabled channel',
+      providerId: 'test-channel-2',
+      enabled: true,
+    })
+
+    // Associate the same article with both channels
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article.id,
+        channelId: channel1.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        articleId: article.id,
+        channelId: channel2.id,
+        score: articleChannelThreshold + 0.1,
+        enabled: true,
+      },
+    })
+
+    // Test that the query doesn't return duplicates
+    const articlesExcludedChannel = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+    })
+
+    // The article should be excluded (not included) since it's in enabled channels
+    expect(articlesExcludedChannel.map(({ id }) => id)).not.toContain(
+      article.id
+    )
+
+    // Verify that the article appears only once in the results (if it were included)
+    // This test ensures the DISTINCT fix prevents duplicate article_ids
+    const articleOccurrences = articlesExcludedChannel.filter(
+      (a) => a.id === article.id
+    ).length
+    expect(articleOccurrences).toBe(0) // Should be 0 since it should be excluded
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: {
+        channelEnabled: false,
+      },
+    })
+
+    // Test that the query doesn't return duplicates
+    const articlesExcludedChannel2 = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+    })
+    expect(articlesExcludedChannel2.map(({ id }) => id)).toContain(article.id)
+    const articleOccurrences2 = articlesExcludedChannel2.filter(
+      (a) => a.id === article.id
+    ).length
+    expect(articleOccurrences2).toBe(1) // Should be 1 since it should be included
   })
 
   test('writing challenge articles are excluded', async () => {

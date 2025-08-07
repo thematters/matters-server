@@ -14,8 +14,10 @@ import {
   RECOMMENDATION_TOP_PERCENTILE,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR,
   RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG,
+  RECOMMENDATION_HOTTEST_MAX_TAKE,
   USER_RESTRICTION_TYPE,
   USER_STATE,
+  USER_ACTION,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -23,6 +25,8 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
+import { quantile, median } from 'd3-array'
+import keyBy from 'lodash/keyBy.js'
 
 import { ArticleService } from './article/articleService.js'
 import { AtomService } from './atomService.js'
@@ -55,6 +59,7 @@ export class RecommendationService {
   /**
    * Query for hottest articles
    *
+   * @param days do not accpet float
    * @see https://observablehq.com/d/2e388b5a7f4c217a
    */
   public findHottestArticles = async ({
@@ -67,12 +72,87 @@ export class RecommendationService {
     donationWeight = 0.3,
     readersThreshold = 5,
     commentsThreshold = 3,
-  } = {}): Promise<{
-    query: Knex.QueryBuilder<
-      { articleId: string },
-      Array<{ articleId: string }>
-    >
-  }> => {
+    normalizeCutFactor = 0.95,
+    normalizeDecayFactor = 0.15,
+    normalizeEpsilonFactor = 0.5,
+  }): Promise<Array<{ articleId: string }>> => {
+    const { query } = await this._findHottestArticles({
+      days,
+      decayDays,
+      HKDThreshold,
+      USDTThreshold,
+      readWeight,
+      commentWeight,
+      donationWeight,
+      readersThreshold,
+      commentsThreshold,
+    })
+    const results = await query
+
+    // Get unique author IDs from results
+    const authorIds = [...new Set(results.map((r) => r.authorId))]
+
+    // Fetch follower counts for all authors
+    const followerCounts = await this.countUsersFollowers(authorIds)
+
+    // Prepare data for normalization
+    const userFollowers = authorIds.map((authorId) => ({
+      authorId,
+      followers: followerCounts[authorId] || 0,
+    }))
+
+    // Prepare comparison data
+    const sorted = userFollowers.map((d) => d.followers).sort((a, b) => a - b)
+    const medianFollowers = median(sorted) || 0
+    const cut = quantile(sorted, normalizeCutFactor) || 0
+    const epsilon = medianFollowers * normalizeEpsilonFactor
+
+    // Create follower map for quick lookup
+    const followerMap = keyBy(userFollowers, 'authorId')
+
+    // Apply normalization to results
+    const normalizedResults = results.map((result) => {
+      const followerData = followerMap[result.authorId]
+      const followers = followerData ? followerData.followers : 0
+      const f = Math.min(followers, cut)
+      const rawFactor =
+        ((medianFollowers * epsilon) / (f + epsilon)) ** normalizeDecayFactor
+      const factor = Math.min(rawFactor, 1)
+
+      return {
+        ...result,
+        newScore: result.score * factor,
+      }
+    })
+
+    // Sort by normalized score and return
+    return normalizedResults
+      .sort((a, b) => b.newScore - a.newScore)
+      .slice(0, RECOMMENDATION_HOTTEST_MAX_TAKE)
+      .map((r) => ({ articleId: r.articleId }))
+  }
+
+  private _findHottestArticles = async ({
+    days,
+    decayDays,
+    HKDThreshold,
+    USDTThreshold,
+    readWeight,
+    commentWeight,
+    donationWeight,
+    readersThreshold,
+    commentsThreshold,
+  }: {
+    days: number
+    decayDays: number
+    HKDThreshold: number
+    USDTThreshold: number
+    readWeight: number
+    commentWeight: number
+    donationWeight: number
+    readersThreshold: number
+    commentsThreshold: number
+  }) => {
     const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
       'article'
     )
@@ -94,6 +174,7 @@ export class RecommendationService {
                 excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
                 excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
                 excludeExclusiveCampaignArticles: true,
+                excludeComplaintAreaArticles: true,
                 datetimeRange: {
                   start: startDate,
                 },
@@ -120,23 +201,23 @@ export class RecommendationService {
                 )
               )
               .from('article_read_count')
-              .where('updated_at', '>=', startDate)
+              .where('created_at', '>=', startDate)
               .as('t1_source')
           )
           .groupBy('article_id')
         const commentsQuery = this.knexRO
           .select(
             'target_id',
-            this.knexRO.raw('count(id)::int AS comments'),
+            this.knexRO.raw('count(author_id)::int AS comments'),
             this.knexRO.raw('sum(score) AS comment_score')
           )
           .from(
             this.knexRO
               .select(
-                'comment.id',
                 'comment.target_id',
+                'comment.author_id',
                 this.knexRO.raw(
-                  'greatest(1 - (extract(epoch from now() - comment.created_at) / (24 * 3600)) / ?, 0) AS score',
+                  'greatest(1 - (extract(epoch from now() - min(comment.created_at)) / (24 * 3600)) / ?, 0) AS score',
                   [decayDays]
                 )
               )
@@ -150,6 +231,7 @@ export class RecommendationService {
                 this.knexRO.ref('article.author_id')
               )
               .where('comment.created_at', '>=', startDate)
+              .groupBy(['comment.target_id', 'comment.author_id'])
               .as('t2_source')
           )
           .groupBy('target_id')
@@ -188,6 +270,7 @@ export class RecommendationService {
         return qb
           .select(
             'hottest_source.article_id',
+            'hottest_source.author_id',
             this.knexRO.raw('coalesce(t1.readers, 0) AS readers'),
             this.knexRO.raw('coalesce(t1.read_score, 0) AS read_score'),
             this.knexRO.raw('coalesce(t2.comments, 0) AS comments'),
@@ -212,27 +295,57 @@ export class RecommendationService {
             't3.target_id'
           )
       })
-      .with('with_score', (qb) => {
-        return qb
-          .from('base')
-          .select(
-            'article_id',
-            this.knexRO.raw(
-              '(? * base.read_score + ? * base.comment_score + ? * base.donation_score) as score',
-              [readWeight, commentWeight, donationWeight]
-            )
-          )
-          .where((w) => {
-            return w
-              .where('readers', '>=', readersThreshold)
-              .orWhere('comments', '>=', commentsThreshold)
-          })
+      .select(
+        'article_id',
+        'author_id',
+        this.knexRO.raw(
+          '(? * base.read_score + ? * base.comment_score + ? * base.donation_score) as score',
+          [readWeight, commentWeight, donationWeight]
+        )
+      )
+      .from('base')
+      .where((w) => {
+        return w
+          .where('readers', '>=', readersThreshold)
+          .orWhere('comments', '>=', commentsThreshold)
       })
-      .select('article_id')
-      .from('with_score')
-      .orderBy('score', 'desc')
 
-    return { query } as any
+    return { query }
+  }
+
+  public countUsersFollowers = async (
+    userIds: string[]
+  ): Promise<{
+    [userId: string]: number
+  }> => {
+    if (userIds.length === 0) {
+      return {}
+    }
+
+    const results = await this.knexRO
+      .select(
+        'target_id AS user_id',
+        this.knexRO.raw('COUNT(distinct user_id)::int AS count')
+      )
+      .from('action_user')
+      .whereIn('target_id', userIds)
+      .where({ action: USER_ACTION.follow })
+      .groupBy('target_id')
+
+    // Convert results to the expected format
+    const followerCounts: { [userId: string]: number } = {}
+
+    // Initialize all requested userIds with 0
+    userIds.forEach((userId) => {
+      followerCounts[userId] = 0
+    })
+
+    // Update with actual counts
+    results.forEach((result) => {
+      followerCounts[result.userId] = result.count
+    })
+
+    return followerCounts
   }
 
   public createIcymiTopic = async ({

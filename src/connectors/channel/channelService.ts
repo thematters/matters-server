@@ -164,6 +164,7 @@ export class ChannelService {
     activePeriod = [new Date(0), new Date(0)],
     state = CURATION_CHANNEL_STATE.editing,
     navbarTitle,
+    showRecommendation = false,
   }: {
     name: string
     note?: string
@@ -172,6 +173,7 @@ export class ChannelService {
     activePeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CURATION_CHANNEL_STATE>
     navbarTitle?: string
+    showRecommendation?: boolean
   }) => {
     return this.models.create({
       table: 'curation_channel',
@@ -184,6 +186,7 @@ export class ChannelService {
         activePeriod: toDatetimeRangeString(activePeriod[0], activePeriod[1]),
         state,
         navbarTitle,
+        showRecommendation,
       },
     })
   }
@@ -197,6 +200,7 @@ export class ChannelService {
     activePeriod,
     state,
     navbarTitle,
+    showRecommendation,
   }: {
     id: string
     name?: string
@@ -206,6 +210,7 @@ export class ChannelService {
     activePeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CURATION_CHANNEL_STATE>
     navbarTitle?: string
+    showRecommendation?: boolean
   }) => {
     return this.models.update({
       table: 'curation_channel',
@@ -220,6 +225,7 @@ export class ChannelService {
           : undefined,
         state,
         navbarTitle,
+        showRecommendation,
       },
     })
   }
@@ -376,6 +382,7 @@ export class ChannelService {
       .from('article')
       .where({
         'article.state': ARTICLE_STATE.active,
+        'article.channel_enabled': true,
       })
       .whereIn('article.id', pinnedArticleIds)
 
@@ -390,6 +397,7 @@ export class ChannelService {
       .where({
         'topic_channel_article.enabled': true,
         'article.state': ARTICLE_STATE.active,
+        'article.channel_enabled': true,
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
       .where((qb) => {
@@ -923,6 +931,13 @@ export class ChannelService {
         state: TOPIC_CHANNEL_FEEDBACK_STATE.PENDING,
       },
     })
+    if (channelIds.length === 0) {
+      await this.models.update({
+        table: 'article',
+        where: { id: articleId },
+        data: { channelEnabled: false },
+      })
+    }
     const autoResolved = await this.tryAutoResolveArticleFeedback(articleId)
     return autoResolved || feedback
   }

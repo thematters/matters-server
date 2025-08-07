@@ -527,6 +527,42 @@ export class SearchService {
     return { nodes, totalCount }
   }
 
+  public findFrequentSearches = async ({
+    key = '',
+    first = 5,
+  }: {
+    key?: string
+    first?: number
+  }) => {
+    const query = this.knexRO('search_history')
+      .select('search_key')
+      .count('id')
+      .whereNot({ searchKey: '' })
+      .whereNotIn(
+        'searchKey',
+        this.knexRO.from('blocked_search_keyword').select('searchKey')
+      )
+      .groupBy('search_key')
+      .orderBy('count', 'desc')
+      .limit(first)
+
+    if (key) {
+      query.where('search_key', 'like', `%${key}%`)
+    } else {
+      query.where(
+        'created_at',
+        '>=',
+        this.knexRO.raw(`now() -  interval '1 days'`)
+      )
+    }
+
+    const result = await query
+
+    return result.map(({ searchKey }) =>
+      (searchKey as string).slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+    )
+  }
+
   public findRecentSearches = async (userId: string) => {
     const result = await this.knexRO('search_history')
       .select('search_key')

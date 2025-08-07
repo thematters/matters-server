@@ -143,6 +143,7 @@ const schema: GQLResolvers = {
     topicChannel: (root) => root,
   },
   TopicChannelClassification: {
+    enabled: ({ channelEnabled }) => channelEnabled,
     channels: topicChannels,
     feedback,
   },

@@ -501,6 +501,9 @@ type ArticleClassification {
 }
 
 type TopicChannelClassification {
+  """whether user enable channel classification"""
+  enabled: Boolean!
+
   """
   Which channels this article is in, null for not classified, empty for not in any channel
   """
@@ -2574,10 +2577,10 @@ enum ReportReason {
 
 type IcymiTopic implements Node {
   id: ID!
-  title: String!
+  title(input: TranslationArgs): String!
   articles: [Article!]!
   pinAmount: Int!
-  note: String
+  note(input: TranslationArgs): String
   state: IcymiTopicState!
   publishedAt: DateTime
   archivedAt: DateTime
@@ -2658,10 +2661,10 @@ input TopicChannelFeedbacksFilterInput {
 
 input PutIcymiTopicInput {
   id: ID
-  title: String
+  title: [TranslationInput!]
   articles: [ID!]
   pinAmount: Int
-  note: String
+  note: [TranslationInput!]
   state: IcymiTopicState
 }
 
@@ -4039,6 +4042,7 @@ type TopicChannel implements Channel {
   name(input: TranslationArgs): String!
   note(input: TranslationArgs): String
   providerId: String
+  parent: TopicChannel
   enabled: Boolean!
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }
@@ -4051,6 +4055,7 @@ type CurationChannel implements Channel {
   note(input: TranslationArgs): String
   pinAmount: Int!
   color: Color!
+  showRecommendation: Boolean!
 
   """both activePeriod and state determine if the channel is active"""
   activePeriod: DatetimeRange!
@@ -4128,6 +4133,7 @@ input PutCurationChannelInput {
   color: Color
   activePeriod: DatetimeRangeInput
   state: CurationChannelState
+  showRecommendation: Boolean
 }
 
 input SetArticleTopicChannelsInput {
