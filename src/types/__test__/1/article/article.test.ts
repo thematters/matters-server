@@ -45,7 +45,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // waiting for all async db operations to finish to avoid `abort` errors thrown by `knex.destroy`
-  await new Promise((resolve) => setTimeout(resolve, 5000))
+  await new Promise((resolve) => setTimeout(resolve, 1000))
   await closeConnections(connections)
 })
 
