@@ -322,6 +322,66 @@ describe('application', () => {
   })
 })
 
+describe('campaign validation', () => {
+  test('writing period validation', async () => {
+    const user = await atomService.findFirst({
+      table: 'user',
+      where: { state: USER_STATE.active },
+    })
+
+    const now = new Date()
+    const pastDate = new Date(now.getTime() - 1000 * 60 * 60 * 24)
+    const futureDate1 = new Date(now.getTime() + 1000 * 60 * 60 * 24)
+    const futureDate2 = new Date(now.getTime() + 1000 * 60 * 60 * 48)
+
+    // Campaign with writing period that hasn't started yet
+    const campaignNotStarted = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+      writingPeriod: [futureDate1, futureDate2] as const,
+    })
+    await campaignService.apply(campaignNotStarted, user)
+
+    await expect(
+      campaignService.validate({
+        campaignId: campaignNotStarted.id,
+        userId: user.id,
+      })
+    ).rejects.toThrow('writing period has not started yet')
+
+    // Campaign with active writing period should pass
+    const campaignActive = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+      writingPeriod: [pastDate, futureDate1] as const,
+    })
+    await campaignService.apply(campaignActive, user)
+
+    await expect(
+      campaignService.validate({
+        campaignId: campaignActive.id,
+        userId: user.id,
+      })
+    ).resolves.not.toThrow()
+
+    // Campaign without writing period should pass
+    const campaignNoWritingPeriod =
+      await campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        writingPeriod: undefined,
+      })
+    await campaignService.apply(campaignNoWritingPeriod, user)
+
+    await expect(
+      campaignService.validate({
+        campaignId: campaignNoWritingPeriod.id,
+        userId: user.id,
+      })
+    ).resolves.not.toThrow()
+  })
+})
+
 describe('article submission', () => {
   let user: User
   let article: Article
