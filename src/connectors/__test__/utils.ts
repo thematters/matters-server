@@ -63,9 +63,20 @@ export const genConnections = async (): Promise<Connections> => {
 }
 
 export const closeConnections = async (connections: Connections) => {
-  await connections.knex.destroy()
-  await connections.knexRO.destroy()
-  await connections.knexSearch.destroy()
+  const destroyPromises = [
+    connections.knex.destroy(),
+    connections.knexRO.destroy(),
+    connections.knexSearch.destroy(),
+  ]
+
+  try {
+    await Promise.all(destroyPromises)
+  } catch (error: any) {
+    console.warn(
+      'Warning: Some connections failed to close properly:',
+      error.message
+    )
+  }
 }
 
 export const refreshView = async (
