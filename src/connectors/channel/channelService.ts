@@ -637,29 +637,13 @@ export class ChannelService {
     channelId: string
     articleIds: string[]
   }) => {
-    // Get existing articles in channel
-    const existingArticles = await this.models.findMany({
-      table: 'curation_channel_article',
-      where: { channelId },
-    })
-
-    // Filter out articles that are already in the channel
-    const existingArticleIds = existingArticles.map(
-      ({ articleId }) => articleId
-    )
-    const newArticleIds = articleIds.filter(
-      (id) => !existingArticleIds.includes(id)
-    )
-
-    // Add new articles
     const now = new Date()
-    if (newArticleIds.length > 0) {
+    if (articleIds.length > 0) {
       await this.models.upsertOnConflict({
         table: 'curation_channel_article',
-        data: newArticleIds.map((articleId, index) => ({
+        data: articleIds.map((articleId, index) => ({
           channelId,
           articleId,
-          pinned: false,
           updatedAt: new Date(now.getTime() - index),
         })),
         onConflict: ['channelId', 'articleId'],

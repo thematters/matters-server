@@ -273,7 +273,9 @@ describe('addArticlesToCurationChannel', () => {
     expect(articles.map((a) => a.articleId)).toEqual(
       expect.arrayContaining(articleIds)
     )
-    expect(articles.every((a) => !a.pinned)).toBe(true)
+    expect(articles.every((a) => a.pinned === false || a.pinned === null)).toBe(
+      true
+    )
     // Verify updatedAt field is set and ordered correctly (most recent first)
     expect(articles[0].updatedAt).toBeDefined()
     expect(articles[1].updatedAt).toBeDefined()
@@ -286,12 +288,21 @@ describe('addArticlesToCurationChannel', () => {
     )
   })
 
-  test('ignores duplicate articles', async () => {
+  test('updates existing articles when adding duplicates', async () => {
     // First add some articles
     await channelService.addArticlesToCurationChannel({
       channelId: channel.id,
       articleIds: [articleIds[0]],
     })
+
+    // Get the original updatedAt time
+    const originalArticle = await atomService.findFirst({
+      table: 'curation_channel_article',
+      where: { channelId: channel.id, articleId: articleIds[0] },
+    })
+
+    // Wait a bit to ensure different timestamp
+    await new Promise((resolve) => setTimeout(resolve, 10))
 
     // Try to add the same article again along with new ones
     await channelService.addArticlesToCurationChannel({
@@ -304,9 +315,19 @@ describe('addArticlesToCurationChannel', () => {
       where: { channelId: channel.id },
     })
 
+    // Should still have 3 articles total
     expect(articles).toHaveLength(3)
     expect(articles.map((a) => a.articleId)).toEqual(
       expect.arrayContaining(articleIds)
+    )
+
+    // The existing article should have an updated timestamp
+    const updatedArticle = await atomService.findFirst({
+      table: 'curation_channel_article',
+      where: { channelId: channel.id, articleId: articleIds[0] },
+    })
+    expect(updatedArticle.updatedAt.getTime()).toBeGreaterThan(
+      originalArticle.updatedAt.getTime()
     )
   })
 })
