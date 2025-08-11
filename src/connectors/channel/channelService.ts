@@ -652,13 +652,15 @@ export class ChannelService {
     )
 
     // Add new articles
+    const now = new Date()
     if (newArticleIds.length > 0) {
       await this.models.upsertOnConflict({
         table: 'curation_channel_article',
-        data: newArticleIds.map((articleId) => ({
+        data: newArticleIds.map((articleId, index) => ({
           channelId,
           articleId,
           pinned: false,
+          updatedAt: new Date(now.getTime() - index),
         })),
         onConflict: ['channelId', 'articleId'],
       })
@@ -715,7 +717,7 @@ export class ChannelService {
       )
       unpinnedQuery.select(
         knexRO.raw(
-          'RANK() OVER (ORDER BY curation_channel_article.created_at DESC, article.created_at DESC) + 100 AS order'
+          'RANK() OVER (ORDER BY curation_channel_article.updated_at DESC, article.created_at DESC) + 100 AS order'
         )
       )
     }

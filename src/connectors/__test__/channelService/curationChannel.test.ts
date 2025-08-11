@@ -266,6 +266,7 @@ describe('addArticlesToCurationChannel', () => {
     const articles = await atomService.findMany({
       table: 'curation_channel_article',
       where: { channelId: channel.id },
+      orderBy: [{ column: 'updatedAt', order: 'desc' }],
     })
 
     expect(articles).toHaveLength(3)
@@ -273,6 +274,16 @@ describe('addArticlesToCurationChannel', () => {
       expect.arrayContaining(articleIds)
     )
     expect(articles.every((a) => !a.pinned)).toBe(true)
+    // Verify updatedAt field is set and ordered correctly (most recent first)
+    expect(articles[0].updatedAt).toBeDefined()
+    expect(articles[1].updatedAt).toBeDefined()
+    expect(articles[2].updatedAt).toBeDefined()
+    expect(articles[0].updatedAt.getTime()).toBeGreaterThanOrEqual(
+      articles[1].updatedAt.getTime()
+    )
+    expect(articles[1].updatedAt.getTime()).toBeGreaterThanOrEqual(
+      articles[2].updatedAt.getTime()
+    )
   })
 
   test('ignores duplicate articles', async () => {
@@ -338,6 +349,7 @@ describe('findCurationChannelArticles', () => {
         pinned: true,
         pinnedAt: now,
         createdAt: now,
+        updatedAt: now,
       },
     })
     await atomService.create({
@@ -346,7 +358,8 @@ describe('findCurationChannelArticles', () => {
         channelId: channel.id,
         articleId: articles[1].id,
         pinned: false,
-        createdAt: new Date(now.getTime() + 1000), // created later
+        updatedAt: new Date(now.getTime() + 1000), // updated later
+        createdAt: now,
       },
     })
 
@@ -369,6 +382,7 @@ describe('findCurationChannelArticles', () => {
         pinned: true,
         pinnedAt: new Date(baseTime.getTime() + 1000), // Pinned last
         createdAt: baseTime,
+        updatedAt: baseTime,
       },
     })
     await atomService.create({
@@ -379,6 +393,7 @@ describe('findCurationChannelArticles', () => {
         pinned: true,
         pinnedAt: baseTime, // Pinned first
         createdAt: baseTime,
+        updatedAt: baseTime,
       },
     })
 
@@ -390,16 +405,17 @@ describe('findCurationChannelArticles', () => {
     expect(results[1].id).toBe(articles[1].id) // Pinned earlier
   })
 
-  test('orders unpinned articles by createdAt DESC', async () => {
+  test('orders unpinned articles by updatedAt DESC', async () => {
     const baseTime = new Date()
-    // Add multiple unpinned articles with different createdAt times
+    // Add multiple unpinned articles with different updatedAt times
     await atomService.create({
       table: 'curation_channel_article',
       data: {
         channelId: channel.id,
         articleId: articles[0].id,
         pinned: false,
-        createdAt: new Date(baseTime.getTime() + 1000), // Created last
+        updatedAt: new Date(baseTime.getTime() + 1000), // Updated last
+        createdAt: baseTime,
       },
     })
     await atomService.create({
@@ -408,7 +424,8 @@ describe('findCurationChannelArticles', () => {
         channelId: channel.id,
         articleId: articles[1].id,
         pinned: false,
-        createdAt: baseTime, // Created first
+        updatedAt: baseTime, // Updated first
+        createdAt: baseTime,
       },
     })
 
@@ -416,8 +433,8 @@ describe('findCurationChannelArticles', () => {
       .findCurationChannelArticles(channel.id)
       .orderBy('id', 'asc')
     expect(results).toHaveLength(2)
-    expect(results[0].id).toBe(articles[0].id) // Most recently created
-    expect(results[1].id).toBe(articles[1].id) // Created earlier
+    expect(results[0].id).toBe(articles[0].id) // Most recently updated
+    expect(results[1].id).toBe(articles[1].id) // Updated earlier
   })
 
   test('returns correct article data with mixed pinned and unpinned articles', async () => {
@@ -431,6 +448,7 @@ describe('findCurationChannelArticles', () => {
         pinned: true,
         pinnedAt: new Date(baseTime.getTime() + 1000),
         createdAt: baseTime,
+        updatedAt: baseTime,
       },
     })
     await atomService.create({
@@ -441,6 +459,7 @@ describe('findCurationChannelArticles', () => {
         pinned: true,
         pinnedAt: baseTime,
         createdAt: baseTime,
+        updatedAt: baseTime,
       },
     })
     await atomService.create({
@@ -449,7 +468,8 @@ describe('findCurationChannelArticles', () => {
         channelId: channel.id,
         articleId: articles[2].id,
         pinned: false,
-        createdAt: new Date(baseTime.getTime() + 2000),
+        updatedAt: new Date(baseTime.getTime() + 2000),
+        createdAt: baseTime,
       },
     })
     await atomService.create({
@@ -458,6 +478,7 @@ describe('findCurationChannelArticles', () => {
         channelId: channel.id,
         articleId: articles[3].id,
         pinned: false,
+        updatedAt: baseTime,
         createdAt: baseTime,
       },
     })
@@ -467,11 +488,11 @@ describe('findCurationChannelArticles', () => {
       .orderBy('id', 'asc')
     expect(results).toHaveLength(4)
 
-    // Check order: pinned (by pinnedAt DESC) then unpinned (by createdAt DESC)
+    // Check order: pinned (by pinnedAt DESC) then unpinned (by updatedAt DESC)
     expect(results[0].id).toBe(articles[0].id) // Most recently pinned
     expect(results[1].id).toBe(articles[1].id) // Pinned earlier
-    expect(results[2].id).toBe(articles[2].id) // Most recently created unpinned
-    expect(results[3].id).toBe(articles[3].id) // Created earlier unpinned
+    expect(results[2].id).toBe(articles[2].id) // Most recently updated unpinned
+    expect(results[3].id).toBe(articles[3].id) // Updated earlier unpinned
   })
 
   test('handles non-existent channel ID', async () => {
