@@ -639,15 +639,18 @@ export class ChannelService {
   }) => {
     const now = new Date()
     if (articleIds.length > 0) {
-      await this.models.upsertOnConflict({
-        table: 'curation_channel_article',
-        data: articleIds.map((articleId, index) => ({
-          channelId,
-          articleId,
-          updatedAt: new Date(now.getTime() - index),
-        })),
-        onConflict: ['channelId', 'articleId'],
-      })
+      return this.connections
+        .knex('curation_channel_article')
+        .insert(
+          articleIds.map((articleId, index) => ({
+            channelId,
+            articleId,
+            updatedAt: new Date(now.getTime() - index * 1),
+          }))
+        )
+        .onConflict(['channelId', 'articleId'])
+        .merge()
+        .returning('*')
     }
   }
 

@@ -292,7 +292,7 @@ describe('addArticlesToCurationChannel', () => {
     // First add some articles
     await channelService.addArticlesToCurationChannel({
       channelId: channel.id,
-      articleIds: [articleIds[0]],
+      articleIds: articleIds.slice(0, 2),
     })
 
     // Get the original updatedAt time
@@ -322,12 +322,19 @@ describe('addArticlesToCurationChannel', () => {
     )
 
     // The existing article should have an updated timestamp
-    const updatedArticle = await atomService.findFirst({
+    const updatedArticle1 = await atomService.findFirst({
       table: 'curation_channel_article',
       where: { channelId: channel.id, articleId: articleIds[0] },
     })
-    expect(updatedArticle.updatedAt.getTime()).toBeGreaterThan(
+    expect(updatedArticle1.updatedAt.getTime()).toBeGreaterThan(
       originalArticle.updatedAt.getTime()
+    )
+    const updatedArticle2 = await atomService.findFirst({
+      table: 'curation_channel_article',
+      where: { channelId: channel.id, articleId: articleIds[1] },
+    })
+    expect(updatedArticle1.updatedAt.getTime()).toBeGreaterThan(
+      updatedArticle2.updatedAt.getTime()
     )
   })
 })
