@@ -38,6 +38,11 @@ const cacheRedis = new Redis(
   redisConfig
 )
 
+// Listen for Redis error events
+cacheRedis.on('error', (error) => {
+  console.error('Cache Redis connection error:', error)
+})
+
 const objectCacheRedis =
   environment.objectCachePort && environment.objectCacheHost
     ? new Redis(
@@ -46,6 +51,13 @@ const objectCacheRedis =
         redisConfig
       )
     : cacheRedis
+
+// Listen for object cache Redis error events (only if it's a different instance)
+if (objectCacheRedis !== cacheRedis) {
+  objectCacheRedis.on('error', (error) => {
+    console.error('Object cache Redis connection error:', error)
+  })
+}
 
 export const connections = {
   knex: mainKnex,
