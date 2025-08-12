@@ -25,7 +25,7 @@ const searchKnexDB = knex({
 })
 
 const redisConfig = {
-  keepAlive: 1000,
+  keepAlive: 10000,
   connectTimeout: 10000,
   commandTimeout: 5000,
   maxRetriesPerRequest: 3,
