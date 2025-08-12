@@ -13,7 +13,7 @@ import _ from 'lodash'
 interface KeyInfo {
   type?: string
   id?: string
-  args?: { [key: string]: any }
+  args?: { [key: string]: unknown }
   field?: string
 }
 
@@ -51,13 +51,13 @@ export class Cache {
   /**
    * Store gql returned object in cache.
    */
-  public storeObject = ({
+  public storeObject = async ({
     keys,
     data,
     expire = CACHE_TTL.SHORT,
   }: {
     keys: KeyInfo
-    data: any
+    data: unknown
     expire?: number
   }) => {
     if (!this.redis) {
@@ -67,6 +67,7 @@ export class Cache {
     const key = this.genKey(keys)
     const serializedData = JSON.stringify(data)
 
+    await this.ensureConnected()
     return this.redis.set(key, serializedData, 'EX', expire)
   }
 
@@ -99,6 +100,7 @@ export class Cache {
       return false
     }
 
+    await this.ensureConnected()
     const key = this.genKey(keys)
 
     const raw = await this.redis.get(key)
@@ -109,7 +111,7 @@ export class Cache {
       data = await getter()
 
       if (!isNil(data)) {
-        this.storeObject({
+        await this.storeObject({
           keys,
           data,
           expire,
@@ -130,5 +132,13 @@ export class Cache {
   }) => {
     const key = this.genKey(keys)
     await this.redis.del(key)
+  }
+
+  private ensureConnected = async () => {
+    try {
+      await this.redis.ping()
+    } catch {
+      await this.redis.connect()
+    }
   }
 }
