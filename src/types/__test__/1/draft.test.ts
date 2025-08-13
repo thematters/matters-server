@@ -536,6 +536,24 @@ describe('put draft', () => {
     expect(result2.indentFirstLine).toBeTruthy()
   })
 
+  test('does not auto set cover from content images', async () => {
+    const contentWithImage =
+      '<p>content with image</p><img data-asset-id="00000000-0000-0000-0000-000000000001" alt="img" />'
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          title: 'Draft without explicit cover',
+          content: contentWithImage,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data?.putDraft?.cover).toBeNull()
+  })
+
   test('version conflict detection', async () => {
     // Create a new draft
     const {
