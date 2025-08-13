@@ -103,21 +103,18 @@ export class PublicationService extends BaseService<Article> {
     let failed = false
     try {
       // Step 4: handle collection, circles, tags & mentions
-      const failedCollections = await this.handleCollections({
-        draft,
-        article,
-      })
-      const failedConnections = await this.handleConnections({
-        article,
-        articleVersion,
-      })
-      const failedCampaigns = await this.handleCampaigns({ draft, article })
-      await this.handleCircle({
-        article,
-        articleVersion,
-      })
-      await this.handleTags({ article, articleVersion })
-      await this.handleMentions({ article, content: draft.content })
+      // Launch all tasks concurrently for performance
+      const [failedCollections, failedConnections, failedCampaigns] =
+        await Promise.all([
+          this.handleCollections({ draft, article }),
+          this.handleConnections({ article, articleVersion }),
+          this.handleCampaigns({ draft, article }),
+        ])
+      await Promise.all([
+        this.handleCircle({ article, articleVersion }),
+        this.handleTags({ article, articleVersion }),
+        this.handleMentions({ article, content: draft.content }),
+      ])
       /**
        * Step 5: Handle Assets
        *
@@ -150,50 +147,60 @@ export class PublicationService extends BaseService<Article> {
       )
       // notify any failed steps for scheduled publication
       if (draft.publishAt) {
+        const tasks: Array<Promise<unknown>> = []
         if (failedCollections && failedCollections.length > 0) {
-          this.notificationService.trigger({
-            event: NOTICE_TYPE.scheduled_article_published,
-            recipientId: article.authorId,
-            entities: [
-              { type: 'target', entityTable: 'article', entity: article },
-              ...failedCollections.map((failedCollection: Collection) => ({
-                type: 'collection' as const,
-                entityTable: 'collection' as const,
-                entity: failedCollection,
-              })),
-            ],
-          })
+          tasks.push(
+            this.notificationService.trigger({
+              event: NOTICE_TYPE.scheduled_article_published,
+              recipientId: article.authorId,
+              entities: [
+                { type: 'target', entityTable: 'article', entity: article },
+                ...failedCollections.map((failedCollection: Collection) => ({
+                  type: 'collection' as const,
+                  entityTable: 'collection' as const,
+                  entity: failedCollection,
+                })),
+              ],
+            })
+          )
           failed = true
         }
         if (failedConnections && failedConnections.length > 0) {
-          this.notificationService.trigger({
-            event: NOTICE_TYPE.scheduled_article_published,
-            recipientId: article.authorId,
-            entities: [
-              { type: 'target', entityTable: 'article', entity: article },
-              ...failedConnections.map((failedArticle: Article) => ({
-                type: 'connection' as const,
-                entityTable: 'article' as const,
-                entity: failedArticle,
-              })),
-            ],
-          })
+          tasks.push(
+            this.notificationService.trigger({
+              event: NOTICE_TYPE.scheduled_article_published,
+              recipientId: article.authorId,
+              entities: [
+                { type: 'target', entityTable: 'article', entity: article },
+                ...failedConnections.map((failedArticle: Article) => ({
+                  type: 'connection' as const,
+                  entityTable: 'article' as const,
+                  entity: failedArticle,
+                })),
+              ],
+            })
+          )
           failed = true
         }
         if (failedCampaigns && failedCampaigns.length > 0) {
-          await this.notificationService.trigger({
-            event: NOTICE_TYPE.scheduled_article_published,
-            recipientId: article.authorId,
-            entities: [
-              { type: 'target', entityTable: 'article', entity: article },
-              ...failedCampaigns.map((failedCampaign: Campaign) => ({
-                type: 'campaign' as const,
-                entityTable: 'campaign' as const,
-                entity: failedCampaign,
-              })),
-            ],
-          })
+          tasks.push(
+            this.notificationService.trigger({
+              event: NOTICE_TYPE.scheduled_article_published,
+              recipientId: article.authorId,
+              entities: [
+                { type: 'target', entityTable: 'article', entity: article },
+                ...failedCampaigns.map((failedCampaign: Campaign) => ({
+                  type: 'campaign' as const,
+                  entityTable: 'campaign' as const,
+                  entity: failedCampaign,
+                })),
+              ],
+            })
+          )
           failed = true
+        }
+        if (tasks.length > 0) {
+          await Promise.all(tasks)
         }
       }
     } catch (err) {
@@ -208,7 +215,7 @@ export class PublicationService extends BaseService<Article> {
     // Step 7: trigger notifications
     if (draft.publishAt) {
       if (!failed) {
-        this.notificationService.trigger({
+        await this.notificationService.trigger({
           event: NOTICE_TYPE.scheduled_article_published,
           recipientId: article.authorId,
           entities: [
@@ -217,7 +224,7 @@ export class PublicationService extends BaseService<Article> {
         })
       }
     } else {
-      this.notificationService.trigger({
+      await this.notificationService.trigger({
         event: NOTICE_TYPE.article_published,
         recipientId: article.authorId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
@@ -225,14 +232,16 @@ export class PublicationService extends BaseService<Article> {
     }
 
     // Step 8: invalidate cache
-    invalidateFQC({
-      node: { type: NODE_TYPES.User, id: article.authorId },
-      redis: this.connections.redis,
-    })
-    invalidateFQC({
-      node: { type: NODE_TYPES.Article, id: article.id },
-      redis: this.connections.redis,
-    })
+    await Promise.allSettled([
+      invalidateFQC({
+        node: { type: NODE_TYPES.User, id: article.authorId },
+        redis: this.connections.redis,
+      }),
+      invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: article.id },
+        redis: this.connections.redis,
+      }),
+    ])
 
     return draft
   }
@@ -598,32 +607,42 @@ export class PublicationService extends BaseService<Article> {
       return
     }
 
-    // infer article channels if not spam
+    // Run post-processing tasks concurrently and await completion
     const channelService = new ChannelService(this.connections)
-    channelService.classifyArticlesChannels({ ids: [articleId] })
+    const ipfsPublicationService = new IPFSPublicationService(this.connections)
 
-    // detect language
-    this.detectLanguage(articleVersion.id).then((language) => {
-      if (!language) {
-        return
-      }
+    const tasks: Array<Promise<unknown>> = []
 
-      this.models.update({
-        table: 'article_version',
-        where: { id: articleVersion.id },
-        data: { language },
-      })
-    })
+    // infer article channels if not spam
+    tasks.push(channelService.classifyArticlesChannels({ ids: [articleId] }))
+
+    // detect language and persist
+    tasks.push(
+      (async () => {
+        const language = await this.detectLanguage(articleVersion.id)
+        if (!language) {
+          return
+        }
+        await this.models.update({
+          table: 'article_version',
+          where: { id: articleVersion.id },
+          data: { language },
+        })
+      })()
+    )
 
     // trigger search indexing
-    this.searchService.triggerIndexingArticle(article.id)
+    tasks.push(this.searchService.triggerIndexingArticle(article.id))
 
     // trigger IPFS publication
-    const ipfsPublicationService = new IPFSPublicationService(this.connections)
-    ipfsPublicationService.triggerPublication({
-      articleId: article.id,
-      articleVersionId: articleVersion.id,
-    })
+    tasks.push(
+      ipfsPublicationService.triggerPublication({
+        articleId: article.id,
+        articleVersionId: articleVersion.id,
+      })
+    )
+
+    await Promise.allSettled(tasks)
   }
 
   public findScheduledAndPublish = async (date: Date, lastHours = 1) => {
@@ -705,22 +724,24 @@ export class PublicationService extends BaseService<Article> {
     )
 
     // trigger notifications
-    successed.forEach(async (a: Article) => {
-      this.notificationService.trigger({
-        event: NOTICE_TYPE.article_new_collected,
-        recipientId: a.authorId,
-        actorId: article.authorId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: a },
-          {
-            // TODO: rename to 'connection' and migrate notice_entity table
-            type: 'collection',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
-      })
-    })
+    await Promise.all(
+      successed.map((a: Article) =>
+        this.notificationService.trigger({
+          event: NOTICE_TYPE.article_new_collected,
+          recipientId: a.authorId,
+          actorId: article.authorId,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: a },
+            {
+              // TODO: rename to 'connection' and migrate notice_entity table
+              type: 'collection',
+              entityTable: 'article',
+              entity: article,
+            },
+          ],
+        })
+      )
+    )
 
     return faileded
   }
@@ -803,13 +824,17 @@ export class PublicationService extends BaseService<Article> {
       articleVersion.circleId
     )
 
-    recipients.forEach((recipientId: string) => {
-      this.notificationService.trigger({
-        event: NOTICE_TYPE.circle_new_article,
-        recipientId,
-        entities: [{ type: 'target', entityTable: 'article', entity: article }],
-      })
-    })
+    await Promise.all(
+      recipients.map((recipientId: string) =>
+        this.notificationService.trigger({
+          event: NOTICE_TYPE.circle_new_article,
+          recipientId,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: article },
+          ],
+        })
+      )
+    )
 
     await invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: articleVersion.circleId },
@@ -874,19 +899,21 @@ export class PublicationService extends BaseService<Article> {
   }) => {
     const mentionIds = extractMentionIds(content)
 
-    mentionIds.forEach((id: string) => {
-      if (!id) {
-        return false
-      }
-
-      this.notificationService.trigger({
-        event: NOTICE_TYPE.article_mentioned_you,
-        actorId: article.authorId,
-        recipientId: id,
-        entities: [{ type: 'target', entityTable: 'article', entity: article }],
-        tag: `publication:${article.id}`,
-      })
-    })
+    await Promise.all(
+      mentionIds
+        .filter((id: string) => !!id)
+        .map((id: string) =>
+          this.notificationService.trigger({
+            event: NOTICE_TYPE.article_mentioned_you,
+            actorId: article.authorId,
+            recipientId: id,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+            ],
+            tag: `publication:${article.id}`,
+          })
+        )
+    )
   }
 
   private handleCampaigns = async ({
@@ -899,24 +926,28 @@ export class PublicationService extends BaseService<Article> {
     if (draft.campaigns && draft.campaigns.length > 0) {
       const campaignService = new CampaignService(this.connections)
       const faileded: string[] = []
-      for (const { campaign, stage } of draft.campaigns) {
-        try {
-          await campaignService.submitArticleToCampaign(
-            article,
-            campaign,
-            stage
-          )
-          invalidateFQC({
-            node: { type: NODE_TYPES.Campaign, id: campaign },
-            redis: this.connections.redis,
-          })
-        } catch (err) {
-          logger.warn(
-            `Failed to submit article to campaign ${campaign}: ${err}`
-          )
-          faileded.push(campaign)
-        }
-      }
+      await Promise.all(
+        draft.campaigns.map(
+          async ({ campaign, stage }: { campaign: string; stage?: string }) => {
+            try {
+              await campaignService.submitArticleToCampaign(
+                article,
+                campaign,
+                stage
+              )
+              await invalidateFQC({
+                node: { type: NODE_TYPES.Campaign, id: campaign },
+                redis: this.connections.redis,
+              })
+            } catch (err) {
+              logger.warn(
+                `Failed to submit article to campaign ${campaign}: ${err}`
+              )
+              faileded.push(campaign)
+            }
+          }
+        )
+      )
       return Promise.all(
         faileded.map(async (failedCampaign: string) =>
           this.models.findUnique({
@@ -1062,30 +1093,32 @@ export class PublicationService extends BaseService<Article> {
     // trigger notifications
     const article = await this.models.articleIdLoader.load(articleId)
     const notificationService = new NotificationService(this.connections)
-    newIdsToAdd.forEach(async (id) => {
-      const targetConnection = await this.models.findUnique({
-        table: 'article',
-        where: { id },
-      })
-      if (targetConnection) {
-        notificationService.trigger({
-          event: NOTICE_TYPE.article_new_collected,
-          recipientId: targetConnection.authorId,
-          actorId: article.authorId,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: targetConnection,
-            },
-            {
-              type: 'collection',
-              entityTable: 'article',
-              entity: article,
-            },
-          ],
+    await Promise.all(
+      newIdsToAdd.map(async (id) => {
+        const targetConnection = await this.models.findUnique({
+          table: 'article',
+          where: { id },
         })
-      }
-    })
+        if (targetConnection) {
+          await notificationService.trigger({
+            event: NOTICE_TYPE.article_new_collected,
+            recipientId: targetConnection.authorId,
+            actorId: article.authorId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'article',
+                entity: targetConnection,
+              },
+              {
+                type: 'collection',
+                entityTable: 'article',
+                entity: article,
+              },
+            ],
+          })
+        }
+      })
+    )
   }
 }
