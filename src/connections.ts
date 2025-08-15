@@ -59,10 +59,28 @@ if (objectCacheRedis !== cacheRedis) {
   })
 }
 
+const ensureConnected = async () => {
+  try {
+    await cacheRedis.ping()
+  } catch (err: unknown) {
+    console.log(err)
+    await cacheRedis.connect()
+  }
+  if (objectCacheRedis !== cacheRedis) {
+    try {
+      await objectCacheRedis.ping()
+    } catch (err: unknown) {
+      console.log(err)
+      await objectCacheRedis.connect()
+    }
+  }
+}
+
 export const connections = {
   knex: mainKnex,
   knexRO: readonlyKnex,
   knexSearch: searchKnexDB,
   redis: cacheRedis,
   objectCacheRedis,
+  ensureConnected,
 }

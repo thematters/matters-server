@@ -3,6 +3,7 @@ import { PublicationService } from '#connectors/article/publicationService.js'
 import { connections } from '../connections.js'
 
 export const handler = async () => {
+  await connections.ensureConnected()
   try {
     const publicationService = new PublicationService(connections)
 

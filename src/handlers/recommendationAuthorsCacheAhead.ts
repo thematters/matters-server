@@ -11,6 +11,7 @@ type Event = {
 }
 
 export const handler = async (event: Event) => {
+  await connections.ensureConnected()
   const channelId = event?.data?.channelId
   const cache = new Cache(
     CACHE_PREFIX.RECOMMENDATION_AUTHORS,

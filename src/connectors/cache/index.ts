@@ -67,7 +67,6 @@ export class Cache {
     const key = this.genKey(keys)
     const serializedData = JSON.stringify(data)
 
-    await this.ensureConnected()
     return this.redis.set(key, serializedData, 'EX', expire)
   }
 
@@ -100,7 +99,6 @@ export class Cache {
       return false
     }
 
-    await this.ensureConnected()
     const key = this.genKey(keys)
 
     const raw = await this.redis.get(key)
@@ -132,13 +130,5 @@ export class Cache {
   }) => {
     const key = this.genKey(keys)
     await this.redis.del(key)
-  }
-
-  private ensureConnected = async () => {
-    try {
-      await this.redis.ping()
-    } catch {
-      await this.redis.connect()
-    }
   }
 }
