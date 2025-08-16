@@ -23,7 +23,7 @@ import * as cheerio from 'cheerio'
 import { PinataSDK } from 'pinata-web3'
 
 import { AtomService } from '../atomService.js'
-import { aws } from '../index.js'
+import { aws } from '../aws/index.js'
 import { LikeCoin } from '../likecoin/index.js'
 
 const logger = getLogger('service-ipfs-publication')
