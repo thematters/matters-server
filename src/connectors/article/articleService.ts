@@ -155,7 +155,7 @@ export class ArticleService extends BaseService<Article> {
       const complaintAreaArticleIds = this.knexRO
         .select('entrance_id')
         .from('article_connection')
-        .where('article_id', environment.ComplaintAreaArticleId)
+        .where('article_id', environment.complaintAreaArticleId)
       query.whereRaw('article.id NOT IN (?)', [complaintAreaArticleIds])
     }
 
