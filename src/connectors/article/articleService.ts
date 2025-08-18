@@ -170,25 +170,19 @@ export class ArticleService extends BaseService<Article> {
       const channelIds = this.knexRO.raw(
         `WITH base AS (SELECT id FROM topic_channel WHERE enabled=true) SELECT id FROM base UNION SELECT id FROM topic_channel WHERE parent_id IN (SELECT id FROM base)`
       )
-      query
-        .leftJoin(
-          this.knexRO
-            .select('article_id')
-            .from('topic_channel_article as tca')
-            .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
-            .where({
-              'tca.enabled': true,
-            })
-            .whereRaw('tc.id IN (?)', [channelIds])
-            .as('enabled_article_channels'),
-          'article.id',
-          'enabled_article_channels.article_id'
-        )
-        .where((builder) => {
-          builder
-            .whereNull('enabled_article_channels.article_id')
-            .orWhere('article.channel_enabled', false)
-        })
+      query.where((builder) => {
+        builder
+          .whereNotExists(
+            this.knexRO
+              .select(1)
+              .from('topic_channel_article as tca')
+              .join('topic_channel as tc', 'tca.channel_id', 'tc.id')
+              .where({ 'tca.enabled': true })
+              .where('tca.article_id', this.knex.ref('article.id'))
+              .whereRaw('tc.id IN (?)', [channelIds])
+          )
+          .orWhere('article.channel_enabled', false)
+      })
     }
 
     return query

@@ -12,7 +12,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   { input },
   { viewer, dataSources: { articleService, systemService, userService } }
 ) => {
-  const { oss = false, excludeChannelArticles = false } = input
+  const { oss = false } = input
 
   // determine maxTake, oss or user with unlimitedArticleFetch feature flag can fetch all articles
   let maxTake: number | undefined = DEFAULT_TAKE_PER_PAGE * 50
@@ -35,8 +35,8 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   const spamThreshold = await systemService.getSpamThreshold()
   const query = articleService.findNewestArticles({
     spamThreshold: spamThreshold ?? undefined,
-    excludeChannelArticles,
-    excludeExclusiveCampaignArticles: excludeChannelArticles,
+    excludeChannelArticles: true,
+    excludeExclusiveCampaignArticles: true,
   })
 
   return connectionFromQuery({
