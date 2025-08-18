@@ -205,7 +205,7 @@ export class IPFSPublicationService {
     })
 
     try {
-      logger.info('Pinning to Pinata with CID:', contentHash)
+      logger.info('Pinning to Pinata with CID: %j', contentHash)
       const pinataResult = await pinata.upload
         .cid(contentHash)
         .peerAddress([
@@ -215,9 +215,9 @@ export class IPFSPublicationService {
         .group(environment.pinataGroupId!)
         .addMetadata({ name: mediaHash })
 
-      logger.info('pinata result:', pinataResult)
+      logger.info('pinata result: %j', pinataResult)
     } catch (error) {
-      logger.error('failed to upload to pinata', error)
+      logger.error('failed to upload to pinata %o', error)
     }
 
     return { contentHash, mediaHash, key }

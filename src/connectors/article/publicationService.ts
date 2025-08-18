@@ -9,6 +9,7 @@ import type {
 } from '#definitions/index.js'
 
 import {
+  ASSET_TYPE,
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
@@ -292,6 +293,28 @@ export class PublicationService extends BaseService<Article> {
       contentMdId = _contentMdId
     }
 
+    // set cover from content
+    let autoCover: string | null = null
+    if (cover === null) {
+      const uuids = (extractAssetDataFromHtml(content, 'image') || []).filter(
+        (uuid) => uuid && uuid !== 'embed'
+      )
+
+      if (uuids.length > 0) {
+        const asset = await this.models.findFirst({
+          table: 'asset',
+          where: {
+            uuid: uuids[0],
+            type: ASSET_TYPE.embed,
+            authorId,
+          },
+        })
+        if (asset) {
+          autoCover = asset.id
+        }
+      }
+    }
+
     // create article and article version
     const trx = await this.knex.transaction()
     try {
@@ -310,7 +333,7 @@ export class PublicationService extends BaseService<Article> {
           summaryCustomized,
           contentId,
           contentMdId,
-          cover,
+          cover: cover ?? autoCover,
           tags: tags ?? [],
           connections: connections ?? [],
           wordCount,

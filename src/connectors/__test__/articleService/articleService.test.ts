@@ -264,7 +264,7 @@ describe('findArticles', () => {
 
   test('excludeComplaintAreaArticles', async () => {
     // Monkey patch the environment variable
-    environment.ComplaintAreaArticleId = '1'
+    environment.complaintAreaArticleId = '1'
 
     // Get baseline articles without exclusion
     const result1 = await articleService.findArticles({})
@@ -299,7 +299,7 @@ describe('findArticles', () => {
       table: 'article_connection',
       data: {
         entranceId: article1.id,
-        articleId: environment.ComplaintAreaArticleId, // Default complaint area article ID from environment
+        articleId: environment.complaintAreaArticleId, // Default complaint area article ID from environment
         order: 1,
       },
     })
@@ -307,7 +307,7 @@ describe('findArticles', () => {
       table: 'article_connection',
       data: {
         entranceId: article2.id,
-        articleId: environment.ComplaintAreaArticleId, // Default complaint area article ID from environment
+        articleId: environment.complaintAreaArticleId, // Default complaint area article ID from environment
         order: 1,
       },
     })
@@ -1184,7 +1184,7 @@ describe('findScheduledAndPublish', () => {
     const originalPublishArticle = publicationService.publishArticle
     publicationService.publishArticle = jest
       .fn()
-      .mockImplementation(async (draftId: any) => {
+      .mockImplementation(async (_: any) => {
         throw new Error('Publish failed')
       }) as any
 
