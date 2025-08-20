@@ -629,6 +629,8 @@ const UPATEABLE_TABLES = [
   'matters_choice_topic',
   'moment',
   'moment_asset',
+  'moment_article',
+  'moment_tag',
   'action_moment',
   'translation',
   'campaign_boost',
