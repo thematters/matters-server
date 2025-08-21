@@ -431,6 +431,15 @@ export class CampaignService {
       throw new ActionFailedError(`user not applied to campaign ${campaignId}`)
     }
 
+    const now = new Date()
+
+    if (campaign.writingPeriod) {
+      const { start } = fromDatetimeRangeString(campaign.writingPeriod)
+      if (now.getTime() < start.getTime()) {
+        throw new ActionFailedError('writing period has not started yet')
+      }
+    }
+
     if (!campaignStageId) {
       return
     }
@@ -442,8 +451,7 @@ export class CampaignService {
     const periodStart = stage.period
       ? fromDatetimeRangeString(stage.period).start.getTime()
       : null
-    const now = new Date().getTime()
-    if (periodStart && periodStart > now) {
+    if (periodStart && now.getTime() < periodStart) {
       throw new ActionFailedError('stage not started')
     }
   }

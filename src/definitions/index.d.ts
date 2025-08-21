@@ -20,6 +20,7 @@ import type {
   TranslationService,
   ChannelService,
   SearchService,
+  PublicationService,
 } from '#connectors/index.js'
 import type {
   RevisionQueue,

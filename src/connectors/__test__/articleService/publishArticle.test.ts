@@ -7,6 +7,7 @@ import {
   PUBLISH_STATE,
   ARTICLE_STATE,
   CAMPAIGN_STATE,
+  ASSET_TYPE,
 } from '#common/enums/index.js'
 import {
   AtomService,
@@ -255,6 +256,45 @@ describe('publishArticle', () => {
       where: { articleId: result?.articleId },
     })
     expect(articleCollections).toHaveLength(2)
+  })
+
+  test('should auto set cover from content when draft.cover is null', async () => {
+    // Create an embed asset owned by author 1
+    const asset = await atomService.create({
+      table: 'asset',
+      data: {
+        uuid: '10000000-0000-0000-0000-000000000001',
+        authorId: '1',
+        type: ASSET_TYPE.embed,
+        path: 'path/to/cover-from-content.jpg',
+      },
+    })
+
+    // Draft content contains an image referencing the asset uuid
+    const contentWithImage =
+      '<p>content with image</p><figure class="image"><img src="https://imagedelivery.net/kDRCweMmqLnTPNlbum-pYA/non-prod/embed/10000000-0000-0000-0000-000000000001.jpeg/public"><figcaption></figcaption></figure>'
+
+    const draft = await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'Draft With Image and Null Cover',
+        content: contentWithImage,
+        cover: null,
+        publishState: PUBLISH_STATE.pending,
+      },
+    })
+
+    const result = await publicationService.publishArticle(draft.id)
+
+    expect(result).toBeDefined()
+
+    // Verify the created article version picked up the asset as cover
+    const articleVersion = await atomService.findFirst({
+      table: 'article_version',
+      where: { articleId: result?.articleId },
+    })
+    expect(articleVersion.cover).toBe(asset.id)
   })
 
   test('should handle failed collections and notify correctly for scheduled articles', async () => {

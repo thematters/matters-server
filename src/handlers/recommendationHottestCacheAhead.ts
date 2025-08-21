@@ -6,6 +6,7 @@ import { RecommendationService } from '#connectors/recommendationService.js'
 import { connections } from '../connections.js'
 
 export const handler = async () => {
+  await connections.ensureConnected()
   const cache = new Cache(
     CACHE_PREFIX.RECOMMENDATION_HOTTEST,
     connections.objectCacheRedis

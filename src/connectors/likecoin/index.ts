@@ -422,7 +422,7 @@ export class LikeCoin {
     const data = _.get(res, 'data')
 
     const cache = new Cache(CACHE_PREFIX.LIKECOIN, this.redis)
-    cache.storeObject({
+    await cache.storeObject({
       // keys: ['iscnPublish', userName, 'likerId', liker.likerId],
       keys: {
         type: 'iscnPublish',

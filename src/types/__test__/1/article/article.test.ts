@@ -44,6 +44,8 @@ beforeAll(async () => {
 }, 30000)
 
 afterAll(async () => {
+  // waiting for all async db operations to finish to avoid `abort` errors thrown by `knex.destroy`
+  await new Promise((resolve) => setTimeout(resolve, 1000))
   await closeConnections(connections)
 })
 
@@ -737,20 +739,6 @@ describe('query article displayCover', () => {
     expect(data.article.displayCover).not.toBeNull()
   })
 
-  test('should return first image URL when article has no cover but has images', async () => {
-    // Article with media_hash 'someIpfsMediaHash4' has content with image asset uuid '00000000-0000-0000-0000-000000000004'
-    const server = await testClient({ connections })
-    const { data, errors } = await server.executeOperation({
-      query: GET_ARTICLE_DISPLAY_COVER,
-      variables: {
-        input: { mediaHash: 'someIpfsMediaHash4' },
-      },
-    })
-
-    expect(errors).toBeUndefined()
-    expect(data.article.displayCover).toBeDefined()
-  })
-
   test('should return null when article has no cover and no images', async () => {
     // Article with media_hash 'someIpfsMediaHash1' has content '<div>some html string</div>' (no images) from 05_articles.js
     const server = await testClient({ connections })
@@ -758,29 +746,6 @@ describe('query article displayCover', () => {
       query: GET_ARTICLE_DISPLAY_COVER,
       variables: {
         input: { mediaHash: 'someIpfsMediaHash1' },
-      },
-    })
-
-    expect(errors).toBeUndefined()
-    expect(data.article.displayCover).toBeNull()
-  })
-
-  test('should return null when article has no cover and images are not found', async () => {
-    // Create a test article with image reference that doesn't exist in assets
-    const testContent =
-      '<p>This article references missing image</p><img src="missing-image-uuid" alt="missing"/>'
-
-    const [article] = await publicationService.createArticle({
-      title: 'Test Article 1',
-      content: testContent,
-      authorId: '1',
-    })
-
-    const server = await testClient({ connections })
-    const { data, errors } = await server.executeOperation({
-      query: GET_ARTICLE_DISPLAY_COVER,
-      variables: {
-        input: { shortHash: article.shortHash },
       },
     })
 

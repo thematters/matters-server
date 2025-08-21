@@ -637,31 +637,20 @@ export class ChannelService {
     channelId: string
     articleIds: string[]
   }) => {
-    // Get existing articles in channel
-    const existingArticles = await this.models.findMany({
-      table: 'curation_channel_article',
-      where: { channelId },
-    })
-
-    // Filter out articles that are already in the channel
-    const existingArticleIds = existingArticles.map(
-      ({ articleId }) => articleId
-    )
-    const newArticleIds = articleIds.filter(
-      (id) => !existingArticleIds.includes(id)
-    )
-
-    // Add new articles
-    if (newArticleIds.length > 0) {
-      await this.models.upsertOnConflict({
-        table: 'curation_channel_article',
-        data: newArticleIds.map((articleId) => ({
-          channelId,
-          articleId,
-          pinned: false,
-        })),
-        onConflict: ['channelId', 'articleId'],
-      })
+    const now = new Date()
+    if (articleIds.length > 0) {
+      return this.connections
+        .knex('curation_channel_article')
+        .insert(
+          articleIds.map((articleId, index) => ({
+            channelId,
+            articleId,
+            updatedAt: new Date(now.getTime() - index * 1),
+          }))
+        )
+        .onConflict(['channelId', 'articleId'])
+        .merge()
+        .returning('*')
     }
   }
 
@@ -715,7 +704,7 @@ export class ChannelService {
       )
       unpinnedQuery.select(
         knexRO.raw(
-          'RANK() OVER (ORDER BY curation_channel_article.created_at DESC, article.created_at DESC) + 100 AS order'
+          'RANK() OVER (ORDER BY curation_channel_article.updated_at DESC, article.created_at DESC) + 100 AS order'
         )
       )
     }

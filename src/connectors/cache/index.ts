@@ -13,7 +13,7 @@ import _ from 'lodash'
 interface KeyInfo {
   type?: string
   id?: string
-  args?: { [key: string]: any }
+  args?: { [key: string]: unknown }
   field?: string
 }
 
@@ -51,13 +51,13 @@ export class Cache {
   /**
    * Store gql returned object in cache.
    */
-  public storeObject = ({
+  public storeObject = async ({
     keys,
     data,
     expire = CACHE_TTL.SHORT,
   }: {
     keys: KeyInfo
-    data: any
+    data: unknown
     expire?: number
   }) => {
     if (!this.redis) {
@@ -109,7 +109,7 @@ export class Cache {
       data = await getter()
 
       if (!isNil(data)) {
-        this.storeObject({
+        await this.storeObject({
           keys,
           data,
           expire,

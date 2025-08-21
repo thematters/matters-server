@@ -8,7 +8,6 @@ import type {
 import {
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
-  ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
   MAX_ARTICLE_SUMMARY_LENGTH,
@@ -30,11 +29,7 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from '#common/errors.js'
-import {
-  extractAssetDataFromHtml,
-  fromGlobalId,
-  stripHtml,
-} from '#common/utils/index.js'
+import { fromGlobalId, stripHtml } from '#common/utils/index.js'
 import pkg from 'lodash'
 import { createRequire } from 'node:module'
 
@@ -152,37 +147,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   )
 
   if (oldDraft) {
-    // Handle candidate cover
-    const resetCover = cover === null
-    const isUpdateContent = content || content === ''
-    if (
-      (resetCover && !isUpdateContent) ||
-      (resetCover && isUpdateContent && oldDraft.cover) ||
-      (!resetCover && isUpdateContent && !oldDraft.cover)
-    ) {
-      const draftContent = isUpdateContent ? content : oldDraft.content
-      const uuids = (
-        extractAssetDataFromHtml(draftContent, 'image') || []
-      ).filter((uuid) => uuid && uuid !== 'embed')
-
-      if (uuids.length > 0) {
-        const candidateCover = await atomService.findFirst({
-          table: 'asset',
-          where: {
-            uuid: uuids[0],
-            type: ASSET_TYPE.embed,
-            authorId: viewer.id,
-          },
-        })
-
-        if (candidateCover) {
-          data.cover = candidateCover.id
-        }
-      } else {
-        data.cover = null
-      }
-    }
-
     return atomService.update({
       table: 'draft',
       where: { id: oldDraft.id },
