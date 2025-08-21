@@ -7,6 +7,7 @@ import {
   IMAGE_ASSET_TYPE,
   NOTICE_TYPE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
+  ARTICLE_STATE,
 } from '#common/enums/index.js'
 import {
   ForbiddenError,
@@ -18,6 +19,7 @@ import { createRequire } from 'node:module'
 
 import { AtomService } from './atomService.js'
 import { NotificationService } from './notification/notificationService.js'
+import { TagService } from './tagService.js'
 import { UserService } from './userService.js'
 
 const require = createRequire(import.meta.url)
@@ -36,7 +38,13 @@ export class MomentService {
   }
 
   public create = async (
-    data: { content: string; assetIds?: string[] },
+    data: {
+      content: string
+      assetIds?: string[]
+      // only first tag/article will be linked due to unique(moment_id)
+      tags?: string[]
+      articleIds?: string[]
+    },
     user: Pick<User, 'id' | 'state' | 'userName'>
   ) => {
     // check user
@@ -102,6 +110,42 @@ export class MomentService {
           })
         )
       )
+    }
+
+    // link one article if provided and valid
+    if (data.articleIds && data.articleIds.length > 0) {
+      const articleId = data.articleIds[0]
+      const article = await this.models.findUnique({
+        table: 'article',
+        where: { id: articleId },
+      })
+      if (article && article.state === ARTICLE_STATE.active) {
+        await this.models.upsert({
+          table: 'moment_article',
+          where: { momentId: moment.id },
+          create: { momentId: moment.id, articleId },
+          update: { articleId },
+        })
+      }
+    }
+
+    // link one tag if provided
+    if (data.tags && data.tags.length > 0) {
+      const content = data.tags.find((t) => !!t?.trim())?.trim()
+      if (content) {
+        const tagService = new TagService(this.connections)
+        const tag = await tagService.create({ content, creator: user.id }, {
+          columns: ['id', 'content'],
+        })
+        if (tag) {
+          await this.models.upsert({
+            table: 'moment_tag',
+            where: { momentId: moment.id },
+            create: { momentId: moment.id, tagId: tag.id },
+            update: { tagId: tag.id },
+          })
+        }
+      }
     }
     // notify mentioned users
     const notificationService = new NotificationService(this.connections)
@@ -213,5 +257,25 @@ export class MomentService {
         this.models.assetIdLoader.load(momentAsset.assetId)
       )
     )
+  }
+
+  public getArticles = async (momentId: string) => {
+    const record = await this.models.findFirst({
+      table: 'moment_article',
+      where: { momentId },
+    })
+    if (!record) return []
+    const article = await this.models.articleIdLoader.load(record.articleId)
+    return article ? [article] : []
+  }
+
+  public getTags = async (momentId: string) => {
+    const record = await this.models.findFirst({
+      table: 'moment_tag',
+      where: { momentId },
+    })
+    if (!record) return []
+    const tag = await this.models.tagIdLoader.load(record.tagId)
+    return tag ? [tag] : []
   }
 }

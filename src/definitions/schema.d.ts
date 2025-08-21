@@ -1983,6 +1983,7 @@ export type GQLMigrationType = 'medium'
 
 export type GQLMoment = GQLNode & {
   __typename?: 'Moment'
+  articles: Array<GQLArticle>
   assets: Array<GQLAsset>
   author: GQLUser
   commentCount: Scalars['Int']['output']
@@ -1996,6 +1997,7 @@ export type GQLMoment = GQLNode & {
   liked: Scalars['Boolean']['output']
   shortHash: Scalars['String']['output']
   state: GQLMomentState
+  tags: Array<Maybe<GQLTag>>
 }
 
 export type GQLMomentCommentsArgs = {
@@ -3113,8 +3115,10 @@ export type GQLPutIcymiTopicInput = {
 }
 
 export type GQLPutMomentInput = {
-  assets: Array<Scalars['ID']['input']>
+  articles?: InputMaybe<Array<Scalars['ID']['input']>>
+  assets?: InputMaybe<Array<Scalars['ID']['input']>>
   content: Scalars['String']['input']
+  tags?: InputMaybe<Array<Scalars['String']['input']>>
 }
 
 export type GQLPutOAuthClientInput = {
@@ -8335,6 +8339,11 @@ export type GQLMomentResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Moment'] = GQLResolversParentTypes['Moment']
 > = ResolversObject<{
+  articles?: Resolver<
+    Array<GQLResolversTypes['Article']>,
+    ParentType,
+    ContextType
+  >
   assets?: Resolver<Array<GQLResolversTypes['Asset']>, ParentType, ContextType>
   author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
@@ -8360,6 +8369,11 @@ export type GQLMomentResolvers<
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   state?: Resolver<GQLResolversTypes['MomentState'], ParentType, ContextType>
+  tags?: Resolver<
+    Array<Maybe<GQLResolversTypes['Tag']>>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
