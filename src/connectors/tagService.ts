@@ -58,6 +58,7 @@ export class TagService extends BaseService<Tag> {
         throw new ForbiddenError('not allow to add official tag')
       }
     }
+    return content
   }
 
   /**
