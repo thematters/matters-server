@@ -116,6 +116,9 @@ test('create', async () => {
   const content = 'foo'
   const tag = await tagService.upsert({ content, creator: '0' })
   expect(tag.content).toEqual(content)
+  // upsert should be idempotent and return same tag
+  const tag2 = await tagService.upsert({ content, creator: '0' })
+  expect(tag2.id).toEqual(tag.id)
 })
 
 describe('findByAuthorUsage', () => {
