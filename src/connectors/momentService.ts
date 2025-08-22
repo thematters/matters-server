@@ -8,6 +8,7 @@ import {
   NOTICE_TYPE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
   ARTICLE_STATE,
+  NODE_TYPES,
 } from '#common/enums/index.js'
 import {
   ForbiddenError,
@@ -15,6 +16,7 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { shortHash, extractMentionIds, stripHtml } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { createRequire } from 'node:module'
 
 import { AtomService } from './atomService.js'
@@ -135,6 +137,10 @@ export class MomentService {
         where: { momentId: moment.id },
         create: { momentId: moment.id, tagId: data.tagIds[0] },
         update: { tagId: data.tagIds[0] },
+      })
+      invalidateFQC({
+        node: { type: NODE_TYPES.Tag, id: data.tagIds[0] },
+        redis: this.connections.redis,
       })
     }
     // notify mentioned users
