@@ -4,7 +4,7 @@ export interface Tag {
   createdAt: string
   updatedAt: string
   remark: string | null
-  delete: boolean
+  deleted: boolean
   cover: string | null
   description: string | null
   editors: string[] | null

@@ -137,8 +137,9 @@ type UpsertOnConflictFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  data: Partial<D> | Array<Partial<D>>
-  onConflict: string[]
+  create: Partial<D> | Array<Partial<D>>
+  update?: Partial<D> | Array<Partial<D>>
+  onConflict: string[] | Knex.Raw<any>
 }) => Promise<D[]>
 
 type DeleteManyFn = <
@@ -488,7 +489,8 @@ export class AtomService {
 
   public upsertOnConflict: UpsertOnConflictFn = async ({
     table,
-    data,
+    create,
+    update,
     onConflict,
   }) => {
     const updatedAt = isUpdateableTable(table)
@@ -497,12 +499,12 @@ export class AtomService {
 
     return this.knex(table)
       .insert(
-        Array.isArray(data)
-          ? data.map((d) => ({ ...d, ...updatedAt }))
-          : { ...data, ...updatedAt }
+        Array.isArray(create)
+          ? create.map((d) => ({ ...d, ...updatedAt }))
+          : { ...create, ...updatedAt }
       )
-      .onConflict(onConflict)
-      .merge()
+      .onConflict(onConflict as Knex.Raw)
+      .merge(update)
       .returning('*')
   }
 

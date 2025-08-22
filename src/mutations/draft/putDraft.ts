@@ -1,4 +1,4 @@
-import type { AtomService } from '#connectors/index.js'
+import type { AtomService, TagService } from '#connectors/index.js'
 import type {
   GQLMutationResolvers,
   Draft,
@@ -18,7 +18,6 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
 } from '#common/enums/index.js'
-import { environment } from '#common/environment.js'
 import {
   ArticleCollectionReachLimitError,
   ArticleNotFoundError,
@@ -69,7 +68,13 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   },
   {
     viewer,
-    dataSources: { userService, atomService, systemService, campaignService },
+    dataSources: {
+      userService,
+      atomService,
+      tagService,
+      systemService,
+      campaignService,
+    },
   }
 ) => {
   userService.validateUserState(viewer)
@@ -100,7 +105,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
           tags,
           viewerId: viewer.id,
           draft: oldDraft,
-          atomService,
+          tagService,
         })),
       cover:
         cover &&
@@ -208,15 +213,15 @@ const validateDraft = async ({
 }
 
 const validateTags = async ({
-  viewerId,
   tags,
   draft,
-  atomService,
+  tagService,
+  viewerId,
 }: {
-  viewerId: string
   tags: string[]
   draft: Draft | null
-  atomService: AtomService
+  tagService: TagService
+  viewerId: string
 }) => {
   if (tags.length === 0) {
     return null
@@ -242,19 +247,11 @@ const validateTags = async ({
     }
   }
 
-  // Validate matty tag
-  const isMatty = viewerId === environment.mattyId
-  const mattyTagId = environment.mattyChoiceTagId
-  if (mattyTagId && !isMatty) {
-    const mattyTag = await atomService.findUnique({
-      table: 'tag',
-      where: { id: mattyTagId },
-    })
-    if (mattyTag && tags.includes(mattyTag.content)) {
-      throw new ForbiddenError('not allow to add official tag')
-    }
-  }
-  return tags
+  return await Promise.all(
+    tags.map(async (content) =>
+      tagService.validate(content, { viewerId: viewerId })
+    )
+  )
 }
 
 const validateConnections = async ({

@@ -12,6 +12,7 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
     viewer,
     dataSources: {
       momentService,
+      tagService,
       atomService,
       connections: { redis },
     },
@@ -20,17 +21,37 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
+  if (tags && tags.length > 0) {
+    await Promise.all(
+      tags.map(async (tagContent) => {
+        await tagService.validate(tagContent, {
+          viewerId: viewer.id,
+        })
+      })
+    )
+  }
 
-  const assetIds = (await atomService.assetUUIDLoader.loadMany(assets || [])).map(
-    ({ id }) => id
+  const assetIds = (
+    await atomService.assetUUIDLoader.loadMany(assets || [])
+  ).map(({ id }) => id)
+
+  const articleIds = articles
+    ? articles.map((gid) => fromGlobalId(gid).id)
+    : undefined
+
+  const tagIds = await Promise.all(
+    (tags ?? []).map(async (tagContent) => {
+      const tag = await tagService.upsert({
+        content: tagContent,
+        creator: viewer.id,
+      })
+      return tag.id
+    })
   )
 
-  // map article global IDs to raw IDs if provided
-  // articles input is optional; if present we use only the first
-  const articleIds = articles ? articles.map((gid) => fromGlobalId(gid).id) : undefined
-
+  // can not update Moment by now.
   const moment = await momentService.create(
-    { content, assetIds, tags, articleIds },
+    { content, assetIds, tagIds, articleIds },
     viewer
   )
 

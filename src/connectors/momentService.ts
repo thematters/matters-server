@@ -19,7 +19,6 @@ import { createRequire } from 'node:module'
 
 import { AtomService } from './atomService.js'
 import { NotificationService } from './notification/notificationService.js'
-import { TagService } from './tagService.js'
 import { UserService } from './userService.js'
 
 const require = createRequire(import.meta.url)
@@ -42,7 +41,7 @@ export class MomentService {
       content: string
       assetIds?: string[]
       // only first tag/article will be linked due to unique(moment_id)
-      tags?: string[]
+      tagIds?: string[]
       articleIds?: string[]
     },
     user: Pick<User, 'id' | 'state' | 'userName'>
@@ -130,22 +129,13 @@ export class MomentService {
     }
 
     // link one tag if provided
-    if (data.tags && data.tags.length > 0) {
-      const content = data.tags.find((t) => !!t?.trim())?.trim()
-      if (content) {
-        const tagService = new TagService(this.connections)
-        const tag = await tagService.create({ content, creator: user.id }, {
-          columns: ['id', 'content'],
-        })
-        if (tag) {
-          await this.models.upsert({
-            table: 'moment_tag',
-            where: { momentId: moment.id },
-            create: { momentId: moment.id, tagId: tag.id },
-            update: { tagId: tag.id },
-          })
-        }
-      }
+    if (data.tagIds && data.tagIds.length > 0) {
+      await this.models.upsert({
+        table: 'moment_tag',
+        where: { momentId: moment.id },
+        create: { momentId: moment.id, tagId: data.tagIds[0] },
+        update: { tagId: data.tagIds[0] },
+      })
     }
     // notify mentioned users
     const notificationService = new NotificationService(this.connections)

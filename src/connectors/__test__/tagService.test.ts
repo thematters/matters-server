@@ -114,12 +114,7 @@ describe('findArticleIds', () => {
 
 test('create', async () => {
   const content = 'foo'
-  const tag = await tagService.create(
-    { content, creator: '0' },
-    {
-      columns: ['id', 'content'],
-    }
-  )
+  const tag = await tagService.upsert({ content, creator: '0' })
   expect(tag.content).toEqual(content)
 })
 
