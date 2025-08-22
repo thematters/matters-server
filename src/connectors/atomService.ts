@@ -636,6 +636,7 @@ const UPATEABLE_TABLES = [
   'campaign_article',
   'article_channel_job',
   'campaign_channel',
+  'tag_channel',
   'topic_channel_article',
   'topic_channel',
   'curation_channel_article',
