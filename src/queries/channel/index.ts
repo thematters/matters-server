@@ -43,6 +43,9 @@ const schema: GQLResolvers = {
   Channel: {
     __resolveType: ({ __type }: any) => __type,
   },
+  Tag: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+  },
 }
 
 export default schema

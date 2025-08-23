@@ -16,7 +16,7 @@ const resolver: GQLTagResolvers['shortHash'] = async (
     },
     onConflict: ['id'],
   })
-  return newShortHash
+  return newShortHash ?? ''
 }
 
 export default resolver

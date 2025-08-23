@@ -291,12 +291,12 @@ export default /* GraphQL */ `
 
 
   "This type contains content, count and related data of an article tag."
-  type Tag implements Node {
+  type Tag implements Node & Channel {
     "Unique id of this tag."
     id: ID!
 
     "Short hash for shorter url addressing"
-    shortHash: String
+    shortHash: String!
 
     "Navbar title for this tag channel"
     navbarTitle(input: TranslationArgs): String!

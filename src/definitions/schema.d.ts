@@ -3774,33 +3774,34 @@ export type GQLSubscribeCircleResult = {
 }
 
 /** This type contains content, count and related data of an article tag. */
-export type GQLTag = GQLNode & {
-  __typename?: 'Tag'
-  /** List of how many articles were attached with this tag. */
-  articles: GQLArticleConnection
-  /** Content of this tag. */
-  content: Scalars['String']['output']
-  /** Time of this tag was created. */
-  createdAt: Scalars['DateTime']['output']
-  deleted: Scalars['Boolean']['output']
-  /** Unique id of this tag. */
-  id: Scalars['ID']['output']
-  /** This value determines if current viewer is following or not. */
-  isFollower?: Maybe<Scalars['Boolean']['output']>
-  /** Navbar title for this tag channel */
-  navbarTitle: Scalars['String']['output']
-  /** Counts of this tag. */
-  numArticles: Scalars['Int']['output']
-  numAuthors: Scalars['Int']['output']
-  oss: GQLTagOss
-  /** Tags recommended based on relations to current tag. */
-  recommended: GQLTagConnection
-  /** Authors recommended based on relations to current tag. */
-  recommendedAuthors: GQLUserConnection
-  remark?: Maybe<Scalars['String']['output']>
-  /** Short hash for shorter url addressing */
-  shortHash?: Maybe<Scalars['String']['output']>
-}
+export type GQLTag = GQLChannel &
+  GQLNode & {
+    __typename?: 'Tag'
+    /** List of how many articles were attached with this tag. */
+    articles: GQLArticleConnection
+    /** Content of this tag. */
+    content: Scalars['String']['output']
+    /** Time of this tag was created. */
+    createdAt: Scalars['DateTime']['output']
+    deleted: Scalars['Boolean']['output']
+    /** Unique id of this tag. */
+    id: Scalars['ID']['output']
+    /** This value determines if current viewer is following or not. */
+    isFollower?: Maybe<Scalars['Boolean']['output']>
+    /** Navbar title for this tag channel */
+    navbarTitle: Scalars['String']['output']
+    /** Counts of this tag. */
+    numArticles: Scalars['Int']['output']
+    numAuthors: Scalars['Int']['output']
+    oss: GQLTagOss
+    /** Tags recommended based on relations to current tag. */
+    recommended: GQLTagConnection
+    /** Authors recommended based on relations to current tag. */
+    recommendedAuthors: GQLUserConnection
+    remark?: Maybe<Scalars['String']['output']>
+    /** Short hash for shorter url addressing */
+    shortHash: Scalars['String']['output']
+  }
 
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagArticlesArgs = {
@@ -4890,7 +4891,7 @@ export type GQLResolversInterfaceTypes<
   _RefType extends Record<string, unknown>
 > = ResolversObject<{
   Campaign: CampaignModel
-  Channel: CurationChannelModel | TopicChannelModel | CampaignModel
+  Channel: CurationChannelModel | TagModel | TopicChannelModel | CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['AppreciationEdge']>>
@@ -7321,7 +7322,7 @@ export type GQLChannelResolvers<
   ParentType extends GQLResolversParentTypes['Channel'] = GQLResolversParentTypes['Channel']
 > = ResolversObject<{
   __resolveType: TypeResolveFn<
-    'CurationChannel' | 'TopicChannel' | 'WritingChallenge',
+    'CurationChannel' | 'Tag' | 'TopicChannel' | 'WritingChallenge',
     ParentType,
     ContextType
   >
@@ -9987,11 +9988,7 @@ export type GQLTagResolvers<
     RequireFields<GQLTagRecommendedAuthorsArgs, 'input'>
   >
   remark?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
-  shortHash?: Resolver<
-    Maybe<GQLResolversTypes['String']>,
-    ParentType,
-    ContextType
-  >
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
