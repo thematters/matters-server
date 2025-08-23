@@ -81,6 +81,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     putTopicChannel(input: PutTopicChannelInput!): TopicChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.TopicChannel}")
     putCurationChannel(input: PutCurationChannelInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
+    putTagChannel(input: PutTagChannelInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
     setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
     deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.CurationChannel}")
@@ -126,6 +127,12 @@ export default /* GraphQL */ `
     activePeriod: DatetimeRangeInput
     state: CurationChannelState
     showRecommendation: Boolean
+  }
+
+  input PutTagChannelInput {
+    id: ID!
+    enabled: Boolean
+    navbarTitle: [TranslationInput!]
   }
 
   input SetArticleTopicChannelsInput {

@@ -282,6 +282,7 @@ type Mutation {
   unlikeMoment(input: UnlikeMomentInput!): Moment!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
+  putTagChannel(input: PutTagChannelInput!): Tag!
   setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article!
   addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel!
   deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel!
@@ -4134,6 +4135,12 @@ input PutCurationChannelInput {
   activePeriod: DatetimeRangeInput
   state: CurationChannelState
   showRecommendation: Boolean
+}
+
+input PutTagChannelInput {
+  id: ID!
+  enabled: Boolean
+  navbarTitle: [TranslationInput!]
 }
 
 input SetArticleTopicChannelsInput {

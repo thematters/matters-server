@@ -2120,6 +2120,7 @@ export type GQLMutation = {
   putRemark?: Maybe<Scalars['String']['output']>
   putRestrictedUsers: Array<GQLUser>
   putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
+  putTagChannel: GQLTag
   putTopicChannel: GQLTopicChannel
   putUserFeatureFlags: Array<GQLUser>
   putWritingChallenge: GQLWritingChallenge
@@ -2430,6 +2431,10 @@ export type GQLMutationPutRestrictedUsersArgs = {
 
 export type GQLMutationPutSkippedListItemArgs = {
   input: GQLPutSkippedListItemInput
+}
+
+export type GQLMutationPutTagChannelArgs = {
+  input: GQLPutTagChannelInput
 }
 
 export type GQLMutationPutTopicChannelArgs = {
@@ -3146,6 +3151,12 @@ export type GQLPutSkippedListItemInput = {
   id?: InputMaybe<Scalars['ID']['input']>
   type?: InputMaybe<GQLSkippedListItemType>
   value?: InputMaybe<Scalars['String']['input']>
+}
+
+export type GQLPutTagChannelInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>
+  id: Scalars['ID']['input']
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
 }
 
 export type GQLPutTopicChannelInput = {
@@ -5444,6 +5455,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
+  PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
@@ -6079,6 +6091,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
+  PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
@@ -8712,6 +8725,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutSkippedListItemArgs, 'input'>
+  >
+  putTagChannel?: Resolver<
+    GQLResolversTypes['Tag'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutTagChannelArgs, 'input'>
   >
   putTopicChannel?: Resolver<
     GQLResolversTypes['TopicChannel'],
