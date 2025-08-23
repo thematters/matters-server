@@ -63,6 +63,7 @@ import tagNumAuthors from './tag/numAuthors.js'
 import * as tagOSS from './tag/oss.js'
 import tagsRecommended from './tag/recommended.js'
 import tagsRecommendedAuthors from './tag/recommendedAuthors.js'
+import tagShortHash from './tag/shortHash.js'
 import tags from './tags.js'
 import title from './title.js'
 import transactionsReceivedBy from './transactionsReceivedBy.js'
@@ -149,6 +150,7 @@ const schema: GQLResolvers = {
   },
   Tag: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+    shortHash: tagShortHash,
     articles: tagArticles,
     isFollower: tagIsFollower,
     numArticles: tagNumArticles,

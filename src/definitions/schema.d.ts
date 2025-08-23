@@ -3796,6 +3796,8 @@ export type GQLTag = GQLNode & {
   /** Authors recommended based on relations to current tag. */
   recommendedAuthors: GQLUserConnection
   remark?: Maybe<Scalars['String']['output']>
+  /** Short hash for shorter url addressing */
+  shortHash?: Maybe<Scalars['String']['output']>
 }
 
 /** This type contains content, count and related data of an article tag. */
@@ -9972,6 +9974,11 @@ export type GQLTagResolvers<
     RequireFields<GQLTagRecommendedAuthorsArgs, 'input'>
   >
   remark?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  shortHash?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

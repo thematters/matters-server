@@ -295,6 +295,9 @@ export default /* GraphQL */ `
     "Unique id of this tag."
     id: ID!
 
+    "Short hash for shorter url addressing"
+    shortHash: String
+
     "Content of this tag."
     content: String!
 
