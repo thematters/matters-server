@@ -26,6 +26,7 @@ describe('putTagChannel', () => {
       mutation PutTagChannel($input: PutTagChannelInput!) {
         putTagChannel(input: $input) {
           id
+          navbarTitle(input: { language: en })
         }
       }
     `
@@ -34,7 +35,7 @@ describe('putTagChannel', () => {
       query: PUT_TAG_CHANNEL,
       variables: {
         input: {
-          tag: toGlobalId({ type: NODE_TYPES.Tag, id: '2' }),
+          id: toGlobalId({ type: NODE_TYPES.Tag, id: '2' }),
           enabled: true,
           navbarTitle: [{ language: 'en', text: 'Nav for tag' }],
         },
@@ -43,5 +44,6 @@ describe('putTagChannel', () => {
 
     expect(errors).toBeUndefined()
     expect(data?.putTagChannel?.id).toBeDefined()
+    expect(data?.putTagChannel?.navbarTitle).toBe('Nav for tag')
   })
 })

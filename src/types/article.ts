@@ -298,6 +298,9 @@ export default /* GraphQL */ `
     "Short hash for shorter url addressing"
     shortHash: String
 
+    "Navbar title for this tag channel"
+    navbarTitle(input: TranslationArgs): String!
+
     "Content of this tag."
     content: String!
 

@@ -3787,6 +3787,8 @@ export type GQLTag = GQLNode & {
   id: Scalars['ID']['output']
   /** This value determines if current viewer is following or not. */
   isFollower?: Maybe<Scalars['Boolean']['output']>
+  /** Navbar title for this tag channel */
+  navbarTitle: Scalars['String']['output']
   /** Counts of this tag. */
   numArticles: Scalars['Int']['output']
   numAuthors: Scalars['Int']['output']
@@ -3803,6 +3805,11 @@ export type GQLTag = GQLNode & {
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagArticlesArgs = {
   input: GQLTagArticlesInput
+}
+
+/** This type contains content, count and related data of an article tag. */
+export type GQLTagNavbarTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 /** This type contains content, count and related data of an article tag. */
@@ -9957,6 +9964,12 @@ export type GQLTagResolvers<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
+  >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLTagNavbarTitleArgs>
   >
   numArticles?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   numAuthors?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
