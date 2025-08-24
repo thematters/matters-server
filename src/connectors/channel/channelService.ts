@@ -276,6 +276,12 @@ export class ChannelService {
           where: { campaignId: id },
           data: { order },
         })
+      case NODE_TYPES.Tag:
+        return this.models.update({
+          table: 'tag_channel',
+          where: { tagId: id },
+          data: { order },
+        })
       default:
         throw new Error(`Unsupported node type: ${type}`)
     }
