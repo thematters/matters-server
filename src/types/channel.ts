@@ -141,7 +141,6 @@ export default /* GraphQL */ `
   }
 
   input ReorderChannelsInput {
-    "ids of TopicChannels, CurationChannels, and WritingChallenges"
     ids: [ID!]!
   }
 

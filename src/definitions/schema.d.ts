@@ -3779,6 +3779,8 @@ export type GQLTag = GQLChannel &
     __typename?: 'Tag'
     /** List of how many articles were attached with this tag. */
     articles: GQLArticleConnection
+    /** Whether this tag is enabled as a channel */
+    channelEnabled: Scalars['Boolean']['output']
     /** Content of this tag. */
     content: Scalars['String']['output']
     /** Time of this tag was created. */
@@ -9956,6 +9958,11 @@ export type GQLTagResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLTagArticlesArgs, 'input'>
+  >
+  channelEnabled?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
   >
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>

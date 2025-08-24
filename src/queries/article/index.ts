@@ -57,6 +57,7 @@ import state from './state.js'
 import summary from './summary.js'
 import summaryCustomized from './summaryCustomized.js'
 import tagArticles from './tag/articles.js'
+import tagChannelEnabled from './tag/channelEnabled.js'
 import tagIsFollower from './tag/isFollower.js'
 import tagNavbarTitle from './tag/navbarTitle.js'
 import tagNumArticles from './tag/numArticles.js'
@@ -153,6 +154,7 @@ const schema: GQLResolvers = {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     navbarTitle: tagNavbarTitle,
     shortHash: tagShortHash,
+    channelEnabled: tagChannelEnabled,
     articles: tagArticles,
     isFollower: tagIsFollower,
     numArticles: tagNumArticles,

@@ -301,6 +301,9 @@ export default /* GraphQL */ `
     "Navbar title for this tag channel"
     navbarTitle(input: TranslationArgs): String!
 
+    "Whether this tag is enabled as a channel"
+    channelEnabled: Boolean!
+
     "Content of this tag."
     content: String!
 
