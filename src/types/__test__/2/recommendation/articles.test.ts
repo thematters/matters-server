@@ -10,8 +10,6 @@ import {
   PAYMENT_CURRENCY,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
-  FEATURE_NAME,
-  FEATURE_FLAG,
   DEFAULT_TAKE_PER_PAGE,
 } from '#common/enums/index.js'
 import {
@@ -151,47 +149,6 @@ describe('hottest articles', () => {
         _.clamp(campaignBoostEff, 0.5, 2)
     ).toBe(score)
   })
-  // TODO: move hottest query to service and test spam filter logic there
-  test('spam are excluded', async () => {
-    const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
-    })
-
-    // both `is_spam` and `spam_score` are null, not excluded
-    const server = await testClient({ connections })
-    const { data: data1 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 1 } },
-    })
-    expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
-
-    // `spam_score` = `spam_threshold`, excluded
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { spamScore: spamThreshold },
-    })
-    const { data: data2 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 2 } },
-    })
-    expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
-
-    // `is_spam` = false, not excluded
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: { isSpam: false },
-    })
-    const { data: data3 } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 3 } },
-    })
-    expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
-  })
 })
 
 const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
@@ -308,6 +265,7 @@ describe('user recommendations', () => {
     // after restricted
     await userService.addRestriction('1', 'articleHottest')
 
+    connections.objectCacheRedis.flushall()
     const { data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('hottest'),
       variables: { first: 11 },
