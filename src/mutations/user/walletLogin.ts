@@ -25,7 +25,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
   info
 ) => {
   let result
-  const getAction = (res: any) =>
+  const getAction = (res: { type: GQLAuthResultType }) =>
     res?.type === AUTH_RESULT_TYPE.Signup
       ? AUDIT_LOG_ACTION.walletSignup
       : AUDIT_LOG_ACTION.walletLogin
@@ -37,7 +37,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       status: AUDIT_LOG_STATUS.succeeded,
     })
     return result
-  } catch (err: any) {
+  } catch (err: unknown) {
     const user = await context.dataSources.userService.findByEthAddress(
       args.input.ethAddress
     )
@@ -47,7 +47,9 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         ? AUDIT_LOG_ACTION.walletLogin
         : AUDIT_LOG_ACTION.walletSignup,
       status: AUDIT_LOG_STATUS.failed,
-      remark: `eth address: ${args.input.ethAddress} error message: ${err.message}`,
+      remark: `eth address: ${args.input.ethAddress} error message: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
     })
     throw err
   }
@@ -102,7 +104,7 @@ const _walletLogin: Exclude<
         signature,
         userId: loginUser.id,
         updatedAt: new Date(),
-        expiredAt: null, // check if expired before reset to null
+        expiredAt: null,
       },
     })
 
@@ -135,17 +137,27 @@ const _walletLogin: Exclude<
 export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
   _,
   { input: { ethAddress, nonce, signedMessage, signature } },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, atomService } }
 ) => {
   if (viewer.ethAddress) {
     throw new UserInputError('User has already linked a wallet')
   }
-  await userService.verifyWalletSignature({
+  const lastSigning = await userService.verifyWalletSignature({
     ethAddress,
     nonce,
     signedMessage: signedMessage as Hex,
     signature: signature as Hex,
     validPurposes: [SIGNING_MESSAGE_PURPOSE.connect],
+  })
+  await atomService.update({
+    table: sigTable,
+    where: { id: lastSigning.id },
+    data: {
+      signature,
+      userId: viewer.id,
+      updatedAt: new Date(),
+      expiredAt: null,
+    },
   })
   return userService.addWallet(viewer.id, ethAddress)
 }
