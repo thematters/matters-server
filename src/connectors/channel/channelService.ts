@@ -156,6 +156,23 @@ export class ChannelService {
     })
   }
 
+  public updateOrCreateTagChannel = async ({
+    tagId,
+    enabled,
+    navbarTitle,
+  }: {
+    tagId: string
+    enabled?: boolean
+    navbarTitle?: string | null
+  }) => {
+    return this.models.upsert({
+      table: 'tag_channel',
+      where: { tagId },
+      create: { tagId, enabled, navbarTitle: navbarTitle ?? null },
+      update: { enabled, navbarTitle: navbarTitle ?? null },
+    })
+  }
+
   public createCurationChannel = async ({
     name,
     note,
@@ -257,6 +274,12 @@ export class ChannelService {
         return this.models.update({
           table: 'campaign_channel',
           where: { campaignId: id },
+          data: { order },
+        })
+      case NODE_TYPES.Tag:
+        return this.models.update({
+          table: 'tag_channel',
+          where: { tagId: id },
           data: { order },
         })
       default:

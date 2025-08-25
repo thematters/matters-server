@@ -2120,6 +2120,7 @@ export type GQLMutation = {
   putRemark?: Maybe<Scalars['String']['output']>
   putRestrictedUsers: Array<GQLUser>
   putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
+  putTagChannel: GQLTag
   putTopicChannel: GQLTopicChannel
   putUserFeatureFlags: Array<GQLUser>
   putWritingChallenge: GQLWritingChallenge
@@ -2430,6 +2431,10 @@ export type GQLMutationPutRestrictedUsersArgs = {
 
 export type GQLMutationPutSkippedListItemArgs = {
   input: GQLPutSkippedListItemInput
+}
+
+export type GQLMutationPutTagChannelArgs = {
+  input: GQLPutTagChannelInput
 }
 
 export type GQLMutationPutTopicChannelArgs = {
@@ -3148,6 +3153,12 @@ export type GQLPutSkippedListItemInput = {
   value?: InputMaybe<Scalars['String']['input']>
 }
 
+export type GQLPutTagChannelInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>
+  id: Scalars['ID']['input']
+  navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
+}
+
 export type GQLPutTopicChannelInput = {
   enabled?: InputMaybe<Scalars['Boolean']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
@@ -3763,33 +3774,45 @@ export type GQLSubscribeCircleResult = {
 }
 
 /** This type contains content, count and related data of an article tag. */
-export type GQLTag = GQLNode & {
-  __typename?: 'Tag'
-  /** List of how many articles were attached with this tag. */
-  articles: GQLArticleConnection
-  /** Content of this tag. */
-  content: Scalars['String']['output']
-  /** Time of this tag was created. */
-  createdAt: Scalars['DateTime']['output']
-  deleted: Scalars['Boolean']['output']
-  /** Unique id of this tag. */
-  id: Scalars['ID']['output']
-  /** This value determines if current viewer is following or not. */
-  isFollower?: Maybe<Scalars['Boolean']['output']>
-  /** Counts of this tag. */
-  numArticles: Scalars['Int']['output']
-  numAuthors: Scalars['Int']['output']
-  oss: GQLTagOss
-  /** Tags recommended based on relations to current tag. */
-  recommended: GQLTagConnection
-  /** Authors recommended based on relations to current tag. */
-  recommendedAuthors: GQLUserConnection
-  remark?: Maybe<Scalars['String']['output']>
-}
+export type GQLTag = GQLChannel &
+  GQLNode & {
+    __typename?: 'Tag'
+    /** List of how many articles were attached with this tag. */
+    articles: GQLArticleConnection
+    /** Whether this tag is enabled as a channel */
+    channelEnabled: Scalars['Boolean']['output']
+    /** Content of this tag. */
+    content: Scalars['String']['output']
+    /** Time of this tag was created. */
+    createdAt: Scalars['DateTime']['output']
+    deleted: Scalars['Boolean']['output']
+    /** Unique id of this tag. */
+    id: Scalars['ID']['output']
+    /** This value determines if current viewer is following or not. */
+    isFollower?: Maybe<Scalars['Boolean']['output']>
+    /** Navbar title for this tag channel */
+    navbarTitle: Scalars['String']['output']
+    /** Counts of this tag. */
+    numArticles: Scalars['Int']['output']
+    numAuthors: Scalars['Int']['output']
+    oss: GQLTagOss
+    /** Tags recommended based on relations to current tag. */
+    recommended: GQLTagConnection
+    /** Authors recommended based on relations to current tag. */
+    recommendedAuthors: GQLUserConnection
+    remark?: Maybe<Scalars['String']['output']>
+    /** Short hash for shorter url addressing */
+    shortHash: Scalars['String']['output']
+  }
 
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagArticlesArgs = {
   input: GQLTagArticlesInput
+}
+
+/** This type contains content, count and related data of an article tag. */
+export type GQLTagNavbarTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 /** This type contains content, count and related data of an article tag. */
@@ -4870,7 +4893,7 @@ export type GQLResolversInterfaceTypes<
   _RefType extends Record<string, unknown>
 > = ResolversObject<{
   Campaign: CampaignModel
-  Channel: CurationChannelModel | TopicChannelModel | CampaignModel
+  Channel: CurationChannelModel | TagModel | TopicChannelModel | CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['AppreciationEdge']>>
@@ -5444,6 +5467,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
+  PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
@@ -6079,6 +6103,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
+  PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
@@ -7299,7 +7324,7 @@ export type GQLChannelResolvers<
   ParentType extends GQLResolversParentTypes['Channel'] = GQLResolversParentTypes['Channel']
 > = ResolversObject<{
   __resolveType: TypeResolveFn<
-    'CurationChannel' | 'TopicChannel' | 'WritingChallenge',
+    'CurationChannel' | 'Tag' | 'TopicChannel' | 'WritingChallenge',
     ParentType,
     ContextType
   >
@@ -8713,6 +8738,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutSkippedListItemArgs, 'input'>
   >
+  putTagChannel?: Resolver<
+    GQLResolversTypes['Tag'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutTagChannelArgs, 'input'>
+  >
   putTopicChannel?: Resolver<
     GQLResolversTypes['TopicChannel'],
     ParentType,
@@ -9928,6 +9959,11 @@ export type GQLTagResolvers<
     ContextType,
     RequireFields<GQLTagArticlesArgs, 'input'>
   >
+  channelEnabled?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   deleted?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
@@ -9936,6 +9972,12 @@ export type GQLTagResolvers<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
+  >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLTagNavbarTitleArgs>
   >
   numArticles?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   numAuthors?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
@@ -9953,6 +9995,7 @@ export type GQLTagResolvers<
     RequireFields<GQLTagRecommendedAuthorsArgs, 'input'>
   >
   remark?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

@@ -2,6 +2,7 @@ import addCurationChannelArticles from './addCurationChannelArticles.js'
 import classifyArticlesChannels from './classifyArticlesChannels.js'
 import deleteCurationChannelArticles from './deleteCurationChannelArticles.js'
 import putCurationChannel from './putCurationChannel.js'
+import putTagChannel from './putTagChannel.js'
 import putTopicChannel from './putTopicChannel.js'
 import reorderChannels from './reorderChannels.js'
 import setArticleTopicChannels from './setArticleTopicChannels.js'
@@ -12,6 +13,7 @@ export default {
   Mutation: {
     putTopicChannel,
     putCurationChannel,
+    putTagChannel,
     setArticleTopicChannels,
     classifyArticlesChannels,
     addCurationChannelArticles,
