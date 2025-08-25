@@ -3423,7 +3423,6 @@ export type GQLRenameTagInput = {
 }
 
 export type GQLReorderChannelsInput = {
-  /** ids of TopicChannels, CurationChannels, and WritingChallenges */
   ids: Array<Scalars['ID']['input']>
 }
 

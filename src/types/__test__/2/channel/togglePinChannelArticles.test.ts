@@ -3,16 +3,18 @@ import type { Connections } from '#definitions/index.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { genConnections, closeConnections, testClient } from '../../utils.js'
-import { ChannelService, AtomService } from '#connectors/index.js'
+import { ChannelService, AtomService, TagService } from '#connectors/index.js'
 
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
+let tagService: TagService
 
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
+  tagService = new TagService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -44,6 +46,15 @@ describe('togglePinChannelArticles', () => {
             }
           }
         }
+        ... on Tag {
+          articles(input: { first: 10 }) {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
       }
     }
   `
@@ -51,6 +62,7 @@ describe('togglePinChannelArticles', () => {
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'topic_channel_article' })
     await atomService.deleteMany({ table: 'curation_channel_article' })
+    await atomService.deleteMany({ table: 'article_tag' })
     await atomService.deleteMany({ table: 'topic_channel' })
     await atomService.deleteMany({ table: 'curation_channel' })
   })
@@ -289,6 +301,34 @@ describe('togglePinChannelArticles', () => {
       expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
     })
 
+    test('accepts valid channel types including Tag', async () => {
+      // Create test tag
+      const tag = await tagService.create({
+        content: 'test-tag-validation',
+        creator: '1',
+      })
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { errors } = await server.executeOperation({
+        query: TOGGLE_PIN_CHANNEL_ARTICLES,
+        variables: {
+          input: {
+            channels: [toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })],
+            articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+            pinned: true,
+          },
+        },
+      })
+
+      // Should not throw error for Tag type
+      expect(errors).toBeUndefined()
+    })
+
     test('throws error for invalid article type', async () => {
       const server = await testClient({
         connections,
@@ -311,6 +351,129 @@ describe('togglePinChannelArticles', () => {
     })
   })
 
+  describe('Tag Channel', () => {
+    test('pins articles for tag channel', async () => {
+      // Create test tag
+      const tag = await tagService.create({
+        content: 'test-tag',
+        creator: '1',
+      })
+
+      const articles = ['1', '2', '3'].map((id) => ({
+        articleId: id,
+        tagId: tag.id,
+      }))
+
+      await Promise.all(
+        articles.map((article) =>
+          atomService.create({
+            table: 'article_tag',
+            data: article,
+          })
+        )
+      )
+
+      // Execute mutation
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: TOGGLE_PIN_CHANNEL_ARTICLES,
+        variables: {
+          input: {
+            channels: [
+              toGlobalId({
+                type: NODE_TYPES.Tag,
+                id: tag.id,
+              }),
+            ],
+            articles: articles.map((a) =>
+              toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
+            ),
+            pinned: true,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.togglePinChannelArticles).toHaveLength(1)
+      expect(data?.togglePinChannelArticles[0].articles.edges).toHaveLength(3)
+
+      // Verify pinning in database since Tag doesn't expose pinned field in GraphQL yet
+      const pinnedArticles = await atomService.findMany({
+        table: 'article_tag',
+        where: {
+          tagId: tag.id,
+          pinned: true,
+        },
+      })
+      expect(pinnedArticles).toHaveLength(3)
+    })
+
+    test('unpins articles for tag channel', async () => {
+      // Create test tag
+      const tag = await tagService.create({
+        content: 'test-tag-unpin',
+        creator: '1',
+      })
+
+      const articles = ['1', '2'].map((id) => ({
+        articleId: id,
+        tagId: tag.id,
+        pinned: true,
+        pinnedAt: new Date(),
+      }))
+
+      await Promise.all(
+        articles.map((article) =>
+          atomService.create({
+            table: 'article_tag',
+            data: article,
+          })
+        )
+      )
+
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+
+      const { data, errors } = await server.executeOperation({
+        query: TOGGLE_PIN_CHANNEL_ARTICLES,
+        variables: {
+          input: {
+            channels: [
+              toGlobalId({
+                type: NODE_TYPES.Tag,
+                id: tag.id,
+              }),
+            ],
+            articles: articles.map((a) =>
+              toGlobalId({ type: NODE_TYPES.Article, id: a.articleId })
+            ),
+            pinned: false,
+          },
+        },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data?.togglePinChannelArticles).toHaveLength(1)
+
+      // Verify unpinning in database
+      const pinnedArticles = await atomService.findMany({
+        table: 'article_tag',
+        where: {
+          tagId: tag.id,
+          pinned: true,
+        },
+      })
+      expect(pinnedArticles).toHaveLength(0)
+    })
+  })
   describe('Unpinning', () => {
     test('successfully unpins articles', async () => {
       // Create channel and pinned articles

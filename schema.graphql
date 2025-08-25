@@ -4158,7 +4158,6 @@ input SetArticleTopicChannelsInput {
 }
 
 input ReorderChannelsInput {
-  """ids of TopicChannels, CurationChannels, and WritingChallenges"""
   ids: [ID!]!
 }
 
