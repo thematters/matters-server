@@ -14,6 +14,7 @@ import {
   NODE_TYPES,
   NOTICE_TYPE,
   TOPIC_CHANNEL_PIN_LIMIT,
+  TAG_CHANNEL_PIN_LIMIT,
   TOPIC_CHANNEL_FEEDBACK_TYPE,
   TOPIC_CHANNEL_FEEDBACK_STATE,
   CACHE_PREFIX,
@@ -850,6 +851,88 @@ export class ChannelService {
     })
 
     return updatedChannel
+  }
+
+  public togglePinTagArticles = async ({
+    tagId,
+    articleIds,
+    pinned,
+  }: {
+    tagId: string
+    articleIds: string[]
+    pinned: boolean
+  }) => {
+    // Get tag to verify it exists
+    const tag = await this.models.findUnique({
+      table: 'tag',
+      where: { id: tagId },
+    })
+
+    if (!tag) {
+      throw new EntityNotFoundError('tag not found')
+    }
+
+    if (articleIds.length === 0) {
+      return tag
+    }
+
+    const maxPinAmount = TAG_CHANNEL_PIN_LIMIT
+
+    // If pinning, check if it would exceed the limit
+    if (pinned) {
+      if (articleIds.length > maxPinAmount) {
+        throw new ActionLimitExceededError(
+          `Cannot pin more than ${maxPinAmount} articles in this tag`
+        )
+      }
+      const currentPinnedCount = await this.models.count({
+        table: 'article_tag',
+        where: {
+          tagId,
+          pinned: true,
+        },
+      })
+      const unpinnedArticleCount = await this.models.count({
+        table: 'article_tag',
+        where: { tagId, pinned: false },
+        whereIn: ['articleId', articleIds],
+      })
+
+      if (currentPinnedCount + unpinnedArticleCount > maxPinAmount) {
+        // Find oldest pinned articles to unpin
+        const oldestPinnedArticles = await this.models.findMany({
+          table: 'article_tag',
+          where: { tagId, pinned: true },
+          orderBy: [{ column: 'pinnedAt', order: 'asc' }],
+          take: unpinnedArticleCount - (maxPinAmount - currentPinnedCount),
+        })
+
+        // Unpin oldest articles to make room
+        await this.models.updateMany({
+          table: 'article_tag',
+          where: { tagId },
+          whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
+          data: {
+            pinned: false,
+            pinnedAt: null,
+          },
+        })
+      }
+    }
+
+    // Update pin status for articles in the tag
+    const now = new Date()
+    await this.models.updateMany({
+      table: 'article_tag',
+      where: { tagId },
+      whereIn: ['articleId', articleIds],
+      data: {
+        pinned,
+        pinnedAt: pinned ? now : null,
+      },
+    })
+
+    return tag
   }
 
   public createPositiveFeedback = async ({

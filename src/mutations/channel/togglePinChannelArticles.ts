@@ -22,23 +22,37 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
     channelGlobalIds.map(async (globalId) => {
       const { id, type } = fromGlobalId(globalId)
       if (
-        ![NODE_TYPES.TopicChannel, NODE_TYPES.CurationChannel].includes(type)
+        ![
+          NODE_TYPES.TopicChannel,
+          NODE_TYPES.CurationChannel,
+          NODE_TYPES.Tag,
+        ].includes(type)
       ) {
         throw new UserInputError('Invalid channel ID')
       }
-      const channel =
-        type === NODE_TYPES.TopicChannel
-          ? await channelService.togglePinTopicChannelArticles({
-              channelId: id,
-              articleIds,
-              pinned,
-            })
-          : await channelService.togglePinCurationChannelArticles({
-              channelId: id,
-              articleIds,
-              pinned,
-            })
-      return { ...channel, __type: type }
+
+      let channel
+      if (type === NODE_TYPES.TopicChannel) {
+        channel = await channelService.togglePinTopicChannelArticles({
+          channelId: id,
+          articleIds,
+          pinned,
+        })
+      } else if (type === NODE_TYPES.CurationChannel) {
+        channel = await channelService.togglePinCurationChannelArticles({
+          channelId: id,
+          articleIds,
+          pinned,
+        })
+      } else if (type === NODE_TYPES.Tag) {
+        channel = await channelService.togglePinTagArticles({
+          tagId: id,
+          articleIds,
+          pinned,
+        })
+      }
+
+      return { ...channel, __type: type } as any
     })
   )
 }
