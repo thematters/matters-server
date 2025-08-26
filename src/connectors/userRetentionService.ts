@@ -11,6 +11,7 @@ import { DAY } from '#common/enums/index.js'
 import { environment, isProd } from '#common/environment.js'
 
 import { mailService } from './mail/index.js'
+import { RecommendationService } from './recommendationService.js'
 
 export type SendmailFn = (
   userId: string,
@@ -43,10 +44,12 @@ type RecommendedArticle = {
 const siteDomain = environment.siteDomain || ''
 
 export class UserRetentionService {
+  private connections: Connections
   private knex: Knex
   private knexRO: Knex
 
   public constructor(connections: Connections) {
+    this.connections = connections
     this.knex = connections.knex
     this.knexRO = connections.knexRO
   }
@@ -97,9 +100,9 @@ export class UserRetentionService {
   private markNewUsers = async () => {
     console.time('markNewUsers')
     await this.knex.raw(`
-      INSERT INTO user_retention_history (user_id, state) 
-      SELECT id, 'NEWUSER' FROM public.user 
-      WHERE 
+      INSERT INTO user_retention_history (user_id, state)
+      SELECT id, 'NEWUSER' FROM public.user
+      WHERE
         created_at >= (CURRENT_TIMESTAMP - '2 day'::interval)
         AND id NOT IN (SELECT user_id FROM user_retention_history);
     `)
@@ -124,7 +127,7 @@ export class UserRetentionService {
         GROUP BY author_id
         HAVING count(id) >= 1
       -- except marked users
-      EXCEPT SELECT user_id, 'ACTIVE' 
+      EXCEPT SELECT user_id, 'ACTIVE'
         FROM user_retention_history;
     `)
     console.timeEnd('markActiveUsers1')
@@ -132,7 +135,7 @@ export class UserRetentionService {
     // active users from NORMAL, INACTIVE pool
     console.time('markActiveUsers2')
     await this.knex.raw(`
-      -- helper table contains: users whose latest retention state are NORMAL / INACTIVE 
+      -- helper table contains: users whose latest retention state are NORMAL / INACTIVE
       WITH user_retention AS (
         SELECT ranked.user_id, ranked.state, ranked.created_at
         FROM (
@@ -141,20 +144,20 @@ export class UserRetentionService {
         WHERE ranked.rank = 1 AND ranked.state IN ('NORMAL', 'INACTIVE')
       )
       INSERT INTO user_retention_history (user_id, state)
-      -- users whose latest retention state are NORMAL / INACTIVE 
+      -- users whose latest retention state are NORMAL / INACTIVE
       SELECT user_id, 'ACTIVE' FROM user_retention
       -- intersect users have enough activities since marked NORMAL / INACTIVE
       INTERSECT (
         SELECT article_read_count.user_id, 'ACTIVE'
           FROM article_read_count,user_retention
-          WHERE 
+          WHERE
             article_read_count.user_id=user_retention.user_id
             AND article_read_count.created_at >= user_retention.created_at
           GROUP BY article_read_count.user_id
           HAVING sum(read_time) >= 360 -- 0.1 hours
         UNION SELECT author_id AS user_id, 'ACTIVE'
           FROM article, user_retention
-          WHERE 
+          WHERE
             article.author_id = user_retention.user_id
             AND article.created_at >= user_retention.created_at
           GROUP BY article.author_id
@@ -362,21 +365,34 @@ export class UserRetentionService {
     limit: number,
     excludedArticleIds: string[]
   ): Promise<RecommendedArticle[]> => {
-    const query = this.knexRO('article_hottest_materialized as h')
-      .select('h.id', 'avn.title', 'u.display_name', 'a.short_hash')
-      .join('article as a', 'h.id', 'a.id')
-      .join('article_version_newest as avn', 'h.id', 'avn.article_id')
-      .join('user as u', 'a.author_id', 'u.id')
+    const recommendationService = new RecommendationService(this.connections)
+    const hottestArticleIds = (
+      await recommendationService.findHottestArticles({
+        days: environment.hottestArticlesDays,
+        decayDays: environment.hottestArticlesDecayDays,
+        HKDThreshold: environment.hottestArticlesHKDThreshold,
+        USDTThreshold: environment.hottestArticlesUSDTThreshold,
+        readWeight: environment.hottestArticlesReadWeight,
+        commentWeight: environment.hottestArticlesCommentWeight,
+        donationWeight: environment.hottestArticlesDonationWeight,
+        readersThreshold: environment.hottestArticlesReadersThreshold,
+        commentsThreshold: environment.hottestArticlesCommentsThreshold,
+      })
+    ).map(({ articleId }) => articleId)
+    const query = this.knexRO('article')
+      .select('article.id', 'avn.title', 'u.display_name', 'article.short_hash')
+      .join('article_version_newest as avn', 'article.id', 'avn.article_id')
+      .join('user as u', 'article.author_id', 'u.id')
       .whereRaw(
-        'a.id NOT IN (SELECT article_id FROM article_read_count WHERE user_id = ?)',
+        'article.id NOT IN (SELECT article_id FROM article_read_count WHERE user_id = ?)',
         [userId]
       )
-      .whereNot('a.author_id', userId)
-      .orderBy('h.score', 'desc', 'last')
+      .whereIn('article.id', hottestArticleIds)
+      .whereNot('article.author_id', userId)
       .limit(limit)
 
     if (excludedArticleIds.length > 0) {
-      query.whereNotIn('a.id', excludedArticleIds)
+      query.whereNotIn('article.id', excludedArticleIds)
     }
 
     return await query
