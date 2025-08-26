@@ -3,7 +3,7 @@ import type { GQLQueryResolvers } from '#definitions/index.js'
 const resolver: GQLQueryResolvers['channel'] = async (
   _,
   { input: { shortHash } },
-  { viewer, dataSources: { atomService } }
+  { dataSources: { atomService } }
 ) => {
   const topicChannel = await atomService.findUnique({
     table: 'topic_channel',
@@ -30,6 +30,15 @@ const resolver: GQLQueryResolvers['channel'] = async (
 
   if (campaign) {
     return { ...campaign, __type: 'WritingChallenge' }
+  }
+
+  const tag = await atomService.findUnique({
+    table: 'tag',
+    where: { shortHash },
+  })
+
+  if (tag) {
+    return { ...tag, __type: 'Tag' }
   }
 
   return null

@@ -20,6 +20,7 @@ import {
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
+  shortHash,
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
 } from '#common/utils/index.js'
@@ -214,7 +215,11 @@ export class TagService extends BaseService<Tag> {
   }) => {
     const [tag] = await this.models.upsertOnConflict({
       table: 'tag',
-      create: { content: normalizeTagInput(content), creator },
+      create: {
+        content: normalizeTagInput(content),
+        creator,
+        shortHash: shortHash(),
+      },
       update: { deleted: false },
       onConflict: this.knex.raw('(content) WHERE NOT deleted'),
     })
