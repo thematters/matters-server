@@ -3,7 +3,6 @@ import type {
   TopicChannel,
   CurationChannel,
   CampaignChannel,
-  TagChannel,
 } from '#definitions/index.js'
 
 import { USER_ROLE } from '#common/enums/index.js'
@@ -18,7 +17,6 @@ const resolver: GQLQueryResolvers['channels'] = async (
   let topicChannels: TopicChannel[] = []
   let curationChannels: CurationChannel[] = []
   let campaignChannels: CampaignChannel[] = []
-  let tagChannels: TagChannel[] = []
 
   if (oss && isAdmin) {
     topicChannels = await atomService.findMany({
@@ -30,8 +28,6 @@ const resolver: GQLQueryResolvers['channels'] = async (
     campaignChannels = await atomService.findMany({
       table: 'campaign_channel',
     })
-    // include all tag channels
-    tagChannels = await atomService.findMany({ table: 'tag_channel' })
   } else {
     topicChannels = await atomService.findMany({
       table: 'topic_channel',
@@ -40,10 +36,6 @@ const resolver: GQLQueryResolvers['channels'] = async (
     curationChannels = await channelService.findActiveCurationChannels()
     campaignChannels = await atomService.findMany({
       table: 'campaign_channel',
-      where: { enabled: true },
-    })
-    tagChannels = await atomService.findMany({
-      table: 'tag_channel',
       where: { enabled: true },
     })
   }
@@ -65,28 +57,9 @@ const resolver: GQLQueryResolvers['channels'] = async (
       order: channel.order ?? 0,
       __type: 'WritingChallenge',
     })),
-    ...tagChannels.map(async (channel) => ({
-      ...(await atomService.findFirst({
-        table: 'tag',
-        where: { id: channel.tagId },
-      })),
-      order: channel.order ?? 0,
-      __type: 'Tag',
-    })),
   ])
 
-  const typePriority: Record<string, number> = {
-    WritingChallenge: 0,
-    Tag: 1,
-    CurationChannel: 2,
-    TopicChannel: 3,
-  }
-  return channels.sort((a, b) => {
-    if (a.order !== b.order) return a.order - b.order
-    const pa = typePriority[a.__type] ?? 99
-    const pb = typePriority[b.__type] ?? 99
-    return pa - pb
-  })
+  return channels.sort((a, b) => a.order - b.order)
 }
 
 export default resolver

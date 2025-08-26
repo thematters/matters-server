@@ -22,7 +22,6 @@ const resolver: GQLMutationResolvers['reorderChannels'] = async (
         NODE_TYPES.TopicChannel,
         NODE_TYPES.CurationChannel,
         NODE_TYPES.Campaign,
-        NODE_TYPES.Tag,
       ].includes(type)
     ) {
       throw new UserInputError(`Invalid channel type: ${type}`)
@@ -46,9 +45,6 @@ const resolver: GQLMutationResolvers['reorderChannels'] = async (
           break
         case NODE_TYPES.Campaign:
           invalidateFQC({ node: { type: NODE_TYPES.Campaign, id }, redis })
-          break
-        case NODE_TYPES.Tag:
-          invalidateFQC({ node: { type: NODE_TYPES.Tag, id }, redis })
           break
       }
     })

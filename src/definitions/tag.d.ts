@@ -1,6 +1,5 @@
 export interface Tag {
   id: string
-  shortHash: string | null
   content: string
   createdAt: string
   updatedAt: string

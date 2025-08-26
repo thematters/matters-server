@@ -75,7 +75,6 @@ import type {
   TopicChannel,
   TopicChannelArticle,
   CampaignChannel,
-  TagChannel,
   CurationChannel,
   CurationChannelArticle,
   ArticleChannelJob,
@@ -255,7 +254,6 @@ export interface TableTypeMap {
   campaign_article: CampaignArticle
   campaign_boost: CampaignBoost
   campaign_channel: CampaignChannel
-  tag_channel: TagChannel
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice

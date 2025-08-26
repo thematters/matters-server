@@ -7,22 +7,16 @@ import {
 } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { genConnections, closeConnections, testClient } from '../../utils.js'
-import {
-  ChannelService,
-  CampaignService,
-  TagService,
-} from '#connectors/index.js'
+import { ChannelService, CampaignService } from '#connectors/index.js'
 
 let connections: Connections
 let channelService: ChannelService
 let campaignService: CampaignService
-let tagService: TagService
 
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   campaignService = new CampaignService(connections)
-  tagService = new TagService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -221,45 +215,6 @@ describe('channel query', () => {
     expect(data.channel.shortHash).toBe(campaign.shortHash)
     expect(data.channel.name).toBe('test-campaign-active')
     expect(data.channel.campaignState).toBe(CAMPAIGN_STATE.active)
-  })
-
-  test('returns tag for any user', async () => {
-    const server = await testClient({
-      connections,
-      isAuth: true,
-    })
-
-    // Create tag with shortHash
-    const tag = await tagService.create({
-      content: 'tag-channel',
-      creator: '1',
-    })
-
-    const QUERY_CHANNEL = /* GraphQL */ `
-      query Channel($input: ChannelInput!) {
-        channel(input: $input) {
-          id
-          shortHash
-          ... on Tag {
-            content
-          }
-        }
-      }
-    `
-
-    const { data, errors } = await server.executeOperation({
-      query: QUERY_CHANNEL,
-      variables: {
-        input: { shortHash: tag.shortHash },
-      },
-    })
-
-    expect(errors).toBeUndefined()
-    expect(data.channel.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
-    )
-    expect(data.channel.shortHash).toBe(tag.shortHash)
-    expect(data.channel.content).toBe('tag-channel')
   })
 
   test('returns null for non-existent channel', async () => {

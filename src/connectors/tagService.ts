@@ -16,7 +16,6 @@ import { environment } from '#common/environment.js'
 import { TooManyTagsForArticleError, ForbiddenError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
-  shortHash,
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
 } from '#common/utils/index.js'
@@ -197,7 +196,7 @@ export class TagService extends BaseService<Tag> {
   ) => {
     const tag = await this.baseFindOrCreate({
       where: { content },
-      data: { content, creator, shortHash: shortHash() },
+      data: { content, creator },
       table: this.table,
       columns,
       modifier: (builder: Knex.QueryBuilder) => {

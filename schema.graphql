@@ -282,7 +282,6 @@ type Mutation {
   unlikeMoment(input: UnlikeMomentInput!): Moment!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
-  putTagChannel(input: PutTagChannelInput!): Tag!
   setArticleTopicChannels(input: SetArticleTopicChannelsInput!): Article!
   addCurationChannelArticles(input: AddCurationChannelArticlesInput!): CurationChannel!
   deleteCurationChannelArticles(input: DeleteCurationChannelArticlesInput!): CurationChannel!
@@ -554,18 +553,9 @@ type ArticleVersion implements Node {
 }
 
 """This type contains content, count and related data of an article tag."""
-type Tag implements Node & Channel {
+type Tag implements Node {
   """Unique id of this tag."""
   id: ID!
-
-  """Short hash for shorter url addressing"""
-  shortHash: String!
-
-  """Navbar title for this tag channel"""
-  navbarTitle(input: TranslationArgs): String!
-
-  """Whether this tag is enabled as a channel"""
-  channelEnabled: Boolean!
 
   """Content of this tag."""
   content: String!
@@ -4144,12 +4134,6 @@ input PutCurationChannelInput {
   activePeriod: DatetimeRangeInput
   state: CurationChannelState
   showRecommendation: Boolean
-}
-
-input PutTagChannelInput {
-  id: ID!
-  enabled: Boolean
-  navbarTitle: [TranslationInput!]
 }
 
 input SetArticleTopicChannelsInput {
