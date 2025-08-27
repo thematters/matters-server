@@ -259,7 +259,7 @@ describe('channel query', () => {
       toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
     )
     expect(data.channel.shortHash).toBe(tag.shortHash)
-    expect(data.channel.content).toBe('tag-channel')
+    expect(data.channel.content).toBe('tag channel')
   })
 
   test('returns null for non-existent channel', async () => {
