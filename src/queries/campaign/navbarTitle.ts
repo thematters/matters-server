@@ -1,5 +1,7 @@
 import type { GQLWritingChallengeResolvers } from '#definitions/index.js'
 
+import { stripSpaces } from '#common/utils/text.js'
+
 const resolver: GQLWritingChallengeResolvers['navbarTitle'] = async (
   { id, name },
   { input },
@@ -18,10 +20,16 @@ const resolver: GQLWritingChallengeResolvers['navbarTitle'] = async (
         language,
       })
     : null
-  if (navbarTitleTranslation) {
+  if (
+    navbarTitleTranslation?.text &&
+    stripSpaces(navbarTitleTranslation.text)
+  ) {
     return navbarTitleTranslation.text
   }
-  if (campaignChannel?.navbarTitle) {
+  if (
+    campaignChannel?.navbarTitle &&
+    stripSpaces(campaignChannel?.navbarTitle)
+  ) {
     return campaignChannel.navbarTitle
   }
   const nameTranslation = await translationService.findTranslation({

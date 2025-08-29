@@ -1,5 +1,7 @@
 import type { GQLCurationChannelResolvers } from '#definitions/index.js'
 
+import { stripSpaces } from '#common/utils/text.js'
+
 const resolver: GQLCurationChannelResolvers['navbarTitle'] = async (
   { id, name, navbarTitle },
   { input },
@@ -12,10 +14,13 @@ const resolver: GQLCurationChannelResolvers['navbarTitle'] = async (
     id,
     language,
   })
-  if (navbarTitleTranslation) {
+  if (
+    navbarTitleTranslation?.text &&
+    stripSpaces(navbarTitleTranslation.text)
+  ) {
     return navbarTitleTranslation.text
   }
-  if (navbarTitle) {
+  if (navbarTitle && stripSpaces(navbarTitle)) {
     return navbarTitle
   }
   const nameTranslation = await translationService.findTranslation({
