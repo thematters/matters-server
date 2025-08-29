@@ -46,7 +46,7 @@ export const stripAllPunct = (content: string) => {
   return words.length === 0 ? '' : words.join(' ')
 }
 
-export const stripSpaces = (content: string | null) =>
+export const stripSpaces = (content: string | null | undefined) =>
   content?.replaceAll(/[\b\s]+/g, ' ').trim()
 
 export const normalizeTagInput = (content: string) =>

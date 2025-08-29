@@ -1,5 +1,7 @@
 import type { GQLTagResolvers } from '#definitions/index.js'
 
+import { stripSpaces } from '#common/utils/text.js'
+
 const resolver: GQLTagResolvers['navbarTitle'] = async (
   { id, content },
   { input },
@@ -21,11 +23,14 @@ const resolver: GQLTagResolvers['navbarTitle'] = async (
       })
     : null
 
-  if (navbarTitleTranslation) {
+  if (
+    navbarTitleTranslation?.text &&
+    stripSpaces(navbarTitleTranslation.text)
+  ) {
     return navbarTitleTranslation.text
   }
 
-  if (tagChannel?.navbarTitle) {
+  if (tagChannel?.navbarTitle && stripSpaces(tagChannel?.navbarTitle)) {
     return tagChannel.navbarTitle
   }
 

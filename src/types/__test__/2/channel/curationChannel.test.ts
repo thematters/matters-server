@@ -386,6 +386,31 @@ describe('manage curation channels', () => {
     expect(data.putCurationChannel.navbarTitleEn).toBe('Test Channel')
     expect(data.putCurationChannel.navbarTitleZhHant).toBe('測試頻道')
     expect(data.putCurationChannel.showRecommendation).toBe(false)
+
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: PUT_CURATION_CHANNEL,
+      variables: {
+        input: {
+          name: [
+            { text: 'Test Channel', language: 'en' },
+            { text: '測試頻道', language: 'zh_hant' },
+          ],
+          navbarTitle: [
+            { text: ' ', language: 'en' },
+            { text: ' ', language: 'zh_hant' },
+          ],
+          state: CURATION_CHANNEL_STATE.editing,
+          showRecommendation: false,
+        },
+      },
+    })
+
+    expect(errors2).toBeUndefined()
+    expect(data2.putCurationChannel.nameEn).toBe('Test Channel')
+    expect(data2.putCurationChannel.nameZhHant).toBe('測試頻道')
+    expect(data2.putCurationChannel.navbarTitleEn).toBe('Test Channel')
+    expect(data2.putCurationChannel.navbarTitleZhHant).toBe('測試頻道')
+    expect(data2.putCurationChannel.showRecommendation).toBe(false)
   })
 
   test('creates and updates curation channel with showRecommendation field', async () => {
