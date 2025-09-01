@@ -42,7 +42,7 @@ const typeResolver = (type: string, result: { __type?: string }) => {
 }
 
 // handle null object to avoid error: Cannot read properties of null (reading 'id')
-const idResolver = (type: string, result: { id?: GlobalId }) => {
+const idResolver = (_: string, result: { id?: GlobalId }) => {
   if (!result?.id) {
     return ''
   }
