@@ -1,3 +1,5 @@
+import type { GlobalId } from '#definitions/index.js'
+
 import { CACHE_KEYWORD, NODE_TYPES } from '#common/enums/index.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import mutations from '#mutations/index.js'
@@ -21,7 +23,7 @@ import {
 } from './types/directives/index.js'
 import baseTypeDefs from './types/index.js'
 
-const typeResolver = (type: string, result: any) => {
+const typeResolver = (type: string, result: { __type?: string }) => {
   const unionsAndInterfaces = [
     NODE_TYPES.Node,
     NODE_TYPES.Notice,
@@ -40,7 +42,7 @@ const typeResolver = (type: string, result: any) => {
 }
 
 // handle null object to avoid error: Cannot read properties of null (reading 'id')
-const idResolver = (type: string, result: any) => {
+const idResolver = (type: string, result: { id?: GlobalId }) => {
   if (!result?.id) {
     return ''
   }
