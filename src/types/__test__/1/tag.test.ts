@@ -30,6 +30,7 @@ const QUERY_TAG = /* GraphQL */ `
       ... on Tag {
         id
         content
+        numMoments
         recommended(input: {}) {
           edges {
             node {
@@ -120,5 +121,18 @@ describe('query tag', () => {
       variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },
     })
     expect(data!.node.recommended.edges).toBeDefined()
+  })
+
+  test('tag numMoments', async () => {
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: QUERY_TAG,
+      variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },
+    })
+
+    // Verify numMoments field exists and is a number
+    expect(data!.node.numMoments).toBeDefined()
+    expect(typeof data!.node.numMoments).toBe('number')
+    expect(data!.node.numMoments).toBeGreaterThanOrEqual(0)
   })
 })

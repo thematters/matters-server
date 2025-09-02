@@ -175,3 +175,8 @@ describe('findByAuthorUsage', () => {
     expect(totalCount2).toBe(3)
   })
 })
+
+test('countMoments', async () => {
+  const count = await tagService.countMoments({ id: '2' })
+  expect(count).toBeDefined()
+})

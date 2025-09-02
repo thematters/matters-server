@@ -587,6 +587,7 @@ type Tag implements Node & Channel {
 
   """Counts of this tag."""
   numArticles: Int!
+  numMoments: Int!
   numAuthors: Int!
   oss: TagOSS!
   remark: String
