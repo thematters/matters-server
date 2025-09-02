@@ -6,15 +6,6 @@ import { toGlobalId } from '#common/utils/index.js'
 import { alchemy, AlchemyNetwork } from '#connectors/alchemy/index.js'
 import { Cache } from '#connectors/index.js'
 
-interface OpenSeaNFTAsset {
-  id: any
-  token_id: string
-  title: string
-  description: string | null
-  contractMetadata: any
-  media: any
-}
-
 export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   { address },
   _,
@@ -29,7 +20,7 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
-  const assets = (await cache.getObject({
+  const assets = await cache.getObject({
     keys: { type: 'traveloggers', id: address },
     getter: () =>
       alchemy.getNFTs({
@@ -39,7 +30,7 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
         withMetadata,
       }),
     expire: CACHE_TTL.LONG,
-  })) as any
+  })
 
   return Array.isArray(assets?.ownedNfts) && assets.ownedNfts.length > 0
 }
@@ -58,7 +49,7 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
 
-  const assets = (await cache.getObject({
+  const assets = await cache.getObject({
     keys: { type: 'traveloggers', id: address },
     getter: () =>
       alchemy.getNFTs({
@@ -68,10 +59,10 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
         withMetadata,
       }),
     expire: CACHE_TTL.LONG,
-  })) as any
+  })
 
   return (assets?.ownedNfts || []).map(
-    ({ id, description, title, contractMetadata, media }: OpenSeaNFTAsset) => ({
+    ({ id, description, title, contractMetadata, media }) => ({
       id: toGlobalId({
         type: NODE_TYPES.CryptoWalletNFTAsset,
         id: `${contractMetadata.symbol}#${id.tokenId}`,
@@ -80,7 +71,7 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
       name: title,
       imageUrl: media[0].gateway,
       imagePreviewUrl: media[0].gateway,
-      contractAddress: contract,
+      contractAddress: contract.Ethereum.traveloggersAddress,
       collectionName: contractMetadata.name,
     })
   )

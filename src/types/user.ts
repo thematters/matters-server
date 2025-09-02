@@ -662,7 +662,7 @@ export default /* GraphQL */ `
     # createdAt: DateTime!
 
     """ does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next \`nfts\` query """
-    hasNFTs: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
+    hasNFTs: Boolean!
 
     """NFT assets owned by this wallet address"""
     nfts: [NFTAsset!]
