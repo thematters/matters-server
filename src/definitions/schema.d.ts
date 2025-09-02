@@ -3798,6 +3798,7 @@ export type GQLTag = GQLChannel &
     /** Counts of this tag. */
     numArticles: Scalars['Int']['output']
     numAuthors: Scalars['Int']['output']
+    numMoments: Scalars['Int']['output']
     oss: GQLTagOss
     /** Tags recommended based on relations to current tag. */
     recommended: GQLTagConnection
@@ -9994,6 +9995,7 @@ export type GQLTagResolvers<
   >
   numArticles?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   numAuthors?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  numMoments?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   oss?: Resolver<GQLResolversTypes['TagOSS'], ParentType, ContextType>
   recommended?: Resolver<
     GQLResolversTypes['TagConnection'],

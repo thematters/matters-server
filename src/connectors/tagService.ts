@@ -8,6 +8,7 @@ import type { Knex } from 'knex'
 
 import {
   ARTICLE_STATE,
+  MOMENT_STATE,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   TAG_ACTION,
   MATERIALIZED_VIEW,
@@ -429,9 +430,18 @@ export class TagService extends BaseService<Tag> {
    * Count article authors by a given tag id.
    */
   public countAuthors = async ({ id: tagId }: { id: string }) => {
-    const result = await this.knexRO('article_tag')
+    const articles = this.knexRO('article_tag')
       .join('article', 'article_id', 'article.id')
       .where({ tagId, state: ARTICLE_STATE.active })
+      .select('author_id')
+
+    const moments = this.knexRO('moment_tag')
+      .join('moment', 'moment_id', 'moment.id')
+      .where({ tagId, state: MOMENT_STATE.active })
+      .select('author_id')
+
+    const result = await this.knexRO
+      .from(this.knexRO.union([articles, moments]).as('t'))
       .countDistinct('author_id')
       .first()
 
@@ -451,6 +461,19 @@ export class TagService extends BaseService<Tag> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Count moment by a given tag id.
+   */
+  public countMoments = async ({ id: tagId }: { id: string }) => {
+    const result = await this.knexRO('moment_tag')
+      .join('moment', 'moment_id', 'moment.id')
+      .where({ tagId, state: MOMENT_STATE.active })
+      .count('moment_id')
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   private getHottestArticlesBaseQuery = (tagId: string) => {
     return this.knexRO
       .with('tagged_articles', (builder) =>
@@ -459,7 +482,6 @@ export class TagService extends BaseService<Tag> {
             'article.id',
             'avn.created_at',
             this.knexRO.raw('COALESCE(article_stats.reads, 0) as reads')
-            // this.knexRO.raw('COALESCE(article_stats.claps, 0) as claps')
           )
           .from('article_tag')
           .innerJoin('article', 'article.id', 'article_tag.article_id')

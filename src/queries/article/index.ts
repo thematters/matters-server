@@ -62,6 +62,7 @@ import tagIsFollower from './tag/isFollower.js'
 import tagNavbarTitle from './tag/navbarTitle.js'
 import tagNumArticles from './tag/numArticles.js'
 import tagNumAuthors from './tag/numAuthors.js'
+import tagNumMoments from './tag/numMoments.js'
 import * as tagOSS from './tag/oss.js'
 import tagsRecommended from './tag/recommended.js'
 import tagsRecommendedAuthors from './tag/recommendedAuthors.js'
@@ -158,6 +159,7 @@ const schema: GQLResolvers = {
     articles: tagArticles,
     isFollower: tagIsFollower,
     numArticles: tagNumArticles,
+    numMoments: tagNumMoments,
     numAuthors: tagNumAuthors,
     oss: (root) => root,
     recommended: tagsRecommended,

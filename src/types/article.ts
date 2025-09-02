@@ -324,6 +324,7 @@ export default /* GraphQL */ `
 
     "Counts of this tag."
     numArticles: Int!
+    numMoments: Int!
     numAuthors: Int!
 
     ##############
