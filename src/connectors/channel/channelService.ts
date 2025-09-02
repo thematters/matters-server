@@ -797,7 +797,6 @@ export class ChannelService {
           whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
           data: {
             pinned: false,
-            pinnedAt: null,
           },
         })
       }
@@ -811,7 +810,7 @@ export class ChannelService {
       whereIn: ['articleId', articleIds],
       data: {
         pinned,
-        pinnedAt: pinned ? now : null,
+        pinnedAt: pinned ? now : undefined,
       },
     })
 
@@ -937,7 +936,6 @@ export class ChannelService {
           whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
           data: {
             pinned: false,
-            pinnedAt: null,
           },
         })
       }
@@ -951,7 +949,7 @@ export class ChannelService {
       whereIn: ['articleId', articleIds],
       data: {
         pinned,
-        pinnedAt: pinned ? now : null,
+        pinnedAt: pinned ? now : undefined,
       },
     })
 
