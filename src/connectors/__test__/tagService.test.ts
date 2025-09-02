@@ -180,3 +180,10 @@ test('countMoments', async () => {
   const count = await tagService.countMoments({ id: '2' })
   expect(count).toBeDefined()
 })
+
+test('countAuthors', async () => {
+  const count = await tagService.countAuthors({ id: '2' })
+  expect(count).toBeDefined()
+  expect(typeof count).toBe('number')
+  expect(count).toBeGreaterThanOrEqual(0)
+})
