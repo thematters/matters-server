@@ -179,9 +179,10 @@ export const connectionFromArrayWithKeys = <
  *
  * Cursor based pagination is preferred because it's more efficient and more robust for varying sequence of data.
  * Offset based pagination is used as a fallback when cursor based pagination can not be applied for reasons like:
- *  1. nulls last ordering.
- *  2. multiple columns ordering.
- *  3. numbered pages use cases, which need to calculate offset based on page number.
+ *  1. ordering columns have duplicate values.
+ *  2. nulls last ordering.
+ *  3. multiple columns ordering.
+ *  4. numbered pages use cases, which need to calculate offset based on page number.
  */
 export const connectionFromQuery = async <T extends { id: string }>({
   query,
