@@ -1,11 +1,12 @@
 import type { Connections } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import { ARTICLE_STATE, MOMENT_STATE, NODE_TYPES } from '#common/enums/index.js'
-import { InvalidCursorError } from '#common/errors.js'
 
 interface Writing {
   type: NODE_TYPES.Article | NODE_TYPES.Moment
   id: string
+  created_at: Date
 }
 
 /**
@@ -34,22 +35,12 @@ export class UserWorkService {
     return (Number(res1?.count) || 0) + (Number(res2?.count) || 0)
   }
 
-  public findWritings = async (
-    userId: string,
-    { take, after }: { take: number; after?: { type: NODE_TYPES; id: string } }
-  ): Promise<[Writing[], number, boolean]> => {
-    const validTypes = [NODE_TYPES.Article, NODE_TYPES.Moment]
-    if (after && !validTypes.includes(after.type)) {
-      throw new InvalidCursorError('after is invalid cursor')
-    }
-
+  public findWritingsByUser = (
+    userId: string
+  ): Knex.QueryBuilder<Writing, Writing[]> => {
     const { knexRO } = this.connections
-    const subQuery = knexRO
-      .select(
-        knexRO.raw('count(1) OVER() AS total_count'),
-        knexRO.raw('min(created_at) OVER() AS min_cursor'),
-        '*'
-      )
+    return knexRO
+      .select('*')
       .from(
         knexRO
           .select(knexRO.raw("'Article' AS type, id, created_at"))
@@ -69,34 +60,6 @@ export class UserWorkService {
           )
           .as('t1')
       )
-      .as('t2')
-
-    const query = knexRO
-      .from(subQuery)
-      .orderBy('created_at', 'desc')
-      .limit(take)
-
-    if (after) {
-      const cursor = knexRO(after.type.toLowerCase())
-        .select('created_at')
-        .where({ id: after.id })
-        .first()
-      query.where('created_at', '<', cursor)
-    }
-
-    const records = await query
-    if (records.length > 0) {
-      const totalCount = +records[0].totalCount
-      const hasNextPage =
-        records[records.length - 1].createdAt > records[0].minCursor
-      return [records, totalCount, hasNextPage]
-    } else {
-      if (after || take === 0) {
-        const [{ count }] = await knexRO.from(subQuery).count()
-        return [[], +count, false]
-      } else {
-        return [[], 0, false]
-      }
-    }
+      .as('t2') as any
   }
 }

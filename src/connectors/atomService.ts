@@ -169,7 +169,7 @@ type MaxFn = <
   column: keyof D
 }) => Promise<number>
 
-interface AtomDataLoader<K, V> {
+export interface AtomDataLoader<K, V> {
   load: (key: K) => Promise<V>
   loadMany: (keys: readonly K[]) => Promise<V[]>
 }

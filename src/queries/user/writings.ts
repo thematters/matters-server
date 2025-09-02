@@ -1,64 +1,23 @@
-import type {
-  GQLUserResolvers,
-  Article,
-  Moment,
-  GlobalId,
-} from '#definitions/index.js'
+import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { DEFAULT_TAKE_PER_PAGE, NODE_TYPES } from '#common/enums/index.js'
-import { ServerError } from '#common/errors.js'
-import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { connectionFromUnionQuery } from '#common/utils/index.js'
 
 const resolver: GQLUserResolvers['writings'] = async (
   { id },
   { input },
   { dataSources: { userWorkService, atomService } }
 ) => {
-  const take = input.first ?? DEFAULT_TAKE_PER_PAGE
-  const after = input.after ? fromGlobalId(input.after as GlobalId) : undefined
-  const [records, totalCount, hasNextPage] = await userWorkService.findWritings(
-    id,
-    { take, after }
-  )
-
-  // gen nodes
-  const nodes = await Promise.all(
-    records.map((record) => {
-      switch (record.type) {
-        case 'Article': {
-          return atomService.articleIdLoader.load(record.id)
-        }
-        case 'Moment': {
-          return atomService.momentIdLoader.load(record.id)
-        }
-        default: {
-          throw new ServerError(`Unknown response type: ${record.type}`)
-        }
-      }
-    })
-  )
-
-  // gen edges
-  const isArticle = (node: Article | Moment): node is Article =>
-    'revisionCount' in node
-  const edges = nodes.map((node) => {
-    const type = isArticle(node) ? NODE_TYPES.Article : NODE_TYPES.Moment
-    return {
-      cursor: toGlobalId({ type, id: node.id }),
-      node: { __type: type, ...node },
-    }
-  })
-
-  return {
-    edges,
-    totalCount,
-    pageInfo: {
-      startCursor: edges.length > 0 ? edges[0].cursor : null,
-      endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
-      hasNextPage,
-      hasPreviousPage: after ? true : false,
+  return connectionFromUnionQuery({
+    query: userWorkService.findWritingsByUser(id),
+    args: input,
+    orderBy: { column: 'created_at', order: 'desc' },
+    cursorColumn: 'id',
+    dataloaders: {
+      [NODE_TYPES.Moment]: atomService.momentIdLoader,
+      [NODE_TYPES.Article]: atomService.articleIdLoader,
     },
-  }
+  })
 }
 
 export default resolver
