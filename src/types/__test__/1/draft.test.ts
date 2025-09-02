@@ -173,13 +173,7 @@ describe('put draft', () => {
   })
 
   test('edit draft tags', async () => {
-    const tags = [
-      'abc',
-      '123',
-      'tags too long | too long | too long | too long | too long', // will be omitted at publishing time
-      'tag4',
-      'tag5',
-    ]
+    const tags = ['abc', '123', 'tag4', 'tag5']
 
     // create draft setting tags out of limit
     const { errors: createFailedErrors } = await server.executeOperation({

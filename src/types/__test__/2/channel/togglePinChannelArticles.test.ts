@@ -303,7 +303,7 @@ describe('togglePinChannelArticles', () => {
 
     test('accepts valid channel types including Tag', async () => {
       // Create test tag
-      const tag = await tagService.create({
+      const tag = await tagService.upsert({
         content: 'test-tag-validation',
         creator: '1',
       })
@@ -354,7 +354,7 @@ describe('togglePinChannelArticles', () => {
   describe('Tag Channel', () => {
     test('pins articles for tag channel', async () => {
       // Create test tag
-      const tag = await tagService.create({
+      const tag = await tagService.upsert({
         content: 'test-tag',
         creator: '1',
       })
@@ -415,7 +415,7 @@ describe('togglePinChannelArticles', () => {
 
     test('unpins articles for tag channel', async () => {
       // Create test tag
-      const tag = await tagService.create({
+      const tag = await tagService.upsert({
         content: 'test-tag-unpin',
         creator: '1',
       })

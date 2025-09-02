@@ -326,7 +326,7 @@ export class ChannelService {
       })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
-        data: toAdd.map((channelId) =>
+        create: toAdd.map((channelId) =>
           setLabeled
             ? {
                 articleId,
@@ -640,7 +640,7 @@ export class ChannelService {
         )
         await this.models.upsertOnConflict({
           table: 'article_channel_job',
-          data: {
+          create: {
             articleId: article.id,
             jobId,
             // force into processing state and update result from Lambda

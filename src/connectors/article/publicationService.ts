@@ -32,7 +32,6 @@ import {
   genMD5,
   stripMentions,
   stripHtml,
-  normalizeTagInput,
   extractMentionIds,
   extractAssetDataFromHtml,
 } from '#common/utils/index.js'
@@ -492,7 +491,6 @@ export class PublicationService extends BaseService<Article> {
       const tagService = new TagService(this.connections)
       await tagService.updateArticleTags({
         articleId,
-        actorId,
         tags: newData.tags ?? [],
       })
       data = { ...data, tags: newData.tags ?? [] }
@@ -882,15 +880,11 @@ export class PublicationService extends BaseService<Article> {
     // create tag records, return tag record if already exists
     const dbTags = (
       (await Promise.all(
-        tags.filter(Boolean).map((content: string) =>
-          tagService.create(
-            { content, creator: article.authorId },
-            {
-              columns: ['id', 'content'],
-              skipCreate: normalizeTagInput(content) !== content,
-            }
+        tags
+          .filter(Boolean)
+          .map((content: string) =>
+            tagService.upsert({ content, creator: article.authorId })
           )
-        )
       )) as unknown as [{ id: string; content: string }]
     ).filter(Boolean)
 

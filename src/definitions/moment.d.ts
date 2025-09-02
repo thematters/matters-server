@@ -18,3 +18,19 @@ export interface MomentAsset {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface MomentArticle {
+  id: string
+  momentId: string
+  articleId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface MomentTag {
+  id: string
+  momentId: string
+  tagId: string
+  createdAt: Date
+  updatedAt: Date
+}

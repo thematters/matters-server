@@ -13,7 +13,11 @@ import {
   MATERIALIZED_VIEW,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
-import { TooManyTagsForArticleError, ForbiddenError } from '#common/errors.js'
+import {
+  TooManyTagsForArticleError,
+  ForbiddenError,
+  UserInputError,
+} from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import {
   shortHash,
@@ -33,6 +37,29 @@ export class TagService extends BaseService<Tag> {
   public constructor(connections: Connections) {
     super('tag', connections)
     this.searchService = new SearchService(connections)
+  }
+
+  public validate = async (
+    content: string,
+    {
+      viewerId,
+    }: {
+      viewerId: string
+    }
+  ) => {
+    if (normalizeTagInput(content) !== content) {
+      throw new UserInputError('bad tag format')
+    }
+    // Validate Matty tag
+    const isMatty = viewerId === environment.mattyId
+    const mattyTagId = environment.mattyChoiceTagId
+    if (mattyTagId && !isMatty) {
+      const mattyTag = await this.models.tagIdLoader.load(mattyTagId)
+      if (mattyTag && content === mattyTag.content) {
+        throw new ForbiddenError('not allow to add official tag')
+      }
+    }
+    return content
   }
 
   /**
@@ -179,41 +206,25 @@ export class TagService extends BaseService<Tag> {
         }
       })
 
-  /**
-   * findOrCreate:
-   * find one existing tag, or create it if not existed before
-   * this create may return null if skipCreate
-   */
-  public create = async (
-    { content, creator }: { content: string; creator: string },
-    {
-      // options
-      columns = ['*'],
-      skipCreate = false,
-    }: {
-      columns?: string[]
-      skipCreate?: boolean
-    } = {}
-  ) => {
-    const tag = await this.baseFindOrCreate({
-      where: { content },
-      data: { content, creator, shortHash: shortHash() },
-      table: this.table,
-      columns,
-      modifier: (builder: Knex.QueryBuilder) => {
-        builder
-          .onConflict(
-            // ignore only on content conflict and NOT deleted.
-            this.knex.raw('(content) WHERE NOT deleted')
-          )
-          .merge({ deleted: false })
+  public upsert = async ({
+    content,
+    creator,
+  }: {
+    content: string
+    creator: string
+  }) => {
+    const [tag] = await this.models.upsertOnConflict({
+      table: 'tag',
+      create: {
+        content: normalizeTagInput(content),
+        creator,
+        shortHash: shortHash(),
       },
-      skipCreate, // : content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
+      update: { deleted: false },
+      onConflict: this.knex.raw('(content) WHERE NOT deleted'),
     })
 
-    if (tag) {
-      this.searchService.triggerIndexingTag(tag.id)
-    }
+    this.searchService.triggerIndexingTag(tag.id)
 
     return tag
   }
@@ -679,7 +690,7 @@ export class TagService extends BaseService<Tag> {
     creator: string
   }) => {
     // create new tag
-    const newTag = await this.create({ content, creator })
+    const newTag = await this.upsert({ content, creator })
 
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)
@@ -748,11 +759,9 @@ export class TagService extends BaseService<Tag> {
 
   public updateArticleTags = async ({
     articleId,
-    actorId,
     tags,
   }: {
     articleId: string
-    actorId: string
     tags: string[]
   }) => {
     const article = await this.models.articleIdLoader.load(articleId)
@@ -772,29 +781,17 @@ export class TagService extends BaseService<Tag> {
     }
 
     // create tag records
-    const dbTags = (
-      await Promise.all(
-        tags.filter(Boolean).map(async (content: string) =>
-          this.create(
-            { content, creator: article.authorId },
-            {
-              columns: ['id', 'content'],
-              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
-            }
-          )
+    const dbTags = await Promise.all(
+      tags
+        .filter(Boolean)
+        .map(async (content: string) =>
+          this.upsert({ content, creator: article.authorId })
         )
-      )
-    ).map(({ id, content }) => ({ id: `${id}`, content }))
+    )
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
 
-    // check if add tags include matty's tag
-    const mattyTagId = environment.mattyChoiceTagId || ''
-    const isMatty = environment.mattyId === actorId
     const addIds = _.difference(newIds, oldIds)
-    if (addIds.includes(mattyTagId) && !isMatty) {
-      throw new ForbiddenError('not allow to add official tag')
-    }
 
     // add
     await this.createArticleTags({

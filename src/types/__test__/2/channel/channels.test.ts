@@ -101,7 +101,7 @@ describe('channels query', () => {
     })
 
     // Create a tag and enable tag_channel
-    const tag = await tagService.create({ content: 'oss-tag', creator: '1' })
+    const tag = await tagService.upsert({ content: 'oss-tag', creator: '1' })
     await atomService.create({
       table: 'tag_channel',
       data: { tagId: tag.id, enabled: false, navbarTitle: 'test', order: 5 },
@@ -147,7 +147,7 @@ describe('channels query', () => {
       (c: any) => c.id === toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
     )
     expect(returnedTag).toBeDefined()
-    expect(returnedTag.content).toBe('oss-tag')
+    expect(returnedTag.content).toBe('oss tag')
   })
 
   test('returns only enabled channels for normal user', async () => {
@@ -208,7 +208,7 @@ describe('channels query', () => {
     })
 
     // Create enabled tag and tag_channel
-    const tag = await tagService.create({
+    const tag = await tagService.upsert({
       content: 'enabled-tag',
       creator: '1',
     })
@@ -309,7 +309,7 @@ describe('channels query', () => {
     )
 
     // Create a tag with order 1 (between campaign 0 and topic 2)
-    const tag = await tagService.create({ content: 'order-tag', creator: '1' })
+    const tag = await tagService.upsert({ content: 'order-tag', creator: '1' })
     await atomService.create({
       table: 'tag_channel',
       data: { tagId: tag.id, enabled: true, navbarTitle: 'test', order: 1 },

@@ -73,7 +73,7 @@ const DELETE_TAG = /* GraphQL */ `
 describe('manage tag', () => {
   test('rename and delete tag', async () => {
     const tagService = new TagService(connections)
-    const tag = await tagService.create({
+    const tag = await tagService.upsert({
       content: 'Test tag #1',
       creator: '0',
     })

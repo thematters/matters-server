@@ -54,14 +54,14 @@ export class ChannelClassifier {
       const response = await axios(config)
       const result = response.data as APIJobResult[]
 
-      logger.info('result', JSON.stringify(result, null, 2))
+      logger.info('result %j', result)
 
       return result.map((data) => ({
         jobId: data.jobId,
         state: this.getState(data.state),
       }))
     } catch (error) {
-      logger.error('Channel classifier error:', error)
+      logger.error('Channel classifier error: %o', error)
       return null
     }
   }
@@ -83,7 +83,7 @@ export class ChannelClassifier {
       const response = await axios(config)
       const results = response.data as APIJobResult[]
 
-      logger.info('results', JSON.stringify(results, null, 2))
+      logger.info('result %j', results)
 
       return results.map((data) => ({
         jobId: data.jobId,
@@ -97,7 +97,7 @@ export class ChannelClassifier {
             : undefined,
       }))
     } catch (error) {
-      logger.error('Channel classifier error:', error)
+      logger.error('Channel classifier error: %o', error)
       return jobIds.map(() => null)
     }
   }
