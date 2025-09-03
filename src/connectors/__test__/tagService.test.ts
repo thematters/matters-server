@@ -114,13 +114,11 @@ describe('findArticleIds', () => {
 
 test('create', async () => {
   const content = 'foo'
-  const tag = await tagService.create(
-    { content, creator: '0' },
-    {
-      columns: ['id', 'content'],
-    }
-  )
+  const tag = await tagService.upsert({ content, creator: '0' })
   expect(tag.content).toEqual(content)
+  // upsert should be idempotent and return same tag
+  const tag2 = await tagService.upsert({ content, creator: '0' })
+  expect(tag2.id).toEqual(tag.id)
 })
 
 describe('findByAuthorUsage', () => {
@@ -176,4 +174,16 @@ describe('findByAuthorUsage', () => {
     expect(tags2.length).toBe(1)
     expect(totalCount2).toBe(3)
   })
+})
+
+test('countMoments', async () => {
+  const count = await tagService.countMoments({ id: '2' })
+  expect(count).toBeDefined()
+})
+
+test('countAuthors', async () => {
+  const count = await tagService.countAuthors({ id: '2' })
+  expect(count).toBeDefined()
+  expect(typeof count).toBe('number')
+  expect(count).toBeGreaterThanOrEqual(0)
 })

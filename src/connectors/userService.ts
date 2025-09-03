@@ -1957,7 +1957,7 @@ export class UserService extends BaseService<User> {
     userId: string,
     state: ValueOf<typeof USER_STATE>
   ) => {
-    // clean up punish recods if team manually recover it from ban
+    // clean up punish records if team manually recover it from ban
     await this.archivePunishRecordsByUserId({
       userId,
       state: USER_STATE.banned,

@@ -8,8 +8,25 @@ export enum AlchemyNetwork {
   PolygonMainnet = 'polygon-mainnet.g',
 }
 
+interface ResultData {
+  ownedNfts: OpenSeaNFTAsset[]
+}
+
+interface OpenSeaNFTAsset {
+  id: {
+    tokenId: string
+  }
+  title: string
+  description: string | null
+  contractMetadata: {
+    name: string
+    symbol: string
+  }
+  media: Array<{ gateway: string }>
+}
+
 export class Alchemy {
-  getNFTs = async ({
+  public getNFTs = async ({
     network,
     owner,
     contract,
@@ -31,7 +48,7 @@ export class Alchemy {
       method: 'get',
       url: `${baseURL}?owner=${owner}&contractAddresses[]=${contract}&withMetadata=${withMetadata}`,
     })
-    return result.data
+    return result.data as ResultData
   }
 }
 

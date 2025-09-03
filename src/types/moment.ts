@@ -21,7 +21,9 @@ export default /* GraphQL */ `
 
   input PutMomentInput {
     content: String!
-    assets: [ID!]!
+    tags: [String!]
+    articles: [ID!]
+    assets: [ID!]
   }
 
   input DeleteMomentInput {
@@ -39,6 +41,8 @@ export default /* GraphQL */ `
     shortHash: String!
     content: String
     assets: [Asset!]!
+    tags: [Tag]!
+    articles: [Article!]!
     author: User! @logCache(type: "${NODE_TYPES.User}")
 
     state: MomentState!

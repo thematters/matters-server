@@ -30,6 +30,16 @@ export interface CampaignChannel {
   updatedAt: Date
 }
 
+export interface TagChannel {
+  id: string
+  tagId: string
+  order: number
+  enabled: boolean
+  navbarTitle: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface TopicChannelArticle {
   id: string
   articleId: string

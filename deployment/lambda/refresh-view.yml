@@ -137,27 +137,6 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CronEvent1.Arn
 
-  CronEvent2:
-    Type: "AWS::Events::Rule"
-    Properties:
-      ScheduleExpression: "rate(2 minutes)"
-      Targets:
-        - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent2LambdaTarget
-          Input: |
-            {
-              "data": {
-                "viewName": "article_hottest_materialized"
-              }
-            }
-  CronEvent2Permission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref Lambda
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt CronEvent2.Arn
-
   CronEvent3:
     Type: "AWS::Events::Rule"
     Properties:

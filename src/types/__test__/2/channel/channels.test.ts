@@ -14,12 +14,14 @@ import {
   AtomService,
   PublicationService,
   CampaignService,
+  TagService,
 } from '#connectors/index.js'
 
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
 let publicationService: PublicationService
+let tagService: TagService
 let campaignService: CampaignService
 
 beforeAll(async () => {
@@ -28,6 +30,7 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   campaignService = new CampaignService(connections)
   publicationService = new PublicationService(connections)
+  tagService = new TagService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -50,6 +53,9 @@ describe('channels query', () => {
         ... on WritingChallenge {
           name
         }
+        ... on Tag {
+          content
+        }
       }
     }
   `
@@ -61,6 +67,7 @@ describe('channels query', () => {
     await atomService.deleteMany({ table: 'curation_channel' })
     await atomService.deleteMany({ table: 'campaign_channel' })
     await atomService.deleteMany({ table: 'user_feature_flag' })
+    await atomService.deleteMany({ table: 'tag_channel' })
   })
 
   test('returns all channels for admin with oss flag', async () => {
@@ -93,13 +100,20 @@ describe('channels query', () => {
       navbarTitle: 'test',
     })
 
+    // Create a tag and enable tag_channel
+    const tag = await tagService.upsert({ content: 'oss-tag', creator: '1' })
+    await atomService.create({
+      table: 'tag_channel',
+      data: { tagId: tag.id, enabled: false, navbarTitle: 'test', order: 5 },
+    })
+
     const { data, errors } = await server.executeOperation({
       query: QUERY_CHANNELS,
       variables: { input: { oss: true } },
     })
 
     expect(errors).toBeUndefined()
-    expect(data.channels).toHaveLength(3)
+    expect(data.channels).toHaveLength(4)
 
     // Verify topic channel
     const returnedTopicChannel = data.channels.find(
@@ -127,6 +141,13 @@ describe('channels query', () => {
     )
     expect(returnedCampaign).toBeDefined()
     expect(returnedCampaign.name).toBe('test-campaign')
+
+    // Verify tag channel
+    const returnedTag = data.channels.find(
+      (c: any) => c.id === toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
+    )
+    expect(returnedTag).toBeDefined()
+    expect(returnedTag.content).toBe('oss tag')
   })
 
   test('returns only enabled channels for normal user', async () => {
@@ -186,12 +207,22 @@ describe('channels query', () => {
       navbarTitle: 'test',
     })
 
+    // Create enabled tag and tag_channel
+    const tag = await tagService.upsert({
+      content: 'enabled-tag',
+      creator: '1',
+    })
+    await atomService.create({
+      table: 'tag_channel',
+      data: { tagId: tag.id, enabled: true, navbarTitle: 'test', order: 2 },
+    })
+
     const { data, errors } = await server.executeOperation({
       query: QUERY_CHANNELS,
     })
 
     expect(errors).toBeUndefined()
-    expect(data.channels).toHaveLength(3)
+    expect(data.channels).toHaveLength(4)
 
     // Should only return enabled topic channel
     const returnedTopicChannel = data.channels.find(
@@ -222,6 +253,12 @@ describe('channels query', () => {
         toGlobalId({ type: NODE_TYPES.Campaign, id: enabledCampaign.id })
     )
     expect(returnedCampaign).toBeDefined()
+
+    // Should include enabled tag channel
+    const returnedTag = data.channels.find(
+      (c: any) => c.id === toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
+    )
+    expect(returnedTag).toBeDefined()
   })
 
   test('returns channels in correct order', async () => {
@@ -271,22 +308,34 @@ describe('channels query', () => {
       0
     )
 
+    // Create a tag with order 1 (between campaign 0 and topic 2)
+    const tag = await tagService.upsert({ content: 'order-tag', creator: '1' })
+    await atomService.create({
+      table: 'tag_channel',
+      data: { tagId: tag.id, enabled: true, navbarTitle: 'test', order: 1 },
+    })
+
     const { data, errors } = await server.executeOperation({
       query: QUERY_CHANNELS,
     })
 
     expect(errors).toBeUndefined()
-    expect(data.channels).toHaveLength(3)
+    expect(data.channels).toHaveLength(4)
 
-    // Verify order
+    // Verify order: campaign first, topic last. Middle two contain tag and curation in any order
     expect(data.channels[0].id).toBe(
       toGlobalId({ type: NODE_TYPES.Campaign, id: campaign.id })
     )
-    expect(data.channels[1].id).toBe(
-      toGlobalId({ type: NODE_TYPES.CurationChannel, id: curationChannel.id })
-    )
-    expect(data.channels[2].id).toBe(
-      toGlobalId({ type: NODE_TYPES.TopicChannel, id: topicChannel.id })
+    const ids = data.channels.map((c: any) => c.id)
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        toGlobalId({ type: NODE_TYPES.TopicChannel, id: topicChannel.id }),
+        toGlobalId({ type: NODE_TYPES.Tag, id: tag.id }),
+        toGlobalId({
+          type: NODE_TYPES.CurationChannel,
+          id: curationChannel.id,
+        }),
+      ])
     )
   })
 

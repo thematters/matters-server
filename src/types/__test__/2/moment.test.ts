@@ -41,6 +41,13 @@ describe('query moment', () => {
           id
           path
         }
+        tags {
+          id
+          content
+        }
+        articles {
+          id
+        }
         state
         commentCount
         comments(input: { first: 10 }) {
@@ -126,6 +133,64 @@ describe('create moment', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.putMoment.assets[0].path).toBe(systemService.genAssetUrl(asset))
+  })
+
+  const PUT_MOMENT_WITH_TAGS = /* GraphQL */ `
+    mutation ($input: PutMomentInput!) {
+      putMoment(input: $input) {
+        id
+        assets {
+          id
+          path
+        }
+        tags {
+          id
+          content
+        }
+        articles {
+          id
+        }
+      }
+    }
+  `
+
+  test('success with tags and article', async () => {
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
+    const content = 'test with tags and article'
+    const asset = await systemService.findAssetOrCreateByPath(
+      {
+        uuid: v4(),
+        authorId: viewer.id,
+        type: IMAGE_ASSET_TYPE.moment,
+        path: 'test2.jpg',
+      },
+      '1',
+      '1'
+    )
+    const articleId = toGlobalId({ type: NODE_TYPES.Article, id: '1' })
+    const tagContent = 'MomentTagTest1'
+    const { errors, data } = await server.executeOperation({
+      query: PUT_MOMENT_WITH_TAGS,
+      variables: {
+        input: {
+          content,
+          assets: [asset.uuid],
+          tags: [tagContent],
+          articles: [articleId],
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putMoment.assets[0].path).toBe(systemService.genAssetUrl(asset))
+    expect(data.putMoment.tags).toHaveLength(1)
+    expect(data.putMoment.tags[0].content).toBe(tagContent)
+    expect(data.putMoment.articles).toHaveLength(1)
+    expect(data.putMoment.articles[0].id).toBe(articleId)
   })
 })
 

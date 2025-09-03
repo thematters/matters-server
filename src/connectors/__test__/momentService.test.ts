@@ -15,6 +15,7 @@ import {
 } from '#common/errors.js'
 import { MomentService } from '../momentService.js'
 import { SystemService } from '../systemService.js'
+import { TagService } from '../tagService.js'
 import { UserService } from '../userService.js'
 
 import { genConnections, closeConnections } from './utils.js'
@@ -23,12 +24,14 @@ let connections: Connections
 let momentService: MomentService
 let userService: UserService
 let systemService: SystemService
+let tagService: TagService
 
 beforeAll(async () => {
   connections = await genConnections()
   momentService = new MomentService(connections)
   userService = new UserService(connections)
   systemService = new SystemService(connections)
+  tagService = new TagService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -93,6 +96,26 @@ describe('create moments', () => {
     const moment = await momentService.create(data, user)
     expect(moment).toBeDefined()
     expect(moment.content).toBe('<p>test</p>')
+  })
+
+  test('link first tag and article if provided', async () => {
+    // ensure a valid tag exists via service
+    const tag = await tagService.upsert({
+      content: 'MomentServiceTag1',
+      creator: user.id,
+    })
+    const moment = await momentService.create(
+      { content: 'with link', tagIds: [tag.id], articleIds: ['1'] },
+      user
+    )
+    expect(moment).toBeDefined()
+    const tags = await momentService.getTags(moment.id)
+    expect(tags.length).toBe(1)
+    expect(tags[0].id).toBe(tag.id)
+    const articles = await momentService.getArticles(moment.id)
+    // article id 1 exists in seeds and is active
+    expect(articles.length).toBe(1)
+    expect(articles[0].id).toBe('1')
   })
 })
 

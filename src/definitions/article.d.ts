@@ -84,6 +84,8 @@ export interface ArticleTag {
   tagId: string
   selected: boolean | null
   creator: string | null
+  pinned: boolean
+  pinnedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

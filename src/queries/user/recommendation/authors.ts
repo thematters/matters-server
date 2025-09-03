@@ -1,11 +1,9 @@
-import type { GQLRecommendationResolvers, User } from '#definitions/index.js'
+import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
 import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromArray,
-  connectionFromPromisedArray,
-  fromConnectionArgs,
   fromGlobalId,
   circleChunk,
 } from '#common/utils/index.js'
@@ -25,7 +23,6 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
   }
 ) => {
   const { filter, oss = false } = input
-  const { take, skip } = fromConnectionArgs(input)
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
@@ -50,82 +47,38 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
 
   const limit = 50
   const draw = input.first || 5
-  const _take = limit * draw
 
-  /**
-   * new algo
-   */
-  if (input.newAlgo) {
-    const cache = new Cache(
-      CACHE_PREFIX.RECOMMENDATION_AUTHORS,
-      objectCacheRedis
-    )
-    let channelId = undefined
-    if (input.filter?.channel?.id) {
-      channelId = fromGlobalId(input.filter.channel.id).id
-    } else if (input.filter?.channel?.shortHash) {
-      const channel = await atomService.findUnique({
-        table: 'topic_channel',
-        where: { shortHash: input.filter.channel.shortHash },
-      })
-      channelId = channel?.id
-    }
-
-    const authorIds = await cache.getObject({
-      keys: {
-        type: 'recommendationAuthors',
-        args: {
-          channelId,
-        },
-      },
-      getter: async () => {
-        const { query } = await recommendationService.recommendAuthors(
-          channelId
-        )
-        return query
-      },
-      expire: CACHE_TTL.LONG,
+  const cache = new Cache(CACHE_PREFIX.RECOMMENDATION_AUTHORS, objectCacheRedis)
+  let channelId = undefined
+  if (input.filter?.channel?.id) {
+    channelId = fromGlobalId(input.filter.channel.id).id
+  } else if (input.filter?.channel?.shortHash) {
+    const channel = await atomService.findUnique({
+      table: 'topic_channel',
+      where: { shortHash: input.filter.channel.shortHash },
     })
-    const filtered = authorIds.filter(
-      ({ authorId }) => !notIn.includes(authorId)
-    )
-    const chunks = circleChunk(filtered, draw)
-    const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
-    const randomAuthorIds = chunks[index] || []
-    const randomAuthors = await atomService.userIdLoader.loadMany(
-      randomAuthorIds.map(({ authorId }) => authorId)
-    )
-    return connectionFromArray(randomAuthors, input, authorIds.length)
+    channelId = channel?.id
   }
 
-  /**
-   * old algo
-   */
-  if (typeof filter?.random === 'number') {
-    const authorPool = await userService.recommendAuthors({
-      take: _take,
-      notIn,
-      oss,
-    })
-
-    const chunks = circleChunk(authorPool, draw)
-    const index = Math.min(filter.random, limit, chunks.length - 1)
-    const filteredAuthors = chunks[index] || []
-
-    return connectionFromArray(
-      filteredAuthors as User[],
-      input,
-      authorPool.length
-    )
-  }
-
-  const users = await userService.recommendAuthors({
-    skip,
-    take,
-    notIn,
-    count: true,
+  const authorIds = await cache.getObject({
+    keys: {
+      type: 'recommendationAuthors',
+      args: {
+        channelId,
+      },
+    },
+    getter: async () => {
+      const { query } = await recommendationService.recommendAuthors(channelId)
+      return query
+    },
+    expire: CACHE_TTL.LONG,
   })
-  const totalCount = +users[0]?.totalCount || users.length
-
-  return connectionFromPromisedArray(users as User[], input, totalCount)
+  const filtered = authorIds.filter(({ authorId }) => !notIn.includes(authorId))
+  const chunks = circleChunk(filtered, draw)
+  const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
+  const randomAuthorIds = chunks[index] || []
+  const randomAuthors = await atomService.userIdLoader.loadMany(
+    randomAuthorIds.map(({ authorId }) => authorId)
+  )
+  return connectionFromArray(randomAuthors, input, authorIds.length)
 }
