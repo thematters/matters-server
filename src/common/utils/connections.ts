@@ -487,10 +487,10 @@ export const connectionFromUnionQuery = async <
     records.map(({ type, id }) => dataloaders[type].load(id))
   )
   const edges = nodes.map((node, index) => {
-    const { type, id, totalCount, rowNumber } = records[index]
+    const record = records[index]
     return {
-      cursor: encodeCursor(type, id),
-      node: { __type: type, totalCount, rowNumber, ...node },
+      cursor: encodeCursor(record.type, record.id),
+      node: { __type: record.type, ...record, ...node },
     }
   })
 

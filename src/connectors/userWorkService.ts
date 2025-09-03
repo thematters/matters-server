@@ -3,14 +3,21 @@ import type { Knex } from 'knex'
 
 import { ARTICLE_STATE, MOMENT_STATE, NODE_TYPES } from '#common/enums/index.js'
 
-interface Writing {
+interface UserWriting {
   type: NODE_TYPES.Article | NODE_TYPES.Moment
   id: string
   created_at: Date
 }
 
+interface TagWriting {
+  type: NODE_TYPES.Article | NODE_TYPES.Moment
+  id: string
+  pinned: boolean
+  created_at: Date
+}
+
 /**
- * This service provides functions to return mixed works of a user.
+ * This service provides functions to return mixed works from users.
  * Works include articles, collections and moments, comments, etc.
  *
  * Functions return only single type of work should be put in their own service.
@@ -37,7 +44,7 @@ export class UserWorkService {
 
   public findWritingsByUser = (
     userId: string
-  ): Knex.QueryBuilder<Writing, Writing[]> => {
+  ): Knex.QueryBuilder<UserWriting, UserWriting[]> => {
     const { knexRO } = this.connections
     return knexRO
       .select('*')
@@ -61,5 +68,44 @@ export class UserWorkService {
           .as('t1')
       )
       .as('t2') as any
+  }
+
+  public findWritingsByTag = (
+    tagId: string
+  ): Knex.QueryBuilder<TagWriting, TagWriting[]> => {
+    const { knexRO } = this.connections
+    const pinnedArticles = knexRO('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .where({ tagId, state: ARTICLE_STATE.active })
+      .andWhere('article_tag.pinned', true)
+      // use `article_tag.pinned_at + interval '100 year'` to ensure pinned articles precede others
+      .select(
+        knexRO.raw(
+          "'Article' AS type, article.id AS id, true AS pinned, article_tag.pinned_at + interval '100 year' AS created_at"
+        )
+      )
+
+    const articles = knexRO('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .where({ tagId, state: ARTICLE_STATE.active })
+      .andWhere('article_tag.pinned', false)
+      .select(
+        knexRO.raw(
+          "'Article' AS type, article.id AS id, false AS pinned, article.created_at AS created_at"
+        )
+      )
+
+    const moments = knexRO('moment_tag')
+      .join('moment', 'moment_id', 'moment.id')
+      .where({ tagId, state: MOMENT_STATE.active })
+      .select(
+        knexRO.raw(
+          "'Moment' AS type, moment.id AS id, false AS pinned, moment.created_at AS created_at"
+        )
+      )
+
+    return knexRO
+      .from(knexRO.union([pinnedArticles, articles, moments]).as('t'))
+      .select('*') as any
   }
 }

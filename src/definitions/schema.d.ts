@@ -3780,7 +3780,7 @@ export type GQLSubscribeCircleResult = {
 export type GQLTag = GQLChannel &
   GQLNode & {
     __typename?: 'Tag'
-    /** List of how many articles were attached with this tag. */
+    /** List of articles were attached with this tag. */
     articles: GQLArticleConnection
     /** Whether this tag is enabled as a channel */
     channelEnabled: Scalars['Boolean']['output']
@@ -3807,6 +3807,8 @@ export type GQLTag = GQLChannel &
     remark?: Maybe<Scalars['String']['output']>
     /** Short hash for shorter url addressing */
     shortHash: Scalars['String']['output']
+    /** Articles and moments were attached with this tag. */
+    writings: GQLTagWritingConnection
   }
 
 /** This type contains content, count and related data of an article tag. */
@@ -3827,6 +3829,11 @@ export type GQLTagRecommendedArgs = {
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagRecommendedAuthorsArgs = {
   input: GQLConnectionArgs
+}
+
+/** This type contains content, count and related data of an article tag. */
+export type GQLTagWritingsArgs = {
+  input: GQLWritingInput
 }
 
 export type GQLTagArticlesInput = {
@@ -3855,6 +3862,20 @@ export type GQLTagOss = {
   __typename?: 'TagOSS'
   boost: Scalars['Float']['output']
   score: Scalars['Float']['output']
+}
+
+export type GQLTagWritingConnection = GQLConnection & {
+  __typename?: 'TagWritingConnection'
+  edges?: Maybe<Array<GQLTagWritingEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLTagWritingEdge = {
+  __typename?: 'TagWritingEdge'
+  cursor: Scalars['String']['output']
+  node: GQLWriting
+  pinned: Scalars['Boolean']['output']
 }
 
 export type GQLTagsInput = {
@@ -4967,6 +4988,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLTagConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['TagEdge']>>
       })
+    | (Omit<GQLTagWritingConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['TagWritingEdge']>>
+      })
     | (Omit<GQLTopDonatorConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['TopDonatorEdge']>>
       })
@@ -5596,6 +5620,14 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLTagEdge, 'node'> & { node: GQLResolversTypes['Tag'] }
   >
   TagOSS: ResolverTypeWrapper<TagModel>
+  TagWritingConnection: ResolverTypeWrapper<
+    Omit<GQLTagWritingConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['TagWritingEdge']>>
+    }
+  >
+  TagWritingEdge: ResolverTypeWrapper<
+    Omit<GQLTagWritingEdge, 'node'> & { node: GQLResolversTypes['Writing'] }
+  >
   TagsInput: GQLTagsInput
   TagsSort: GQLTagsSort
   ToggleCircleMemberInput: GQLToggleCircleMemberInput
@@ -6198,6 +6230,12 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TagEdge: Omit<GQLTagEdge, 'node'> & { node: GQLResolversParentTypes['Tag'] }
   TagOSS: TagModel
+  TagWritingConnection: Omit<GQLTagWritingConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['TagWritingEdge']>>
+  }
+  TagWritingEdge: Omit<GQLTagWritingEdge, 'node'> & {
+    node: GQLResolversParentTypes['Writing']
+  }
   TagsInput: GQLTagsInput
   ToggleCircleMemberInput: GQLToggleCircleMemberInput
   ToggleItemInput: GQLToggleItemInput
@@ -7846,6 +7884,7 @@ export type GQLConnectionResolvers<
     | 'SearchResultConnection'
     | 'SkippedListItemsConnection'
     | 'TagConnection'
+    | 'TagWritingConnection'
     | 'TopDonatorConnection'
     | 'TopicChannelFeedbackConnection'
     | 'TransactionConnection'
@@ -10011,6 +10050,12 @@ export type GQLTagResolvers<
   >
   remark?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  writings?: Resolver<
+    GQLResolversTypes['TagWritingConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLTagWritingsArgs, 'input'>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -10043,6 +10088,30 @@ export type GQLTagOssResolvers<
 > = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTagWritingConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TagWritingConnection'] = GQLResolversParentTypes['TagWritingConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['TagWritingEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTagWritingEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TagWritingEdge'] = GQLResolversParentTypes['TagWritingEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Writing'], ParentType, ContextType>
+  pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -11118,6 +11187,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   TagConnection?: GQLTagConnectionResolvers<ContextType>
   TagEdge?: GQLTagEdgeResolvers<ContextType>
   TagOSS?: GQLTagOssResolvers<ContextType>
+  TagWritingConnection?: GQLTagWritingConnectionResolvers<ContextType>
+  TagWritingEdge?: GQLTagWritingEdgeResolvers<ContextType>
   TopDonatorConnection?: GQLTopDonatorConnectionResolvers<ContextType>
   TopDonatorEdge?: GQLTopDonatorEdgeResolvers<ContextType>
   TopicChannel?: GQLTopicChannelResolvers<ContextType>
