@@ -9,7 +9,7 @@ const resolver: GQLTagResolvers['writings'] = async (
   { dataSources: { userWorkService, atomService } }
 ) => {
   const result = await connectionFromUnionQuery({
-    query: userWorkService.findWritingsByTag(id),
+    query: userWorkService.findWritingsByTag(id, { flood: false }),
     args: input,
     orderBy: { column: 'created_at', order: 'desc' },
     cursorColumn: 'id',
