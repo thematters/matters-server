@@ -1,42 +1,22 @@
 import type { GQLTagResolvers } from '#definitions/index.js'
 
-import {
-  connectionFromPromisedArray,
-  fromConnectionArgs,
-} from '#common/utils/index.js'
+import { connectionFromQuery } from '#common/utils/index.js'
 
 const resolver: GQLTagResolvers['articles'] = async (
-  root,
+  { id },
   { input },
-  { dataSources: { tagService, atomService } }
+  { dataSources: { tagService, systemService } }
 ) => {
   const { sortBy } = input
-  const { take, skip } = fromConnectionArgs(input)
+  const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
   const isHottest = sortBy === 'byHottestDesc'
 
-  const [totalCount, articleIds] = await Promise.all([
-    isHottest
-      ? tagService.countHottestArticles({ id: root.id })
-      : tagService.countArticles({ id: root.id }),
-    isHottest
-      ? tagService.findHottestArticleIds({
-          id: root.id,
-          skip,
-          take,
-        })
-      : tagService.findArticleIds({
-          id: root.id,
-          excludeSpam: true,
-          skip,
-          take,
-        }),
-  ])
+  const query = isHottest
+    ? tagService.findHottestArticles(id)
+    : tagService.findArticles({ id, spamThreshold })
+  const orderBy = { column: isHottest ? 'score' : 'id', order: 'desc' as const }
 
-  return connectionFromPromisedArray(
-    atomService.articleIdLoader.loadMany(articleIds),
-    input,
-    totalCount
-  )
+  return connectionFromQuery({ query, args: input, orderBy })
 }
 
 export default resolver
