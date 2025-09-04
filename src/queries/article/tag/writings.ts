@@ -25,7 +25,7 @@ const resolver: GQLTagResolvers['writings'] = async (
     edges:
       result.edges?.map((edge) => ({
         ...edge,
-        pinned: edge.node.pinned,
+        pinned: edge.node.tagPinned,
       })) || [],
   }
 }

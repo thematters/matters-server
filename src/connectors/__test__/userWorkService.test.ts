@@ -118,13 +118,13 @@ describe('findWritingsByTag', () => {
     expect(records1.length).toBe(2)
     expect(records2.length).toBe(2)
     expect(byId1.get(moment.id)?.type).toBe('Moment')
-    expect(byId1.get(moment.id)?.pinned).toBe(false)
+    expect(byId1.get(moment.id)?.tagPinned).toBe(false)
     expect(byId1.get(article.id)?.type).toBe('Article')
-    expect(byId1.get(article.id)?.pinned).toBe(false)
+    expect(byId1.get(article.id)?.tagPinned).toBe(false)
     expect(byId2.get(moment.id)?.type).toBe('Moment')
-    expect(byId2.get(moment.id)?.pinned).toBe(false)
+    expect(byId2.get(moment.id)?.tagPinned).toBe(false)
     expect(byId2.get(article.id)?.type).toBe('Article')
-    expect(byId2.get(article.id)?.pinned).toBe(false)
+    expect(byId2.get(article.id)?.tagPinned).toBe(false)
   })
 
   test('pinned articles appear first when ordered by created_at desc', async () => {
@@ -167,7 +167,7 @@ describe('findWritingsByTag', () => {
     expect(ordered.length).toBeGreaterThanOrEqual(2)
     expect(ordered[0].id).toBe(a2.id)
     expect(ordered[0].type).toBe('Article')
-    expect(ordered[0].pinned).toBe(true)
+    expect(ordered[0].tagPinned).toBe(true)
   })
 
   test('anti-flood works', async () => {
