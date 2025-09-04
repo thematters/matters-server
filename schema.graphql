@@ -570,8 +570,11 @@ type Tag implements Node & Channel {
   """Content of this tag."""
   content: String!
 
-  """List of how many articles were attached with this tag."""
+  """List of articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
+
+  """Articles and moments were attached with this tag."""
+  writings(input: WritingInput!): TagWritingConnection!
 
   """Time of this tag was created."""
   createdAt: DateTime!
@@ -724,6 +727,18 @@ type ArticleDonationEdge {
 type ArticleDonation {
   id: ID!
   sender: User
+}
+
+type TagWritingConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TagWritingEdge!]
+}
+
+type TagWritingEdge {
+  cursor: String!
+  node: Writing!
+  pinned: Boolean!
 }
 
 input ArticleInput {

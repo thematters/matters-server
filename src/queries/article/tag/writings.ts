@@ -1,15 +1,15 @@
-import type { GQLUserResolvers } from '#definitions/index.js'
+import type { GQLTagResolvers } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
 import { connectionFromUnionQuery } from '#common/utils/index.js'
 
-const resolver: GQLUserResolvers['writings'] = async (
+const resolver: GQLTagResolvers['writings'] = async (
   { id },
   { input },
   { dataSources: { userWorkService, atomService } }
 ) => {
-  return connectionFromUnionQuery({
-    query: userWorkService.findWritingsByUser(id),
+  const result = await connectionFromUnionQuery({
+    query: userWorkService.findWritingsByTag(id, { flood: false }),
     args: input,
     orderBy: { column: 'created_at', order: 'desc' },
     cursorColumn: 'id',
@@ -18,6 +18,16 @@ const resolver: GQLUserResolvers['writings'] = async (
       [NODE_TYPES.Article]: atomService.articleIdLoader,
     },
   })
+
+  // Add pinned field to each edge (default to false for now)
+  return {
+    ...result,
+    edges:
+      result.edges?.map((edge) => ({
+        ...edge,
+        pinned: edge.node.pinned,
+      })) || [],
+  }
 }
 
 export default resolver

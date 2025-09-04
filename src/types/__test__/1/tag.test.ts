@@ -136,3 +136,88 @@ describe('query tag', () => {
     expect(data!.node.numMoments).toBeGreaterThanOrEqual(0)
   })
 })
+
+const QUERY_TAG_WRITINGS = /* GraphQL */ `
+  query ($input: NodeInput!, $writingsInput: WritingInput!) {
+    node(input: $input) {
+      ... on Tag {
+        id
+        content
+        writings(input: $writingsInput) {
+          totalCount
+          pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+          }
+          edges {
+            cursor
+            pinned
+            node {
+              ... on Article {
+                id
+                title
+                __typename
+              }
+              ... on Moment {
+                id
+                content
+                __typename
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+describe('query tag writings', () => {
+  test('tag writings returns articles and moments', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_TAG_WRITINGS,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) },
+        writingsInput: { first: 10 },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+
+    // Verify writings field exists and has correct structure
+    expect(data.node.writings).toBeDefined()
+    expect(data.node.writings.totalCount).toBeDefined()
+    expect(data.node.writings.pageInfo).toBeDefined()
+    expect(data.node.writings.edges).toBeDefined()
+
+    // Verify each edge has correct structure
+    data.node.writings.edges.forEach((edge: any) => {
+      expect(edge.cursor).toBeDefined()
+      expect(edge.pinned).toBeDefined()
+      expect(edge.node).toBeDefined()
+      expect(edge.node.id).toBeDefined()
+      expect(['Article', 'Moment']).toContain(edge.node.__typename)
+    })
+  })
+
+  test('tag writings with pagination', async () => {
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: QUERY_TAG_WRITINGS,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) },
+        writingsInput: { first: 5 },
+      },
+    })
+
+    // Verify pagination works
+    expect(data.node.writings.edges.length).toBeLessThanOrEqual(5)
+
+    if (data.node.writings.edges.length > 0) {
+      const firstEdge = data.node.writings.edges[0]
+      expect(firstEdge.cursor).toBeDefined()
+    }
+  })
+})

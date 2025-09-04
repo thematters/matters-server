@@ -67,6 +67,7 @@ import * as tagOSS from './tag/oss.js'
 import tagsRecommended from './tag/recommended.js'
 import tagsRecommendedAuthors from './tag/recommendedAuthors.js'
 import tagShortHash from './tag/shortHash.js'
+import tagWritings from './tag/writings.js'
 import tags from './tags.js'
 import title from './title.js'
 import transactionsReceivedBy from './transactionsReceivedBy.js'
@@ -157,6 +158,7 @@ const schema: GQLResolvers = {
     shortHash: tagShortHash,
     channelEnabled: tagChannelEnabled,
     articles: tagArticles,
+    writings: tagWritings,
     isFollower: tagIsFollower,
     numArticles: tagNumArticles,
     numMoments: tagNumMoments,

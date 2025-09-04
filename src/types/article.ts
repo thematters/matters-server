@@ -307,8 +307,11 @@ export default /* GraphQL */ `
     "Content of this tag."
     content: String!
 
-    "List of how many articles were attached with this tag."
+    "List of articles were attached with this tag."
     articles(input: TagArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Articles and moments were attached with this tag."
+    writings(input: WritingInput!): TagWritingConnection!
 
     "Time of this tag was created."
     createdAt: DateTime!
@@ -462,6 +465,19 @@ export default /* GraphQL */ `
     id: ID!
     sender: User
   }
+
+  type TagWritingConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TagWritingEdge!]
+  }
+
+  type TagWritingEdge {
+    cursor: String!
+    node: Writing! @logCache(type: "${NODE_TYPES.Writing}")
+    pinned: Boolean!
+  }
+
 
   input ArticleInput {
     mediaHash: String
