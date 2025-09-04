@@ -16,7 +16,16 @@ const resolver: GQLTagResolvers['articles'] = async (
     : tagService.findArticles({ id, spamThreshold })
   const orderBy = { column: isHottest ? 'score' : 'id', order: 'desc' as const }
 
-  return connectionFromQuery({ query, args: input, orderBy })
+  const result = await connectionFromQuery({ query, args: input, orderBy })
+
+  return {
+    ...result,
+    edges:
+      result.edges?.map((edge) => ({
+        ...edge,
+        pinned: edge.node.tagPinned,
+      })) || [],
+  }
 }
 
 export default resolver

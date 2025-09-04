@@ -571,7 +571,7 @@ type Tag implements Node & Channel {
   content: String!
 
   """List of articles were attached with this tag."""
-  articles(input: TagArticlesInput!): ArticleConnection!
+  articles(input: TagArticlesInput!): ChannelArticleConnection!
 
   """Articles and moments were attached with this tag."""
   writings(input: WritingInput!): TagWritingConnection!

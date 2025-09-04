@@ -504,12 +504,14 @@ export class TagService extends BaseService<Tag> {
         builder
           .from('tagged_articles')
           .select([
-            '*',
+            'tagged_articles.*',
             this.knexRO.raw(
               "ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - avn_created_at)) AS score"
             ),
           ])
       )
+      .select('*')
+      .from('scored_articles')
   }
 
   /**

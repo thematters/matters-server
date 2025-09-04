@@ -19,7 +19,6 @@ const resolver: GQLTagResolvers['writings'] = async (
     },
   })
 
-  // Add pinned field to each edge (default to false for now)
   return {
     ...result,
     edges:

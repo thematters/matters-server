@@ -308,10 +308,10 @@ export default /* GraphQL */ `
     content: String!
 
     "List of articles were attached with this tag."
-    articles(input: TagArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: TagArticlesInput!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Articles and moments were attached with this tag."
-    writings(input: WritingInput!): TagWritingConnection!
+    writings(input: WritingInput!): TagWritingConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Time of this tag was created."
     createdAt: DateTime!
