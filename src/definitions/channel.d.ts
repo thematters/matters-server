@@ -47,6 +47,7 @@ export interface TopicChannelArticle {
   score?: number
   isLabeled: boolean
   enabled: boolean
+  pinnedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

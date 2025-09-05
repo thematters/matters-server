@@ -103,7 +103,7 @@ type UpdateManyFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: Partial<Record<keyof D, any>>
+  where?: Partial<Record<keyof D, any>>
   whereIn?: [string, string[]]
   data: Partial<D>
   columns?: Array<keyof D> | '*'
@@ -437,7 +437,6 @@ export class AtomService {
     columns = '*',
   }) => {
     const action = this.knex
-      .where(where)
       .update(
         isUpdateableTable(table)
           ? { ...data, updatedAt: this.knex.fn.now() }
@@ -445,6 +444,10 @@ export class AtomService {
       )
       .into(table)
       .returning(columns as string)
+
+    if (where) {
+      action.where(where)
+    }
 
     if (whereIn) {
       action.whereIn(...whereIn)

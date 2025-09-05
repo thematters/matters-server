@@ -856,7 +856,7 @@ export class ChannelService {
         TOPIC_CHANNEL_PIN_LIMIT
       )
     } else {
-      // Remove articles from pinned list
+      // Unpinning, remove articles from pinned list
       const articlesToUnpin = new Set(articleIds)
       newPinnedArticles = currentPinnedArticles
         .map(String)
@@ -869,6 +869,16 @@ export class ChannelService {
       where: { id: channelId },
       data: {
         pinnedArticles: newPinnedArticles,
+      },
+    })
+    // Log pinnedAt.
+    // For parent channels, relationship records have been inserted into topic_channel_article
+    // by channel management pane in Web-Next
+    await this.models.updateMany({
+      table: 'topic_channel_article',
+      whereIn: ['article_id', newPinnedArticles],
+      data: {
+        pinnedAt: new Date(),
       },
     })
 
