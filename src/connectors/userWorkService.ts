@@ -18,7 +18,7 @@ interface UserWriting {
 interface TagWriting {
   type: NODE_TYPES.Article | NODE_TYPES.Moment
   id: string
-  pinned: boolean
+  tagPinned: boolean
   created_at: Date
 }
 
@@ -88,7 +88,7 @@ export class UserWorkService {
       // use `article_tag.pinned_at + interval '100 year'` to ensure pinned articles precede others
       .select(
         knexRO.raw(
-          "'Article' AS type, article.id AS id, true AS pinned, article_tag.pinned_at + interval '100 year' AS created_at, article.author_id AS author_id"
+          "'Article' AS type, article.id AS id, true AS tag_pinned, article_tag.pinned_at + interval '100 year' AS created_at, article.author_id AS author_id"
         )
       )
 
@@ -98,7 +98,7 @@ export class UserWorkService {
       .andWhere('article_tag.pinned', false)
       .select(
         knexRO.raw(
-          "'Article' AS type, article.id AS id, false AS pinned, article.created_at AS created_at, article.author_id AS author_id"
+          "'Article' AS type, article.id AS id, false AS tag_pinned, article.created_at AS created_at, article.author_id AS author_id"
         )
       )
 
@@ -107,7 +107,7 @@ export class UserWorkService {
       .where({ tagId, state: MOMENT_STATE.active })
       .select(
         knexRO.raw(
-          "'Moment' AS type, moment.id AS id, false AS pinned, moment.created_at AS created_at, moment.author_id AS author_id"
+          "'Moment' AS type, moment.id AS id, false AS tag_pinned, moment.created_at AS created_at, moment.author_id AS author_id"
         )
       )
 
@@ -134,7 +134,7 @@ export class UserWorkService {
             FROM time_grouped`
           )
         )
-        .select('type', 'id', 'pinned', 'created_at')
+        .select('type', 'id', 'tag_pinned', 'created_at')
         .from('ranked')
       if (flood === true) {
         return floodBaseQuery.where(
@@ -151,6 +151,6 @@ export class UserWorkService {
       }
     }
 
-    return baseQuery.select('type', 'id', 'pinned', 'created_at') as any
+    return baseQuery.select('type', 'id', 'tag_pinned', 'created_at') as any
   }
 }

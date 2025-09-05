@@ -3781,7 +3781,7 @@ export type GQLTag = GQLChannel &
   GQLNode & {
     __typename?: 'Tag'
     /** List of articles were attached with this tag. */
-    articles: GQLArticleConnection
+    articles: GQLChannelArticleConnection
     /** Whether this tag is enabled as a channel */
     channelEnabled: Scalars['Boolean']['output']
     /** Content of this tag. */
@@ -10007,7 +10007,7 @@ export type GQLTagResolvers<
   ParentType extends GQLResolversParentTypes['Tag'] = GQLResolversParentTypes['Tag']
 > = ResolversObject<{
   articles?: Resolver<
-    GQLResolversTypes['ArticleConnection'],
+    GQLResolversTypes['ChannelArticleConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLTagArticlesArgs, 'input'>

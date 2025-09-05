@@ -5,6 +5,7 @@ import { MomentService } from '../momentService.js'
 import { UserService } from '../userService.js'
 import { UserWorkService } from '../userWorkService.js'
 import { TagService } from '../tagService.js'
+import { AtomService } from '../atomService.js'
 import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
@@ -13,6 +14,7 @@ let userService: UserService
 let momentService: MomentService
 let publicationService: PublicationService
 let tagService: TagService
+let atomSerivce: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -21,6 +23,7 @@ beforeAll(async () => {
   momentService = new MomentService(connections)
   publicationService = new PublicationService(connections)
   tagService = new TagService(connections)
+  atomSerivce = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -118,13 +121,13 @@ describe('findWritingsByTag', () => {
     expect(records1.length).toBe(2)
     expect(records2.length).toBe(2)
     expect(byId1.get(moment.id)?.type).toBe('Moment')
-    expect(byId1.get(moment.id)?.pinned).toBe(false)
+    expect(byId1.get(moment.id)?.tagPinned).toBe(false)
     expect(byId1.get(article.id)?.type).toBe('Article')
-    expect(byId1.get(article.id)?.pinned).toBe(false)
+    expect(byId1.get(article.id)?.tagPinned).toBe(false)
     expect(byId2.get(moment.id)?.type).toBe('Moment')
-    expect(byId2.get(moment.id)?.pinned).toBe(false)
+    expect(byId2.get(moment.id)?.tagPinned).toBe(false)
     expect(byId2.get(article.id)?.type).toBe('Article')
-    expect(byId2.get(article.id)?.pinned).toBe(false)
+    expect(byId2.get(article.id)?.tagPinned).toBe(false)
   })
 
   test('pinned articles appear first when ordered by created_at desc', async () => {
@@ -154,10 +157,16 @@ describe('findWritingsByTag', () => {
     })
 
     // Pin a2
-    await tagService.putArticleTag({
-      articleId: a2.id,
-      tagId: tag.id,
-      data: { pinned: true, pinnedAt: new Date() },
+    await atomSerivce.update({
+      table: 'article_tag',
+      where: {
+        articleId: a2.id,
+        tagId: tag.id,
+      },
+      data: {
+        pinned: true,
+        pinnedAt: new Date(),
+      },
     })
 
     const ordered = await userWorkService
@@ -167,7 +176,7 @@ describe('findWritingsByTag', () => {
     expect(ordered.length).toBeGreaterThanOrEqual(2)
     expect(ordered[0].id).toBe(a2.id)
     expect(ordered[0].type).toBe('Article')
-    expect(ordered[0].pinned).toBe(true)
+    expect(ordered[0].tagPinned).toBe(true)
   })
 
   test('anti-flood works', async () => {

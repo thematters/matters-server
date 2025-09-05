@@ -2,7 +2,10 @@
 
 ## Design
 
-todo
+### Schema Checklist
+
+- Cache related directives
+- `@complexity` directive for list queries
 
 ## Implement Resolver
 

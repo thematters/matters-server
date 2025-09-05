@@ -1,13 +1,8 @@
 import type { Connections } from '#definitions/index.js'
 
-import {
-  FEATURE_NAME,
-  FEATURE_FLAG,
-  USER_FEATURE_FLAG_TYPE,
-} from '#common/enums/index.js'
+import { USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
 import { PublicationService } from '../article/publicationService.js'
 import { AtomService } from '../atomService.js'
-import { SystemService } from '../systemService.js'
 import { TagService } from '../tagService.js'
 import { UserService } from '../userService.js'
 
@@ -18,7 +13,6 @@ let tagService: TagService
 let atomService: AtomService
 let publicationService: PublicationService
 let userService: UserService
-let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -26,7 +20,6 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   publicationService = new PublicationService(connections)
   userService = new UserService(connections)
-  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -38,77 +31,72 @@ test('countArticles', async () => {
   expect(count).toBeDefined()
 })
 
-describe('findArticleIds', () => {
+describe('findArticles', () => {
+  const toIds = (articles: { id: string }[]) => articles.map(({ id }) => id)
   test('id', async () => {
-    const articleIds = await tagService.findArticleIds({ id: '2' })
-    expect(articleIds).toBeDefined()
+    const articles = await tagService.findArticles({ id: '2' })
+    expect(articles).toBeDefined()
   })
   test('excludeRestricted', async () => {
-    const articleIds = await tagService.findArticleIds({
+    const articles = await tagService.findArticles({
       id: '2',
       excludeRestricted: true,
     })
-    expect(articleIds).toBeDefined()
+    expect(articles).toBeDefined()
 
     // create a restricted user
     await atomService.deleteMany({ table: 'article_recommend_setting' })
     const article = await atomService.findUnique({
       table: 'article',
-      where: { id: articleIds[0] },
+      where: { id: articles[0].id },
     })
     await atomService.create({
       table: 'user_restriction',
       data: { userId: article?.authorId, type: 'articleNewest' },
     })
-    const excluded3 = await tagService.findArticleIds({
+    const excluded3 = await tagService.findArticles({
       id: '2',
       excludeRestricted: true,
     })
-    expect(excluded3).not.toContain(articleIds[0])
-    expect(excluded3).toContain(articleIds[1])
+    expect(toIds(excluded3)).not.toContain(articles[0].id)
+    expect(toIds(excluded3)).toContain(articles[1].id)
   })
   test('exclude spam', async () => {
-    const articleIds = await tagService.findArticleIds({
-      id: '2',
-      excludeSpam: true,
-    })
-    expect(articleIds).toBeDefined()
-
     const spamThreshold = 0.5
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.spam_detection,
-      flag: FEATURE_FLAG.on,
-      value: spamThreshold,
+    const articles = await tagService.findArticles({
+      id: '2',
+      spamThreshold,
     })
+    expect(articles).toBeDefined()
 
     // spam flag is on but no detected articles
-    const excluded1 = await tagService.findArticleIds({
+    const excluded1 = await tagService.findArticles({
       id: '2',
-      excludeSpam: true,
+      spamThreshold,
     })
-    expect(excluded1).toEqual(articleIds)
+    expect(toIds(excluded1)).toEqual(toIds(articles))
 
     // spam detected
     const article = await atomService.update({
       table: 'article',
-      where: { id: articleIds[0] },
+      where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
-    const excluded2 = await tagService.findArticleIds({
+    const excluded2 = await tagService.findArticles({
       id: '2',
-      excludeSpam: true,
+      spamThreshold,
     })
-    expect(excluded2).not.toContain(articleIds[0])
+    expect(toIds(excluded2)).not.toContain(articles[0].id)
 
     // bypass spam detection
     await userService.updateFeatureFlags(article.authorId, [
       USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
     ])
-    const excluded3 = await tagService.findArticleIds({
+    const excluded3 = await tagService.findArticles({
       id: '2',
-      excludeSpam: true,
+      spamThreshold,
     })
-    expect(excluded3).toContain(articleIds[0])
+    expect(toIds(excluded3)).toContain(articles[0].id)
   })
 })
 

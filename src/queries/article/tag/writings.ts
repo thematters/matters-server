@@ -19,13 +19,12 @@ const resolver: GQLTagResolvers['writings'] = async (
     },
   })
 
-  // Add pinned field to each edge (default to false for now)
   return {
     ...result,
     edges:
       result.edges?.map((edge) => ({
         ...edge,
-        pinned: edge.node.pinned,
+        pinned: edge.node.tagPinned,
       })) || [],
   }
 }
