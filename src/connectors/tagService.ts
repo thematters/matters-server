@@ -1,9 +1,4 @@
-import type {
-  Connections,
-  ItemData,
-  Tag,
-  TagBoost,
-} from '#definitions/index.js'
+import type { Connections, Tag, TagBoost } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
@@ -409,23 +404,6 @@ export class TagService extends BaseService<Tag> {
   }
 
   /**
-   * Update article tag.
-   */
-  public putArticleTag = async ({
-    articleId,
-    tagId,
-    data,
-  }: {
-    articleId: string
-    tagId: string
-    data: ItemData
-  }) =>
-    this.knex('article_tag')
-      .where({ articleId, tagId })
-      .update(data)
-      .returning('*')
-
-  /**
    * Count article authors by a given tag id.
    */
   public countAuthors = async ({ id: tagId }: { id: string }) => {
@@ -480,6 +458,7 @@ export class TagService extends BaseService<Tag> {
           .select(
             'article.*',
             'article_tag.pinned as tag_pinned',
+            'article_tag.pinned_at as tag_pinned_at',
             'avn.created_at as avn_created_at',
             this.knexRO.raw('COALESCE(article_stats.reads, 0) as reads')
           )
@@ -506,7 +485,7 @@ export class TagService extends BaseService<Tag> {
           .select([
             'tagged_articles.*',
             this.knexRO.raw(
-              "ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - avn_created_at)) AS score"
+              "CASE WHEN tag_pinned = true THEN EXTRACT(EPOCH FROM tag_pinned_at)::INT ELSE ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - avn_created_at)) END AS score"
             ),
           ])
       )

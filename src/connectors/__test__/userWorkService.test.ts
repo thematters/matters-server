@@ -5,6 +5,7 @@ import { MomentService } from '../momentService.js'
 import { UserService } from '../userService.js'
 import { UserWorkService } from '../userWorkService.js'
 import { TagService } from '../tagService.js'
+import { AtomService } from '../atomService.js'
 import { genConnections, closeConnections } from './utils.js'
 
 let connections: Connections
@@ -13,6 +14,7 @@ let userService: UserService
 let momentService: MomentService
 let publicationService: PublicationService
 let tagService: TagService
+let atomSerivce: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -21,6 +23,7 @@ beforeAll(async () => {
   momentService = new MomentService(connections)
   publicationService = new PublicationService(connections)
   tagService = new TagService(connections)
+  atomSerivce = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -154,10 +157,16 @@ describe('findWritingsByTag', () => {
     })
 
     // Pin a2
-    await tagService.putArticleTag({
-      articleId: a2.id,
-      tagId: tag.id,
-      data: { pinned: true, pinnedAt: new Date() },
+    await atomSerivce.update({
+      table: 'article_tag',
+      where: {
+        articleId: a2.id,
+        tagId: tag.id,
+      },
+      data: {
+        pinned: true,
+        pinnedAt: new Date(),
+      },
     })
 
     const ordered = await userWorkService

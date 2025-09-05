@@ -7,17 +7,15 @@ import { NODE_TYPES } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
-import { TagService } from '#connectors/index.js'
-
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
+import {
+  TagService,
+  PublicationService,
+  AtomService,
+} from '#connectors/index.js'
 
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 50000)
 
 afterAll(async () => {
@@ -471,5 +469,178 @@ describe('query tag articles', () => {
         expect(data.node.articles.pageInfo.hasNextPage).toBe(true)
       }
     }
+  })
+})
+describe('tag articles with pinned items', () => {
+  test('tag articles hottest sorting with pinned articles', async () => {
+    const tagService = new TagService(connections)
+    const publicationService = new PublicationService(connections)
+    const atomSerivce = new AtomService(connections)
+
+    // Create a new tag for testing
+    const testTag = await tagService.upsert({
+      content: 'Test Hottest Pinned Tag',
+      creator: '1',
+    })
+    const tagId = testTag.id
+
+    // Create multiple articles
+    const articles = []
+    for (let i = 1; i <= 5; i++) {
+      const [article] = await publicationService.createArticle({
+        title: `Hottest Test Article ${i}`,
+        content: `Test content ${i}`,
+        authorId: '1',
+        tags: [tagId],
+      })
+      articles.push(article)
+    }
+
+    await tagService.createArticleTags({
+      tagIds: [tagId],
+      articleIds: articles.map(({ id }) => id),
+      creator: '1',
+    })
+
+    // Pin some articles with different timestamps
+    const now = new Date()
+    await atomSerivce.update({
+      table: 'article_tag',
+      where: {
+        articleId: articles[2].id,
+        tagId: tagId,
+      },
+      data: {
+        pinned: true,
+        pinnedAt: new Date(now.getTime() - 3600000), // 1 hour ago
+      },
+    })
+
+    await atomSerivce.update({
+      table: 'article_tag',
+      where: {
+        articleId: articles[4].id,
+        tagId: tagId,
+      },
+      data: {
+        pinned: true,
+        pinnedAt: now,
+      },
+    })
+
+    // Query with hottest sorting
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_TAG_ARTICLES,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: tagId }) },
+        articlesInput: { first: 10, sortBy: 'byHottestDesc' },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+
+    const articleEdges = data.node.articles.edges
+
+    // Verify pinned articles appear first in hottest sorting
+    expect(articleEdges[0].pinned).toBe(true)
+    expect(articleEdges[1].pinned).toBe(true)
+
+    // The most recently pinned article should be first
+    expect(articleEdges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: articles[4].id })
+    )
+    expect(articleEdges[1].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: articles[2].id })
+    )
+
+    // Non-pinned articles should follow
+    for (let i = 2; i < articleEdges.length; i++) {
+      expect(articleEdges[i].pinned).toBe(false)
+    }
+  })
+
+  test('update pinned status of articles', async () => {
+    const tagService = new TagService(connections)
+    const publicationService = new PublicationService(connections)
+    const atomSerivce = new AtomService(connections)
+
+    // Create a test tag and article
+    const testTag = await tagService.upsert({
+      content: 'Test Update Pinned Status',
+      creator: '1',
+    })
+    const tagId = testTag.id
+
+    const [article] = await publicationService.createArticle({
+      title: 'Article to test pin/unpin',
+      content: 'Test content',
+      authorId: '1',
+      tags: [tagId],
+    })
+    await tagService.createArticleTags({
+      articleIds: [article.id],
+      tagIds: [testTag.id],
+      creator: article.authorId,
+    })
+
+    // Initially not pinned
+    const server = await testClient({ connections })
+    let { data } = await server.executeOperation({
+      query: QUERY_TAG_ARTICLES,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: tagId }) },
+        articlesInput: { first: 10 },
+      },
+    })
+
+    expect(data.node.articles.edges[0].pinned).toBe(false)
+
+    // Pin the article
+    await atomSerivce.update({
+      table: 'article_tag',
+      where: {
+        articleId: article.id,
+        tagId: tagId,
+      },
+      data: {
+        pinned: true,
+        pinnedAt: new Date(),
+      },
+    })
+
+    // Query again
+    ;({ data } = await server.executeOperation({
+      query: QUERY_TAG_ARTICLES,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: tagId }) },
+        articlesInput: { first: 10 },
+      },
+    }))
+
+    expect(data.node.articles.edges[0].pinned).toBe(true)
+
+    // Unpin the article
+    await atomSerivce.update({
+      table: 'article_tag',
+      where: {
+        articleId: article.id,
+        tagId: tagId,
+      },
+      data: {
+        pinned: false,
+      },
+    })
+
+    // Query once more
+    ;({ data } = await server.executeOperation({
+      query: QUERY_TAG_ARTICLES,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: tagId }) },
+        articlesInput: { first: 10 },
+      },
+    }))
+
+    expect(data.node.articles.edges[0].pinned).toBe(false)
   })
 })
