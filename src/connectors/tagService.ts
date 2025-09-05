@@ -459,16 +459,10 @@ export class TagService extends BaseService<Tag> {
             'article.*',
             'article_tag.pinned as tag_pinned',
             'article_tag.pinned_at as tag_pinned_at',
-            'avn.created_at as avn_created_at',
             this.knexRO.raw('COALESCE(article_stats.reads, 0) as reads')
           )
           .from('article_tag')
           .innerJoin('article', 'article.id', 'article_tag.article_id')
-          .innerJoin(
-            'article_version_newest as avn',
-            'avn.article_id',
-            'article_tag.article_id'
-          )
           .leftJoin(
             'article_stats_materialized as article_stats',
             'article_stats.article_id',
@@ -485,7 +479,7 @@ export class TagService extends BaseService<Tag> {
           .select([
             'tagged_articles.*',
             this.knexRO.raw(
-              "CASE WHEN tag_pinned = true THEN EXTRACT(EPOCH FROM tag_pinned_at)::INT ELSE ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - avn_created_at)) END AS score"
+              "CASE WHEN tag_pinned = true THEN EXTRACT(EPOCH FROM tag_pinned_at)::INT ELSE ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - created_at)) END AS score"
             ),
           ])
       )
