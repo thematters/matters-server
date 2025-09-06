@@ -21,6 +21,8 @@ import {
   CACHE_TTL,
   CHANNEL_ANTIFLOOD_WINDOW,
   CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -28,7 +30,7 @@ import {
   ActionLimitExceededError,
   ForbiddenError,
 } from '#common/errors.js'
-import { getLogger } from '#common/logger.js'
+import { getLogger, auditLog } from '#common/logger.js'
 import {
   shortHash,
   toDatetimeRangeString,
@@ -740,10 +742,12 @@ export class ChannelService {
     channelId,
     articleIds,
     pinned,
+    actorId,
   }: {
     channelId: string
     articleIds: string[]
     pinned: boolean
+    actorId?: string
   }) => {
     // Get channel to check pin limit
     const channel = await this.models.findUnique({
@@ -814,6 +818,20 @@ export class ChannelService {
       },
     })
 
+    // Audit log the action
+    for (const articleId of articleIds) {
+      auditLog({
+        actorId: actorId ?? null,
+        action: pinned
+          ? AUDIT_LOG_ACTION.pinArticle
+          : AUDIT_LOG_ACTION.unpinArticle,
+        status: AUDIT_LOG_STATUS.succeeded,
+        entity: 'article',
+        entityId: articleId,
+        remark: 'curation_channel',
+      })
+    }
+
     return channel
   }
 
@@ -821,10 +839,12 @@ export class ChannelService {
     channelId,
     articleIds,
     pinned,
+    actorId,
   }: {
     channelId: string
     articleIds: string[]
     pinned: boolean
+    actorId?: string
   }) => {
     // Get channel to check current pinned articles
     const channel = await this.models.findUnique({
@@ -882,6 +902,20 @@ export class ChannelService {
       },
     })
 
+    // Audit log the action
+    for (const articleId of articleIds) {
+      auditLog({
+        actorId: actorId ?? null,
+        action: pinned
+          ? AUDIT_LOG_ACTION.pinArticle
+          : AUDIT_LOG_ACTION.unpinArticle,
+        status: AUDIT_LOG_STATUS.succeeded,
+        entity: 'article',
+        entityId: articleId,
+        remark: 'topic_channel',
+      })
+    }
+
     return updatedChannel
   }
 
@@ -889,10 +923,12 @@ export class ChannelService {
     tagId,
     articleIds,
     pinned,
+    actorId,
   }: {
     tagId: string
     articleIds: string[]
     pinned: boolean
+    actorId?: string
   }) => {
     // Get tag to verify it exists
     const tag = await this.models.findUnique({
@@ -962,6 +998,20 @@ export class ChannelService {
         pinnedAt: pinned ? now : undefined,
       },
     })
+
+    // Audit log the action
+    for (const articleId of articleIds) {
+      auditLog({
+        actorId: actorId ?? null,
+        action: pinned
+          ? AUDIT_LOG_ACTION.pinArticle
+          : AUDIT_LOG_ACTION.unpinArticle,
+        status: AUDIT_LOG_STATUS.succeeded,
+        entity: 'article',
+        entityId: articleId,
+        remark: 'tag_channel',
+      })
+    }
 
     return tag
   }

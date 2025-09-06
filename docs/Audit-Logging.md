@@ -8,12 +8,11 @@ Audit logs are used to:
 - Track sensitive operations like user authentication and data modifications
 - Help with debugging and troubleshooting issues
 - Provide data for security analysis
-- Ensure compliance with data regulations
 - Analyze user behavior patterns
 
 > Note: Audit log entries stored in S3 will be sent to Google BigQuery for analytics usage.
 
-## How to Use Audit Logging
+## How to start Audit Logging
 
 ### 1. Import the Required Dependencies
 
@@ -27,6 +26,7 @@ import { auditLog } from '#common/logger.js'
 The `auditLog` function accepts an object with the following parameters:
 
 ```typescript
+// no try/catch
 auditLog({
   actorId: string | null,        // User ID performing the action (can be null for system actions)
   action: ValueOf<typeof AUDIT_LOG_ACTION>,  // The action being performed
@@ -195,4 +195,4 @@ auditLog({
   entity: 'collection_article',
   entityId: collection.id
 })
-``` 
+```
