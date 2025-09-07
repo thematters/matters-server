@@ -329,3 +329,75 @@ describe('query article oss', () => {
     expect(data.article.oss.spamStatus.isSpam).toBeDefined()
   })
 })
+
+describe('query article pinHistory', () => {
+  const GET_ARTICLE_PIN_HISTORY = /* GraphQL */ `
+    query ($id: ID!) {
+      article: node(input: { id: $id }) {
+        ... on Article {
+          id
+          oss {
+            pinHistory {
+              feed {
+                __typename
+                id
+                ... on IcymiTopic {
+                  title
+                }
+                ... on TopicChannel {
+                  name
+                }
+                ... on CurationChannel {
+                  name
+                }
+              }
+              pinnedAt
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('query article pin history', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    // Get an article ID to test with
+    const articles = await atomService.findMany({
+      table: 'article',
+      where: { state: 'active' },
+      take: 1,
+    })
+
+    if (articles.length > 0) {
+      const articleId = articles[0].id
+      const globalId = btoa(`Article:${articleId}`)
+
+      const { data, errors } = await server.executeOperation({
+        query: GET_ARTICLE_PIN_HISTORY,
+        variables: { id: globalId },
+      })
+
+      expect(errors).toBeUndefined()
+      expect(data.article).toBeDefined()
+      expect(data.article.oss).toBeDefined()
+      expect(data.article.oss.pinHistory).toBeDefined()
+      expect(Array.isArray(data.article.oss.pinHistory)).toBe(true)
+
+      // If there are pin history items, verify their structure
+      if (data.article.oss.pinHistory.length > 0) {
+        const pinItem = data.article.oss.pinHistory[0]
+        expect(pinItem.feed).toBeDefined()
+        expect(pinItem.feed.__typename).toMatch(
+          /^(IcymiTopic|TopicChannel|CurationChannel)$/
+        )
+        expect(pinItem.feed.id).toBeDefined()
+        expect(pinItem.pinnedAt).toBeDefined()
+      }
+    }
+  })
+})

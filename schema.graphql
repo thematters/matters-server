@@ -621,6 +621,13 @@ type ArticleOSS {
   spamStatus: SpamStatus!
   adStatus: AdStatus!
   topicChannels: [ArticleTopicChannel!] @deprecated(reason: "Use classification.topicChannel.channels instead")
+  pinHistory: [PinHistory]!
+}
+
+type PinHistory {
+  """Which feed (IcymiTopic / Channel) the article was pinned"""
+  feed: Node!
+  pinnedAt: DateTime!
 }
 
 type SpamStatus {
@@ -4065,7 +4072,7 @@ interface Channel {
   navbarTitle(input: TranslationArgs): String!
 }
 
-type TopicChannel implements Channel {
+type TopicChannel implements Channel & Node {
   id: ID!
   shortHash: String!
   navbarTitle(input: TranslationArgs): String!
@@ -4077,7 +4084,7 @@ type TopicChannel implements Channel {
   articles(input: ChannelArticlesInput!): ChannelArticleConnection!
 }
 
-type CurationChannel implements Channel {
+type CurationChannel implements Channel & Node {
   id: ID!
   shortHash: String!
   navbarTitle(input: TranslationArgs): String!

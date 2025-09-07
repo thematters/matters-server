@@ -595,6 +595,7 @@ export type GQLArticleOss = {
   inRecommendIcymi: Scalars['Boolean']['output']
   inRecommendNewest: Scalars['Boolean']['output']
   inSearch: Scalars['Boolean']['output']
+  pinHistory: Array<Maybe<GQLPinHistory>>
   score: Scalars['Float']['output']
   spamStatus: GQLSpamStatus
   /** @deprecated Use classification.topicChannel.channels instead */
@@ -1467,21 +1468,22 @@ export type GQLCryptoWalletSignaturePurpose =
   | 'login'
   | 'signup'
 
-export type GQLCurationChannel = GQLChannel & {
-  __typename?: 'CurationChannel'
-  /** both activePeriod and state determine if the channel is active */
-  activePeriod: GQLDatetimeRange
-  articles: GQLChannelArticleConnection
-  color: GQLColor
-  id: Scalars['ID']['output']
-  name: Scalars['String']['output']
-  navbarTitle: Scalars['String']['output']
-  note?: Maybe<Scalars['String']['output']>
-  pinAmount: Scalars['Int']['output']
-  shortHash: Scalars['String']['output']
-  showRecommendation: Scalars['Boolean']['output']
-  state: GQLCurationChannelState
-}
+export type GQLCurationChannel = GQLChannel &
+  GQLNode & {
+    __typename?: 'CurationChannel'
+    /** both activePeriod and state determine if the channel is active */
+    activePeriod: GQLDatetimeRange
+    articles: GQLChannelArticleConnection
+    color: GQLColor
+    id: Scalars['ID']['output']
+    name: Scalars['String']['output']
+    navbarTitle: Scalars['String']['output']
+    note?: Maybe<Scalars['String']['output']>
+    pinAmount: Scalars['Int']['output']
+    shortHash: Scalars['String']['output']
+    showRecommendation: Scalars['Boolean']['output']
+    state: GQLCurationChannelState
+  }
 
 export type GQLCurationChannelArticlesArgs = {
   input: GQLChannelArticlesInput
@@ -2968,6 +2970,13 @@ export type GQLPinCommentInput = {
   id: Scalars['ID']['input']
 }
 
+export type GQLPinHistory = {
+  __typename?: 'PinHistory'
+  /** Which feed (IcymiTopic / Channel) the article was pinned */
+  feed: GQLNode
+  pinnedAt: Scalars['DateTime']['output']
+}
+
 export type GQLPinnableWork = {
   cover?: Maybe<Scalars['String']['output']>
   id: Scalars['ID']['output']
@@ -3957,18 +3966,19 @@ export type GQLTopDonatorInput = {
   first?: InputMaybe<Scalars['Int']['input']>
 }
 
-export type GQLTopicChannel = GQLChannel & {
-  __typename?: 'TopicChannel'
-  articles: GQLChannelArticleConnection
-  enabled: Scalars['Boolean']['output']
-  id: Scalars['ID']['output']
-  name: Scalars['String']['output']
-  navbarTitle: Scalars['String']['output']
-  note?: Maybe<Scalars['String']['output']>
-  parent?: Maybe<GQLTopicChannel>
-  providerId?: Maybe<Scalars['String']['output']>
-  shortHash: Scalars['String']['output']
-}
+export type GQLTopicChannel = GQLChannel &
+  GQLNode & {
+    __typename?: 'TopicChannel'
+    articles: GQLChannelArticleConnection
+    enabled: Scalars['Boolean']['output']
+    id: Scalars['ID']['output']
+    name: Scalars['String']['output']
+    navbarTitle: Scalars['String']['output']
+    note?: Maybe<Scalars['String']['output']>
+    parent?: Maybe<GQLTopicChannel>
+    providerId?: Maybe<Scalars['String']['output']>
+    shortHash: Scalars['String']['output']
+  }
 
 export type GQLTopicChannelArticlesArgs = {
   input: GQLChannelArticlesInput
@@ -5012,11 +5022,13 @@ export type GQLResolversInterfaceTypes<
     | CircleModel
     | CollectionModel
     | CommentModel
+    | CurationChannelModel
     | DraftModel
     | MattersChoiceTopicModel
     | MomentModel
     | ReportModel
     | TagModel
+    | TopicChannelModel
     | UserModel
     | CampaignModel
   Notice:
@@ -5474,6 +5486,9 @@ export type GQLResolversTypes = ResolversObject<{
   PayoutInput: GQLPayoutInput
   Person: ResolverTypeWrapper<GQLPerson>
   PinCommentInput: GQLPinCommentInput
+  PinHistory: ResolverTypeWrapper<
+    Omit<GQLPinHistory, 'feed'> & { feed: GQLResolversTypes['Node'] }
+  >
   PinnableWork: ResolverTypeWrapper<
     GQLResolversInterfaceTypes<GQLResolversTypes>['PinnableWork']
   >
@@ -6123,6 +6138,9 @@ export type GQLResolversParentTypes = ResolversObject<{
   PayoutInput: GQLPayoutInput
   Person: GQLPerson
   PinCommentInput: GQLPinCommentInput
+  PinHistory: Omit<GQLPinHistory, 'feed'> & {
+    feed: GQLResolversParentTypes['Node']
+  }
   PinnableWork: GQLResolversInterfaceTypes<GQLResolversParentTypes>['PinnableWork']
   Price: CirclePriceModel
   PublishArticleInput: GQLPublishArticleInput
@@ -7008,6 +7026,11 @@ export type GQLArticleOssResolvers<
     ContextType
   >
   inSearch?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  pinHistory?: Resolver<
+    Array<Maybe<GQLResolversTypes['PinHistory']>>,
+    ParentType,
+    ContextType
+  >
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   spamStatus?: Resolver<
     GQLResolversTypes['SpamStatus'],
@@ -9201,11 +9224,13 @@ export type GQLNodeResolvers<
     | 'Circle'
     | 'Collection'
     | 'Comment'
+    | 'CurationChannel'
     | 'Draft'
     | 'IcymiTopic'
     | 'Moment'
     | 'Report'
     | 'Tag'
+    | 'TopicChannel'
     | 'User'
     | 'WritingChallenge',
     ParentType,
@@ -9563,6 +9588,15 @@ export type GQLPersonResolvers<
   ParentType extends GQLResolversParentTypes['Person'] = GQLResolversParentTypes['Person']
 > = ResolversObject<{
   email?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLPinHistoryResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['PinHistory'] = GQLResolversParentTypes['PinHistory']
+> = ResolversObject<{
+  feed?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
+  pinnedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -11158,6 +11192,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   PageInfo?: GQLPageInfoResolvers<ContextType>
   PayToResult?: GQLPayToResultResolvers<ContextType>
   Person?: GQLPersonResolvers<ContextType>
+  PinHistory?: GQLPinHistoryResolvers<ContextType>
   PinnableWork?: GQLPinnableWorkResolvers<ContextType>
   Price?: GQLPriceResolvers<ContextType>
   Query?: GQLQueryResolvers<ContextType>

@@ -323,7 +323,7 @@ export const completeCircleInvoice = async (
     const customer = (await atomService.findFirst({
       table: 'customer',
       where: {
-        customerId: invoice.customer,
+        customerId: invoice.customer as string,
         provider: PAYMENT_PROVIDER.stripe,
         archived: false,
       },
@@ -333,7 +333,7 @@ export const completeCircleInvoice = async (
     const subscription = (await atomService.findFirst({
       table: 'circle_subscription',
       where: {
-        providerSubscriptionId: invoice.subscription,
+        providerSubscriptionId: invoice.subscription as string,
         provider: PAYMENT_PROVIDER.stripe,
       },
     })) as CircleSubscription
