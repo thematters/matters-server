@@ -120,10 +120,7 @@ export const pinHistory: GQLArticleOssResolvers['pinHistory'] = async (
     // Get the ICYMI topic that contains this article
     const icymiTopic = await atomService.findFirst({
       table: 'matters_choice_topic',
-      where: (builder) =>
-        builder
-          .where('articles', '@>', JSON.stringify([articleId]))
-          .where('state', 'published'),
+      where: (builder) => builder.where('articles', '@>', `{ ${articleId} }`),
       orderBy: [{ column: 'publishedAt', order: 'desc' }],
     })
 
