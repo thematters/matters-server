@@ -1,5 +1,7 @@
 import type { GQLArticleOssResolvers } from '#definitions/index.js'
 
+import { NODE_TYPES } from '#common/enums/index.js'
+
 export const boost: GQLArticleOssResolvers['boost'] = async (
   { id: articleId },
   _,
@@ -99,4 +101,96 @@ export const adStatus: GQLArticleOssResolvers['adStatus'] = async ({
   isAd,
 }) => {
   return { isAd }
+}
+
+export const pinHistory: GQLArticleOssResolvers['pinHistory'] = async (
+  { id: articleId },
+  _,
+  { dataSources: { atomService } }
+) => {
+  const pinHistoryItems = []
+
+  // Check if article was pinned in ICYMI (matters_choice)
+  const mattersChoice = await atomService.findFirst({
+    table: 'matters_choice',
+    where: { articleId },
+  })
+
+  if (mattersChoice) {
+    // Get the ICYMI topic that contains this article
+    const icymiTopic = await atomService.findFirst({
+      table: 'matters_choice_topic',
+      where: (builder) => builder.where('articles', '@>', `{ ${articleId} }`),
+      orderBy: [{ column: 'publishedAt', order: 'desc' }],
+    })
+
+    if (icymiTopic) {
+      pinHistoryItems.push({
+        feed: { ...icymiTopic, __type: NODE_TYPES.IcymiTopic },
+        pinnedAt: icymiTopic.publishedAt || icymiTopic.createdAt,
+      })
+    }
+  }
+
+  // Check if article was pinned in topic channels
+  const topicChannelArticles = await atomService.findMany({
+    table: 'topic_channel_article',
+    where: (builder) =>
+      builder.where('articleId', articleId).whereNotNull('pinnedAt'),
+  })
+
+  for (const topicChannelArticle of topicChannelArticles) {
+    const topicChannel = await atomService.topicChannelIdLoader.load(
+      topicChannelArticle.channelId
+    )
+    if (topicChannel) {
+      pinHistoryItems.push({
+        feed: { ...topicChannel, __type: NODE_TYPES.TopicChannel },
+        pinnedAt: topicChannelArticle.pinnedAt!,
+      })
+    }
+  }
+
+  // Check if article was pinned in curation channels
+  const curationChannelArticles = await atomService.findMany({
+    table: 'curation_channel_article',
+    where: (builder) =>
+      builder.where('articleId', articleId).whereNotNull('pinnedAt'),
+  })
+
+  for (const curationChannelArticle of curationChannelArticles) {
+    const curationChannel = await atomService.curationChannelIdLoader.load(
+      curationChannelArticle.channelId
+    )
+    if (curationChannel) {
+      pinHistoryItems.push({
+        feed: { ...curationChannel, __type: NODE_TYPES.CurationChannel },
+        pinnedAt: curationChannelArticle.pinnedAt!,
+      })
+    }
+  }
+
+  // Check if article was pinned in tags
+  const tagArticles = await atomService.findMany({
+    table: 'article_tag',
+    where: (builder) =>
+      builder.where('articleId', articleId).whereNotNull('pinnedAt'),
+  })
+
+  for (const tagArticle of tagArticles) {
+    const tag = await atomService.tagIdLoader.load(tagArticle.tagId)
+    if (tag) {
+      pinHistoryItems.push({
+        feed: { ...tag, __type: NODE_TYPES.Tag },
+        pinnedAt: tagArticle.pinnedAt!,
+      })
+    }
+  }
+
+  // Sort by pinnedAt in descending order (most recent first)
+  pinHistoryItems.sort((a, b) => {
+    return new Date(b.pinnedAt).getTime() - new Date(a.pinnedAt).getTime()
+  })
+
+  return pinHistoryItems
 }

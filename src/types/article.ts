@@ -362,6 +362,13 @@ export default /* GraphQL */ `
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
     adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
     topicChannels: [ArticleTopicChannel!] @auth(mode: "${AUTH_MODE.admin}") @deprecated(reason: "Use classification.topicChannel.channels instead")
+    pinHistory: [PinHistory]!
+  }
+
+  type PinHistory {
+     "Which feed (IcymiTopic / Channel) the article was pinned"
+     feed: Node!
+     pinnedAt: DateTime!
   }
 
   type SpamStatus {

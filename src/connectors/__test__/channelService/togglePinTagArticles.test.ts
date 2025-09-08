@@ -313,7 +313,7 @@ describe('togglePinTagArticles', () => {
         where: { tagId: tag.id, articleId: articles[0].id },
       })
       expect(articleTag!.pinned).toBe(false)
-      expect(articleTag!.pinnedAt).toBeNull()
+      expect(articleTag!.pinnedAt).not.toBeNull()
     })
   })
 

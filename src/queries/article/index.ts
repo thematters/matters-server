@@ -191,6 +191,7 @@ const schema: GQLResolvers = {
     spamStatus: articleOSS.spamStatus,
     adStatus: articleOSS.adStatus,
     topicChannels: topicChannels,
+    pinHistory: articleOSS.pinHistory,
   },
   TagOSS: {
     boost: tagOSS.boost,

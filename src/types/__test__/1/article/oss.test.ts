@@ -1,15 +1,17 @@
 import type { Connections } from '#definitions/index.js'
 
-import { AtomService } from '#connectors/index.js'
+import { AtomService, ChannelService } from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../../utils.js'
 
 let connections: Connections
 let atomService: AtomService
+let channelService: ChannelService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  channelService = new ChannelService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -327,5 +329,249 @@ describe('query article oss', () => {
     expect(data.article.oss.spamStatus).toBeDefined()
     expect(data.article.oss.spamStatus.score).toBeDefined()
     expect(data.article.oss.spamStatus.isSpam).toBeDefined()
+  })
+})
+
+describe('query article pinHistory', () => {
+  const GET_ARTICLE_PIN_HISTORY = /* GraphQL */ `
+    query ($id: ID!) {
+      article: node(input: { id: $id }) {
+        ... on Article {
+          id
+          oss {
+            pinHistory {
+              feed {
+                __typename
+                id
+                ... on IcymiTopic {
+                  title
+                }
+                ... on TopicChannel {
+                  name
+                }
+                ... on CurationChannel {
+                  name
+                }
+                ... on Tag {
+                  content
+                }
+              }
+              pinnedAt
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('query article pin history with all types', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    // Get an article to test with
+    const testArticle = await atomService.findFirst({
+      table: 'article',
+      where: { state: 'active' },
+    })
+
+    if (!testArticle) {
+      throw new Error('No active article found for testing')
+    }
+
+    const articleId = testArticle.id
+    const globalId = btoa(`Article:${articleId}`)
+
+    // Clean up existing pin history for this article
+    await atomService.deleteMany({
+      table: 'matters_choice',
+      where: { articleId },
+    })
+    await atomService.deleteMany({
+      table: 'topic_channel_article',
+      where: { articleId },
+    })
+    await atomService.deleteMany({
+      table: 'curation_channel_article',
+      where: { articleId },
+    })
+    await atomService.update({
+      table: 'article_tag',
+      where: { articleId },
+      data: { pinnedAt: null },
+    })
+
+    // 1. Create ICYMI Topic pin history using atomService
+    const icymiTopic = await atomService.create({
+      table: 'matters_choice_topic',
+      data: {
+        title: 'Test ICYMI Topic',
+        articles: [articleId],
+        state: 'published',
+        publishedAt: new Date('2024-01-01'),
+        pinAmount: 1,
+      },
+    })
+
+    await atomService.create({
+      table: 'matters_choice',
+      data: {
+        articleId,
+      },
+    })
+
+    // 2. Create Topic Channel pin history using channelService
+    const topicChannel = await channelService.createTopicChannel({
+      name: 'Test Topic Channel for Pin History',
+      note: 'Test channel for pin history',
+      enabled: true,
+    })
+
+    await atomService.create({
+      table: 'topic_channel_article',
+      data: {
+        channelId: topicChannel.id,
+        articleId,
+        pinnedAt: new Date('2024-02-01'),
+      },
+    })
+
+    // 3. Create Curation Channel pin history using channelService
+    const curationChannel = await channelService.createCurationChannel({
+      name: 'Test Curation Channel for Pin History',
+      note: 'Test curation channel for pin history',
+    })
+
+    await atomService.create({
+      table: 'curation_channel_article',
+      data: {
+        channelId: curationChannel.id,
+        articleId,
+        pinnedAt: new Date('2024-03-01'),
+      },
+    })
+
+    // 4. Create Tag pin history using atomService
+    // Create a test tag directly using atomService
+    const testTag = await atomService.create({
+      table: 'tag',
+      data: {
+        content: 'test-pin-history-' + Date.now(), // Make it unique
+        creator: testArticle.authorId,
+      },
+    })
+
+    // Create article_tag relation
+    await atomService.create({
+      table: 'article_tag',
+      data: {
+        articleId,
+        tagId: testTag.id,
+      },
+    })
+
+    // Update the pinnedAt date
+    await atomService.update({
+      table: 'article_tag',
+      where: { articleId, tagId: testTag.id },
+      data: { pinnedAt: new Date('2024-04-01') },
+    })
+
+    // Query the article's pin history
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTICLE_PIN_HISTORY,
+      variables: { id: globalId },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.article).toBeDefined()
+    expect(data.article.oss).toBeDefined()
+    expect(data.article.oss.pinHistory).toBeDefined()
+    expect(Array.isArray(data.article.oss.pinHistory)).toBe(true)
+
+    // Verify we have all 4 types of pin history
+    expect(data.article.oss.pinHistory.length).toBeGreaterThanOrEqual(4)
+
+    // Check for each type
+    const pinTypes = data.article.oss.pinHistory.map(
+      (item: any) => item.feed.__typename
+    )
+    expect(pinTypes).toContain('IcymiTopic')
+    expect(pinTypes).toContain('TopicChannel')
+    expect(pinTypes).toContain('CurationChannel')
+    expect(pinTypes).toContain('Tag')
+
+    // Verify they are sorted by pinnedAt in descending order
+    for (let i = 0; i < data.article.oss.pinHistory.length - 1; i++) {
+      const currentDate = new Date(data.article.oss.pinHistory[i].pinnedAt)
+      const nextDate = new Date(data.article.oss.pinHistory[i + 1].pinnedAt)
+      expect(currentDate.getTime()).toBeGreaterThanOrEqual(nextDate.getTime())
+    }
+
+    // Verify specific properties for each type
+    for (const pinItem of data.article.oss.pinHistory) {
+      expect(pinItem.feed).toBeDefined()
+      expect(pinItem.feed.id).toBeDefined()
+      expect(pinItem.pinnedAt).toBeDefined()
+
+      switch (pinItem.feed.__typename) {
+        case 'IcymiTopic':
+          expect(pinItem.feed.title).toBeDefined()
+          expect(pinItem.feed.title).toBe('Test ICYMI Topic')
+          break
+        case 'TopicChannel':
+          expect(pinItem.feed.name).toBeDefined()
+          expect(pinItem.feed.name).toBe('Test Topic Channel for Pin History')
+          break
+        case 'CurationChannel':
+          expect(pinItem.feed.name).toBeDefined()
+          expect(pinItem.feed.name).toBe(
+            'Test Curation Channel for Pin History'
+          )
+          break
+        case 'Tag':
+          expect(pinItem.feed.content).toBeDefined()
+          expect(pinItem.feed.content).toContain('test-pin-history-')
+          break
+      }
+    }
+
+    // Clean up test data
+    await atomService.deleteMany({
+      table: 'matters_choice',
+      where: { articleId },
+    })
+    await atomService.deleteMany({
+      table: 'matters_choice_topic',
+      where: { id: icymiTopic.id },
+    })
+    await atomService.deleteMany({
+      table: 'topic_channel_article',
+      where: { articleId, channelId: topicChannel.id },
+    })
+    await atomService.deleteMany({
+      table: 'curation_channel_article',
+      where: { articleId, channelId: curationChannel.id },
+    })
+    await atomService.deleteMany({
+      table: 'article_tag',
+      where: { articleId, tagId: testTag.id },
+    })
+
+    // Clean up created channels
+    await atomService.deleteMany({
+      table: 'topic_channel',
+      where: { id: topicChannel.id },
+    })
+    await atomService.deleteMany({
+      table: 'curation_channel',
+      where: { id: curationChannel.id },
+    })
+    await atomService.deleteMany({
+      table: 'tag',
+      where: { id: testTag.id },
+    })
   })
 })

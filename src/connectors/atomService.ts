@@ -19,6 +19,8 @@ import type {
   TableTypeMap,
   TableTypeMapKey,
   ChannelAnnouncement,
+  CurationChannel,
+  TopicChannel,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -36,6 +38,8 @@ interface InitLoaderInput {
   mode: Mode
   error?: Error
 }
+
+type WhereValue = number | string | null | boolean
 
 type FindUniqueFn = <
   Table extends TableTypeMapKey,
@@ -56,7 +60,7 @@ type FindFirstFn = <
   table: Table
   select?: keyof D[]
   where:
-    | Partial<Record<keyof D, any>>
+    | Partial<Record<keyof D, WhereValue>>
     | ((builder: Knex.QueryBuilder) => Knex.QueryBuilder<D, D>)
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
@@ -69,7 +73,7 @@ type FindManyFn = <
   table: Table
   select?: Array<keyof D>
   where?:
-    | Partial<Record<keyof D, any>>
+    | Partial<Record<keyof D, WhereValue>>
     | ((builder: Knex.QueryBuilder) => Knex.QueryBuilder<D, D>)
 
   whereIn?: [string, string[]]
@@ -93,7 +97,7 @@ type UpdateFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: Partial<Record<keyof D, any>>
+  where: Partial<Record<keyof D, WhereValue>>
   data: Partial<D>
   columns?: Array<keyof D> | '*'
 }) => Promise<D>
@@ -103,7 +107,7 @@ type UpdateManyFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: Partial<Record<keyof D, any>>
+  where?: Partial<Record<keyof D, WhereValue>>
   whereIn?: [string, string[]]
   data: Partial<D>
   columns?: Array<keyof D> | '*'
@@ -114,7 +118,7 @@ type UpdateJsonColumnFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: Partial<Record<keyof D, any>>
+  where: Partial<Record<keyof D, WhereValue>>
   jsonColumn?: string // default extra column name is 'extra'
   removeKeys?: string[] // keys to remove from extra json column
   jsonData?: Record<string, any> | null
@@ -197,6 +201,8 @@ export class AtomService {
   public campaignIdLoader: AtomDataLoader<string, Campaign>
   public campaignStageIdLoader: AtomDataLoader<string, CampaignStage>
   public channelAnnouncementLoader: AtomDataLoader<string, ChannelAnnouncement>
+  public curationChannelIdLoader: AtomDataLoader<string, CurationChannel>
+  public topicChannelIdLoader: AtomDataLoader<string, TopicChannel>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -245,6 +251,14 @@ export class AtomService {
     })
     this.channelAnnouncementLoader = this.initLoader({
       table: 'channel_announcement',
+      mode: 'id',
+    })
+    this.curationChannelIdLoader = this.initLoader({
+      table: 'curation_channel',
+      mode: 'id',
+    })
+    this.topicChannelIdLoader = this.initLoader({
+      table: 'topic_channel',
       mode: 'id',
     })
   }
@@ -437,7 +451,6 @@ export class AtomService {
     columns = '*',
   }) => {
     const action = this.knex
-      .where(where)
       .update(
         isUpdateableTable(table)
           ? { ...data, updatedAt: this.knex.fn.now() }
@@ -445,6 +458,10 @@ export class AtomService {
       )
       .into(table)
       .returning(columns as string)
+
+    if (where) {
+      action.where(where)
+    }
 
     if (whereIn) {
       action.whereIn(...whereIn)

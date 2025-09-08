@@ -21,6 +21,8 @@ import {
   CACHE_TTL,
   CHANNEL_ANTIFLOOD_WINDOW,
   CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -28,7 +30,7 @@ import {
   ActionLimitExceededError,
   ForbiddenError,
 } from '#common/errors.js'
-import { getLogger } from '#common/logger.js'
+import { getLogger, auditLog } from '#common/logger.js'
 import {
   shortHash,
   toDatetimeRangeString,
@@ -740,10 +742,12 @@ export class ChannelService {
     channelId,
     articleIds,
     pinned,
+    actorId,
   }: {
     channelId: string
     articleIds: string[]
     pinned: boolean
+    actorId?: string
   }) => {
     // Get channel to check pin limit
     const channel = await this.models.findUnique({
@@ -797,7 +801,6 @@ export class ChannelService {
           whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
           data: {
             pinned: false,
-            pinnedAt: null,
           },
         })
       }
@@ -811,9 +814,23 @@ export class ChannelService {
       whereIn: ['articleId', articleIds],
       data: {
         pinned,
-        pinnedAt: pinned ? now : null,
+        pinnedAt: pinned ? now : undefined,
       },
     })
+
+    // Audit log the action
+    for (const articleId of articleIds) {
+      auditLog({
+        actorId: actorId ?? null,
+        action: pinned
+          ? AUDIT_LOG_ACTION.pinArticle
+          : AUDIT_LOG_ACTION.unpinArticle,
+        status: AUDIT_LOG_STATUS.succeeded,
+        entity: 'article',
+        entityId: articleId,
+        remark: 'curation_channel',
+      })
+    }
 
     return channel
   }
@@ -822,10 +839,12 @@ export class ChannelService {
     channelId,
     articleIds,
     pinned,
+    actorId,
   }: {
     channelId: string
     articleIds: string[]
     pinned: boolean
+    actorId?: string
   }) => {
     // Get channel to check current pinned articles
     const channel = await this.models.findUnique({
@@ -857,7 +876,7 @@ export class ChannelService {
         TOPIC_CHANNEL_PIN_LIMIT
       )
     } else {
-      // Remove articles from pinned list
+      // Unpinning, remove articles from pinned list
       const articlesToUnpin = new Set(articleIds)
       newPinnedArticles = currentPinnedArticles
         .map(String)
@@ -872,6 +891,30 @@ export class ChannelService {
         pinnedArticles: newPinnedArticles,
       },
     })
+    // Log pinnedAt.
+    // For parent channels, relationship records have been inserted into topic_channel_article
+    // by channel management pane in Web-Next
+    await this.models.updateMany({
+      table: 'topic_channel_article',
+      whereIn: ['article_id', newPinnedArticles],
+      data: {
+        pinnedAt: new Date(),
+      },
+    })
+
+    // Audit log the action
+    for (const articleId of articleIds) {
+      auditLog({
+        actorId: actorId ?? null,
+        action: pinned
+          ? AUDIT_LOG_ACTION.pinArticle
+          : AUDIT_LOG_ACTION.unpinArticle,
+        status: AUDIT_LOG_STATUS.succeeded,
+        entity: 'article',
+        entityId: articleId,
+        remark: 'topic_channel',
+      })
+    }
 
     return updatedChannel
   }
@@ -880,10 +923,12 @@ export class ChannelService {
     tagId,
     articleIds,
     pinned,
+    actorId,
   }: {
     tagId: string
     articleIds: string[]
     pinned: boolean
+    actorId?: string
   }) => {
     // Get tag to verify it exists
     const tag = await this.models.findUnique({
@@ -937,7 +982,6 @@ export class ChannelService {
           whereIn: ['articleId', oldestPinnedArticles.map((a) => a.articleId)],
           data: {
             pinned: false,
-            pinnedAt: null,
           },
         })
       }
@@ -951,9 +995,23 @@ export class ChannelService {
       whereIn: ['articleId', articleIds],
       data: {
         pinned,
-        pinnedAt: pinned ? now : null,
+        pinnedAt: pinned ? now : undefined,
       },
     })
+
+    // Audit log the action
+    for (const articleId of articleIds) {
+      auditLog({
+        actorId: actorId ?? null,
+        action: pinned
+          ? AUDIT_LOG_ACTION.pinArticle
+          : AUDIT_LOG_ACTION.unpinArticle,
+        status: AUDIT_LOG_STATUS.succeeded,
+        entity: 'article',
+        entityId: articleId,
+        remark: 'tag_channel',
+      })
+    }
 
     return tag
   }
