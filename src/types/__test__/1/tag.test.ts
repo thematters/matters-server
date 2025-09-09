@@ -29,6 +29,7 @@ const QUERY_TAG = /* GraphQL */ `
         id
         content
         numMoments
+        shortHash
         recommended(input: {}) {
           edges {
             node {
@@ -112,13 +113,22 @@ describe('manage tag', () => {
 })
 
 describe('query tag', () => {
+  test('tag shortHash', async () => {
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: QUERY_TAG,
+      variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.node.shortHash).toBeDefined()
+  })
   test('tag recommended', async () => {
     const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: QUERY_TAG,
       variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },
     })
-    expect(data!.node.recommended.edges).toBeDefined()
+    expect(data.node.recommended.edges).toBeDefined()
   })
 
   test('tag numMoments', async () => {
@@ -129,9 +139,9 @@ describe('query tag', () => {
     })
 
     // Verify numMoments field exists and is a number
-    expect(data!.node.numMoments).toBeDefined()
-    expect(typeof data!.node.numMoments).toBe('number')
-    expect(data!.node.numMoments).toBeGreaterThanOrEqual(0)
+    expect(data.node.numMoments).toBeDefined()
+    expect(typeof data.node.numMoments).toBe('number')
+    expect(data.node.numMoments).toBeGreaterThanOrEqual(0)
   })
 })
 
