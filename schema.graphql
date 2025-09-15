@@ -941,6 +941,7 @@ input PutWritingChallengeInput {
   """exclude articles of this campaign in topic channels and newest"""
   exclusive: Boolean
   managers: [ID!]
+  showOther: Boolean
 }
 
 input ApplyCampaignInput {
@@ -1020,6 +1021,7 @@ type WritingChallenge implements Node & Campaign & Channel {
   application: CampaignApplication
   featuredDescription(input: TranslationArgs): String!
   isManager: Boolean!
+  showOther: Boolean!
   oss: CampaignOSS!
 }
 

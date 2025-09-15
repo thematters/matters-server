@@ -53,6 +53,7 @@ const schema: GQLResolvers = {
     participants,
     articles,
     channelEnabled,
+    showOther: ({ showOther }) => showOther,
     oss: (root) => root,
   },
 

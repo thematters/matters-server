@@ -39,6 +39,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       navbarTitle,
       exclusive,
       managers: managerGlobalIds,
+      showOther,
     },
   },
   {
@@ -189,6 +190,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       featuredDescription: featuredDescription && featuredDescription[0]?.text,
       managerIds,
       exclusive,
+      showOther,
     }
 
     campaign = await atomService.update({

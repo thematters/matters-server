@@ -3202,6 +3202,7 @@ export type GQLPutWritingChallengeInput = {
   name?: InputMaybe<Array<GQLTranslationInput>>
   navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   newStages?: InputMaybe<Array<GQLCampaignStageInput>>
+  showOther?: InputMaybe<Scalars['Boolean']['input']>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
   writingPeriod?: InputMaybe<GQLDatetimeRangeInput>
@@ -4725,6 +4726,7 @@ export type GQLWritingChallenge = GQLCampaign &
     oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
     shortHash: Scalars['String']['output']
+    showOther: Scalars['Boolean']['output']
     stages: Array<GQLCampaignStage>
     state: GQLCampaignState
     writingPeriod?: Maybe<GQLDatetimeRange>
@@ -11039,6 +11041,7 @@ export type GQLWritingChallengeResolvers<
     RequireFields<GQLWritingChallengeParticipantsArgs, 'input'>
   >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  showOther?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   stages?: Resolver<
     Array<GQLResolversTypes['CampaignStage']>,
     ParentType,
