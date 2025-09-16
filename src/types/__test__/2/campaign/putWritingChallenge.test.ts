@@ -870,8 +870,10 @@ describe('create or update writing challenges', () => {
     const { data: updateData, errors } = await server.executeOperation({
       query: PUT_WRITING_CHALLENGE,
       variables: {
-        id: data.putWritingChallenge.id,
-        showOther: false,
+        input: {
+          id: data.putWritingChallenge.id,
+          showOther: false,
+        },
       },
     })
     expect(errors).toBeUndefined()
