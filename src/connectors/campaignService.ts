@@ -66,6 +66,7 @@ export class CampaignService {
     managerIds,
     featuredDescription,
     exclusive,
+    showOther,
   }: {
     name: string
     description?: string
@@ -78,6 +79,7 @@ export class CampaignService {
     featuredDescription?: string
     managerIds?: string[]
     exclusive?: boolean
+    showOther?: boolean
   }) =>
     this.models.create({
       table: 'campaign',
@@ -99,6 +101,7 @@ export class CampaignService {
         managerIds,
         featuredDescription,
         exclusive: exclusive ?? false,
+        showOther,
       },
     })
 

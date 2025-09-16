@@ -138,6 +138,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         ? featuredDescription[0]?.text
         : '',
       exclusive,
+      showOther,
     })
 
     // invalidate campaign list cache
