@@ -1,9 +1,4 @@
-import type {
-  Connections,
-  ItemData,
-  Tag,
-  TagBoost,
-} from '#definitions/index.js'
+import type { Connections, Tag, TagBoost } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
@@ -29,7 +24,6 @@ import _ from 'lodash'
 
 import { BaseService } from './baseService.js'
 import { SearchService } from './searchService.js'
-import { SystemService } from './systemService.js'
 
 const logger = getLogger('service-tag')
 
@@ -410,23 +404,6 @@ export class TagService extends BaseService<Tag> {
   }
 
   /**
-   * Update article tag.
-   */
-  public putArticleTag = async ({
-    articleId,
-    tagId,
-    data,
-  }: {
-    articleId: string
-    tagId: string
-    data: ItemData
-  }) =>
-    this.knex('article_tag')
-      .where({ articleId, tagId })
-      .update(data)
-      .returning('*')
-
-  /**
    * Count article authors by a given tag id.
    */
   public countAuthors = async ({ id: tagId }: { id: string }) => {
@@ -474,22 +451,18 @@ export class TagService extends BaseService<Tag> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  private getHottestArticlesBaseQuery = (tagId: string) => {
+  public findHottestArticles = (tagId: string) => {
     return this.knexRO
       .with('tagged_articles', (builder) =>
         builder
           .select(
-            'article.id',
-            'avn.created_at',
+            'article.*',
+            'article_tag.pinned as tag_pinned',
+            'article_tag.pinned_at as tag_pinned_at',
             this.knexRO.raw('COALESCE(article_stats.reads, 0) as reads')
           )
           .from('article_tag')
           .innerJoin('article', 'article.id', 'article_tag.article_id')
-          .innerJoin(
-            'article_version_newest as avn',
-            'avn.article_id',
-            'article_tag.article_id'
-          )
           .leftJoin(
             'article_stats_materialized as article_stats',
             'article_stats.article_id',
@@ -502,68 +475,16 @@ export class TagService extends BaseService<Tag> {
       )
       .with('scored_articles', (builder) =>
         builder
-          .select('*')
           .from('tagged_articles')
-          .select(
+          .select([
+            'tagged_articles.*',
             this.knexRO.raw(
-              "ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - created_at)) AS score"
-            )
-          )
+              "CASE WHEN tag_pinned = true THEN EXTRACT(EPOCH FROM tag_pinned_at)::INT ELSE ROW_NUMBER() OVER (ORDER BY reads ASC) - (2 * DATE_PART('day', CURRENT_DATE - created_at)) END AS score"
+            ),
+          ])
       )
-  }
-
-  public findHottestArticleIds = async ({
-    id: tagId,
-    skip,
-    take,
-  }: {
-    id: string
-    skip?: number
-    take?: number
-  }) => {
-    const hasHottest = await this.knexRO(
-      MATERIALIZED_VIEW.tag_hottest_materialized
-    )
-      .where({ tagId })
-      .first()
-
-    if (!hasHottest) {
-      return []
-    }
-
-    const results = await this.getHottestArticlesBaseQuery(tagId)
-      .select('id as article_id')
+      .select('*')
       .from('scored_articles')
-      .orderBy('score', 'desc')
-      .modify((builder: Knex.QueryBuilder) => {
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-      })
-
-    return results.map(({ articleId }: { articleId: string }) => articleId)
-  }
-
-  public countHottestArticles = async ({ id: tagId }: { id: string }) => {
-    const hasHottest = await this.knexRO(
-      MATERIALIZED_VIEW.tag_hottest_materialized
-    )
-      .where({ tagId })
-      .first()
-
-    if (!hasHottest) {
-      return 0
-    }
-
-    const result = await this.getHottestArticlesBaseQuery(tagId)
-      .from('scored_articles')
-      .count()
-      .first()
-
-    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -608,23 +529,17 @@ export class TagService extends BaseService<Tag> {
   /**
    * Find article ids by tag id with offset/limit
    */
-  public findArticleIds = async ({
+  public findArticles = ({
     id: tagId,
+    spamThreshold,
     excludeRestricted,
-    excludeSpam,
-    skip,
-    take,
   }: {
     id: string
+    spamThreshold?: number
     excludeRestricted?: boolean
-    excludeSpam?: boolean
-    skip?: number
-    take?: number
   }) => {
-    const systemService = new SystemService(this.connections)
-    const spamThreshold = await systemService.getSpamThreshold()
-    const query = this.knexRO
-      .select('article.id as articleId')
+    return this.knexRO
+      .select(['article.*', 'article_tag.pinned as tag_pinned'])
       .from('article')
       .leftJoin('article_tag', 'article_tag.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
@@ -638,29 +553,18 @@ export class TagService extends BaseService<Tag> {
             this.knexRO.select('userId').from('user_restriction')
           )
         }
-        if (excludeSpam) {
+        if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold, 'article')
         }
 
         builder.orderBy('article.id', 'desc')
-
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
       })
-
-    return (await query).map(
-      ({ articleId }: { articleId: string }) => articleId
-    )
   }
 
   /**
    * Find article ids by tag ids
    */
-  public findArticleIdsByTagIds = async (tagIds: string[]) => {
+  private findArticleIdsByTagIds = async (tagIds: string[]) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')

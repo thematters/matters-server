@@ -8,13 +8,14 @@ const resolver: GQLTagResolvers['shortHash'] = async (
   { dataSources: { atomService } }
 ) => {
   if (shortHash) return shortHash
-  const [{ shortHash: newShortHash }] = await atomService.upsertOnConflict({
+  const { shortHash: newShortHash } = await atomService.update({
     table: 'tag',
-    create: {
+    where: {
       id,
+    },
+    data: {
       shortHash: genShortHash(),
     },
-    onConflict: ['id'],
   })
   return newShortHash ?? ''
 }

@@ -179,9 +179,10 @@ export const connectionFromArrayWithKeys = <
  *
  * Cursor based pagination is preferred because it's more efficient and more robust for varying sequence of data.
  * Offset based pagination is used as a fallback when cursor based pagination can not be applied for reasons like:
- *  1. nulls last ordering.
- *  2. multiple columns ordering.
- *  3. numbered pages use cases, which need to calculate offset based on page number.
+ *  1. ordering columns have duplicate values.
+ *  2. nulls last ordering.
+ *  3. multiple columns ordering.
+ *  4. numbered pages use cases, which need to calculate offset based on page number.
  */
 export const connectionFromQuery = async <T extends { id: string }>({
   query,
@@ -259,8 +260,8 @@ export const connectionFromQueryCursorBased = async <T extends { id: string }>({
   const sorted = query.orderBy([orderBy])
   knex.with(
     baseTableName,
-    query.client
-      .queryBuilder()
+    knex
+      .clone()
       .from(maxTake ? sorted.limit(maxTake).as('base') : sorted.as('base'))
       .select('*')
       .modify(selectWithTotalCount)
@@ -408,6 +409,118 @@ export const connectionFromQueryOffsetBased = async <T extends { id: string }>({
   const totalCount = maxTake ? maxTake : nodes[0]?.totalCount || 0
 
   return connectionFromArray(nodes, args, totalCount)
+}
+
+interface AtomDataLoader<K, V> {
+  load: (key: K) => Promise<V>
+  loadMany: (keys: readonly K[]) => Promise<V[]>
+}
+
+export const connectionFromUnionQuery = async <
+  T extends { id: string; type: string }
+>({
+  query,
+  orderBy,
+  cursorColumn,
+  args,
+  dataloaders,
+  maxTake,
+}: {
+  query: Knex.QueryBuilder<T>
+  orderBy: { column: keyof T; order: 'asc' | 'desc' }
+  cursorColumn: keyof T
+  args: ConnectionArguments
+  dataloaders: { [key: string]: AtomDataLoader<string, any> }
+  maxTake?: number
+}): Promise<Connection<any>> => {
+  const { after, before } = args
+  const first =
+    args.first === null
+      ? MAX_TAKE_PER_PAGE
+      : args.first ?? DEFAULT_TAKE_PER_PAGE
+
+  const knex = query.client.queryBuilder()
+  const baseTableName = 'connection_base'
+  const sorted = query.orderBy([orderBy])
+  knex.with(
+    baseTableName,
+    knex
+      .clone()
+      .from(maxTake ? sorted.limit(maxTake).as('base') : sorted.as('base'))
+      .select('*')
+      .modify(selectWithTotalCount)
+      .modify(selectWithRowNumber, orderBy)
+  )
+  const decodeCursor = (cursor: ConnectionCursor) => {
+    const [, type, value] = Base64.decode(cursor).split(':')
+    return [type, value]
+  }
+  const encodeCursor = (type: string, value: string): ConnectionCursor =>
+    Base64.encodeURI(`${PREFIX}:${type}:${value}`)
+  const getOrderCursor = (cursor: string) => {
+    const [type, value] = decodeCursor(cursor)
+    return orderBy.column === cursorColumn
+      ? value
+      : knex
+          .clone()
+          .from(type.toLowerCase())
+          .select([orderBy.column])
+          .where({ [cursorColumn]: value })
+          .first()
+  }
+  const afterWhereOperator = orderBy.order === 'asc' ? '>' : '<'
+  const records: Array<T & { totalCount: number; rowNumber: number }> = after
+    ? await knex
+        .clone()
+        .from(baseTableName)
+        .where(
+          orderBy.column as string,
+          afterWhereOperator,
+          getOrderCursor(after)
+        )
+        .limit(first)
+    : before
+    ? []
+    : await knex.clone().from(baseTableName).limit(first)
+
+  const nodes = await Promise.all(
+    records.map(({ type, id }) => dataloaders[type].load(id))
+  )
+  const edges = nodes.map((node, index) => {
+    const record = records[index]
+    return {
+      cursor: encodeCursor(record.type, record.id),
+      node: { __type: record.type, ...record, ...node },
+    }
+  })
+
+  const firstEdge = edges[0]
+  const lastEdge = edges[edges.length - 1]
+
+  const _totalCount = firstEdge
+    ? firstEdge.node.totalCount
+    : await knex
+        .clone()
+        .from(baseTableName)
+        .count('*')
+        .first()
+        .then((result) => result?.count || 0)
+
+  return {
+    edges,
+    totalCount: _totalCount,
+    pageInfo: {
+      startCursor: firstEdge ? firstEdge.cursor : null,
+      endCursor: lastEdge ? lastEdge.cursor : null,
+      hasPreviousPage: after
+        ? true
+        : firstEdge && firstEdge.node.rowNumber > 1
+        ? true
+        : false,
+      hasNextPage:
+        lastEdge && lastEdge.node.rowNumber < _totalCount ? true : false,
+    },
+  }
 }
 
 export const fromConnectionArgs = (

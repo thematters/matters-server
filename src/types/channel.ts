@@ -12,7 +12,7 @@ export default /* GraphQL */ `
     navbarTitle(input: TranslationArgs): String!
   }
 
-  type TopicChannel implements Channel {
+  type TopicChannel implements Channel & Node {
     id: ID!
     shortHash: String!
     navbarTitle(input: TranslationArgs): String!
@@ -27,7 +27,7 @@ export default /* GraphQL */ `
     articles(input: ChannelArticlesInput!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
-  type CurationChannel implements Channel {
+  type CurationChannel implements Channel & Node {
     id: ID!
     shortHash: String!
     navbarTitle(input: TranslationArgs): String!

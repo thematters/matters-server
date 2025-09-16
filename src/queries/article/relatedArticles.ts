@@ -7,10 +7,11 @@ import _ from 'lodash'
 const resolver: GQLArticleResolvers['relatedArticles'] = async (
   { id: articleId, authorId },
   { input },
-  { dataSources: { articleService, tagService, atomService } }
+  { dataSources: { articleService, tagService, systemService } }
 ) => {
   // return 3 recommendations by default
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 3 })
+  const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
 
   // buffer for archived article and random draw
   const buffer = 7
@@ -37,23 +38,16 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
       break
     }
 
-    const articleIds = await tagService.findArticleIds({
-      id: tagId,
-      excludeRestricted: true,
-      excludeSpam: true,
-      take,
-      skip,
-    })
+    const articlesFromTag = await tagService
+      .findArticles({
+        id: tagId,
+        excludeRestricted: true,
+        spamThreshold,
+      })
+      .offset(skip)
+      .limit(take)
 
-    // get articles and append
-    const articlesFromTag = await atomService.articleIdLoader.loadMany(
-      articleIds
-    )
-
-    articles = addRec(
-      articles,
-      articlesFromTag.filter(({ state }) => state === ARTICLE_STATE.active)
-    )
+    articles = addRec(articles, articlesFromTag)
   }
 
   // fall back to author

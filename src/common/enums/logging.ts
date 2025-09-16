@@ -44,6 +44,8 @@ export const AUDIT_LOG_ACTION = {
   uploadImage: 'upload_image',
   uploadFile: 'upload_file',
   setFeatureFlag: 'set_feature_flag',
+  pinArticle: 'pin_article',
+  unpinArticle: 'unpin_article',
 } as const
 
 export const AUDIT_LOG_STATUS = {

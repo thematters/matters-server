@@ -1,15 +1,29 @@
 import type { Connections } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
-import { ARTICLE_STATE, MOMENT_STATE, NODE_TYPES } from '#common/enums/index.js'
-import { InvalidCursorError } from '#common/errors.js'
+import {
+  ARTICLE_STATE,
+  MOMENT_STATE,
+  NODE_TYPES,
+  CHANNEL_ANTIFLOOD_WINDOW,
+  CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
+} from '#common/enums/index.js'
 
-interface Writing {
+interface UserWriting {
   type: NODE_TYPES.Article | NODE_TYPES.Moment
   id: string
+  created_at: Date
+}
+
+interface TagWriting {
+  type: NODE_TYPES.Article | NODE_TYPES.Moment
+  id: string
+  tagPinned: boolean
+  created_at: Date
 }
 
 /**
- * This service provides functions to return mixed works of a user.
+ * This service provides functions to return mixed works from users.
  * Works include articles, collections and moments, comments, etc.
  *
  * Functions return only single type of work should be put in their own service.
@@ -34,22 +48,12 @@ export class UserWorkService {
     return (Number(res1?.count) || 0) + (Number(res2?.count) || 0)
   }
 
-  public findWritings = async (
-    userId: string,
-    { take, after }: { take: number; after?: { type: NODE_TYPES; id: string } }
-  ): Promise<[Writing[], number, boolean]> => {
-    const validTypes = [NODE_TYPES.Article, NODE_TYPES.Moment]
-    if (after && !validTypes.includes(after.type)) {
-      throw new InvalidCursorError('after is invalid cursor')
-    }
-
+  public findWritingsByUser = (
+    userId: string
+  ): Knex.QueryBuilder<UserWriting, UserWriting[]> => {
     const { knexRO } = this.connections
-    const subQuery = knexRO
-      .select(
-        knexRO.raw('count(1) OVER() AS total_count'),
-        knexRO.raw('min(created_at) OVER() AS min_cursor'),
-        '*'
-      )
+    return knexRO
+      .select('*')
       .from(
         knexRO
           .select(knexRO.raw("'Article' AS type, id, created_at"))
@@ -69,34 +73,84 @@ export class UserWorkService {
           )
           .as('t1')
       )
-      .as('t2')
+      .as('t2') as any
+  }
 
-    const query = knexRO
-      .from(subQuery)
-      .orderBy('created_at', 'desc')
-      .limit(take)
+  public findWritingsByTag = (
+    tagId: string,
+    options?: { flood?: boolean }
+  ): Knex.QueryBuilder<TagWriting, TagWriting[]> => {
+    const { knexRO } = this.connections
+    const pinnedArticles = knexRO('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .where({ tagId, state: ARTICLE_STATE.active })
+      .andWhere('article_tag.pinned', true)
+      // use `article_tag.pinned_at + interval '100 year'` to ensure pinned articles precede others
+      .select(
+        knexRO.raw(
+          "'Article' AS type, article.id AS id, true AS tag_pinned, article_tag.pinned_at + interval '100 year' AS created_at, article.author_id AS author_id"
+        )
+      )
 
-    if (after) {
-      const cursor = knexRO(after.type.toLowerCase())
-        .select('created_at')
-        .where({ id: after.id })
-        .first()
-      query.where('created_at', '<', cursor)
-    }
+    const articles = knexRO('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .where({ tagId, state: ARTICLE_STATE.active })
+      .andWhere('article_tag.pinned', false)
+      .select(
+        knexRO.raw(
+          "'Article' AS type, article.id AS id, false AS tag_pinned, article.created_at AS created_at, article.author_id AS author_id"
+        )
+      )
 
-    const records = await query
-    if (records.length > 0) {
-      const totalCount = +records[0].totalCount
-      const hasNextPage =
-        records[records.length - 1].createdAt > records[0].minCursor
-      return [records, totalCount, hasNextPage]
-    } else {
-      if (after || take === 0) {
-        const [{ count }] = await knexRO.from(subQuery).count()
-        return [[], +count, false]
+    const moments = knexRO('moment_tag')
+      .join('moment', 'moment_id', 'moment.id')
+      .where({ tagId, state: MOMENT_STATE.active })
+      .select(
+        knexRO.raw(
+          "'Moment' AS type, moment.id AS id, false AS tag_pinned, moment.created_at AS created_at, moment.author_id AS author_id"
+        )
+      )
+
+    const base = knexRO.union([pinnedArticles, articles, moments])
+    const baseQuery = knexRO.from(base.as('t')).select('*')
+
+    const { flood } = options || {}
+    if (flood !== undefined) {
+      const floodBaseQuery = knexRO
+        .with('base', baseQuery)
+        .with(
+          'time_grouped',
+          knexRO.raw(
+            `SELECT *,
+              ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY author_id ORDER BY created_at))/3600)::integer)/${CHANNEL_ANTIFLOOD_WINDOW} AS time_group
+            FROM base`
+          )
+        )
+        .with(
+          'ranked',
+          knexRO.raw(
+            `SELECT *,
+              row_number() OVER (PARTITION BY author_id, time_group ORDER BY created_at ASC) as rank
+            FROM time_grouped`
+          )
+        )
+        .select('type', 'id', 'tag_pinned', 'created_at')
+        .from('ranked')
+      if (flood === true) {
+        return floodBaseQuery.where(
+          'rank',
+          '>',
+          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+        ) as any
       } else {
-        return [[], 0, false]
+        return floodBaseQuery.where(
+          'rank',
+          '<=',
+          CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW
+        ) as any
       }
     }
+
+    return baseQuery.select('type', 'id', 'tag_pinned', 'created_at') as any
   }
 }

@@ -7,7 +7,7 @@ import { fromGlobalId } from '#common/utils/index.js'
 const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
   _,
   { input: { channels: channelGlobalIds, articles: articleGlobalIds, pinned } },
-  { dataSources: { channelService } }
+  { viewer, dataSources: { channelService } }
 ) => {
   // Validate and extract article IDs
   const articleIds = articleGlobalIds.map((globalId) => {
@@ -36,17 +36,20 @@ const resolver: GQLMutationResolvers['togglePinChannelArticles'] = async (
               channelId: id,
               articleIds,
               pinned,
+              actorId: viewer.id,
             })
           : type === NODE_TYPES.CurationChannel
           ? await channelService.togglePinCurationChannelArticles({
               channelId: id,
               articleIds,
               pinned,
+              actorId: viewer.id,
             })
           : await channelService.togglePinTagArticles({
               tagId: id,
               articleIds,
               pinned,
+              actorId: viewer.id,
             })
       return { ...channel, __type: type }
     })

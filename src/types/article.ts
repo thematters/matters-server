@@ -307,8 +307,11 @@ export default /* GraphQL */ `
     "Content of this tag."
     content: String!
 
-    "List of how many articles were attached with this tag."
-    articles(input: TagArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    "List of articles were attached with this tag."
+    articles(input: TagArticlesInput!): ChannelArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Articles and moments were attached with this tag."
+    writings(input: WritingInput!): TagWritingConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Time of this tag was created."
     createdAt: DateTime!
@@ -359,6 +362,13 @@ export default /* GraphQL */ `
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
     adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
     topicChannels: [ArticleTopicChannel!] @auth(mode: "${AUTH_MODE.admin}") @deprecated(reason: "Use classification.topicChannel.channels instead")
+    pinHistory: [PinHistory]!
+  }
+
+  type PinHistory {
+     "Which feed (IcymiTopic / Channel) the article was pinned"
+     feed: Node!
+     pinnedAt: DateTime!
   }
 
   type SpamStatus {
@@ -462,6 +472,19 @@ export default /* GraphQL */ `
     id: ID!
     sender: User
   }
+
+  type TagWritingConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TagWritingEdge!]
+  }
+
+  type TagWritingEdge {
+    cursor: String!
+    node: Writing! @logCache(type: "${NODE_TYPES.Writing}")
+    pinned: Boolean!
+  }
+
 
   input ArticleInput {
     mediaHash: String
