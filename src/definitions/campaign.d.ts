@@ -22,6 +22,7 @@ export interface Campaign {
   exclusive: boolean
   createdAt: Date
   updatedAt: Date
+  showOther: boolean
 }
 
 export interface CampaignStage {

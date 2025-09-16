@@ -44,6 +44,7 @@ export default /* GraphQL */ `
     "exclude articles of this campaign in topic channels and newest"
     exclusive: Boolean
     managers: [ID!]
+    showOther: Boolean
   }
 
   input ApplyCampaignInput {
@@ -130,6 +131,7 @@ export default /* GraphQL */ `
     featuredDescription(input: TranslationArgs): String!
 
     isManager: Boolean! @privateCache
+    showOther: Boolean!
 
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }
