@@ -69,6 +69,7 @@ describe('create or update writing challenges', () => {
         state
         channelEnabled
         showOther
+        organizers
       }
     }
   `
@@ -878,5 +879,83 @@ describe('create or update writing challenges', () => {
     })
     expect(errors).toBeUndefined()
     expect(updateData.putWritingChallenge.showOther).toBe(false)
+  })
+
+  test('organizer users management', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+
+    const organizer1GlobalId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: '1',
+    })
+
+    const organizer2GlobalId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: '2',
+    })
+
+    // Create
+    const { data, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          organizers: [organizer1GlobalId, organizer2GlobalId],
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putWritingChallenge.oss.organizers.length).toBe(2)
+
+    // Update
+    const { data: updateData, errors: updateErrors } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            id: data.putWritingChallenge.id,
+            organizers: [organizer1GlobalId],
+          },
+        },
+      })
+    expect(updateErrors).toBeUndefined()
+    expect(updateData.putWritingChallenge.oss.organizers.length).toBe(1)
+    expect(updateData.putWritingChallenge.oss.organizers[0].id).toBe(
+      organizer1GlobalId
+    )
+
+    // Remove all
+    const { data: clearData, errors: clearErrors } =
+      await server.executeOperation({
+        query: PUT_WRITING_CHALLENGE,
+        variables: {
+          input: {
+            id: data.putWritingChallenge.id,
+            organizers: [],
+          },
+        },
+      })
+    expect(clearErrors).toBeUndefined()
+    expect(clearData.putWritingChallenge.oss.organizers.length).toBe(0)
+
+    // Test with invalid user ID
+    const invalidUserGlobalId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: '99999', // Non-existent user ID
+    })
+    const { errors: invalidErrors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: data.putWritingChallenge.id,
+          organizers: [invalidUserGlobalId],
+        },
+      },
+    })
+    expect(invalidErrors[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })

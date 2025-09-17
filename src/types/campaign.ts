@@ -43,6 +43,7 @@ export default /* GraphQL */ `
     channelEnabled: Boolean
     "exclude articles of this campaign in topic channels and newest"
     exclusive: Boolean
+    organizers: [ID!]
     managers: [ID!]
     showOther: Boolean
   }
@@ -129,6 +130,8 @@ export default /* GraphQL */ `
     application: CampaignApplication @privateCache
 
     featuredDescription(input: TranslationArgs): String!
+
+    organizers: [User!]!
 
     isManager: Boolean! @privateCache
     showOther: Boolean!

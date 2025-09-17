@@ -63,6 +63,7 @@ export class CampaignService {
     writingPeriod,
     state,
     creatorId,
+    organizerIds,
     managerIds,
     featuredDescription,
     exclusive,
@@ -77,6 +78,7 @@ export class CampaignService {
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
     featuredDescription?: string
+    organizerIds?: string[]
     managerIds?: string[]
     exclusive?: boolean
     showOther?: boolean
@@ -98,6 +100,7 @@ export class CampaignService {
           : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
+        organizerIds,
         managerIds,
         featuredDescription,
         exclusive: exclusive ?? false,
