@@ -69,7 +69,10 @@ describe('create or update writing challenges', () => {
         state
         channelEnabled
         showOther
-        organizers
+        organizers {
+          id
+          userName
+        }
       }
     }
   `
