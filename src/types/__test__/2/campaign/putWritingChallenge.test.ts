@@ -909,7 +909,7 @@ describe('create or update writing challenges', () => {
       },
     })
     expect(errors).toBeUndefined()
-    expect(data.putWritingChallenge.oss.organizers.length).toBe(2)
+    expect(data.putWritingChallenge.organizers.length).toBe(2)
 
     // Update
     const { data: updateData, errors: updateErrors } =
@@ -923,8 +923,8 @@ describe('create or update writing challenges', () => {
         },
       })
     expect(updateErrors).toBeUndefined()
-    expect(updateData.putWritingChallenge.oss.organizers.length).toBe(1)
-    expect(updateData.putWritingChallenge.oss.organizers[0].id).toBe(
+    expect(updateData.putWritingChallenge.organizers.length).toBe(1)
+    expect(updateData.putWritingChallenge.organizers[0].id).toBe(
       organizer1GlobalId
     )
 
@@ -940,7 +940,7 @@ describe('create or update writing challenges', () => {
         },
       })
     expect(clearErrors).toBeUndefined()
-    expect(clearData.putWritingChallenge.oss.organizers.length).toBe(0)
+    expect(clearData.putWritingChallenge.organizers.length).toBe(0)
 
     // Test with invalid user ID
     const invalidUserGlobalId = toGlobalId({
