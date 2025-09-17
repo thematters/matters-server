@@ -15,6 +15,7 @@ import featuredDescription from './featuredDescription.js'
 import managers from './managers.js'
 import name from './name.js'
 import navbarTitle from './navbarTitle.js'
+import organizers from './organizers.js'
 import participants from './participants.js'
 import stageDescription from './stage/description.js'
 import stageName from './stage/name.js'
@@ -54,6 +55,7 @@ const schema: GQLResolvers = {
     articles,
     channelEnabled,
     showOther: ({ showOther }) => showOther,
+    organizers,
     oss: (root) => root,
   },
 

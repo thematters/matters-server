@@ -38,6 +38,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       channelEnabled,
       navbarTitle,
       exclusive,
+      organizers: organizerGlobalIds,
       managers: managerGlobalIds,
       showOther,
     },
@@ -106,6 +107,18 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
   }
 
+  let organizerIds: string[] = []
+  if (organizerGlobalIds && organizerGlobalIds.length > 0) {
+    organizerIds = organizerGlobalIds.map((id) => fromGlobalId(id).id)
+
+    for (const userId of organizerIds) {
+      const user = await atomService.userIdLoader.load(userId)
+      if (!user) {
+        throw new UserInputError(`Organizer with ID ${userId} not found`)
+      }
+    }
+  }
+
   let managerIds: string[] = []
   if (managerGlobalIds && managerGlobalIds.length > 0) {
     managerIds = managerGlobalIds.map((id) => fromGlobalId(id).id)
@@ -133,6 +146,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       writingPeriod: writingPeriod && [writingPeriod.start, writingPeriod.end],
       state,
       creatorId: viewer.id,
+      organizerIds,
       managerIds,
       featuredDescription: featuredDescription
         ? featuredDescription[0]?.text
@@ -189,6 +203,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         toDatetimeRangeString(writingPeriod.start, writingPeriod.end),
       state,
       featuredDescription: featuredDescription && featuredDescription[0]?.text,
+      organizerIds,
       managerIds,
       exclusive,
       showOther,
