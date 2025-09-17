@@ -1,5 +1,6 @@
 import {
   normalizeSearchKey,
+  normalizeTagInput,
   stripAllPunct,
   tagSlugify,
 } from '#common/utils/index.js'
@@ -63,4 +64,32 @@ test('normalizeQueryInput', async () => {
   expect(await normalizeSearchKey('小說')).toBe('小说')
   expect(await normalizeSearchKey('Abc')).toBe('abc')
   expect(await normalizeSearchKey(' Abc小說')).toBe('abc小说')
+})
+
+test('normalizeTagInput', () => {
+  const pairs = [
+    { tag: '', expected: '' },
+    { tag: '#LikeCoin', expected: 'LikeCoin' },
+    { tag: 'Like#Coin', expected: 'LikeCoin' },
+    { tag: 'LikeCoin#', expected: 'LikeCoin' },
+    { tag: '  LikeCoin  ', expected: 'LikeCoin' },
+    { tag: 'Like  Coin', expected: 'Like Coin' },
+    {
+      tag: '123456789012345678901234567890123456789012345678901',
+      expected: '12345678901234567890123456789012345678901234567890',
+    },
+    {
+      tag: '#123456789012345678901234567890123456789012345678901',
+      expected: '12345678901234567890123456789012345678901234567890',
+    },
+    {
+      tag: '  #LikeCoin   123456789012345678901234567890123456789012345678901  ',
+      expected: 'LikeCoin 12345678901234567890123456789012345678901',
+    },
+    { tag: '  #小說 ＃ ', expected: '小說' },
+  ]
+
+  pairs.forEach(({ tag, expected }) =>
+    expect(normalizeTagInput(tag)).toBe(expected)
+  )
 })

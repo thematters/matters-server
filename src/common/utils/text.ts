@@ -50,7 +50,7 @@ export const stripSpaces = (content: string | null | undefined) =>
   content?.replaceAll(/[\b\s]+/g, ' ').trim()
 
 export const normalizeTagInput = (content: string) =>
-  stripSpaces(content.replace(/#/g, ''))?.substring(
+  stripSpaces(content.replace(/[#＃]/g, ''))?.substring(
     0,
     MAX_TAG_CONTENT_LENGTH
   ) ?? ''
