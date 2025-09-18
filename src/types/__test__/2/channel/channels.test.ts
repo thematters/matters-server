@@ -147,7 +147,7 @@ describe('channels query', () => {
       (c: any) => c.id === toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
     )
     expect(returnedTag).toBeDefined()
-    expect(returnedTag.content).toBe('oss tag')
+    expect(returnedTag.content).toBe('oss-tag')
   })
 
   test('returns only enabled channels for normal user', async () => {

@@ -50,7 +50,10 @@ export const stripSpaces = (content: string | null | undefined) =>
   content?.replaceAll(/[\b\s]+/g, ' ').trim()
 
 export const normalizeTagInput = (content: string) =>
-  stripAllPunct(content).substring(0, MAX_TAG_CONTENT_LENGTH)
+  stripSpaces(content.replace(/[#＃]/g, ''))?.substring(
+    0,
+    MAX_TAG_CONTENT_LENGTH
+  ) ?? ''
 
 export const normalizeSearchKey = async (content: string): Promise<string> =>
   simplecc(stripSpaces(content.toLowerCase()) as string, 't2s')
