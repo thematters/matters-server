@@ -1,6 +1,7 @@
 import type { Connections } from '#definitions/index.js'
 
-import { USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
+import { USER_FEATURE_FLAG_TYPE, RESERVED_TAGS } from '#common/enums/index.js'
+import { UserInputError, ForbiddenError } from '#common/errors.js'
 import { PublicationService } from '../article/publicationService.js'
 import { AtomService } from '../atomService.js'
 import { TagService } from '../tagService.js'
@@ -174,4 +175,24 @@ test('countAuthors', async () => {
   expect(count).toBeDefined()
   expect(typeof count).toBe('number')
   expect(count).toBeGreaterThanOrEqual(0)
+})
+
+describe('validate', () => {
+  const viewerId = '1'
+  test('should return content if valid', async () => {
+    const content = await tagService.validate('validtag', { viewerId })
+    expect(content).toBe('validtag')
+  })
+
+  test('should throw UserInputError for bad tag format', async () => {
+    await expect(tagService.validate('#badtag', { viewerId })).rejects.toThrow(
+      UserInputError
+    )
+  })
+
+  test('should throw ForbiddenError for reserved tag by normal user', async () => {
+    await expect(
+      tagService.validate(RESERVED_TAGS[0], { viewerId })
+    ).rejects.toThrow(ForbiddenError)
+  })
 })

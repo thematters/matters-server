@@ -7,6 +7,7 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   TAG_ACTION,
   MATERIALIZED_VIEW,
+  RESERVED_TAGS,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -47,10 +48,8 @@ export class TagService extends BaseService<Tag> {
     }
     // Validate Matty tag
     const isMatty = viewerId === environment.mattyId
-    const mattyTagId = environment.mattyChoiceTagId
-    if (mattyTagId && !isMatty) {
-      const mattyTag = await this.models.tagIdLoader.load(mattyTagId)
-      if (mattyTag && content === mattyTag.content) {
+    if (!isMatty) {
+      if (RESERVED_TAGS.includes(content)) {
         throw new ForbiddenError('not allow to add official tag')
       }
     }
