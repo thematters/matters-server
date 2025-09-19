@@ -21,6 +21,7 @@ type Query {
   article(input: ArticleInput!): Article
   campaign(input: CampaignInput!): Campaign
   campaigns(input: CampaignsInput!): CampaignConnection!
+  campaignOrganziers(input: ConnectionArgs!): UserConnection!
   circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]

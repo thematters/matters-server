@@ -41,7 +41,10 @@ const resolver: GQLQueryResolvers['campaigns'] = async (
         skip,
       },
       hasValidFilterState
-        ? { filterStates: [filter.state as ValueOf<typeof CAMPAIGN_STATE>] }
+        ? {
+            filterStates: [filter.state as ValueOf<typeof CAMPAIGN_STATE>],
+            filterSort: 'writing_period',
+          }
         : undefined
     )
     return connectionFromArray(campaigns, input, totalCount)

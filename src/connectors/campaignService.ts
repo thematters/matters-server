@@ -227,9 +227,11 @@ export class CampaignService {
     {
       filterStates,
       filterUserId,
+      filterSort,
     }: {
       filterStates?: Array<ValueOf<typeof CAMPAIGN_STATE>>
       filterUserId?: string
+      filterSort?: string
     } = {
       filterStates: [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished],
     }
@@ -251,6 +253,12 @@ export class CampaignService {
         }
         if (filterStates) {
           builder.whereIn('campaign.state', filterStates)
+        }
+        // reset if there's a specific sorter
+        if (filterSort === 'writing_period') {
+          builder
+            .clearOrder()
+            .orderByRaw('lower(??) desc nulls last', [filterSort])
         }
       })
       .limit(take)
