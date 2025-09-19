@@ -324,11 +324,15 @@ describe('query campaigns', () => {
       new Set(data5.campaigns.edges.map((d: any) => d.node.state))
     ).toEqual(new Set(['active', 'finished']))
 
-    const { errors: errors6 } = await server.executeOperation({
+    const { data: data6, errors: errors6 } = await server.executeOperation({
       query: QUERY_CAMPAIGNS,
       variables: { input: { first: 10, filter: { state: undefined } } },
     })
-    expect(errors6[0].extensions.code).toBe('BAD_USER_INPUT')
+    expect(errors6).toBeUndefined()
+    expect(data6.campaigns).toBeDefined()
+    expect(
+      new Set(data6.campaigns.edges.map((d: any) => d.node.state))
+    ).toEqual(new Set(['active', 'finished']))
   })
   test('non-admin users can not query pending/archived campains', async () => {
     const server = await testClient({ connections })
