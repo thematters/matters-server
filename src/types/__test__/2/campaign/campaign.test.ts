@@ -144,6 +144,16 @@ describe('query campaigns', () => {
       state: CAMPAIGN_STATE.active,
       managerIds: [managerId],
     })
+    await campaignService.createWritingChallenge({
+      ...campaignData,
+      coverId: asset.id,
+      state: CAMPAIGN_STATE.finished,
+    })
+    await campaignService.createWritingChallenge({
+      ...campaignData,
+      coverId: asset.id,
+      state: CAMPAIGN_STATE.archived,
+    })
     pendingCampaignShortHash = pendingCampaign.shortHash
     activeCampaignShortHash = activeCampaign.shortHash
   })
@@ -222,6 +232,99 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+      new Set(['active', 'finished'])
+    )
+  })
+  test('query campains with empty filter successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: {} } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+      new Set(['active', 'finished'])
+    )
+  })
+  test('query campains with filter active state successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'active' } } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+      new Set(['active'])
+    )
+  })
+  test('query campains with filter finished state successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'finished' } } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+      new Set(['finished'])
+    )
+  })
+  test('query campains with filter pending state', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'pending' } } },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  test('query campains with filter archived state', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'archived' } } },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  test('query campains with filter invalid state', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: [] } } },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors2 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: true } } },
+    })
+    expect(errors2[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors3 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 1 } } },
+    })
+    expect(errors3[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors4 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'a' } } },
+    })
+    expect(errors4[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors5 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: null } } },
+    })
+    expect(errors5[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors6 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: undefined } } },
+    })
+    expect(errors6[0].extensions.code).toBe('BAD_USER_INPUT')
   })
   test('non-admin users can not query pending/archived campains', async () => {
     const server = await testClient({ connections })

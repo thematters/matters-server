@@ -912,8 +912,15 @@ export type GQLCampaignStageInput = {
 
 export type GQLCampaignState = 'active' | 'archived' | 'finished' | 'pending'
 
+export type GQLCampaignsFilter = {
+  state?: InputMaybe<GQLCampaignsFilterState>
+}
+
+export type GQLCampaignsFilterState = 'active' | 'finished'
+
 export type GQLCampaignsInput = {
   after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLCampaignsFilter>
   first?: InputMaybe<Scalars['Int']['input']>
   /** return pending and archived campaigns */
   oss?: InputMaybe<Scalars['Boolean']['input']>
@@ -5212,6 +5219,8 @@ export type GQLResolversTypes = ResolversObject<{
   CampaignStage: ResolverTypeWrapper<CampaignStageModel>
   CampaignStageInput: GQLCampaignStageInput
   CampaignState: GQLCampaignState
+  CampaignsFilter: GQLCampaignsFilter
+  CampaignsFilterState: GQLCampaignsFilterState
   CampaignsInput: GQLCampaignsInput
   Chain: GQLChain
   Channel: ResolverTypeWrapper<
@@ -5934,6 +5943,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CampaignParticipantsInput: GQLCampaignParticipantsInput
   CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
+  CampaignsFilter: GQLCampaignsFilter
   CampaignsInput: GQLCampaignsInput
   Channel: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Channel']
   ChannelArticleConnection: Omit<GQLChannelArticleConnection, 'edges'> & {
