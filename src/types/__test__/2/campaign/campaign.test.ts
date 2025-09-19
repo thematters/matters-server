@@ -232,7 +232,7 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
-    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
       new Set(['active', 'finished'])
     )
   })
@@ -244,7 +244,7 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
-    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
       new Set(['active', 'finished'])
     )
   })
@@ -256,7 +256,7 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
-    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
       new Set(['active'])
     )
   })
@@ -268,7 +268,7 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
-    expect(new Set(data.campaigns.map((d: Campaign) => d.state))).toEqual(
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
       new Set(['finished'])
     )
   })
@@ -314,11 +314,15 @@ describe('query campaigns', () => {
     })
     expect(errors4[0].extensions.code).toBe('BAD_USER_INPUT')
 
-    const { errors: errors5 } = await server.executeOperation({
+    const { data: data5, errors: errors5 } = await server.executeOperation({
       query: QUERY_CAMPAIGNS,
       variables: { input: { first: 10, filter: { state: null } } },
     })
-    expect(errors5[0].extensions.code).toBe('BAD_USER_INPUT')
+    expect(errors5).toBeUndefined()
+    expect(data5.campaigns).toBeDefined()
+    expect(
+      new Set(data5.campaigns.edges.map((d: any) => d.node.state))
+    ).toEqual(new Set(['active', 'finished']))
 
     const { errors: errors6 } = await server.executeOperation({
       query: QUERY_CAMPAIGNS,
