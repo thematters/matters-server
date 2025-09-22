@@ -627,4 +627,21 @@ export class CampaignService {
     }
     return _campaigns
   }
+
+  public findCampaignOrganizers = async ({
+    skip,
+    take,
+  }: {
+    skip: number
+    take: number
+  }) => {
+    const knexRO = this.connections.knexRO
+    const query = knexRO('campaign')
+      .select('organizer_ids')
+      .whereIn('state', [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished])
+      .limit(take)
+      .offset(skip)
+      .orderBy('id', 'desc')
+    return query
+  }
 }

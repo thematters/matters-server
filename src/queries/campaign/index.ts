@@ -8,6 +8,7 @@ import application from './application.js'
 import articles from './articles.js'
 import boost from './boost.js'
 import campaign from './campaign.js'
+import campaignOrganizers from './campaignOrganizers.js'
 import campaigns from './campaigns.js'
 import channelEnabled from './channelEnabled.js'
 import description from './description.js'
@@ -25,6 +26,7 @@ const schema: GQLResolvers = {
   Query: {
     campaign,
     campaigns,
+    campaignOrganizers,
   },
   Campaign: {
     __resolveType: () => 'WritingChallenge',

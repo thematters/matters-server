@@ -4,6 +4,7 @@ export default /* GraphQL */ `
   extend type Query {
     campaign(input: CampaignInput!): Campaign @privateCache @logCache(type: "${NODE_TYPES.Campaign}")
     campaigns(input: CampaignsInput!): CampaignConnection! @privateCache
+    campaignOrganizers(input: ConnectionArgs!): UserConnection!
   }
 
   extend type Mutation {

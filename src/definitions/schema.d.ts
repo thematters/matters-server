@@ -3220,7 +3220,7 @@ export type GQLQuery = {
   __typename?: 'Query'
   article?: Maybe<GQLArticle>
   campaign?: Maybe<GQLCampaign>
-  campaignOrganziers: GQLUserConnection
+  campaignOrganizers: GQLUserConnection
   campaigns: GQLCampaignConnection
   channel?: Maybe<GQLChannel>
   channels: Array<GQLChannel>
@@ -3247,7 +3247,7 @@ export type GQLQueryCampaignArgs = {
   input: GQLCampaignInput
 }
 
-export type GQLQueryCampaignOrganziersArgs = {
+export type GQLQueryCampaignOrganizersArgs = {
   input: GQLConnectionArgs
 }
 
@@ -9664,11 +9664,11 @@ export type GQLQueryResolvers<
     ContextType,
     RequireFields<GQLQueryCampaignArgs, 'input'>
   >
-  campaignOrganziers?: Resolver<
+  campaignOrganizers?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
     ContextType,
-    RequireFields<GQLQueryCampaignOrganziersArgs, 'input'>
+    RequireFields<GQLQueryCampaignOrganizersArgs, 'input'>
   >
   campaigns?: Resolver<
     GQLResolversTypes['CampaignConnection'],
