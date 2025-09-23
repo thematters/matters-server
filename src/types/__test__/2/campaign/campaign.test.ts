@@ -635,7 +635,7 @@ describe('query campaign articles', () => {
 describe('query campaign orgnaizers', () => {
   const QUERY = /* GraphQL */ `
     query ($input: ConnectionArgs!) {
-      campaignOrganizer(input: $input) {
+      campaignOrganizers(input: $input) {
         totalCount
         edges {
           id
