@@ -638,7 +638,9 @@ describe('query campaign orgnaizers', () => {
       campaignOrganizers(input: $input) {
         totalCount
         edges {
-          id
+          node {
+            id
+          }
         }
       }
     }
@@ -677,7 +679,7 @@ describe('query campaign orgnaizers', () => {
     expect(errors).toBeUndefined()
     expect(data.campaignOrganizers.totalCount).toBe(2)
     expect(
-      new Set(data.campaignOrganizers.edges.map((d: any) => d.id))
+      new Set(data.campaignOrganizers.edges.map((d: any) => d.node.id))
     ).toEqual(
       new Set(['1', '2'].map((id) => toGlobalId({ type: NODE_TYPES.User, id })))
     )
