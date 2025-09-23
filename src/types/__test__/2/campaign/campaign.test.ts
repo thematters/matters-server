@@ -631,3 +631,55 @@ describe('query campaign articles', () => {
     expect(data2.campaign.articles.pageInfo.hasNextPage).toBe(false)
   })
 })
+
+describe('query campaign orgnaizers', () => {
+  const QUERY = /* GraphQL */ `
+    query ($input: ConnectionArgs!) {
+      campaignOrganizer(input: $input) {
+        totalCount
+        edges {
+          id
+        }
+      }
+    }
+  `
+
+  beforeAll(async () => {
+    await Promise.all([
+      campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        organizerIds: ['1', '2'],
+      }),
+      campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        organizerIds: ['1'],
+      }),
+      campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        organizerIds: [],
+      }),
+    ])
+  })
+
+  test('query random campaign organizers', async () => {
+    const server = await testClient({
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY,
+      variables: {
+        input: { take: 4 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaignOrganizers.totalCount).toBe(2)
+    expect(
+      new Set(data.campaignOrganizers.edges.map((d: any) => d.id))
+    ).toEqual(
+      new Set(['1', '2'].map((id) => toGlobalId({ type: NODE_TYPES.User, id })))
+    )
+  })
+})

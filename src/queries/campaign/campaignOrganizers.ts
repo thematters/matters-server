@@ -3,7 +3,6 @@ import type { GQLQueryResolvers } from '#definitions/index.js'
 import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 import _sampleSize from 'lodash/sampleSize.js'
 
-
 const resolver: GQLQueryResolvers['campaignOrganizers'] = async (
   _,
   { input },
