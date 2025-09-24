@@ -673,7 +673,7 @@ describe('query campaign orgnaizers', () => {
     const { data, errors } = await server.executeOperation({
       query: QUERY,
       variables: {
-        input: { take: 4 },
+        input: { first: 4 },
       },
     })
     expect(errors).toBeUndefined()
