@@ -4,6 +4,7 @@ export default /* GraphQL */ `
   extend type Query {
     campaign(input: CampaignInput!): Campaign @privateCache @logCache(type: "${NODE_TYPES.Campaign}")
     campaigns(input: CampaignsInput!): CampaignConnection! @privateCache
+    campaignOrganizers(input: ConnectionArgs!): UserConnection!
   }
 
   extend type Mutation {
@@ -24,6 +25,7 @@ export default /* GraphQL */ `
     first: Int
     "return pending and archived campaigns"
     oss: Boolean = false
+    filter: CampaignsFilter
   }
 
   input PutWritingChallengeInput {
@@ -220,5 +222,19 @@ export default /* GraphQL */ `
   type CampaignEdge {
     cursor: String!
     node: Campaign! @logCache(type: "${NODE_TYPES.Campaign}")
+  }
+
+  input CampaignsFilter {
+    state: CampaignsFilterState
+    sort: CampaignsFilterSort
+  }
+
+  enum CampaignsFilterState {
+    active
+    finished
+  }
+
+  enum CampaignsFilterSort {
+    writingPeriod
   }
 `
