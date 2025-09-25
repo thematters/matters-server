@@ -43,7 +43,7 @@ const resolver: GQLQueryResolvers['campaigns'] = async (
       hasValidFilterState
         ? {
             filterStates: [filter.state as ValueOf<typeof CAMPAIGN_STATE>],
-            filterSort: 'writing_period',
+            filterSort: filter?.sort || undefined,
           }
         : undefined
     )

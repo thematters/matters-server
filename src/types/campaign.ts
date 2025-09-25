@@ -226,10 +226,15 @@ export default /* GraphQL */ `
 
   input CampaignsFilter {
     state: CampaignsFilterState
+    sort: CampaignsFilterSort
   }
 
   enum CampaignsFilterState {
     active
     finished
+  }
+
+  enum CampaignsFilterSort {
+    writingPeriod
   }
 `

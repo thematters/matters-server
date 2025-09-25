@@ -12,6 +12,7 @@ import {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
+  CAMPAIGNS_FILTER_SORT,
   NODE_TYPES,
   USER_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -253,12 +254,15 @@ export class CampaignService {
         }
         if (filterStates) {
           builder.whereIn('campaign.state', filterStates)
-        }
-        // reset if there's a specific sorter
-        if (filterSort === 'writing_period') {
-          builder
-            .clearOrder()
-            .orderByRaw('lower(??) desc nulls last', [filterSort])
+
+          // reset if there's a specific sorter
+          if (filterSort === 'writingPeriod') {
+            builder
+              .clearOrder()
+              .orderByRaw('lower(??) desc nulls last', [
+                CAMPAIGNS_FILTER_SORT.writingPeriod,
+              ])
+          }
         }
       })
       .limit(take)

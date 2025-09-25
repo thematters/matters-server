@@ -224,7 +224,7 @@ describe('query campaigns', () => {
     expect(data.campaign).toBeDefined()
     expect(data.campaign.isManager).toBe(false)
   })
-  test('query campains successfully', async () => {
+  test('query campaigns successfully', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: QUERY_CAMPAIGNS,
@@ -646,8 +646,9 @@ describe('query campaign orgnaizers', () => {
     }
   `
 
+  let campaigns: Campaign[]
   beforeAll(async () => {
-    await Promise.all([
+    campaigns = await Promise.all([
       campaignService.createWritingChallenge({
         ...campaignData,
         state: CAMPAIGN_STATE.active,
@@ -676,6 +677,7 @@ describe('query campaign orgnaizers', () => {
         input: { first: 4 },
       },
     })
+    console.log(campaigns)
     expect(errors).toBeUndefined()
     expect(data.campaignOrganizers.totalCount).toBe(2)
     expect(

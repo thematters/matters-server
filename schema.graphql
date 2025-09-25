@@ -1115,11 +1115,16 @@ type CampaignEdge {
 
 input CampaignsFilter {
   state: CampaignsFilterState
+  sort: CampaignsFilterSort
 }
 
 enum CampaignsFilterState {
   active
   finished
+}
+
+enum CampaignsFilterSort {
+  writingPeriod
 }
 
 type Circle implements Node {

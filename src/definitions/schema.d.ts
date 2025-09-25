@@ -913,8 +913,11 @@ export type GQLCampaignStageInput = {
 export type GQLCampaignState = 'active' | 'archived' | 'finished' | 'pending'
 
 export type GQLCampaignsFilter = {
+  sort?: InputMaybe<GQLCampaignsFilterSort>
   state?: InputMaybe<GQLCampaignsFilterState>
 }
+
+export type GQLCampaignsFilterSort = 'writingPeriod'
 
 export type GQLCampaignsFilterState = 'active' | 'finished'
 
@@ -5225,6 +5228,7 @@ export type GQLResolversTypes = ResolversObject<{
   CampaignStageInput: GQLCampaignStageInput
   CampaignState: GQLCampaignState
   CampaignsFilter: GQLCampaignsFilter
+  CampaignsFilterSort: GQLCampaignsFilterSort
   CampaignsFilterState: GQLCampaignsFilterState
   CampaignsInput: GQLCampaignsInput
   Chain: GQLChain
