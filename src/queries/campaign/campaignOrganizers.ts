@@ -14,7 +14,7 @@ const resolver: GQLQueryResolvers['campaignOrganizers'] = async (
     skip,
   })
   const userIds = records.reduce((result, record) => {
-    const ids = record.organizerIds
+    const ids = record?.organizerIds ?? []
     return new Set([...result, ...ids])
   }, new Set())
 
