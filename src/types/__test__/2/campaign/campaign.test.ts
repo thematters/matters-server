@@ -646,9 +646,8 @@ describe('query campaign orgnaizers', () => {
     }
   `
 
-  let campaigns: Campaign[]
   beforeAll(async () => {
-    campaigns = await Promise.all([
+    await Promise.all([
       campaignService.createWritingChallenge({
         ...campaignData,
         state: CAMPAIGN_STATE.active,
@@ -677,7 +676,6 @@ describe('query campaign orgnaizers', () => {
         input: { first: 4 },
       },
     })
-    console.log(campaigns)
     expect(errors).toBeUndefined()
     expect(data.campaignOrganizers.totalCount).toBe(2)
     expect(
