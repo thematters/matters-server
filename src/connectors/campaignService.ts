@@ -458,6 +458,16 @@ export class CampaignService {
       }
     }
 
+    const stages = await this.models.findMany({
+      table: 'campaign_stage',
+      where: { campaignId },
+    })
+    if (stages.length > 0 && !campaignStageId) {
+      throw new UserInputError(
+        'This campaign has stages, campaignStageId is required'
+      )
+    }
+
     if (!campaignStageId) {
       return
     }

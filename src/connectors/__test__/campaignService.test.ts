@@ -380,6 +380,55 @@ describe('campaign validation', () => {
       })
     ).resolves.not.toThrow()
   })
+
+  test('stage validation', async () => {
+    const user = await atomService.findFirst({
+      table: 'user',
+      where: { state: USER_STATE.active },
+    })
+
+    // Campaign with stages
+    const campaignWithStages = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaignWithStages.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+    await campaignService.apply(campaignWithStages, user)
+
+    // should fail if stage id is not provided
+    await expect(
+      campaignService.validate({
+        campaignId: campaignWithStages.id,
+        userId: user.id,
+      })
+    ).rejects.toThrow('This campaign has stages, campaignStageId is required')
+
+    // should pass if stage id is provided
+    await expect(
+      campaignService.validate({
+        campaignId: campaignWithStages.id,
+        userId: user.id,
+        campaignStageId: stages[0].id,
+      })
+    ).resolves.not.toThrow()
+
+    // Campaign without stages should pass
+    const campaignNoStages = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    await campaignService.apply(campaignNoStages, user)
+
+    await expect(
+      campaignService.validate({
+        campaignId: campaignNoStages.id,
+        userId: user.id,
+      })
+    ).resolves.not.toThrow()
+  })
 })
 
 describe('article submission', () => {
