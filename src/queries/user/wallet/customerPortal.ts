@@ -10,12 +10,17 @@ const resolver: GQLWalletResolvers['customerPortal'] = async (
   { id },
   _,
   {
+    viewer,
     dataSources: {
       paymentService,
       connections: { knex },
     },
   }
 ) => {
+  if (!id || viewer.id !== id) {
+    return null
+  }
+
   const where = {
     'csi.user_id': id,
     'csi.archived': false,
