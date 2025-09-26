@@ -23,7 +23,7 @@ const resolver: GQLWalletResolvers['transactions'] = async (
   const { id, states, filter } = input
   const { take, skip } = fromConnectionArgs(input)
 
-  if (!viewer.id) {
+  if (!userId || userId !== viewer.id) {
     return connectionFromArray([], input)
   }
 

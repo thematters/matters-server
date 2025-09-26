@@ -5,9 +5,9 @@ import { PAYMENT_CURRENCY } from '#common/enums/index.js'
 const resolver: GQLWalletResolvers['balance'] = async (
   { id },
   _,
-  { dataSources: { paymentService } }
+  { viewer, dataSources: { paymentService } }
 ) => {
-  if (id === null) {
+  if (!id || viewer.id !== id) {
     return {
       HKD: 0,
     }

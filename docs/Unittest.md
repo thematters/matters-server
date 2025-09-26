@@ -7,6 +7,7 @@
 - Name test files with `.test.ts` suffix
 - Group related tests in describe blocks
 - Use clear, descriptive test names
+- All Graphql api tests are placed under `src/types/__test__/`
 - Example: `src/types/__test__/2/channel/articles.test.ts` (related compiled file `build/types/__test__/2/channel/articles.test.js`)
 
 ### Setup and Teardown
