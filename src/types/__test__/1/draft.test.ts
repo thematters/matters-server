@@ -764,11 +764,7 @@ describe('put draft', () => {
     expect(campaigns[0].stage.id).toBe(stageGlobalId)
 
     // remove stage
-    const {
-      data: {
-        putDraft: { campaigns: campaigns2 },
-      },
-    } = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PUT_DRAFT,
       variables: {
         input: {
@@ -777,7 +773,7 @@ describe('put draft', () => {
         },
       },
     })
-    expect(campaigns2[0].stage).toBeNull()
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 
   test('edit draft connections', async () => {
