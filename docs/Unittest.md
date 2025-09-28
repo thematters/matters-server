@@ -217,16 +217,6 @@ beforeEach(async () => {
    })
    ```
 
-## Tips
-- Use meaningful variable names (e.g., `channel`, `articles`)
-- Add comments for complex setup
-- Keep tests focused on one aspect
-- Use TypeScript types for better type safety
-- Always check GraphQL schema for required fields in inputs
-- Verify input types match schema definitions
-- Use service methods for data creation when available
-- Prefer using existing user IDs when possible
-
 ## Using Seed Data
 
 ### Available Seed Data
@@ -278,3 +268,10 @@ The test database is seeded with predefined data in `db/seeds/` directory:
    ```bash
    npm run build && MATTERS_ENV=test node --experimental-vm-modules --no-experimental-fetch node_modules/.bin/jest build/types/__test__/2/channel/articles.test.js
    ```
+
+## Tips
+- Keep tests focused on one aspect
+- Always check GraphQL schema for required fields in inputs
+- Verify input types match schema definitions
+- Use service methods for data creation when available
+- Prefer using existing user IDs when possible
