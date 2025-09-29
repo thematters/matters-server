@@ -35,6 +35,8 @@ import { CommentService } from './commentService.js'
 import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'
 
+type HottestArticle = { articleId: string; authorId: string; score: number }
+
 export class RecommendationService {
   private connections: Connections
   private models: AtomService
@@ -59,7 +61,7 @@ export class RecommendationService {
   /**
    * Query for hottest articles
    *
-   * @param days do not accpet float
+   * @param days do not accept float
    * @see https://observablehq.com/d/2e388b5a7f4c217a
    */
   public findHottestArticles = async ({
@@ -75,6 +77,7 @@ export class RecommendationService {
     normalizeCutFactor = 0.95,
     normalizeDecayFactor = 0.15,
     normalizeEpsilonFactor = 0.5,
+    normalizationVersion = 'v4',
   }): Promise<Array<{ articleId: string }>> => {
     const { query } = await this._findHottestArticles({
       days,
@@ -88,9 +91,32 @@ export class RecommendationService {
       commentsThreshold,
     })
     const results = await query
+    console.dir(results, { depth: null })
 
+    if (normalizationVersion === 'v4') {
+      return this.normalizeV4({
+        data: results,
+        normalizeCutFactor,
+        normalizeDecayFactor,
+        normalizeEpsilonFactor,
+      })
+    }
+    return results
+  }
+
+  private normalizeV4 = async ({
+    data,
+    normalizeCutFactor,
+    normalizeDecayFactor,
+    normalizeEpsilonFactor,
+  }: {
+    data: HottestArticle[]
+    normalizeCutFactor: number
+    normalizeDecayFactor: number
+    normalizeEpsilonFactor: number
+  }) => {
     // Get unique author IDs from results
-    const authorIds = [...new Set(results.map((r) => r.authorId))]
+    const authorIds = [...new Set(data.map((r) => r.authorId))]
 
     // Fetch follower counts for all authors
     const followerCounts = await this.countUsersFollowers(authorIds)
@@ -111,7 +137,7 @@ export class RecommendationService {
     const followerMap = keyBy(userFollowers, 'authorId')
 
     // Apply normalization to results
-    const normalizedResults = results.map((result) => {
+    const normalizedResults = data.map((result) => {
       const followerData = followerMap[result.authorId]
       const followers = followerData ? followerData.followers : 0
       const f = Math.min(followers, cut)
@@ -152,7 +178,9 @@ export class RecommendationService {
     donationWeight: number
     readersThreshold: number
     commentsThreshold: number
-  }) => {
+  }): Promise<{
+    query: Knex.QueryBuilder<HottestArticle, HottestArticle[]>
+  }> => {
     const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
       'article'
     )
@@ -310,7 +338,9 @@ export class RecommendationService {
           .orWhere('comments', '>=', commentsThreshold)
       })
 
-    return { query }
+    return {
+      query: query as Knex.QueryBuilder<HottestArticle, HottestArticle[]>,
+    }
   }
 
   public countUsersFollowers = async (
