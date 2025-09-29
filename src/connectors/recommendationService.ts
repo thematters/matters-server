@@ -35,7 +35,14 @@ import { CommentService } from './commentService.js'
 import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'
 
-type HottestArticle = { articleId: string; authorId: string; score: number }
+type HottestArticle = {
+  articleId: string
+  authorId: string
+  readers: number
+  commentators: number
+  donations: number
+  score: string
+}
 
 export class RecommendationService {
   private connections: Connections
@@ -90,18 +97,24 @@ export class RecommendationService {
       readersThreshold,
       commentsThreshold,
     })
-    const results = await query
-    console.dir(results, { depth: null })
+    const result = await query
 
     if (normalizationVersion === 'v4') {
       return this.normalizeV4({
-        data: results,
+        data: result,
         normalizeCutFactor,
         normalizeDecayFactor,
         normalizeEpsilonFactor,
       })
+    } else {
+      // v5
+      return this.normalizeV5({
+        data: result,
+        readWeight,
+        commentWeight,
+        donationWeight,
+      })
     }
-    return results
   }
 
   private normalizeV4 = async ({
@@ -147,12 +160,114 @@ export class RecommendationService {
 
       return {
         ...result,
-        newScore: result.score * factor,
+        newScore: parseFloat(result.score) * factor,
       }
     })
 
     // Sort by normalized score and return
     return normalizedResults
+      .sort((a, b) => b.newScore - a.newScore)
+      .slice(0, RECOMMENDATION_HOTTEST_MAX_TAKE)
+      .map((r) => ({ articleId: r.articleId }))
+  }
+
+  private normalizeV5 = async ({
+    data,
+    readWeight,
+    commentWeight,
+    donationWeight,
+  }: {
+    data: HottestArticle[]
+
+    readWeight: number
+    commentWeight: number
+    donationWeight: number
+  }) => {
+    const startDate = new Date()
+    startDate.setMonth(startDate.getMonth() - 6)
+    const start = startDate.toISOString().split('T')[0]
+    const authorIds = [...new Set(data.map((r) => r.authorId))]
+    const result = await this.knexRO.raw(
+      `    with source as (
+      select
+        *
+      from article
+      where
+        author_id = any(?::bigint[])
+        and created_at at time zone 'Asia/Taipei' >= ?
+    ),
+
+    base as (
+      select
+        source.id,
+        source.author_id,
+        coalesce(a.readers, 0) as readers,
+        coalesce(b.commentators, 0) as commentators,
+        coalesce(c.donations, 0) as donations
+      from source
+      left join (
+        select
+          article_id,
+          count(distinct user_id)::int as readers
+        from
+          article_read_count
+        group by
+          article_id
+      ) a on a.article_id = source.id
+
+      left join (
+        select
+          comment.target_id as article_id,
+          count(distinct comment.author_id)::int as commentators
+        from comment
+        inner join article on article.id = comment.target_id
+        where
+          -- comment.state = 'active'
+          comment.target_type_id = 4
+          and comment.author_id != article.author_id
+        group by
+          comment.target_id
+      ) b on b.article_id = source.id
+
+      left join (
+        select
+          target_id as article_id,
+          count(id)::int as donations
+        from transaction
+        where
+          target_type = 4
+          and state = 'succeeded'
+          and purpose = 'donation'
+          and ((currency = 'HKD' and amount >= 1) or (currency = 'USDT' and amount >= 0.1))
+        group by
+          target_id
+      ) c on c.article_id = source.id
+    )
+    select
+      base.*,
+      (base.readers + base.commentators + base.donations) as actions,
+      (?::numeric * base.readers +?::numeric * base.commentators + ?::numeric * base.donations)::numeric as score
+    from base`,
+      [authorIds, start, readWeight, commentWeight, donationWeight]
+    )
+    const history = result.rows
+
+    const c =
+      history.reduce(
+        (acc: number, i: { score: number }) =>
+          (acc += parseFloat(i.score as unknown as string)),
+        0
+      ) / history.length
+    const actions = history.map((d: { actions: number }) => d.actions)
+    const m = quantile(actions, 0.34) || 0
+
+    return data
+      .map((d) => {
+        const s = parseFloat(d.score)
+        const n = d.readers + d.commentators + d.donations
+        const newScore = (m * c + s) / (m + n)
+        return { ...d, newScore }
+      })
       .sort((a, b) => b.newScore - a.newScore)
       .slice(0, RECOMMENDATION_HOTTEST_MAX_TAKE)
       .map((r) => ({ articleId: r.articleId }))
@@ -237,6 +352,7 @@ export class RecommendationService {
           .select(
             'target_id',
             this.knexRO.raw('count(author_id)::int AS comments'),
+            this.knexRO.raw('count(distinct author_id)::int as commentators'),
             this.knexRO.raw('sum(score) AS comment_score')
           )
           .from(
@@ -302,6 +418,7 @@ export class RecommendationService {
             this.knexRO.raw('coalesce(t1.readers, 0) AS readers'),
             this.knexRO.raw('coalesce(t1.read_score, 0) AS read_score'),
             this.knexRO.raw('coalesce(t2.comments, 0) AS comments'),
+            this.knexRO.raw('coalesce(t2.commentators, 0) AS commentators'),
             this.knexRO.raw('coalesce(t2.comment_score, 0) AS comment_score'),
             this.knexRO.raw('coalesce(t3.donations, 0) AS donations'),
             this.knexRO.raw('coalesce(t3.donation_score, 0) AS donation_score')
@@ -326,8 +443,11 @@ export class RecommendationService {
       .select(
         'article_id',
         'author_id',
+        'readers',
+        'commentators',
+        'donations',
         this.knexRO.raw(
-          '(? * base.read_score + ? * base.comment_score + ? * base.donation_score) as score',
+          '(? * base.read_score + ? * base.comment_score + ? * base.donation_score)::numeric as score',
           [readWeight, commentWeight, donationWeight]
         )
       )

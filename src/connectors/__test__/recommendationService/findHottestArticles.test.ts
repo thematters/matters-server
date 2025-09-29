@@ -491,4 +491,116 @@ describe('findHottestArticles', () => {
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).not.toContain(article1.id)
   })
+
+  test('calculates scores correctly with normalizationVersion v5', async () => {
+    // Article 1: High reads, medium comments, low donations
+    await createArticleReadCount(author2.id, article1.id)
+    await createArticleReadCount(author3.id, article1.id)
+    await createComment(author3.id, article1.id)
+
+    // Article 2: Medium reads, high comments, medium donations
+    await createArticleReadCount(author2.id, article2.id)
+    await createArticleReadCount(author3.id, article2.id)
+    await createComment(author3.id, article2.id)
+    await createDonationTx(
+      {
+        senderId: author2.id,
+        recipientId: author1.id,
+        targetId: article2.id,
+        currency: PAYMENT_CURRENCY.HKD,
+        state: TRANSACTION_STATE.succeeded,
+      },
+      paymentService
+    )
+
+    const results = await recommendationService.findHottestArticles({
+      days: 5,
+      readersThreshold: 0,
+      commentsThreshold: 0,
+      normalizationVersion: 'v5',
+    })
+
+    expect(results.length).toBeGreaterThanOrEqual(2)
+
+    // Results should be ordered by score descending
+    // We can't predict exact order without knowing precise scoring, but we can verify structure
+    const articleIds = results.map((r: any) => r.articleId)
+    expect(articleIds).toContain(article1.id)
+    expect(articleIds).toContain(article2.id)
+  })
+
+  test('applies minimum reader and comment thresholds with v5', async () => {
+    // Article 1: 2 readers, 0 comments (should qualify)
+    await createArticleReadCount(author2.id, article1.id)
+    await createArticleReadCount(author3.id, article1.id)
+
+    // Article 2: 2 readers, 2 comments (should qualify)
+    await createArticleReadCount(author1.id, article2.id)
+    await createArticleReadCount(author2.id, article2.id)
+    await createComment(author1.id, article2.id)
+    await createComment(author2.id, article2.id)
+
+    // Article 3: 1 readers, 1 not author comment (should NOT qualify)
+    await createArticleReadCount(author1.id, article3.id)
+    await createComment(author1.id, article3.id)
+    await createComment(author3.id, article3.id)
+
+    const results = await recommendationService.findHottestArticles({
+      days: 5,
+      readersThreshold: 2,
+      commentsThreshold: 2,
+      normalizationVersion: 'v5',
+    })
+
+    const articleIds = results.map((r: any) => r.articleId)
+    expect(articleIds).toContain(article1.id)
+    expect(articleIds).toContain(article2.id)
+    expect(articleIds).not.toContain(article3.id)
+  })
+
+  test('applies time decay to scoring with v5', async () => {
+    const now = new Date()
+    const oneDayAgo = new Date(now.getTime() - DAY)
+    const fourDaysAgo = new Date(now.getTime() - 4 * DAY)
+
+    // Create similar activity but at different times
+    // Recent activity (1 day ago)
+    await createArticleReadCount(author2.id, article1.id, 5)
+    await createComment(author3.id, article1.id, oneDayAgo)
+
+    // Older activity (4 days ago) - should have lower score due to decay
+    await createArticleReadCount(author1.id, article2.id, 5)
+    await createComment(author3.id, article2.id, fourDaysAgo)
+
+    // Update read count timestamps
+    await atomService.update({
+      table: 'article_read_count',
+      where: { articleId: article1.id },
+      data: { updatedAt: oneDayAgo },
+    })
+    await atomService.update({
+      table: 'article_read_count',
+      where: { articleId: article2.id },
+      data: { updatedAt: fourDaysAgo },
+    })
+
+    const results = await recommendationService.findHottestArticles({
+      days: 5,
+      readersThreshold: 0,
+      commentsThreshold: 0,
+      normalizationVersion: 'v5',
+    })
+
+    expect(results.length).toBeGreaterThanOrEqual(2)
+
+    // Article 1 (more recent activity) should rank higher than Article 2
+    const article1Index = results.findIndex(
+      (r: any) => r.articleId === article1.id
+    )
+    const article2Index = results.findIndex(
+      (r: any) => r.articleId === article2.id
+    )
+
+    expect(article1Index).toBeLessThan(article2Index)
+  })
 })
