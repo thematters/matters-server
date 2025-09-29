@@ -33,9 +33,14 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
 
   const cache = new Cache(CACHE_PREFIX.RECOMMENDATION_HOTTEST, objectCacheRedis)
   const articleIds = await cache.getObject({
-    keys: {
-      type: 'recommendationHottest',
-    },
+    keys: input.newAlgo
+      ? {
+          type: 'recommendationHottest',
+          args: { normalizationVersion: 'v5' },
+        }
+      : {
+          type: 'recommendationHottest',
+        },
     getter: async () =>
       await recommendationService.findHottestArticles({
         days: environment.hottestArticlesDays,
@@ -47,6 +52,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
         donationWeight: environment.hottestArticlesDonationWeight,
         readersThreshold: environment.hottestArticlesReadersThreshold,
         commentsThreshold: environment.hottestArticlesCommentsThreshold,
+        normalizationVersion: input.newAlgo ? 'v5' : 'v4',
       }),
     expire: CACHE_TTL.LONG,
   })
