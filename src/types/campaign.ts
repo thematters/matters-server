@@ -227,6 +227,7 @@ export default /* GraphQL */ `
   input CampaignsFilter {
     state: CampaignsFilterState
     sort: CampaignsFilterSort
+    excludes: [ID!]
   }
 
   enum CampaignsFilterState {

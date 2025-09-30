@@ -229,10 +229,12 @@ export class CampaignService {
       filterStates,
       filterUserId,
       filterSort,
+      filterExcludes,
     }: {
       filterStates?: Array<ValueOf<typeof CAMPAIGN_STATE>>
       filterUserId?: string
       filterSort?: string
+      filterExcludes?: string[]
     } = {
       filterStates: [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished],
     }
@@ -254,6 +256,10 @@ export class CampaignService {
         }
         if (filterStates) {
           builder.whereIn('campaign.state', filterStates)
+
+          if (filterExcludes) {
+            builder.whereNotIn('campaign.id', filterExcludes)
+          }
 
           // reset if there's a specific sorter
           if (filterSort === 'writingPeriod') {

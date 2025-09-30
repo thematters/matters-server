@@ -913,6 +913,7 @@ export type GQLCampaignStageInput = {
 export type GQLCampaignState = 'active' | 'archived' | 'finished' | 'pending'
 
 export type GQLCampaignsFilter = {
+  excludes?: InputMaybe<Array<Scalars['ID']['input']>>
   sort?: InputMaybe<GQLCampaignsFilterSort>
   state?: InputMaybe<GQLCampaignsFilterState>
 }

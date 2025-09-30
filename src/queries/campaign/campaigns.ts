@@ -2,7 +2,11 @@ import type { GQLQueryResolvers, ValueOf } from '#definitions/index.js'
 
 import { CAMPAIGN_STATE } from '#common/enums/index.js'
 import { ForbiddenError, UserInputError } from '#common/errors.js'
-import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
+import {
+  connectionFromArray,
+  fromConnectionArgs,
+  fromGlobalId,
+} from '#common/utils/index.js'
 
 const resolver: GQLQueryResolvers['campaigns'] = async (
   _,
@@ -35,6 +39,11 @@ const resolver: GQLQueryResolvers['campaigns'] = async (
       typeof filter.state === 'string' &&
       validStates.includes(filter.state)
 
+    const excludeIds =
+      filter?.excludes && Array.isArray(filter?.excludes)
+        ? filter?.excludes.map((id) => fromGlobalId(id).id)
+        : undefined
+
     const [campaigns, totalCount] = await campaignService.findAndCountAll(
       {
         take,
@@ -44,6 +53,7 @@ const resolver: GQLQueryResolvers['campaigns'] = async (
         ? {
             filterStates: [filter.state as ValueOf<typeof CAMPAIGN_STATE>],
             filterSort: filter?.sort || undefined,
+            filterExcludes: excludeIds,
           }
         : undefined
     )
