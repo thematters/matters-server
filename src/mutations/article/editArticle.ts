@@ -278,7 +278,8 @@ const handleCampaigns = async ({
   if (!campaignAnnouncement) {
     const _campaigns = await campaignService.validateCampaigns(
       campaigns ?? [],
-      viewerId
+      viewerId,
+      true
     )
     const mutated = await campaignService.updateArticleCampaigns(
       article,

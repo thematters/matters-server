@@ -427,10 +427,12 @@ export class CampaignService {
     campaignId,
     campaignStageId,
     userId,
+    validateStage = true,
   }: {
     campaignId: string
     campaignStageId?: string
     userId: string
+    validateStage?: boolean
   }) => {
     const campaign = await this.models.campaignIdLoader.load(campaignId)
     if (!campaign) {
@@ -462,7 +464,7 @@ export class CampaignService {
       table: 'campaign_stage',
       where: { campaignId },
     })
-    if (stages.length > 0 && !campaignStageId) {
+    if (validateStage && stages.length > 0 && !campaignStageId) {
       throw new UserInputError(
         'This campaign has stages, campaignStageId is required'
       )
@@ -609,7 +611,8 @@ export class CampaignService {
 
   public validateCampaigns = async (
     campaigns: Array<{ campaign: GlobalId; stage?: GlobalId }>,
-    userId: string
+    userId: string,
+    validateStage: boolean
   ) => {
     const _campaigns = campaigns.map(
       ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
@@ -637,6 +640,7 @@ export class CampaignService {
         userId,
         campaignId: campaign,
         campaignStageId: stage,
+        validateStage,
       })
     }
     return _campaigns
