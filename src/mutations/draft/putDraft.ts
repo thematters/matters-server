@@ -145,7 +145,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       campaigns:
         campaigns &&
         JSON.stringify(
-          await campaignService.validateCampaigns(campaigns, viewer.id)
+          await campaignService.validateCampaigns(campaigns, viewer.id, false)
         ),
     },
     isUndefined

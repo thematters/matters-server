@@ -5,8 +5,11 @@ import { PAYMENT_PROVIDER } from '#common/enums/index.js'
 const resolver: GQLWalletResolvers['cardLast4'] = async (
   { id },
   _,
-  { dataSources: { atomService } }
+  { viewer, dataSources: { atomService } }
 ) => {
+  if (!id || viewer.id !== id) {
+    return null
+  }
   const customer = (await atomService.findFirst({
     table: 'customer',
     where: { userId: id, provider: PAYMENT_PROVIDER.stripe, archived: false },

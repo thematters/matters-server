@@ -144,6 +144,16 @@ describe('query campaigns', () => {
       state: CAMPAIGN_STATE.active,
       managerIds: [managerId],
     })
+    await campaignService.createWritingChallenge({
+      ...campaignData,
+      coverId: asset.id,
+      state: CAMPAIGN_STATE.finished,
+    })
+    await campaignService.createWritingChallenge({
+      ...campaignData,
+      coverId: asset.id,
+      state: CAMPAIGN_STATE.archived,
+    })
     pendingCampaignShortHash = pendingCampaign.shortHash
     activeCampaignShortHash = activeCampaign.shortHash
   })
@@ -214,7 +224,7 @@ describe('query campaigns', () => {
     expect(data.campaign).toBeDefined()
     expect(data.campaign.isManager).toBe(false)
   })
-  test('query campains successfully', async () => {
+  test('query campaigns successfully', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: QUERY_CAMPAIGNS,
@@ -222,6 +232,107 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
+      new Set(['active', 'finished'])
+    )
+  })
+  test('query campains with empty filter successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: {} } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
+      new Set(['active', 'finished'])
+    )
+  })
+  test('query campains with filter active state successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'active' } } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
+      new Set(['active'])
+    )
+  })
+  test('query campains with filter finished state successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'finished' } } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+    expect(new Set(data.campaigns.edges.map((d: any) => d.node.state))).toEqual(
+      new Set(['finished'])
+    )
+  })
+  test('query campains with filter pending state', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'pending' } } },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  test('query campains with filter archived state', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'archived' } } },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  test('query campains with filter invalid state', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: [] } } },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors2 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: true } } },
+    })
+    expect(errors2[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors3 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 1 } } },
+    })
+    expect(errors3[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { errors: errors4 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: 'a' } } },
+    })
+    expect(errors4[0].extensions.code).toBe('BAD_USER_INPUT')
+
+    const { data: data5, errors: errors5 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: null } } },
+    })
+    expect(errors5).toBeUndefined()
+    expect(data5.campaigns).toBeDefined()
+    expect(
+      new Set(data5.campaigns.edges.map((d: any) => d.node.state))
+    ).toEqual(new Set(['active', 'finished']))
+
+    const { data: data6, errors: errors6 } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, filter: { state: undefined } } },
+    })
+    expect(errors6).toBeUndefined()
+    expect(data6.campaigns).toBeDefined()
+    expect(
+      new Set(data6.campaigns.edges.map((d: any) => d.node.state))
+    ).toEqual(new Set(['active', 'finished']))
   })
   test('non-admin users can not query pending/archived campains', async () => {
     const server = await testClient({ connections })
@@ -518,5 +629,59 @@ describe('query campaign articles', () => {
       data.campaign.articles.edges[0].node.id
     )
     expect(data2.campaign.articles.pageInfo.hasNextPage).toBe(false)
+  })
+})
+
+describe('query campaign orgnaizers', () => {
+  const QUERY = /* GraphQL */ `
+    query ($input: ConnectionArgs!) {
+      campaignOrganizers(input: $input) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  `
+
+  beforeAll(async () => {
+    await Promise.all([
+      campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        organizerIds: ['1', '2'],
+      }),
+      campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        organizerIds: ['1'],
+      }),
+      campaignService.createWritingChallenge({
+        ...campaignData,
+        state: CAMPAIGN_STATE.active,
+        organizerIds: [],
+      }),
+    ])
+  })
+
+  test('query random campaign organizers', async () => {
+    const server = await testClient({
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY,
+      variables: {
+        input: { first: 4 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaignOrganizers.totalCount).toBe(2)
+    expect(
+      new Set(data.campaignOrganizers.edges.map((d: any) => d.node.id))
+    ).toEqual(
+      new Set(['1', '2'].map((id) => toGlobalId({ type: NODE_TYPES.User, id })))
+    )
   })
 })

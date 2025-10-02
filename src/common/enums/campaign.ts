@@ -14,3 +14,7 @@ export const CAMPAIGN_USER_STATE = {
   succeeded: 'succeeded',
   rejected: 'rejected',
 } as const
+
+export const CAMPAIGNS_FILTER_SORT = {
+  writingPeriod: 'writing_period',
+}

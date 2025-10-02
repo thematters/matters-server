@@ -764,11 +764,7 @@ describe('put draft', () => {
     expect(campaigns[0].stage.id).toBe(stageGlobalId)
 
     // remove stage
-    const {
-      data: {
-        putDraft: { campaigns: campaigns2 },
-      },
-    } = await server.executeOperation({
+    const { data: removeStageData, errors } = await server.executeOperation({
       query: PUT_DRAFT,
       variables: {
         input: {
@@ -777,7 +773,63 @@ describe('put draft', () => {
         },
       },
     })
-    expect(campaigns2[0].stage).toBeNull()
+    expect(errors).toBeUndefined()
+    expect(removeStageData.putDraft.campaigns[0].campaign.id).toBe(
+      campaignGlobalId
+    )
+    expect(removeStageData.putDraft.campaigns[0].stage).toBeNull()
+  })
+
+  test('create draft with campaign but no stage', async () => {
+    const campaignData = {
+      name: 'test campaign no stage',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-02 11:30'),
+        new Date('2010-01-02 15:00'),
+      ] as const,
+      creatorId: '2',
+    }
+    const campaignService = new CampaignService(connections)
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    await campaignService.updateStages(campaign.id, [{ name: 'stage1' }])
+    const user = await atomService.userIdLoader.load('1')
+    await campaignService.apply(campaign, user)
+
+    const campaignGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaign.id,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: PUT_DRAFT,
+      variables: {
+        input: {
+          title: Math.random().toString(),
+          campaigns: [
+            {
+              campaign: campaignGlobalId,
+            },
+          ],
+        },
+        client: {
+          context: {
+            viewer: user,
+          },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putDraft.campaigns[0].campaign.id).toBe(campaignGlobalId)
+    expect(data.putDraft.campaigns[0].stage).toBeNull()
   })
 
   test('edit draft connections', async () => {

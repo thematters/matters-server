@@ -8,6 +8,7 @@ import application from './application.js'
 import articles from './articles.js'
 import boost from './boost.js'
 import campaign from './campaign.js'
+import campaignOrganizers from './campaignOrganizers.js'
 import campaigns from './campaigns.js'
 import channelEnabled from './channelEnabled.js'
 import description from './description.js'
@@ -15,6 +16,7 @@ import featuredDescription from './featuredDescription.js'
 import managers from './managers.js'
 import name from './name.js'
 import navbarTitle from './navbarTitle.js'
+import organizers from './organizers.js'
 import participants from './participants.js'
 import stageDescription from './stage/description.js'
 import stageName from './stage/name.js'
@@ -24,6 +26,7 @@ const schema: GQLResolvers = {
   Query: {
     campaign,
     campaigns,
+    campaignOrganizers,
   },
   Campaign: {
     __resolveType: () => 'WritingChallenge',
@@ -53,6 +56,8 @@ const schema: GQLResolvers = {
     participants,
     articles,
     channelEnabled,
+    showOther: ({ showOther }) => showOther,
+    organizers,
     oss: (root) => root,
   },
 

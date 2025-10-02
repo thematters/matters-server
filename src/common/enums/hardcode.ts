@@ -38,3 +38,5 @@ export const AUTO_FOLLOW_TAGS = [
   '玩轉Matters實用指南',
   'Matters 每日精選',
 ]
+
+export const RESERVED_TAGS = ['Matters 每日精選', 'Matters 功能更新']

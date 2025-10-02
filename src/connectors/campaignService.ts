@@ -12,6 +12,7 @@ import {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
+  CAMPAIGNS_FILTER_SORT,
   NODE_TYPES,
   USER_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -63,9 +64,11 @@ export class CampaignService {
     writingPeriod,
     state,
     creatorId,
+    organizerIds,
     managerIds,
     featuredDescription,
     exclusive,
+    showOther,
   }: {
     name: string
     description?: string
@@ -76,8 +79,10 @@ export class CampaignService {
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
     featuredDescription?: string
+    organizerIds?: string[]
     managerIds?: string[]
     exclusive?: boolean
+    showOther?: boolean
   }) =>
     this.models.create({
       table: 'campaign',
@@ -96,9 +101,11 @@ export class CampaignService {
           : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
+        organizerIds,
         managerIds,
         featuredDescription,
         exclusive: exclusive ?? false,
+        showOther,
       },
     })
 
@@ -221,9 +228,11 @@ export class CampaignService {
     {
       filterStates,
       filterUserId,
+      filterSort,
     }: {
       filterStates?: Array<ValueOf<typeof CAMPAIGN_STATE>>
       filterUserId?: string
+      filterSort?: string
     } = {
       filterStates: [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished],
     }
@@ -245,6 +254,15 @@ export class CampaignService {
         }
         if (filterStates) {
           builder.whereIn('campaign.state', filterStates)
+
+          // reset if there's a specific sorter
+          if (filterSort === 'writingPeriod') {
+            builder
+              .clearOrder()
+              .orderByRaw('lower(??) desc nulls last', [
+                CAMPAIGNS_FILTER_SORT.writingPeriod,
+              ])
+          }
         }
       })
       .limit(take)
@@ -409,10 +427,12 @@ export class CampaignService {
     campaignId,
     campaignStageId,
     userId,
+    validateStage = true,
   }: {
     campaignId: string
     campaignStageId?: string
     userId: string
+    validateStage?: boolean
   }) => {
     const campaign = await this.models.campaignIdLoader.load(campaignId)
     if (!campaign) {
@@ -438,6 +458,16 @@ export class CampaignService {
       if (now.getTime() < start.getTime()) {
         throw new ActionFailedError('writing period has not started yet')
       }
+    }
+
+    const stages = await this.models.findMany({
+      table: 'campaign_stage',
+      where: { campaignId },
+    })
+    if (validateStage && stages.length > 0 && !campaignStageId) {
+      throw new UserInputError(
+        'This campaign has stages, campaignStageId is required'
+      )
     }
 
     if (!campaignStageId) {
@@ -581,7 +611,8 @@ export class CampaignService {
 
   public validateCampaigns = async (
     campaigns: Array<{ campaign: GlobalId; stage?: GlobalId }>,
-    userId: string
+    userId: string,
+    validateStage: boolean
   ) => {
     const _campaigns = campaigns.map(
       ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
@@ -609,8 +640,26 @@ export class CampaignService {
         userId,
         campaignId: campaign,
         campaignStageId: stage,
+        validateStage,
       })
     }
     return _campaigns
+  }
+
+  public findCampaignOrganizers = async ({
+    skip,
+    take,
+  }: {
+    skip: number
+    take: number
+  }) => {
+    const knexRO = this.connections.knexRO
+    const query = knexRO('campaign')
+      .select('organizer_ids')
+      .whereIn('state', [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished])
+      .limit(take)
+      .offset(skip)
+      .orderBy('id', 'desc')
+    return query
   }
 }

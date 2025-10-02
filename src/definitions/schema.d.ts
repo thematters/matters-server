@@ -912,8 +912,18 @@ export type GQLCampaignStageInput = {
 
 export type GQLCampaignState = 'active' | 'archived' | 'finished' | 'pending'
 
+export type GQLCampaignsFilter = {
+  sort?: InputMaybe<GQLCampaignsFilterSort>
+  state?: InputMaybe<GQLCampaignsFilterState>
+}
+
+export type GQLCampaignsFilterSort = 'writingPeriod'
+
+export type GQLCampaignsFilterState = 'active' | 'finished'
+
 export type GQLCampaignsInput = {
   after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLCampaignsFilter>
   first?: InputMaybe<Scalars['Int']['input']>
   /** return pending and archived campaigns */
   oss?: InputMaybe<Scalars['Boolean']['input']>
@@ -3202,6 +3212,8 @@ export type GQLPutWritingChallengeInput = {
   name?: InputMaybe<Array<GQLTranslationInput>>
   navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   newStages?: InputMaybe<Array<GQLCampaignStageInput>>
+  organizers?: InputMaybe<Array<Scalars['ID']['input']>>
+  showOther?: InputMaybe<Scalars['Boolean']['input']>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
   writingPeriod?: InputMaybe<GQLDatetimeRangeInput>
@@ -3211,6 +3223,7 @@ export type GQLQuery = {
   __typename?: 'Query'
   article?: Maybe<GQLArticle>
   campaign?: Maybe<GQLCampaign>
+  campaignOrganizers: GQLUserConnection
   campaigns: GQLCampaignConnection
   channel?: Maybe<GQLChannel>
   channels: Array<GQLChannel>
@@ -3235,6 +3248,10 @@ export type GQLQueryArticleArgs = {
 
 export type GQLQueryCampaignArgs = {
   input: GQLCampaignInput
+}
+
+export type GQLQueryCampaignOrganizersArgs = {
+  input: GQLConnectionArgs
 }
 
 export type GQLQueryCampaignsArgs = {
@@ -4722,9 +4739,11 @@ export type GQLWritingChallenge = GQLCampaign &
     link: Scalars['String']['output']
     name: Scalars['String']['output']
     navbarTitle: Scalars['String']['output']
+    organizers: Array<GQLUser>
     oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
     shortHash: Scalars['String']['output']
+    showOther: Scalars['Boolean']['output']
     stages: Array<GQLCampaignStage>
     state: GQLCampaignState
     writingPeriod?: Maybe<GQLDatetimeRange>
@@ -5208,6 +5227,9 @@ export type GQLResolversTypes = ResolversObject<{
   CampaignStage: ResolverTypeWrapper<CampaignStageModel>
   CampaignStageInput: GQLCampaignStageInput
   CampaignState: GQLCampaignState
+  CampaignsFilter: GQLCampaignsFilter
+  CampaignsFilterSort: GQLCampaignsFilterSort
+  CampaignsFilterState: GQLCampaignsFilterState
   CampaignsInput: GQLCampaignsInput
   Chain: GQLChain
   Channel: ResolverTypeWrapper<
@@ -5930,6 +5952,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CampaignParticipantsInput: GQLCampaignParticipantsInput
   CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
+  CampaignsFilter: GQLCampaignsFilter
   CampaignsInput: GQLCampaignsInput
   Channel: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Channel']
   ChannelArticleConnection: Omit<GQLChannelArticleConnection, 'edges'> & {
@@ -9645,6 +9668,12 @@ export type GQLQueryResolvers<
     ContextType,
     RequireFields<GQLQueryCampaignArgs, 'input'>
   >
+  campaignOrganizers?: Resolver<
+    GQLResolversTypes['UserConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryCampaignOrganizersArgs, 'input'>
+  >
   campaigns?: Resolver<
     GQLResolversTypes['CampaignConnection'],
     ParentType,
@@ -11031,6 +11060,11 @@ export type GQLWritingChallengeResolvers<
     ContextType,
     Partial<GQLWritingChallengeNavbarTitleArgs>
   >
+  organizers?: Resolver<
+    Array<GQLResolversTypes['User']>,
+    ParentType,
+    ContextType
+  >
   oss?: Resolver<GQLResolversTypes['CampaignOSS'], ParentType, ContextType>
   participants?: Resolver<
     GQLResolversTypes['CampaignParticipantConnection'],
@@ -11039,6 +11073,7 @@ export type GQLWritingChallengeResolvers<
     RequireFields<GQLWritingChallengeParticipantsArgs, 'input'>
   >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  showOther?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   stages?: Resolver<
     Array<GQLResolversTypes['CampaignStage']>,
     ParentType,
