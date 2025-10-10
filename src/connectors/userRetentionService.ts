@@ -168,15 +168,15 @@ export class UserRetentionService {
   }
 
   private fetchUsersData = async () => {
-    const latestRetentionStates = this.knex
+    const latestRetentionStates = this.knexRO
       .select('user_id', 'state', 'created_at')
       .from(
-        this.knex
+        this.knexRO
           .select(
             'user_id',
             'state',
             'created_at',
-            this.knex.raw(
+            this.knexRO.raw(
               'rank() OVER(PARTITION BY user_id ORDER BY id DESC) AS rank'
             )
           )
@@ -187,7 +187,7 @@ export class UserRetentionService {
       .whereIn('state', ['NEWUSER', 'ACTIVE', 'ALERT'])
       .as('user_retention')
 
-    return await this.knex
+    return await this.knexRO
       .select(
         'user_retention.user_id',
         'user_retention.state',
@@ -212,7 +212,7 @@ export class UserRetentionService {
   public loadUserRetentionState = async (
     userId: string
   ): Promise<UserRetentionState> => {
-    const result = await this.knex.raw(
+    const result = await this.knexRO.raw(
       `
       SELECT state, rank
       FROM
@@ -319,7 +319,7 @@ export class UserRetentionService {
   }
 
   private loadUserInfo = async (userId: string): Promise<UserInfo> => {
-    const result = await this.knex('user')
+    const result = await this.knexRO('user')
       .select(
         'displayName',
         'email',
