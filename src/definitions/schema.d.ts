@@ -1325,6 +1325,7 @@ export type GQLComment = GQLNode & {
   remark?: Maybe<Scalars['String']['output']>
   /** A Comment that this comment replied to. */
   replyTo?: Maybe<GQLComment>
+  spamStatus: GQLSpamStatus
   /** State of this comment. */
   state: GQLCommentState
   type: GQLCommentType
@@ -2009,6 +2010,7 @@ export type GQLMoment = GQLNode & {
   /** whether current user has liked it */
   liked: Scalars['Boolean']['output']
   shortHash: Scalars['String']['output']
+  spamStatus: GQLSpamStatus
   state: GQLMomentState
   tags: Array<Maybe<GQLTag>>
 }
@@ -3732,7 +3734,7 @@ export type GQLSocialLoginInput = {
 
 export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
-  /** Whether this article is labeled as spam by human, null for not labeled yet.  */
+  /** Whether this work is labeled as spam by human, null for not labeled yet.  */
   isSpam?: Maybe<Scalars['Boolean']['output']>
   /** Spam confident score by machine, null for not checked yet.  */
   score?: Maybe<Scalars['Float']['output']>
@@ -7822,6 +7824,11 @@ export type GQLCommentResolvers<
     ParentType,
     ContextType
   >
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<GQLResolversTypes['CommentState'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['CommentType'], ParentType, ContextType>
   upvotes?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
@@ -8479,6 +8486,11 @@ export type GQLMomentResolvers<
   likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<GQLResolversTypes['MomentState'], ParentType, ContextType>
   tags?: Resolver<
     Array<Maybe<GQLResolversTypes['Tag']>>,

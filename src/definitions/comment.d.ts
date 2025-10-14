@@ -20,6 +20,8 @@ export interface Comment {
   targetTypeId: string
   type: ValueOf<typeof COMMENT_TYPE>
   pinnedAt: Date | null
+  spamScore: number | null
+  isSpam: boolean | null
   createdAt: Date
   updatedAt: Date
 }

@@ -636,7 +636,7 @@ type SpamStatus {
   score: Float
 
   """
-  Whether this article is labeled as spam by human, null for not labeled yet. 
+  Whether this work is labeled as spam by human, null for not labeled yet. 
   """
   isSpam: Boolean
 }
@@ -1627,6 +1627,7 @@ type Comment implements Node {
 
   """A Comment that this comment replied to."""
   replyTo: Comment
+  spamStatus: SpamStatus!
   remark: String
 
   """Current comment belongs to which Node."""
@@ -4079,6 +4080,7 @@ type Moment implements Node {
 
   """whether current user has liked it"""
   liked: Boolean!
+  spamStatus: SpamStatus!
   createdAt: DateTime!
 }
 
