@@ -1045,7 +1045,7 @@ export default /* GraphQL */ `
     first: Int
   }
 
-  union Writing = Article | Moment
+  union Writing = Article | Moment | Comment
 
   type WritingConnection implements Connection {
     totalCount: Int!

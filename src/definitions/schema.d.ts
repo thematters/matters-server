@@ -2169,7 +2169,7 @@ export type GQLMutation = {
   setFeature: GQLFeature
   /** Set user email login password. */
   setPassword: GQLUser
-  setSpamStatus: GQLArticle
+  setSpamStatus: GQLWriting
   /** Set user name. */
   setUserName: GQLUser
   /** Upload a single file. */
@@ -4723,7 +4723,7 @@ export type GQLWithdrawLockedTokensResult = {
   transaction: GQLTransaction
 }
 
-export type GQLWriting = GQLArticle | GQLMoment
+export type GQLWriting = GQLArticle | GQLComment | GQLMoment
 
 export type GQLWritingChallenge = GQLCampaign &
   GQLChannel &
@@ -4942,7 +4942,7 @@ export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
     Invitee: GQLPerson | UserModel
     Response: ArticleModel | CommentModel
     TransactionTarget: ArticleModel | CircleModel | TransactionModel
-    Writing: ArticleModel | MomentModel
+    Writing: ArticleModel | CommentModel | MomentModel
   }>
 
 /** Mapping of interface types */
@@ -8982,7 +8982,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationSetPasswordArgs, 'input'>
   >
   setSpamStatus?: Resolver<
-    GQLResolversTypes['Article'],
+    GQLResolversTypes['Writing'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetSpamStatusArgs, 'input'>
@@ -11012,7 +11012,11 @@ export type GQLWritingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Writing'] = GQLResolversParentTypes['Writing']
 > = ResolversObject<{
-  __resolveType: TypeResolveFn<'Article' | 'Moment', ParentType, ContextType>
+  __resolveType: TypeResolveFn<
+    'Article' | 'Comment' | 'Moment',
+    ParentType,
+    ContextType
+  >
 }>
 
 export type GQLWritingChallengeResolvers<
