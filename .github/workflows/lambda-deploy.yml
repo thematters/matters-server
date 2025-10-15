@@ -164,7 +164,7 @@ jobs:
       - name: Deploy Lambda
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: recommendation-hottest-cache-ahead-${{ inputs.environment }}
+          name: recommendation-hottest-cache-ahead-v5-${{ inputs.environment }}
           template: ./deployment/lambda/cronjob.yml
           parameter-overrides: >-
             mattersEnv=${{ env.MATTERS_ENV }},
