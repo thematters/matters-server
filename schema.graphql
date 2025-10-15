@@ -151,7 +151,7 @@ type Mutation {
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
   putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
-  setSpamStatus(input: SetSpamStatusInput!): Article!
+  setSpamStatus(input: SetSpamStatusInput!): Writing!
   setAdStatus(input: SetAdStatusInput!): Article!
   reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback!
 
@@ -3593,7 +3593,7 @@ input WritingInput {
   first: Int
 }
 
-union Writing = Article | Moment
+union Writing = Article | Moment | Comment
 
 type WritingConnection implements Connection {
   totalCount: Int!

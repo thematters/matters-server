@@ -1,4 +1,4 @@
-import { environment, isTest } from '#common/environment.js'
+import { isTest } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
@@ -8,8 +8,8 @@ const logger = getLogger('spam-detector')
 export class SpamDetector {
   private apiUrl: string
 
-  public constructor() {
-    this.apiUrl = environment.spamDetectionApiUrl
+  public constructor(apiUrl: string) {
+    this.apiUrl = apiUrl
   }
 
   public detect = async (text: string): Promise<number | null> => {

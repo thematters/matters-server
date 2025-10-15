@@ -18,11 +18,13 @@ import {
   USER_ACTION,
   NOTICE_TYPE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
 
 import { BaseService } from './baseService.js'
 import { NotificationService } from './notification/notificationService.js'
 import { PaymentService } from './paymentService.js'
+import { SpamDetector } from './spamDetector.js'
 import { UserService } from './userService.js'
 
 export interface CommentFilter {
@@ -518,5 +520,27 @@ export class CommentService extends BaseService<Comment> {
         ),
       column,
     }
+  }
+
+  public detectSpam = async ({
+    id,
+    content,
+  }: {
+    id: string
+    content: string
+  }) => {
+    const detector = new SpamDetector(
+      environment.shortContentSpamDetectionApiUrl
+    )
+    const score = await detector.detect(content)
+
+    if (score) {
+      await this.models.update({
+        table: 'comment',
+        where: { id },
+        data: { spamScore: score },
+      })
+    }
+    return score
   }
 }

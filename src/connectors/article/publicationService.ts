@@ -19,6 +19,7 @@ import {
   USER_FEATURE_FLAG_TYPE,
   MAX_ARTICLES_PER_CONNECTION_LIMIT,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ActionFailedError,
   ArticleNotFoundError,
@@ -520,7 +521,8 @@ export class PublicationService extends BaseService<Article> {
    *********************************/
 
   public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
-    const detector = spamDetector ?? new SpamDetector()
+    const detector =
+      spamDetector ?? new SpamDetector(environment.spamDetectionApiUrl)
     const { title, summary, summaryCustomized } =
       await this.articleService.loadLatestArticleVersion(id)
     const content = await this.articleService.loadLatestArticleContent(id)
@@ -539,7 +541,8 @@ export class PublicationService extends BaseService<Article> {
     }: { id: string; title: string; content: string; summary?: string },
     spamDetector?: SpamDetector
   ) => {
-    const detector = spamDetector ?? new SpamDetector()
+    const detector =
+      spamDetector ?? new SpamDetector(environment.spamDetectionApiUrl)
     const text = summary
       ? title + '\n' + summary + '\n' + content
       : title + '\n' + content
