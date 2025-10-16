@@ -59,6 +59,7 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
     node: { id: viewer.id, type: NODE_TYPES.User },
     redis: redis,
   })
+  momentService.detectSpam(moment)
 
   return moment
 }

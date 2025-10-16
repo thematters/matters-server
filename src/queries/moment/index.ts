@@ -6,6 +6,7 @@ import { toGlobalId } from '#common/utils/index.js'
 import articles from './articles.js'
 import assets from './assets.js'
 import comments from './comments.js'
+import { spamStatus } from './spamStatus.js'
 import tags from './tags.js'
 
 const schema: GQLResolvers = {
@@ -44,6 +45,8 @@ const schema: GQLResolvers = {
       momentService.countLikes(id),
     liked: ({ id }, _, { dataSources: { momentService }, viewer }) =>
       viewer.id ? momentService.isLiked(id, viewer.id) : false,
+
+    spamStatus,
 
     createdAt: ({ createdAt }) => createdAt,
   },

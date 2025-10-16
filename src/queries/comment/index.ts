@@ -24,6 +24,7 @@ import myVote from './myVote.js'
 import node from './node.js'
 import parentComment from './parentComment.js'
 import replyTo from './replyTo.js'
+import { spamStatus } from './spamStatus.js'
 import upvotes from './upvotes.js'
 import userCommentedArticles from './user/commentedArticles.js'
 
@@ -51,6 +52,7 @@ export default {
     comments,
     parentComment,
     fromDonator,
+    spamStatus,
     type: ({ type }: { type: string }) => COMMENT_TYPES_REVERSED[type],
     node,
   },

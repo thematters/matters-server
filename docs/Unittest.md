@@ -209,13 +209,19 @@ beforeEach(async () => {
 - Use descriptive test names
 - Keep test files focused and concise
 - Example:
-   ```typescript
-   describe('datetimeRange filtering', () => {
-     test('filters articles within date range', async () => {
-       // Test implementation
-     })
-   })
-   ```
+  ```typescript
+  describe('datetimeRange filtering', () => {
+    test('filters articles within date range', async () => {
+      // Test implementation
+    })
+  })
+  ```
+
+### UUID Handling
+- Always use `v4()` from the `uuid` package to generate unique identifiers
+- Never use hardcoded test UUIDs like `'test-uuid-1'` as they can cause conflicts
+- Import `v4` at the top of test files: `import { v4 } from 'uuid'`
+- This ensures test isolation and prevents data conflicts between test runs
 
 ## Using Seed Data
 

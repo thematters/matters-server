@@ -79,6 +79,7 @@ export default /* GraphQL */ `
     "A Comment that this comment replied to."
     replyTo: Comment @logCache(type: "${NODE_TYPES.Comment}")
 
+    spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
 
     "Current comment belongs to which Node."

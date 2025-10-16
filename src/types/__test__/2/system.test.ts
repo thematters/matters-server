@@ -1139,7 +1139,6 @@ describe('setSpamStatus', () => {
   const SET_SPAM_STATUS = /* GraphQL */ `
     mutation ($input: SetSpamStatusInput!) {
       setSpamStatus(input: $input) {
-        id
         ... on Article {
           oss {
             spamStatus {
@@ -1147,10 +1146,20 @@ describe('setSpamStatus', () => {
             }
           }
         }
+        ... on Comment {
+          spamStatus {
+            isSpam
+          }
+        }
+        ... on Moment {
+          spamStatus {
+            isSpam
+          }
+        }
       }
     }
   `
-  test('set spam status successfully', async () => {
+  test('set spam status on article successfully', async () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
@@ -1167,6 +1176,49 @@ describe('setSpamStatus', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
+  })
+
+  test('set spam status on comment successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.spamStatus.isSpam).toBe(true)
+  })
+
+  test('set spam status on moment successfully', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
+      { content: 'test' },
+      { id: '4', state: USER_STATE.active, userName: 'test' }
+    )
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Moment, id: moment.id }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.spamStatus.isSpam).toBe(true)
   })
 })
 

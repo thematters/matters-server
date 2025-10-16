@@ -1325,6 +1325,7 @@ export type GQLComment = GQLNode & {
   remark?: Maybe<Scalars['String']['output']>
   /** A Comment that this comment replied to. */
   replyTo?: Maybe<GQLComment>
+  spamStatus: GQLSpamStatus
   /** State of this comment. */
   state: GQLCommentState
   type: GQLCommentType
@@ -2009,6 +2010,7 @@ export type GQLMoment = GQLNode & {
   /** whether current user has liked it */
   liked: Scalars['Boolean']['output']
   shortHash: Scalars['String']['output']
+  spamStatus: GQLSpamStatus
   state: GQLMomentState
   tags: Array<Maybe<GQLTag>>
 }
@@ -2167,7 +2169,7 @@ export type GQLMutation = {
   setFeature: GQLFeature
   /** Set user email login password. */
   setPassword: GQLUser
-  setSpamStatus: GQLArticle
+  setSpamStatus: GQLWriting
   /** Set user name. */
   setUserName: GQLUser
   /** Upload a single file. */
@@ -3732,7 +3734,7 @@ export type GQLSocialLoginInput = {
 
 export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
-  /** Whether this article is labeled as spam by human, null for not labeled yet.  */
+  /** Whether this work is labeled as spam by human, null for not labeled yet.  */
   isSpam?: Maybe<Scalars['Boolean']['output']>
   /** Spam confident score by machine, null for not checked yet.  */
   score?: Maybe<Scalars['Float']['output']>
@@ -4721,7 +4723,7 @@ export type GQLWithdrawLockedTokensResult = {
   transaction: GQLTransaction
 }
 
-export type GQLWriting = GQLArticle | GQLMoment
+export type GQLWriting = GQLArticle | GQLComment | GQLMoment
 
 export type GQLWritingChallenge = GQLCampaign &
   GQLChannel &
@@ -4940,7 +4942,7 @@ export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
     Invitee: GQLPerson | UserModel
     Response: ArticleModel | CommentModel
     TransactionTarget: ArticleModel | CircleModel | TransactionModel
-    Writing: ArticleModel | MomentModel
+    Writing: ArticleModel | CommentModel | MomentModel
   }>
 
 /** Mapping of interface types */
@@ -7822,6 +7824,11 @@ export type GQLCommentResolvers<
     ParentType,
     ContextType
   >
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<GQLResolversTypes['CommentState'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['CommentType'], ParentType, ContextType>
   upvotes?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
@@ -8479,6 +8486,11 @@ export type GQLMomentResolvers<
   likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<GQLResolversTypes['MomentState'], ParentType, ContextType>
   tags?: Resolver<
     Array<Maybe<GQLResolversTypes['Tag']>>,
@@ -8970,7 +8982,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationSetPasswordArgs, 'input'>
   >
   setSpamStatus?: Resolver<
-    GQLResolversTypes['Article'],
+    GQLResolversTypes['Writing'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetSpamStatusArgs, 'input'>
@@ -11000,7 +11012,11 @@ export type GQLWritingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Writing'] = GQLResolversParentTypes['Writing']
 > = ResolversObject<{
-  __resolveType: TypeResolveFn<'Article' | 'Moment', ParentType, ContextType>
+  __resolveType: TypeResolveFn<
+    'Article' | 'Comment' | 'Moment',
+    ParentType,
+    ContextType
+  >
 }>
 
 export type GQLWritingChallengeResolvers<

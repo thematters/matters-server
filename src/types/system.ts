@@ -47,7 +47,7 @@ export default /* GraphQL */ `
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
-    setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    setSpamStatus(input: SetSpamStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
     setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.admin}")
   }

@@ -68,6 +68,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     viewer,
     dataSources: {
       atomService,
+      commentService,
       paymentService,
       articleService,
       notificationService,
@@ -591,6 +592,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         type: NODE_TYPES.Circle,
       }
   await invalidateFQC({ node, redis: connections.redis })
+  commentService.detectSpam({
+    id: newComment.id,
+    content: newComment.content ?? '',
+  })
 
   return newComment
 }
