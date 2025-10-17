@@ -220,3 +220,62 @@ describe('like/unklike moments', () => {
     )
   })
 })
+
+describe('findMoments', () => {
+  beforeEach(async () => {
+    await connections.knex('moment_asset').del()
+    await connections.knex('moment_tag').del()
+    await connections.knex('moment_article').del()
+    await connections.knex('action_moment').del()
+    await connections.knex('moment').del()
+  })
+
+  test('returns empty array when no moments exist', async () => {
+    const moments = await momentService.findMoments()
+    expect(moments).toEqual([])
+  })
+
+  test('returns all moments when they exist', async () => {
+    // Create test moments
+    const user1 = { id: '1', state: USER_STATE.active, userName: 'testuser1' }
+    const user2 = { id: '2', state: USER_STATE.active, userName: 'testuser2' }
+
+    const moment1 = await momentService.create(
+      { content: 'First test moment', assetIds: [] },
+      user1
+    )
+    const moment2 = await momentService.create(
+      { content: 'Second test moment', assetIds: [] },
+      user2
+    )
+
+    const moments = await momentService.findMoments()
+
+    expect(moments).toHaveLength(2)
+    expect(moments.map((m) => m.id)).toContain(moment1.id)
+    expect(moments.map((m) => m.id)).toContain(moment2.id)
+  })
+
+  test('returns moments with correct data structure', async () => {
+    const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
+    const moment = await momentService.create(
+      { content: 'Test moment content', assetIds: [] },
+      user
+    )
+
+    const moments = await momentService.findMoments()
+    const foundMoment = moments.find((m) => m.id === moment.id)
+
+    expect(foundMoment).toBeDefined()
+    expect(foundMoment).toHaveProperty('id')
+    expect(foundMoment).toHaveProperty('shortHash')
+    expect(foundMoment).toHaveProperty('authorId')
+    expect(foundMoment).toHaveProperty('content')
+    expect(foundMoment).toHaveProperty('state')
+    expect(foundMoment).toHaveProperty('createdAt')
+    expect(foundMoment).toHaveProperty('updatedAt')
+    expect(foundMoment?.authorId).toBe(user.id)
+    expect(foundMoment?.content).toBe('<p>Test moment content</p>')
+    expect(foundMoment?.state).toBe(MOMENT_STATE.active)
+  })
+})

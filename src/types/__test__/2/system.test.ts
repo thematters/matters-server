@@ -1256,3 +1256,75 @@ describe('setAdStatus', () => {
     expect(data.setAdStatus.oss.adStatus.isAd).toBe(true)
   })
 })
+
+describe('query OSS moments', () => {
+  const QUERY_MOMENTS = `
+    query($input: ConnectionArgs!) {
+      oss {
+        moments(input: $input) {
+          totalCount
+          edges {
+            node {
+              id
+              shortHash
+              content
+              author {
+                id
+                userName
+              }
+              state
+              createdAt
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('query moments successfully', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    // Create a test moment
+    const momentService = new MomentService(connections)
+    const testUser = {
+      id: '1',
+      state: USER_STATE.active,
+      userName: 'testuser',
+    }
+    await momentService.create({ content: 'Test moment content' }, testUser)
+
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_MOMENTS,
+      variables: { input: { first: 10 } },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(_get(data, 'oss.moments.totalCount')).toBeGreaterThan(0)
+    expect(_get(data, 'oss.moments.edges')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.id')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.shortHash')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.content')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.author')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.state')).toBe('active')
+    expect(_get(data, 'oss.moments.edges[0].node.createdAt')).toBeDefined()
+  })
+
+  test('non-admin user cannot query moments', async () => {
+    const serverUser = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+
+    const { errors } = await serverUser.executeOperation({
+      query: QUERY_MOMENTS,
+      variables: { input: { first: 10 } },
+    })
+
+    expect(errors).toBeDefined()
+  })
+})

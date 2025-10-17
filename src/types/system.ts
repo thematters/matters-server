@@ -142,6 +142,7 @@ export default /* GraphQL */ `
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
     comments(input: ConnectionArgs!): CommentConnection!
+    moments(input: ConnectionArgs!): MomentConnection!
     articles(input: OSSArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!

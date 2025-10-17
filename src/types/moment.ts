@@ -65,4 +65,15 @@ export default /* GraphQL */ `
     archived
   }
 
+  type MomentConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [MomentEdge!]
+  }
+
+  type MomentEdge {
+    cursor: String!
+    node: Moment! @logCache(type: "${NODE_TYPES.Moment}")
+  }
+
 `
