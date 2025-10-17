@@ -2019,6 +2019,19 @@ export type GQLMomentCommentsArgs = {
   input: GQLCommentsInput
 }
 
+export type GQLMomentConnection = GQLConnection & {
+  __typename?: 'MomentConnection'
+  edges?: Maybe<Array<GQLMomentEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLMomentEdge = {
+  __typename?: 'MomentEdge'
+  cursor: Scalars['String']['output']
+  node: GQLMoment
+}
+
 export type GQLMomentInput = {
   shortHash: Scalars['String']['input']
 }
@@ -2835,6 +2848,7 @@ export type GQLOss = {
   badgedUsers: GQLUserConnection
   comments: GQLCommentConnection
   icymiTopics: GQLIcymiTopicConnection
+  moments: GQLMomentConnection
   oauthClients: GQLOAuthClientConnection
   reports: GQLReportConnection
   restrictedUsers: GQLUserConnection
@@ -2858,6 +2872,10 @@ export type GQLOssCommentsArgs = {
 }
 
 export type GQLOssIcymiTopicsArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLOssMomentsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -4997,6 +5015,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLMemberConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['MemberEdge']>>
       })
+    | (Omit<GQLMomentConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['MomentEdge']>>
+      })
     | (Omit<GQLNoticeConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['NoticeEdge']>>
       })
@@ -5429,6 +5450,14 @@ export type GQLResolversTypes = ResolversObject<{
   MigrationInput: GQLMigrationInput
   MigrationType: GQLMigrationType
   Moment: ResolverTypeWrapper<MomentModel>
+  MomentConnection: ResolverTypeWrapper<
+    Omit<GQLMomentConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['MomentEdge']>>
+    }
+  >
+  MomentEdge: ResolverTypeWrapper<
+    Omit<GQLMomentEdge, 'node'> & { node: GQLResolversTypes['Moment'] }
+  >
   MomentInput: GQLMomentInput
   MomentNotice: ResolverTypeWrapper<NoticeItemModel>
   MomentNoticeType: GQLMomentNoticeType
@@ -5471,6 +5500,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'badgedUsers'
       | 'comments'
       | 'icymiTopics'
+      | 'moments'
       | 'oauthClients'
       | 'reports'
       | 'restrictedUsers'
@@ -5483,6 +5513,7 @@ export type GQLResolversTypes = ResolversObject<{
       badgedUsers: GQLResolversTypes['UserConnection']
       comments: GQLResolversTypes['CommentConnection']
       icymiTopics: GQLResolversTypes['IcymiTopicConnection']
+      moments: GQLResolversTypes['MomentConnection']
       oauthClients: GQLResolversTypes['OAuthClientConnection']
       reports: GQLResolversTypes['ReportConnection']
       restrictedUsers: GQLResolversTypes['UserConnection']
@@ -6099,6 +6130,12 @@ export type GQLResolversParentTypes = ResolversObject<{
   MergeTagsInput: GQLMergeTagsInput
   MigrationInput: GQLMigrationInput
   Moment: MomentModel
+  MomentConnection: Omit<GQLMomentConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['MomentEdge']>>
+  }
+  MomentEdge: Omit<GQLMomentEdge, 'node'> & {
+    node: GQLResolversParentTypes['Moment']
+  }
   MomentInput: GQLMomentInput
   MomentNotice: NoticeItemModel
   MonthlyDatum: GQLMonthlyDatum
@@ -6129,6 +6166,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'badgedUsers'
     | 'comments'
     | 'icymiTopics'
+    | 'moments'
     | 'oauthClients'
     | 'reports'
     | 'restrictedUsers'
@@ -6141,6 +6179,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     badgedUsers: GQLResolversParentTypes['UserConnection']
     comments: GQLResolversParentTypes['CommentConnection']
     icymiTopics: GQLResolversParentTypes['IcymiTopicConnection']
+    moments: GQLResolversParentTypes['MomentConnection']
     oauthClients: GQLResolversParentTypes['OAuthClientConnection']
     reports: GQLResolversParentTypes['ReportConnection']
     restrictedUsers: GQLResolversParentTypes['UserConnection']
@@ -7929,6 +7968,7 @@ export type GQLConnectionResolvers<
     | 'IcymiTopicConnection'
     | 'InvitationConnection'
     | 'MemberConnection'
+    | 'MomentConnection'
     | 'NoticeConnection'
     | 'OAuthClientConnection'
     | 'ReadHistoryConnection'
@@ -8497,6 +8537,29 @@ export type GQLMomentResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLMomentConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['MomentConnection'] = GQLResolversParentTypes['MomentConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['MomentEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLMomentEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['MomentEdge'] = GQLResolversParentTypes['MomentEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Moment'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9497,6 +9560,12 @@ export type GQLOssResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLOssIcymiTopicsArgs, 'input'>
+  >
+  moments?: Resolver<
+    GQLResolversTypes['MomentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssMomentsArgs, 'input'>
   >
   oauthClients?: Resolver<
     GQLResolversTypes['OAuthClientConnection'],
@@ -11226,6 +11295,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   MemberConnection?: GQLMemberConnectionResolvers<ContextType>
   MemberEdge?: GQLMemberEdgeResolvers<ContextType>
   Moment?: GQLMomentResolvers<ContextType>
+  MomentConnection?: GQLMomentConnectionResolvers<ContextType>
+  MomentEdge?: GQLMomentEdgeResolvers<ContextType>
   MomentNotice?: GQLMomentNoticeResolvers<ContextType>
   MonthlyDatum?: GQLMonthlyDatumResolvers<ContextType>
   Mutation?: GQLMutationResolvers<ContextType>

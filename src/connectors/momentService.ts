@@ -40,6 +40,10 @@ export class MomentService {
     this.models = new AtomService(connections)
   }
 
+  public findMoments = () => {
+    return this.connections.knexRO('Moment').select('*')
+  }
+
   public create = async (
     data: {
       content: string

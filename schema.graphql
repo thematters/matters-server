@@ -2242,6 +2242,7 @@ type TranslatedAnnouncement {
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
   comments(input: ConnectionArgs!): CommentConnection!
+  moments(input: ConnectionArgs!): MomentConnection!
   articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
@@ -4087,6 +4088,17 @@ type Moment implements Node {
 enum MomentState {
   active
   archived
+}
+
+type MomentConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MomentEdge!]
+}
+
+type MomentEdge {
+  cursor: String!
+  node: Moment!
 }
 
 interface Channel {
