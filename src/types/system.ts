@@ -527,6 +527,7 @@ export default /* GraphQL */ `
   enum UserFeatureFlagType {
     bypassSpamDetection
     unlimitedArticleFetch
+    readSpamStatus
   }
 
   enum ReportReason {

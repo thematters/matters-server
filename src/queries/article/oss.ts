@@ -1,6 +1,7 @@
 import type { GQLArticleOssResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
+import { NODE_TYPES, USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
+import { ForbiddenError } from '#common/errors.js'
 
 export const boost: GQLArticleOssResolvers['boost'] = async (
   { id: articleId },
@@ -88,8 +89,25 @@ export const inSearch: GQLArticleOssResolvers['inSearch'] = async (
 export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
   { id, spamScore, isSpam },
   _,
-  { dataSources: { publicationService } }
+  { viewer, dataSources: { publicationService, userService } }
 ) => {
+  // Check if user has admin role or readSpamStatus feature flag
+  const hasAdminRole = viewer.hasRole('admin')
+  let hasReadSpamStatusFlag = false
+
+  if (!hasAdminRole && viewer.id) {
+    const featureFlags = await userService.findFeatureFlags(viewer.id)
+    hasReadSpamStatusFlag = featureFlags
+      .map(({ type }) => type)
+      .includes(USER_FEATURE_FLAG_TYPE.readSpamStatus)
+  }
+
+  if (!hasAdminRole && !hasReadSpamStatusFlag) {
+    throw new ForbiddenError(
+      'only admin or users with readSpamStatus flag can access spam status'
+    )
+  }
+
   if (!spamScore) {
     publicationService.detectSpam(id)
   }
