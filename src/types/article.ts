@@ -233,7 +233,7 @@ export default /* GraphQL */ `
     ##############
     #     OSS    #
     ##############
-    oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
+    oss: ArticleOSS!
     remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -359,10 +359,10 @@ export default /* GraphQL */ `
     inRecommendHottest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
-    spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+    spamStatus: SpamStatus!
     adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
     topicChannels: [ArticleTopicChannel!] @auth(mode: "${AUTH_MODE.admin}") @deprecated(reason: "Use classification.topicChannel.channels instead")
-    pinHistory: [PinHistory]!
+    pinHistory: [PinHistory]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type PinHistory {

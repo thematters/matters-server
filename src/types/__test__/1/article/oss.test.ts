@@ -1,5 +1,6 @@
 import type { Connections } from '#definitions/index.js'
 
+import { USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
 import { AtomService, ChannelService } from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../../utils.js'
@@ -294,7 +295,20 @@ describe('query article oss', () => {
       }
     }
   `
-  test('only admin can view oss info', async () => {
+  const GET_ARTICLE_OSS_SPAM = /* GraphQL */ `
+    query ($input: ArticleInput!) {
+      article(input: $input) {
+        id
+        oss {
+          spamStatus {
+            score
+            isSpam
+          }
+        }
+      }
+    }
+  `
+  test('admin can view oss info', async () => {
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: '1' },
@@ -329,6 +343,68 @@ describe('query article oss', () => {
     expect(data.article.oss.spamStatus).toBeDefined()
     expect(data.article.oss.spamStatus.score).toBeDefined()
     expect(data.article.oss.spamStatus.isSpam).toBeDefined()
+  })
+
+  test('users with readSpamStatus flag can view spam status', async () => {
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
+    })
+
+    const userId = '1'
+    // Add readSpamStatus feature flag to the user
+    await atomService.create({
+      table: 'user_feature_flag',
+      data: {
+        userId,
+        type: USER_FEATURE_FLAG_TYPE.readSpamStatus,
+      },
+    })
+
+    const userServer = await testClient({
+      connections,
+      isAuth: true,
+      userId,
+    })
+
+    const { errors, data } = await userServer.executeOperation({
+      query: GET_ARTICLE_OSS_SPAM,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.article.oss.spamStatus).toBeDefined()
+    expect(data.article.oss.spamStatus.score).toBeDefined()
+    expect(data.article.oss.spamStatus.isSpam).toBeDefined()
+  })
+
+  test('regular users without readSpamStatus flag cannot view spam status', async () => {
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
+    })
+
+    const userId = '2'
+    const userServer = await testClient({
+      connections,
+      isAuth: true,
+      userId,
+    })
+
+    const { errors } = await userServer.executeOperation({
+      query: GET_ARTICLE_OSS_SPAM,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
 })
 
