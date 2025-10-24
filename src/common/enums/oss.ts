@@ -6,4 +6,5 @@ export const USER_RESTRICTION_TYPE = {
 export const USER_FEATURE_FLAG_TYPE = {
   bypassSpamDetection: 'bypassSpamDetection',
   unlimitedArticleFetch: 'unlimitedArticleFetch',
+  readSpamStatus: 'readSpamStatus',
 } as const
