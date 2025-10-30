@@ -1325,6 +1325,7 @@ export type GQLComment = GQLNode & {
   remark?: Maybe<Scalars['String']['output']>
   /** A Comment that this comment replied to. */
   replyTo?: Maybe<GQLComment>
+  spamStatus: GQLSpamStatus
   /** State of this comment. */
   state: GQLCommentState
   type: GQLCommentType
@@ -2009,12 +2010,26 @@ export type GQLMoment = GQLNode & {
   /** whether current user has liked it */
   liked: Scalars['Boolean']['output']
   shortHash: Scalars['String']['output']
+  spamStatus: GQLSpamStatus
   state: GQLMomentState
   tags: Array<Maybe<GQLTag>>
 }
 
 export type GQLMomentCommentsArgs = {
   input: GQLCommentsInput
+}
+
+export type GQLMomentConnection = GQLConnection & {
+  __typename?: 'MomentConnection'
+  edges?: Maybe<Array<GQLMomentEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLMomentEdge = {
+  __typename?: 'MomentEdge'
+  cursor: Scalars['String']['output']
+  node: GQLMoment
 }
 
 export type GQLMomentInput = {
@@ -2167,7 +2182,7 @@ export type GQLMutation = {
   setFeature: GQLFeature
   /** Set user email login password. */
   setPassword: GQLUser
-  setSpamStatus: GQLArticle
+  setSpamStatus: GQLWriting
   /** Set user name. */
   setUserName: GQLUser
   /** Upload a single file. */
@@ -2833,6 +2848,7 @@ export type GQLOss = {
   badgedUsers: GQLUserConnection
   comments: GQLCommentConnection
   icymiTopics: GQLIcymiTopicConnection
+  moments: GQLMomentConnection
   oauthClients: GQLOAuthClientConnection
   reports: GQLReportConnection
   restrictedUsers: GQLUserConnection
@@ -2856,6 +2872,10 @@ export type GQLOssCommentsArgs = {
 }
 
 export type GQLOssIcymiTopicsArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLOssMomentsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -3732,7 +3752,7 @@ export type GQLSocialLoginInput = {
 
 export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
-  /** Whether this article is labeled as spam by human, null for not labeled yet.  */
+  /** Whether this work is labeled as spam by human, null for not labeled yet.  */
   isSpam?: Maybe<Scalars['Boolean']['output']>
   /** Spam confident score by machine, null for not checked yet.  */
   score?: Maybe<Scalars['Float']['output']>
@@ -4722,7 +4742,7 @@ export type GQLWithdrawLockedTokensResult = {
   transaction: GQLTransaction
 }
 
-export type GQLWriting = GQLArticle | GQLMoment
+export type GQLWriting = GQLArticle | GQLComment | GQLMoment
 
 export type GQLWritingChallenge = GQLCampaign &
   GQLChannel &
@@ -4941,7 +4961,7 @@ export type GQLResolversUnionTypes<_RefType extends Record<string, unknown>> =
     Invitee: GQLPerson | UserModel
     Response: ArticleModel | CommentModel
     TransactionTarget: ArticleModel | CircleModel | TransactionModel
-    Writing: ArticleModel | MomentModel
+    Writing: ArticleModel | CommentModel | MomentModel
   }>
 
 /** Mapping of interface types */
@@ -4995,6 +5015,9 @@ export type GQLResolversInterfaceTypes<
       })
     | (Omit<GQLMemberConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['MemberEdge']>>
+      })
+    | (Omit<GQLMomentConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['MomentEdge']>>
       })
     | (Omit<GQLNoticeConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['NoticeEdge']>>
@@ -5428,6 +5451,14 @@ export type GQLResolversTypes = ResolversObject<{
   MigrationInput: GQLMigrationInput
   MigrationType: GQLMigrationType
   Moment: ResolverTypeWrapper<MomentModel>
+  MomentConnection: ResolverTypeWrapper<
+    Omit<GQLMomentConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['MomentEdge']>>
+    }
+  >
+  MomentEdge: ResolverTypeWrapper<
+    Omit<GQLMomentEdge, 'node'> & { node: GQLResolversTypes['Moment'] }
+  >
   MomentInput: GQLMomentInput
   MomentNotice: ResolverTypeWrapper<NoticeItemModel>
   MomentNoticeType: GQLMomentNoticeType
@@ -5470,6 +5501,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'badgedUsers'
       | 'comments'
       | 'icymiTopics'
+      | 'moments'
       | 'oauthClients'
       | 'reports'
       | 'restrictedUsers'
@@ -5482,6 +5514,7 @@ export type GQLResolversTypes = ResolversObject<{
       badgedUsers: GQLResolversTypes['UserConnection']
       comments: GQLResolversTypes['CommentConnection']
       icymiTopics: GQLResolversTypes['IcymiTopicConnection']
+      moments: GQLResolversTypes['MomentConnection']
       oauthClients: GQLResolversTypes['OAuthClientConnection']
       reports: GQLResolversTypes['ReportConnection']
       restrictedUsers: GQLResolversTypes['UserConnection']
@@ -6098,6 +6131,12 @@ export type GQLResolversParentTypes = ResolversObject<{
   MergeTagsInput: GQLMergeTagsInput
   MigrationInput: GQLMigrationInput
   Moment: MomentModel
+  MomentConnection: Omit<GQLMomentConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['MomentEdge']>>
+  }
+  MomentEdge: Omit<GQLMomentEdge, 'node'> & {
+    node: GQLResolversParentTypes['Moment']
+  }
   MomentInput: GQLMomentInput
   MomentNotice: NoticeItemModel
   MonthlyDatum: GQLMonthlyDatum
@@ -6128,6 +6167,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'badgedUsers'
     | 'comments'
     | 'icymiTopics'
+    | 'moments'
     | 'oauthClients'
     | 'reports'
     | 'restrictedUsers'
@@ -6140,6 +6180,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     badgedUsers: GQLResolversParentTypes['UserConnection']
     comments: GQLResolversParentTypes['CommentConnection']
     icymiTopics: GQLResolversParentTypes['IcymiTopicConnection']
+    moments: GQLResolversParentTypes['MomentConnection']
     oauthClients: GQLResolversParentTypes['OAuthClientConnection']
     reports: GQLResolversParentTypes['ReportConnection']
     restrictedUsers: GQLResolversParentTypes['UserConnection']
@@ -7823,6 +7864,11 @@ export type GQLCommentResolvers<
     ParentType,
     ContextType
   >
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<GQLResolversTypes['CommentState'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['CommentType'], ParentType, ContextType>
   upvotes?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
@@ -7923,6 +7969,7 @@ export type GQLConnectionResolvers<
     | 'IcymiTopicConnection'
     | 'InvitationConnection'
     | 'MemberConnection'
+    | 'MomentConnection'
     | 'NoticeConnection'
     | 'OAuthClientConnection'
     | 'ReadHistoryConnection'
@@ -8480,12 +8527,40 @@ export type GQLMomentResolvers<
   likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   state?: Resolver<GQLResolversTypes['MomentState'], ParentType, ContextType>
   tags?: Resolver<
     Array<Maybe<GQLResolversTypes['Tag']>>,
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLMomentConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['MomentConnection'] = GQLResolversParentTypes['MomentConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['MomentEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLMomentEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['MomentEdge'] = GQLResolversParentTypes['MomentEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Moment'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8971,7 +9046,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationSetPasswordArgs, 'input'>
   >
   setSpamStatus?: Resolver<
-    GQLResolversTypes['Article'],
+    GQLResolversTypes['Writing'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetSpamStatusArgs, 'input'>
@@ -9486,6 +9561,12 @@ export type GQLOssResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLOssIcymiTopicsArgs, 'input'>
+  >
+  moments?: Resolver<
+    GQLResolversTypes['MomentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssMomentsArgs, 'input'>
   >
   oauthClients?: Resolver<
     GQLResolversTypes['OAuthClientConnection'],
@@ -11001,7 +11082,11 @@ export type GQLWritingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Writing'] = GQLResolversParentTypes['Writing']
 > = ResolversObject<{
-  __resolveType: TypeResolveFn<'Article' | 'Moment', ParentType, ContextType>
+  __resolveType: TypeResolveFn<
+    'Article' | 'Comment' | 'Moment',
+    ParentType,
+    ContextType
+  >
 }>
 
 export type GQLWritingChallengeResolvers<
@@ -11211,6 +11296,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   MemberConnection?: GQLMemberConnectionResolvers<ContextType>
   MemberEdge?: GQLMemberEdgeResolvers<ContextType>
   Moment?: GQLMomentResolvers<ContextType>
+  MomentConnection?: GQLMomentConnectionResolvers<ContextType>
+  MomentEdge?: GQLMomentEdgeResolvers<ContextType>
   MomentNotice?: GQLMomentNoticeResolvers<ContextType>
   MonthlyDatum?: GQLMonthlyDatumResolvers<ContextType>
   Mutation?: GQLMutationResolvers<ContextType>

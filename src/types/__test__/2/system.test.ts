@@ -1139,7 +1139,6 @@ describe('setSpamStatus', () => {
   const SET_SPAM_STATUS = /* GraphQL */ `
     mutation ($input: SetSpamStatusInput!) {
       setSpamStatus(input: $input) {
-        id
         ... on Article {
           oss {
             spamStatus {
@@ -1147,10 +1146,20 @@ describe('setSpamStatus', () => {
             }
           }
         }
+        ... on Comment {
+          spamStatus {
+            isSpam
+          }
+        }
+        ... on Moment {
+          spamStatus {
+            isSpam
+          }
+        }
       }
     }
   `
-  test('set spam status successfully', async () => {
+  test('set spam status on article successfully', async () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
@@ -1167,6 +1176,49 @@ describe('setSpamStatus', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
+  })
+
+  test('set spam status on comment successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.spamStatus.isSpam).toBe(true)
+  })
+
+  test('set spam status on moment successfully', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
+      { content: 'test' },
+      { id: '4', state: USER_STATE.active, userName: 'test' }
+    )
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Moment, id: moment.id }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.spamStatus.isSpam).toBe(true)
   })
 })
 
@@ -1202,5 +1254,77 @@ describe('setAdStatus', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.setAdStatus.oss.adStatus.isAd).toBe(true)
+  })
+})
+
+describe('query OSS moments', () => {
+  const QUERY_MOMENTS = `
+    query($input: ConnectionArgs!) {
+      oss {
+        moments(input: $input) {
+          totalCount
+          edges {
+            node {
+              id
+              shortHash
+              content
+              author {
+                id
+                userName
+              }
+              state
+              createdAt
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('query moments successfully', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    // Create a test moment
+    const momentService = new MomentService(connections)
+    const testUser = {
+      id: '1',
+      state: USER_STATE.active,
+      userName: 'testuser',
+    }
+    await momentService.create({ content: 'Test moment content' }, testUser)
+
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_MOMENTS,
+      variables: { input: { first: 10 } },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(_get(data, 'oss.moments.totalCount')).toBeGreaterThan(0)
+    expect(_get(data, 'oss.moments.edges')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.id')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.shortHash')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.content')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.author')).toBeDefined()
+    expect(_get(data, 'oss.moments.edges[0].node.state')).toBe('active')
+    expect(_get(data, 'oss.moments.edges[0].node.createdAt')).toBeDefined()
+  })
+
+  test('non-admin user cannot query moments', async () => {
+    const serverUser = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+
+    const { errors } = await serverUser.executeOperation({
+      query: QUERY_MOMENTS,
+      variables: { input: { first: 10 } },
+    })
+
+    expect(errors).toBeDefined()
   })
 })

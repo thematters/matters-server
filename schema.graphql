@@ -151,7 +151,7 @@ type Mutation {
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
   putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
-  setSpamStatus(input: SetSpamStatusInput!): Article!
+  setSpamStatus(input: SetSpamStatusInput!): Writing!
   setAdStatus(input: SetAdStatusInput!): Article!
   reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback!
 
@@ -636,7 +636,7 @@ type SpamStatus {
   score: Float
 
   """
-  Whether this article is labeled as spam by human, null for not labeled yet. 
+  Whether this work is labeled as spam by human, null for not labeled yet. 
   """
   isSpam: Boolean
 }
@@ -1627,6 +1627,7 @@ type Comment implements Node {
 
   """A Comment that this comment replied to."""
   replyTo: Comment
+  spamStatus: SpamStatus!
   remark: String
 
   """Current comment belongs to which Node."""
@@ -2241,6 +2242,7 @@ type TranslatedAnnouncement {
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
   comments(input: ConnectionArgs!): CommentConnection!
+  moments(input: ConnectionArgs!): MomentConnection!
   articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
@@ -3593,7 +3595,7 @@ input WritingInput {
   first: Int
 }
 
-union Writing = Article | Moment
+union Writing = Article | Moment | Comment
 
 type WritingConnection implements Connection {
   totalCount: Int!
@@ -4080,12 +4082,24 @@ type Moment implements Node {
 
   """whether current user has liked it"""
   liked: Boolean!
+  spamStatus: SpamStatus!
   createdAt: DateTime!
 }
 
 enum MomentState {
   active
   archived
+}
+
+type MomentConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MomentEdge!]
+}
+
+type MomentEdge {
+  cursor: String!
+  node: Moment!
 }
 
 interface Channel {

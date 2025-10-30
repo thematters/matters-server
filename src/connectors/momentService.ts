@@ -10,6 +10,7 @@ import {
   ARTICLE_STATE,
   NODE_TYPES,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ForbiddenError,
   ForbiddenByStateError,
@@ -21,6 +22,7 @@ import { createRequire } from 'node:module'
 
 import { AtomService } from './atomService.js'
 import { NotificationService } from './notification/notificationService.js'
+import { SpamDetector } from './spamDetector.js'
 import { UserService } from './userService.js'
 
 const require = createRequire(import.meta.url)
@@ -36,6 +38,10 @@ export class MomentService {
   public constructor(connections: Connections) {
     this.connections = connections
     this.models = new AtomService(connections)
+  }
+
+  public findMoments = () => {
+    return this.connections.knexRO('Moment').select('*')
   }
 
   public create = async (
@@ -273,5 +279,27 @@ export class MomentService {
     if (!record) return []
     const tag = await this.models.tagIdLoader.load(record.tagId)
     return tag ? [tag] : []
+  }
+
+  public detectSpam = async ({
+    id,
+    content,
+  }: {
+    id: string
+    content: string
+  }) => {
+    const detector = new SpamDetector(
+      environment.shortContentSpamDetectionApiUrl
+    )
+    const score = await detector.detect(content)
+
+    if (score) {
+      await this.models.update({
+        table: 'moment',
+        where: { id },
+        data: { spamScore: score },
+      })
+    }
+    return score
   }
 }

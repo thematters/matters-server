@@ -55,12 +55,25 @@ export default /* GraphQL */ `
     """whether current user has liked it"""
     liked: Boolean! @privateCache
 
+    spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+
     createdAt: DateTime!
   }
 
   enum MomentState {
     active
     archived
+  }
+
+  type MomentConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [MomentEdge!]
+  }
+
+  type MomentEdge {
+    cursor: String!
+    node: Moment! @logCache(type: "${NODE_TYPES.Moment}")
   }
 
 `

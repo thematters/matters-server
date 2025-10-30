@@ -375,7 +375,7 @@ export default /* GraphQL */ `
     "Spam confident score by machine, null for not checked yet. "
     score: Float
 
-    "Whether this article is labeled as spam by human, null for not labeled yet. "
+    "Whether this work is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
   }
 

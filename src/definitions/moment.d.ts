@@ -7,6 +7,8 @@ export interface Moment {
   content: string
   authorId: string
   state: ValueOf<typeof MOMENT_STATE>
+  spamScore: number | null
+  isSpam: boolean | null
   createdAt: Date
   updatedAt: Date
 }
