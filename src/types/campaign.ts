@@ -48,6 +48,7 @@ export default /* GraphQL */ `
     organizers: [ID!]
     managers: [ID!]
     showOther: Boolean
+    showAd: Boolean
   }
 
   input ApplyCampaignInput {
@@ -137,6 +138,7 @@ export default /* GraphQL */ `
 
     isManager: Boolean! @privateCache
     showOther: Boolean!
+    showAd: Boolean!
 
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }

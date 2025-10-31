@@ -3234,6 +3234,7 @@ export type GQLPutWritingChallengeInput = {
   navbarTitle?: InputMaybe<Array<GQLTranslationInput>>
   newStages?: InputMaybe<Array<GQLCampaignStageInput>>
   organizers?: InputMaybe<Array<Scalars['ID']['input']>>
+  showAd?: InputMaybe<Scalars['Boolean']['input']>
   showOther?: InputMaybe<Scalars['Boolean']['input']>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
@@ -4529,8 +4530,8 @@ export type GQLUserFeatureFlag = {
 
 export type GQLUserFeatureFlagType =
   | 'bypassSpamDetection'
-  | 'unlimitedArticleFetch'
   | 'readSpamStatus'
+  | 'unlimitedArticleFetch'
 
 export type GQLUserGroup = 'a' | 'b'
 
@@ -4765,6 +4766,7 @@ export type GQLWritingChallenge = GQLCampaign &
     oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
     shortHash: Scalars['String']['output']
+    showAd: Scalars['Boolean']['output']
     showOther: Scalars['Boolean']['output']
     stages: Array<GQLCampaignStage>
     state: GQLCampaignState
@@ -11160,6 +11162,7 @@ export type GQLWritingChallengeResolvers<
     RequireFields<GQLWritingChallengeParticipantsArgs, 'input'>
   >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  showAd?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   showOther?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   stages?: Resolver<
     Array<GQLResolversTypes['CampaignStage']>,

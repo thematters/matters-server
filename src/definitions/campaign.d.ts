@@ -24,6 +24,7 @@ export interface Campaign {
   createdAt: Date
   updatedAt: Date
   showOther: boolean
+  showAd: boolean
 }
 
 export interface CampaignStage {
