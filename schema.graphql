@@ -945,6 +945,7 @@ input PutWritingChallengeInput {
   organizers: [ID!]
   managers: [ID!]
   showOther: Boolean
+  showAd: Boolean
 }
 
 input ApplyCampaignInput {
@@ -1026,6 +1027,7 @@ type WritingChallenge implements Node & Campaign & Channel {
   organizers: [User!]!
   isManager: Boolean!
   showOther: Boolean!
+  showAd: Boolean!
   oss: CampaignOSS!
 }
 

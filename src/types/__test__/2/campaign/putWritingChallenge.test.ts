@@ -69,6 +69,7 @@ describe('create or update writing challenges', () => {
         state
         channelEnabled
         showOther
+        showAd
         organizers {
           id
           userName
@@ -269,6 +270,7 @@ describe('create or update writing challenges', () => {
     )
     expect(data.putWritingChallenge.channelEnabled).toBe(false)
     expect(data.putWritingChallenge.showOther).toBe(true)
+    expect(data.putWritingChallenge.showAd).toBe(true)
     expect(data.putWritingChallenge.oss.exclusive).toBe(true)
 
     // create with only name
@@ -882,6 +884,33 @@ describe('create or update writing challenges', () => {
     })
     expect(errors).toBeUndefined()
     expect(updateData.putWritingChallenge.showOther).toBe(false)
+  })
+
+  test('update showAd', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: { name },
+      },
+    })
+    expect(data.putWritingChallenge.showAd).toBe(true)
+
+    const { data: updateData, errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: data.putWritingChallenge.id,
+          showAd: false,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(updateData.putWritingChallenge.showAd).toBe(false)
   })
 
   test('organizer users management', async () => {
