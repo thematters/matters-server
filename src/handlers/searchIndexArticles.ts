@@ -11,6 +11,7 @@ export const handler = async (event: SQSEvent) => {
     const articleIds = event.Records.map(
       ({ body }) => JSON.parse(body).articleId
     )
+    console.log(`Indexing ${articleIds}`)
     await searchService.indexArticles(articleIds)
   } catch (err) {
     console.error(err)
