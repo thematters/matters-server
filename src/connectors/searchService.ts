@@ -827,6 +827,12 @@ export class SearchService {
       })
     )
 
+    // Skip insert if no rows to insert
+    if (rows.length === 0) {
+      logger.warning('Fail to fetch articles for %j', articleIds)
+      return
+    }
+
     // Upsert into search index
     await this.knexSearch('search_index.article')
       .insert(rows)
