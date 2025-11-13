@@ -41,6 +41,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       organizers: organizerGlobalIds,
       managers: managerGlobalIds,
       showOther,
+      showAd,
     },
   },
   {
@@ -153,6 +154,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         : '',
       exclusive,
       showOther,
+      showAd,
     })
 
     // invalidate campaign list cache
@@ -207,6 +209,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       managerIds,
       exclusive,
       showOther,
+      showAd,
     }
 
     campaign = await atomService.update({
