@@ -6570,6 +6570,7 @@ export type GQLPurgeCacheDirectiveResolver<
 > = DirectiveResolverFn<Result, Parent, ContextType, Args>
 
 export type GQLRateLimitDirectiveArgs = {
+  ip?: Maybe<Scalars['Boolean']['input']>
   limit: Scalars['Int']['input']
   period: Scalars['Int']['input']
 }
