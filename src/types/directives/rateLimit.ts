@@ -2,9 +2,12 @@ import type { Redis } from 'ioredis'
 
 import { CACHE_PREFIX } from '#common/enums/index.js'
 import { ActionLimitExceededError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import { genCacheKey } from '#connectors/index.js'
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
+
+const logger = getLogger('ratelimit')
 
 const checkOperationLimit = async ({
   user,
@@ -68,7 +71,7 @@ const checkOperationLimit = async ({
 
 export const rateLimitDirective = (directiveName = 'rateLimit') => ({
   typeDef: `"Rate limit within a given period of time, in seconds"
-directive @${directiveName}(period: Int!, limit: Int!) on FIELD_DEFINITION`,
+directive @${directiveName}(period: Int!, limit: Int!, ip: Boolean) on FIELD_DEFINITION`,
 
   transformer: (schema: GraphQLSchema) => {
     return mapSchema(schema, {
@@ -77,12 +80,20 @@ directive @${directiveName}(period: Int!, limit: Int!) on FIELD_DEFINITION`,
 
         if (directive) {
           const { resolve = defaultFieldResolver } = fieldConfig
-          const { limit, period } = directive
+          const { limit, period, ip } = directive
           fieldConfig.resolve = async (source, args, context, info) => {
             const { viewer } = context
 
+            if (viewer.hasRole('admin')) {
+              return await resolve(source, args, context, info)
+            }
+
+            const user = ip ? viewer.ip : viewer.id || viewer.ip
+
+            logger.debug(user)
+
             const pass = await checkOperationLimit({
-              user: viewer.id || viewer.ip,
+              user,
               operation: fieldName,
               limit,
               period,
