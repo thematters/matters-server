@@ -4,9 +4,8 @@ import {
   NODE_TYPES,
   SCOPE_GROUP,
 } from '#common/enums/index.js'
-import { isProd } from '#common/environment.js'
 
-const PUBLISH_ARTICLE_RATE_LIMIT = isProd ? 2 : 100
+const PUBLISH_ARTICLE_RATE_LIMIT = 2
 
 export default /* GraphQL */ `
   extend type Query {
