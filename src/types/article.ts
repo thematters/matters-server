@@ -6,7 +6,7 @@ import {
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
 
-const PUBLISH_ARTICLE_RATE_LIMIT = isTest ? 100 : 2
+const PUBLISH_ARTICLE_RATE_LIMIT = isTest ? 20 : 2
 
 export default /* GraphQL */ `
   extend type Query {
