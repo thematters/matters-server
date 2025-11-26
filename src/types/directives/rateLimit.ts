@@ -84,6 +84,8 @@ directive @${directiveName}(period: Int!, limit: Int!, ip: Boolean) on FIELD_DEF
           fieldConfig.resolve = async (source, args, context, info) => {
             const { viewer } = context
 
+            logger.debug(viewer)
+
             const user = ip ? viewer.ip : viewer.id || viewer.ip
 
             logger.debug(user)
