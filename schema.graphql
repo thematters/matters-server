@@ -3,7 +3,7 @@ directive @constraint(minLength: Int, maxLength: Int, startsWith: String, endsWi
 directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
 """Rate limit within a given period of time, in seconds"""
-directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
+directive @rateLimit(period: Int!, limit: Int!, ip: Boolean) on FIELD_DEFINITION
 
 directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 

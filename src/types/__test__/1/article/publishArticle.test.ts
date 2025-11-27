@@ -578,4 +578,78 @@ describe('publishArticle', () => {
       expect(data.publishArticle.publishState).toBe(PUBLISH_STATE.published)
     })
   })
+
+  describe('rate limit', () => {
+    test('admin users can bypass rate limit', async () => {
+      const adminServer = await testClient({
+        isAuth: true,
+        isAdmin: true,
+        connections,
+      })
+
+      // Create multiple drafts
+      const drafts = []
+      for (let i = 0; i < 25; i++) {
+        const draft = {
+          title: `Admin Test Draft ${i}`,
+          content: `Admin test content ${i}`,
+        }
+        const { id } = await putDraft({ draft }, connections)
+        drafts.push(id)
+      }
+
+      // Try to publish all drafts as admin (exceeding the rate limit of 20)
+      const results = []
+      for (const id of drafts) {
+        const { data, errors } = await adminServer.executeOperation({
+          query: PUBLISH_ARTICLE,
+          variables: { input: { id } },
+        })
+        results.push({ data, errors })
+      }
+
+      // Admin should be able to publish all without rate limit errors
+      const rateLimitErrors = results.filter(
+        (r) =>
+          r.errors && r.errors[0]?.extensions?.code === 'ACTION_LIMIT_EXCEEDED'
+      )
+      expect(rateLimitErrors.length).toBe(0)
+    })
+
+    test('non-admin users are rate limited', async () => {
+      const regularServer = await testClient({
+        isAuth: true,
+        isAdmin: false,
+        connections,
+      })
+
+      // Create multiple drafts
+      const drafts = []
+      for (let i = 0; i < 25; i++) {
+        const draft = {
+          title: `Regular User Test Draft ${i}`,
+          content: `Regular user test content ${i}`,
+        }
+        const { id } = await putDraft({ draft }, connections)
+        drafts.push(id)
+      }
+
+      // Try to publish all drafts as regular user (exceeding the rate limit of 20)
+      const results = []
+      for (const id of drafts) {
+        const { data, errors } = await regularServer.executeOperation({
+          query: PUBLISH_ARTICLE,
+          variables: { input: { id } },
+        })
+        results.push({ data, errors })
+      }
+
+      // Regular user should hit rate limit after 20 publishes
+      const rateLimitErrors = results.filter(
+        (r) =>
+          r.errors && r.errors[0]?.extensions?.code === 'ACTION_LIMIT_EXCEEDED'
+      )
+      expect(rateLimitErrors.length).toBeGreaterThan(0)
+    })
+  })
 })
