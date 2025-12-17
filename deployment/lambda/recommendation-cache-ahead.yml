@@ -118,7 +118,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "1"
+                "channelId": "3"
               }
             }
   CronEvent1Permission:
@@ -139,7 +139,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "2"
+                "channelId": "9"
               }
             }
   CronEvent2Permission:
@@ -160,7 +160,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "3"
+                "channelId": "10"
               }
             }
   CronEvent3Permission:
@@ -181,7 +181,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "4"
+                "channelId": "11"
               }
             }
   CronEvent4Permission:
@@ -202,7 +202,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "5"
+                "channelId": "13"
               }
             }
   CronEvent5Permission:
@@ -223,7 +223,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "6"
+                "channelId": "14"
               }
             }
   CronEvent6Permission:
@@ -244,7 +244,7 @@ Resources:
           Input: |
             {
               "data": {
-                "channelId": "7"
+                "channelId": "15"
               }
             }
   CronEvent7Permission:
@@ -254,87 +254,3 @@ Resources:
       FunctionName: !Ref Lambda
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CronEvent7.Arn
-
-  CronEvent8:
-    Type: "AWS::Events::Rule"
-    Properties:
-      ScheduleExpression: "cron(16 * * * ? *)"
-      Targets:
-        - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent8LambdaTarget
-          Input: |
-            {
-              "data": {
-                "channelId": "8"
-              }
-            }
-  CronEvent8Permission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref Lambda
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt CronEvent8.Arn
-
-  CronEvent9:
-    Type: "AWS::Events::Rule"
-    Properties:
-      ScheduleExpression: "cron(18 * * * ? *)"
-      Targets:
-        - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent9LambdaTarget
-          Input: |
-            {
-              "data": {
-                "channelId": "9"
-              }
-            }
-  CronEvent9Permission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref Lambda
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt CronEvent9.Arn
-
-  CronEvent10:
-    Type: "AWS::Events::Rule"
-    Properties:
-      ScheduleExpression: "cron(20 * * * ? *)"
-      Targets:
-        - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent10LambdaTarget
-          Input: |
-            {
-              "data": {
-                "channelId": "10"
-              }
-            }
-  CronEvent10Permission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref Lambda
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt CronEvent10.Arn
-
-  CronEvent11:
-    Type: "AWS::Events::Rule"
-    Properties:
-      ScheduleExpression: "cron(22 * * * ? *)"
-      Targets:
-        - Arn: !GetAtt Lambda.Arn
-          Id: CronEvent11LambdaTarget
-          Input: |
-            {
-              "data": {
-                "channelId": "11"
-              }
-            }
-  CronEvent11Permission:
-    Type: "AWS::Lambda::Permission"
-    Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref Lambda
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt CronEvent11.Arn
