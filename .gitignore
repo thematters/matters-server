@@ -21,5 +21,6 @@ coverage/
 !.elasticbeanstalk/*.global.yml
 .env*
 Dockerrun.aws.json
+.tool-versions
 
 TODO
