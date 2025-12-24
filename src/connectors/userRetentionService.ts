@@ -645,14 +645,14 @@ export class UserRetentionService {
 
   private getTemplateId = (language: LANGUAGES): string => {
     const templateIdsDev = {
-      zh_hant: 'd-550c209eef09442d8430fed10379593a',
-      zh_hans: 'd-22b0f1c254d74cadaf6b2d246e0b4c14',
-      en: 'd-550c209eef09442d8430fed10379593a',
+      zh_hant: 'd-2eee98d3d8784567bd75e8a5dfd98ea2',
+      zh_hans: 'd-3ffc4145b5784177a91a2a30ebad8a78',
+      en: 'd-2eee98d3d8784567bd75e8a5dfd98ea2',
     }
     const templateIdsProd = {
-      zh_hant: 'd-bc5695dcae564795ac76bc6a783a5ef7',
-      zh_hans: 'd-7497ca1cfaa745a8bff4b3d20e92480a',
-      en: 'd-bc5695dcae564795ac76bc6a783a5ef7',
+      zh_hant: 'd-8152febbdbd843759cd29145dd80e523',
+      zh_hans: 'd-439649cf75714fbf8003914eef1af4c4',
+      en: 'd-8152febbdbd843759cd29145dd80e523',
     }
     const templateIds = isProd ? templateIdsProd : templateIdsDev
     return templateIds[language]

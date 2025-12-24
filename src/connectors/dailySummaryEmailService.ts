@@ -405,14 +405,14 @@ export class DailySummaryEmailService {
    */
   private getDailySummaryTemplateId = (language: LANGUAGES): string => {
     const templateIdsDev = {
-      zh_hant: 'd-805ccf4182244f59a5388b581df1eeab',
-      zh_hans: 'd-e242f3e39f014279966e43425b208cbe',
-      en: 'd-805ccf4182244f59a5388b581df1eeab',
+      zh_hant: 'd-ed73bc5a51ef491c9ce5bb0bea1b59d7',
+      zh_hans: 'd-826d96247fb84b348687d6959e26a9e8',
+      en: 'd-ed73bc5a51ef491c9ce5bb0bea1b59d7',
     }
     const templateIdsProd = {
-      zh_hant: 'd-4a5a938cdc0c4020a1e2feb67a553946',
-      zh_hans: 'd-7f4276f1b32f48a4a51df90cbbb1447a',
-      en: 'd-4a5a938cdc0c4020a1e2feb67a553946',
+      zh_hant: 'd-582228566ac34cd4a97d193d6ca8fbf6',
+      zh_hans: 'd-6f7dc3a0f5f346a998e66f506be12a3c',
+      en: 'd-582228566ac34cd4a97d193d6ca8fbf6',
     }
     const templateIds = isProd ? templateIdsProd : templateIdsDev
     return templateIds[language]
