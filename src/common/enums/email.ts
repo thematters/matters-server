@@ -5,14 +5,20 @@ export const CHANGE_EMAIL_COUNTER_KEY_PREFIX = 'change-email-counter'
 
 const DEV_EMAIL_TEMPLATE_ID = {
   verificationCode: {
-    zh_hant: 'd-250ba94c759948cbb2bd9f94089d13b8',
-    zh_hans: 'd-92b184faf2aa48fb8645600f2540cfb4',
-    en: 'd-250ba94c759948cbb2bd9f94089d13b8',
+    // zh_hant: 'd-250ba94c759948cbb2bd9f94089d13b8',
+    // zh_hans: 'd-92b184faf2aa48fb8645600f2540cfb4',
+    // en: 'd-250ba94c759948cbb2bd9f94089d13b8',
+    zh_hant: 'd-1ff6f3a732fb4d5c8dd80b6e1a04254d',
+    zh_hans: 'd-c0fc5c93eab54bf787589e92a669e99c',
+    en: 'd-1ff6f3a732fb4d5c8dd80b6e1a04254d',
   },
   registerSuccess: {
-    zh_hant: 'd-06a6075fefe54a0f96157f69a726e46e',
-    zh_hans: 'd-0be942cd60ff4082b35ab836b60a728f',
-    en: 'd-06a6075fefe54a0f96157f69a726e46e',
+    // zh_hant: 'd-06a6075fefe54a0f96157f69a726e46e',
+    // zh_hans: 'd-0be942cd60ff4082b35ab836b60a728f',
+    // en: 'd-06a6075fefe54a0f96157f69a726e46e',
+    zh_hant: 'd-3dcf611ba3c54b9a93e55d058b0466f4',
+    zh_hans: 'd-a6fd21a85d06442d8f91f2533cb84b35',
+    en: 'd-3dcf611ba3c54b9a93e55d058b0466f4',
   },
   userDeleted: {
     zh_hant: 'd-b370a6eddc394814959b49db1ba4cfec',
@@ -25,9 +31,12 @@ const DEV_EMAIL_TEMPLATE_ID = {
     en: 'd-a86e6f1c1fc24379b4b21244f111161b',
   },
   payment: {
-    zh_hant: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
-    zh_hans: 'd-9fea53d8838e44c4be4b93d26b8f2e9a',
-    en: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
+    // zh_hant: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
+    // zh_hans: 'd-9fea53d8838e44c4be4b93d26b8f2e9a',
+    // en: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
+    zh_hant: 'd-d33821dd294d4c168581d0614002fe12',
+    zh_hans: 'd-62f1d9378c7c4b95bdcdfe2d00849770',
+    en: 'd-d33821dd294d4c168581d0614002fe12',
   },
   adoptTag: {
     zh_hant: 'd-88b64da37a3240a2b240b5fbdf944661',
@@ -53,14 +62,20 @@ const DEV_EMAIL_TEMPLATE_ID = {
 
 const PROD_EMAIL_TEMPLATE_ID = {
   verificationCode: {
-    zh_hant: 'd-df196f90da7743f6900906fc18487953',
-    zh_hans: 'd-f9373c61bdac43e1a24f221ceba4c61c',
-    en: 'd-df196f90da7743f6900906fc18487953',
+    // zh_hant: 'd-df196f90da7743f6900906fc18487953',
+    // zh_hans: 'd-f9373c61bdac43e1a24f221ceba4c61c',
+    // en: 'd-df196f90da7743f6900906fc18487953',
+    zh_hant: 'd-1ff6f3a732fb4d5c8dd80b6e1a04254d',
+    zh_hans: 'd-c0fc5c93eab54bf787589e92a669e99c',
+    en: 'd-1ff6f3a732fb4d5c8dd80b6e1a04254d',
   },
   registerSuccess: {
-    zh_hant: 'd-765b335a77d244438891a62f023b8c2e',
-    zh_hans: 'd-30589f459aac4df1ab66e0f8af79fc4d',
-    en: 'd-765b335a77d244438891a62f023b8c2e',
+    // zh_hant: 'd-765b335a77d244438891a62f023b8c2e',
+    // zh_hans: 'd-30589f459aac4df1ab66e0f8af79fc4d',
+    // en: 'd-765b335a77d244438891a62f023b8c2e',
+    zh_hant: 'd-3dcf611ba3c54b9a93e55d058b0466f4',
+    zh_hans: 'd-a6fd21a85d06442d8f91f2533cb84b35',
+    en: 'd-3dcf611ba3c54b9a93e55d058b0466f4',
   },
   userDeleted: {
     zh_hant: 'd-231ada8640374adb9d79a0130480c801',
@@ -73,9 +88,12 @@ const PROD_EMAIL_TEMPLATE_ID = {
     en: 'd-47b788ce3754426fb2a6d3c80b9872eb',
   },
   payment: {
-    zh_hant: 'd-96ab5281c6bd419ebec20e8dbcbed427',
-    zh_hans: 'd-b00c4b181721405ebcb9170b1f890075',
-    en: 'd-96ab5281c6bd419ebec20e8dbcbed427',
+    // zh_hant: 'd-96ab5281c6bd419ebec20e8dbcbed427',
+    // zh_hans: 'd-b00c4b181721405ebcb9170b1f890075',
+    // en: 'd-96ab5281c6bd419ebec20e8dbcbed427',
+    zh_hant: 'd-d33821dd294d4c168581d0614002fe12',
+    zh_hans: 'd-62f1d9378c7c4b95bdcdfe2d00849770',
+    en: 'd-d33821dd294d4c168581d0614002fe12',
   },
   adoptTag: {
     zh_hant: 'd-20e5e339130d49d79fce853577f689d3',
