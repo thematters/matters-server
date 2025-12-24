@@ -433,7 +433,8 @@ export class NotificationService {
     bundled: boolean
     notice: { id: string }
   }> => {
-    if (params.bundle?.disabled === true) {
+    // bundle is disabled by default
+    if ((params.bundle?.disabled ?? true) === true) {
       const notice = await this.create(params)
       return { created: true, bundled: false, notice }
     } else {
