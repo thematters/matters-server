@@ -24,6 +24,7 @@ import {
   EntityNotFoundError,
   ActionFailedError,
 } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
 import { quantile, median } from 'd3-array'
 import keyBy from 'lodash/keyBy.js'
@@ -34,6 +35,8 @@ import { ChannelService } from './channel/channelService.js'
 import { CommentService } from './commentService.js'
 import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'
+
+const logger = getLogger('service-recommendation')
 
 type HottestArticle = {
   articleId: string
@@ -768,6 +771,11 @@ export class RecommendationService {
   ): Promise<{
     query: Knex.QueryBuilder<any, Array<{ authorId: string }>>
   }> => {
+    logger.info(
+      channelId
+        ? `recommendAuthors for channel ${channelId}`
+        : `recommendAuthors sitewide`
+    )
     const decayDays = channelId
       ? RECOMMENDATION_DECAY_DAYS_CHANNEL_AUTHOR
       : RECOMMENDATION_DECAY_DAYS
@@ -846,6 +854,11 @@ export class RecommendationService {
   public recommendTags = async (
     channelId?: string
   ): Promise<{ query: Knex.QueryBuilder<any, Array<{ tagId: string }>> }> => {
+    logger.info(
+      channelId
+        ? `recommendTags for channel ${channelId}`
+        : `recommendTags sitewide`
+    )
     const decayDays = channelId
       ? RECOMMENDATION_DECAY_DAYS_CHANNEL_TAG
       : RECOMMENDATION_DECAY_DAYS
