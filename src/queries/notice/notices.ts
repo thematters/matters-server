@@ -9,6 +9,10 @@ const resolver: GQLUserResolvers['notices'] = async (
   { input },
   { dataSources: { notificationService } }
 ) => {
+  if (!id) {
+    return connectionFromArray([], input)
+  }
+
   const { take: _take, skip } = fromConnectionArgs(input)
   let take = _take
   if (_take + skip > MAX_NOTICE_COUNT) {
