@@ -245,7 +245,7 @@ Resources:
   CronEvent8:
     Type: "AWS::Events::Rule"
     Properties:
-      ScheduleExpression: "rate(3 hours)"
+      ScheduleExpression: "cron(30 19 * * ? *)"
       Targets:
         - Arn: !GetAtt Lambda.Arn
           Id: CronEvent8LambdaTarget
