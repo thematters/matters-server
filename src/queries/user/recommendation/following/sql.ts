@@ -401,7 +401,7 @@ export const makeUserSubscribeCircleActivityQuery = (
 /**
  * Retrieve article recommendations based on user's read articles tags.
  *
- * This query directly uses the following materialized views:
+ * This query directly uses the following materialized views (derive from db/migrations/20210809084245_alter_recommended_articles_from_read_tags.js):
  *
  * 1. `article_read_time_materialized`
  *    - Aggregates total read time per article from all users
@@ -431,6 +431,11 @@ export const makeUserSubscribeCircleActivityQuery = (
  *         (computed at query time)
  * (personalized article recommendations)
  * ```
+ *
+ * Performance optimization:
+ * - Filter article_tag by user's specific tags FIRST (using user_tags CTE)
+ * - This reduces dataset from ~1.7M rows to ~100k rows before window function
+ * - Window function (ROW_NUMBER) only computed for relevant tags
  */
 export const makeReadArticlesTagsActivityQuery = (
   {
@@ -440,9 +445,17 @@ export const makeReadArticlesTagsActivityQuery = (
   },
   knexRO: Knex
 ) => {
-  // below complex SQL derive from db/migrations/20210809084245_alter_recommended_articles_from_read_tags.js
   const TAG_ARTICLE_LIMIT = 20
+
+  // CTE: Get user's tags first - this is typically ~10 rows
+  const userTags = knexRO
+    .select('tag_id', 'tag_score')
+    .from('recently_read_tags_materialized')
+    .where('user_id', userId)
+
   // CTE: Get top articles per tag ranked by read time
+  // OPTIMIZATION: Filter by user's tags FIRST, then compute window function
+  // This avoids processing all 1.7M article_tag rows
   const tagArticleReadTime = knexRO
     .select('*')
     .from(
@@ -456,15 +469,23 @@ export const makeReadArticlesTagsActivityQuery = (
           )
         )
         .from('article_tag')
+        // OPTIMIZATION: Join with user_tags CTE to filter early
+        .join('user_tags', 'article_tag.tag_id', 'user_tags.tag_id')
         .join(
           'article_read_time_materialized as art',
           'article_tag.article_id',
           'art.article_id'
         )
-        .leftJoin('article', 'article.id', 'art.article_id')
-        .leftJoin('user', 'user.id', 'article.author_id')
-        .where('article.state', 'active')
-        .andWhere('user.state', 'active')
+        .join('article', function () {
+          this.on('article.id', '=', 'art.article_id').andOn(
+            knexRO.raw("article.state = 'active'")
+          )
+        })
+        .join('user', function () {
+          this.on('user.id', '=', 'article.author_id').andOn(
+            knexRO.raw('"user".state = \'active\'')
+          )
+        })
         .as('t')
     )
     .where('row_num', '<=', TAG_ARTICLE_LIMIT)
@@ -472,20 +493,19 @@ export const makeReadArticlesTagsActivityQuery = (
   // CTE: Compute recommended articles with scores
   const recommendedArticles = knexRO
     .select(
-      'rrt.user_id',
+      knexRO.raw('?::bigint AS user_id', [userId]),
       'tart.article_id',
       knexRO.raw(
-        'array_agg(tart.tag_id ORDER BY rrt.tag_score DESC) AS tags_based'
+        'array_agg(tart.tag_id ORDER BY user_tags.tag_score DESC) AS tags_based'
       ),
-      knexRO.raw('sum(rrt.tag_score * tart.sum_read_time) AS score')
+      knexRO.raw('sum(user_tags.tag_score * tart.sum_read_time) AS score')
     )
-    .from('recently_read_tags_materialized as rrt')
-    .leftJoin(tagArticleReadTime.as('tart'), 'rrt.tag_id', 'tart.tag_id')
-    .where('rrt.user_id', userId)
-    .whereNotNull('tart.article_id')
-    .groupBy('rrt.user_id', 'tart.article_id')
+    .from(tagArticleReadTime.as('tart'))
+    .join('user_tags', 'tart.tag_id', 'user_tags.tag_id')
+    .groupBy('tart.article_id')
 
   return withExcludedUsers({ userId }, knexRO)
+    .with('user_tags', userTags)
     .select()
     .from(
       knexRO
