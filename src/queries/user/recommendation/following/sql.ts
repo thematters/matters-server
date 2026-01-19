@@ -398,7 +398,42 @@ export const makeUserSubscribeCircleActivityQuery = (
     .orderBy('created_at', 'desc')
 }
 
-// retrieve recommendations based on user read articles tags
+/**
+ * Retrieve article recommendations based on user's read articles tags.
+ *
+ * This query depends on a chain of materialized views:
+ *
+ * 1. `article_read_time_materialized`
+ *    - Aggregates total read time per article from all users
+ *    - Used to rank articles within tags by popularity
+ *
+ * 2. `recently_read_tags_materialized`
+ *    - Calculates personalized tag scores for each user based on recent reading history
+ *    - Score = local_appearance / global_appearance (tags frequent in user's reads but rare globally score higher)
+ *    - Limited to top 10 tags per user, tags must have >= 5 global appearances
+ *
+ * 3. `recommended_articles_from_read_tags_materialized`
+ *    - Combines the above to generate article recommendations per user
+ *    - Finds articles sharing tags with user's read articles, ranked by (tag_score * sum_read_time)
+ *    - Excludes articles the user has already read and user's own articles
+ *
+ * Data flow:
+ * ```
+ * article_read_count (user reads article)
+ *         │
+ *         ├──────────────────────────┐
+ *         ▼                          ▼
+ * recently_read_tags_materialized    article_read_time_materialized
+ * (user's tag preferences)           (article popularity)
+ *         │                          │
+ *         └──────────┬───────────────┘
+ *                    ▼
+ * recommended_articles_from_read_tags_materialized
+ * (personalized article recommendations)
+ * ```
+ *
+ * This function additionally filters out articles from blocked users.
+ */
 export const makeReadArticlesTagsActivityQuery = (
   {
     userId,

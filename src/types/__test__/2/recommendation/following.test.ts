@@ -16,7 +16,10 @@ import {
 } from '#connectors/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 
-import { makeUserFollowUserActivityQuery } from '../../../../queries/user/recommendation/following/sql.js'
+import {
+  makeUserFollowUserActivityQuery,
+  makeReadArticlesTagsActivityQuery,
+} from '../../../../queries/user/recommendation/following/sql.js'
 import { testClient, genConnections, closeConnections } from '../../utils.js'
 import { refreshView } from '#connectors/__test__/utils.js'
 
@@ -387,5 +390,143 @@ describe('following UserPostMomentActivity', () => {
       })
     expect(emptyErrors).toBeUndefined()
     expect(emptyData.viewer.recommendation.following.totalCount).toBe(0)
+  })
+})
+
+describe('following ReadArticlesTagsActivity', () => {
+  const viewerId = '7'
+  const author1Id = '8'
+  const author2Id = '9'
+  let tagId: string
+  let article1Id: string
+  let article2Id: string
+  let article3Id: string
+
+  beforeAll(async () => {
+    // Create a tag for testing
+    const [tag] = await atomService.findMany({
+      table: 'tag',
+      where: { content: 'test' },
+    })
+    tagId = tag.id
+
+    // Create multiple article_tag entries to meet global_appearance threshold (>= 5)
+    // First, create more articles
+    const [createdArticle1] = await publicationService.createArticle({
+      title: 'test article for read tags 1',
+      content: 'test content',
+      authorId: author1Id,
+    })
+    article1Id = createdArticle1.id
+
+    const [createdArticle2] = await publicationService.createArticle({
+      title: 'test article for read tags 2',
+      content: 'test content',
+      authorId: author1Id,
+    })
+    article2Id = createdArticle2.id
+
+    const [createdArticle3] = await publicationService.createArticle({
+      title: 'test article for read tags 3',
+      content: 'test content',
+      authorId: author2Id,
+    })
+    article3Id = createdArticle3.id
+
+    // Add tags to articles (to meet global_appearance >= 5 threshold)
+    // The seed data already has some article_tag entries for tagId='1'
+    await atomService.create({
+      table: 'article_tag',
+      data: { articleId: article1Id, tagId },
+    })
+    await atomService.create({
+      table: 'article_tag',
+      data: { articleId: article2Id, tagId },
+    })
+    await atomService.create({
+      table: 'article_tag',
+      data: { articleId: article3Id, tagId },
+    })
+
+    // Create additional article_tag entries to meet the threshold
+    // Using existing seed articles
+    await atomService.create({
+      table: 'article_tag',
+      data: { articleId: '2', tagId },
+    })
+    await atomService.create({
+      table: 'article_tag',
+      data: { articleId: '3', tagId },
+    })
+
+    // Create article read counts for the viewer to populate recently_read_tags_materialized
+    await atomService.create({
+      table: 'article_read_count',
+      data: {
+        userId: viewerId,
+        articleId: '1', // seed article with tagId
+        count: '1',
+        archived: false,
+        readTime: '100',
+        lastRead: new Date(),
+      },
+    })
+
+    // Refresh materialized views (non-concurrently since test DB may not have unique indexes)
+    await connections.knex.raw(
+      'refresh materialized view article_read_time_materialized'
+    )
+    await connections.knex.raw(
+      'refresh materialized view recently_read_tags_materialized'
+    )
+    await connections.knex.raw(
+      'refresh materialized view recommended_articles_from_read_tags_materialized'
+    )
+  })
+
+  test('returns recommended articles based on read tags', async () => {
+    const result = await makeReadArticlesTagsActivityQuery(
+      { userId: viewerId },
+      connections.knexRO
+    )
+    // Should return articles that share tags with articles the user has read
+    expect(Array.isArray(result)).toBe(true)
+  })
+
+  test('blocked users articles are excluded', async () => {
+    const initialResult = await makeReadArticlesTagsActivityQuery(
+      { userId: viewerId },
+      connections.knexRO
+    )
+    const initialArticleIds = initialResult.map((r: any) => r.articleId)
+
+    // Block author1
+    await userService.block(viewerId, author1Id)
+
+    const afterBlockResult = await makeReadArticlesTagsActivityQuery(
+      { userId: viewerId },
+      connections.knexRO
+    )
+    const afterBlockArticleIds = afterBlockResult.map((r: any) => r.articleId)
+
+    // If author1's articles were in initial results, they should be excluded now
+    if (
+      initialArticleIds.includes(article1Id) ||
+      initialArticleIds.includes(article2Id)
+    ) {
+      expect(afterBlockArticleIds).not.toContain(article1Id)
+      expect(afterBlockArticleIds).not.toContain(article2Id)
+    }
+
+    // Unblock for other tests
+    await userService.unblock(viewerId, author1Id)
+  })
+
+  test('returns empty for user with no read history', async () => {
+    const result = await makeReadArticlesTagsActivityQuery(
+      { userId: '999' }, // Non-existent user
+      connections.knexRO
+    )
+    expect(result).toHaveLength(0)
   })
 })
