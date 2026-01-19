@@ -38,7 +38,7 @@ export const withExcludedUsers = (
       .from('action_user')
       .where({ userId, action: USER_ACTION.block })
       // viewer
-      .union(knexRO.raw(`select '${userId}' as user_id`))
+      .union(knexRO.raw('select ? as user_id', [userId]))
   })
 
 // retrieve base activities
@@ -401,7 +401,7 @@ export const makeUserSubscribeCircleActivityQuery = (
 /**
  * Retrieve article recommendations based on user's read articles tags.
  *
- * This query depends on a chain of materialized views:
+ * This query directly uses the following materialized views:
  *
  * 1. `article_read_time_materialized`
  *    - Aggregates total read time per article from all users
@@ -412,10 +412,10 @@ export const makeUserSubscribeCircleActivityQuery = (
  *    - Score = local_appearance / global_appearance (tags frequent in user's reads but rare globally score higher)
  *    - Limited to top 10 tags per user, tags must have >= 5 global appearances
  *
- * 3. `recommended_articles_from_read_tags_materialized`
- *    - Combines the above to generate article recommendations per user
- *    - Finds articles sharing tags with user's read articles, ranked by (tag_score * sum_read_time)
- *    - Excludes articles the user has already read and user's own articles
+ * The query combines these views to generate article recommendations:
+ * - Finds articles sharing tags with user's read articles, ranked by (tag_score * sum_read_time)
+ * - Excludes articles the user has already read and user's own articles
+ * - Additionally filters out articles from blocked users.
  *
  * Data flow:
  * ```
@@ -428,11 +428,9 @@ export const makeUserSubscribeCircleActivityQuery = (
  *         │                          │
  *         └──────────┬───────────────┘
  *                    ▼
- * recommended_articles_from_read_tags_materialized
+ *         (computed at query time)
  * (personalized article recommendations)
  * ```
- *
- * This function additionally filters out articles from blocked users.
  */
 export const makeReadArticlesTagsActivityQuery = (
   {
@@ -441,22 +439,93 @@ export const makeReadArticlesTagsActivityQuery = (
     userId: string
   },
   knexRO: Knex
-) =>
-  withExcludedUsers({ userId }, knexRO)
+) => {
+  // below complex SQL derive from db/migrations/20210809084245_alter_recommended_articles_from_read_tags.js
+  const TAG_ARTICLE_LIMIT = 20
+  // CTE: Get top articles per tag ranked by read time
+  const tagArticleReadTime = knexRO
+    .select('*')
+    .from(
+      knexRO
+        .select(
+          'article_tag.tag_id',
+          'art.article_id',
+          'art.sum_read_time',
+          knexRO.raw(
+            'ROW_NUMBER() OVER (PARTITION BY article_tag.tag_id ORDER BY art.sum_read_time DESC) AS row_num'
+          )
+        )
+        .from('article_tag')
+        .join(
+          'article_read_time_materialized as art',
+          'article_tag.article_id',
+          'art.article_id'
+        )
+        .leftJoin('article', 'article.id', 'art.article_id')
+        .leftJoin('user', 'user.id', 'article.author_id')
+        .where('article.state', 'active')
+        .andWhere('user.state', 'active')
+        .as('t')
+    )
+    .where('row_num', '<=', TAG_ARTICLE_LIMIT)
+
+  // CTE: Compute recommended articles with scores
+  const recommendedArticles = knexRO
+    .select(
+      'rrt.user_id',
+      'tart.article_id',
+      knexRO.raw(
+        'array_agg(tart.tag_id ORDER BY rrt.tag_score DESC) AS tags_based'
+      ),
+      knexRO.raw('sum(rrt.tag_score * tart.sum_read_time) AS score')
+    )
+    .from('recently_read_tags_materialized as rrt')
+    .leftJoin(tagArticleReadTime.as('tart'), 'rrt.tag_id', 'tart.tag_id')
+    .where('rrt.user_id', userId)
+    .whereNotNull('tart.article_id')
+    .groupBy('rrt.user_id', 'tart.article_id')
+
+  return withExcludedUsers({ userId }, knexRO)
     .select()
     .from(
       knexRO
         .as('selected_recommendations')
-        .select('recommended.*')
-        .from('recommended_articles_from_read_tags_materialized as recommended')
+        .select(
+          knexRO.raw(
+            'row_number() over (order by recommended.user_id, recommended.article_id) AS id'
+          ),
+          'recommended.user_id',
+          'recommended.article_id',
+          'recommended.tags_based',
+          'recommended.score'
+        )
+        .from(recommendedArticles.as('recommended'))
+        // Exclude articles user has already read
+        .leftJoin('article_read_count as arc', function () {
+          this.on('arc.article_id', '=', 'recommended.article_id').andOn(
+            'arc.user_id',
+            '=',
+            'recommended.user_id'
+          )
+        })
+        // Exclude user's own articles
+        .leftJoin('article as own_article', function () {
+          this.on('own_article.id', '=', 'recommended.article_id').andOn(
+            'own_article.author_id',
+            '=',
+            'recommended.user_id'
+          )
+        })
+        // Exclude blocked users' articles
         .leftJoin('article', 'recommended.article_id', 'article.id')
         .leftJoin(
           'excluded_users',
           'article.author_id',
           'excluded_users.user_id'
         )
-        .where({
-          'excluded_users.user_id': null,
-          'recommended.user_id': userId,
-        })
+        .whereNull('arc.article_id')
+        .whereNull('own_article.author_id')
+        .whereNull('excluded_users.user_id')
+        .orderBy('score', 'desc')
     )
+}
