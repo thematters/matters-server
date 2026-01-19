@@ -242,6 +242,27 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CronEvent7.Arn
 
+  CronEvent8:
+    Type: "AWS::Events::Rule"
+    Properties:
+      ScheduleExpression: "cron(30 19 * * ? *)"
+      Targets:
+        - Arn: !GetAtt Lambda.Arn
+          Id: CronEvent8LambdaTarget
+          Input: |
+            {
+              "data": {
+                "viewName": "recently_read_tags_materialized"
+              }
+            }
+  CronEvent8Permission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref Lambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CronEvent8.Arn
+
   CronEvent9:
     Type: "AWS::Events::Rule"
     Properties:
