@@ -460,6 +460,7 @@ describe('following ReadArticlesTagsActivity', () => {
     })
 
     // Create article read counts for the viewer to populate recently_read_tags_materialized
+    // The viewer reads article '1' which has the test tag
     await atomService.create({
       table: 'article_read_count',
       data: {
@@ -472,6 +473,43 @@ describe('following ReadArticlesTagsActivity', () => {
       },
     })
 
+    // Create read counts for OTHER users on the recommended articles
+    // This populates article_read_time_materialized with sum_read_time > 0
+    // so articles can be recommended
+    await atomService.create({
+      table: 'article_read_count',
+      data: {
+        userId: '1', // Different user
+        articleId: article1Id,
+        count: '1',
+        archived: false,
+        readTime: '500',
+        lastRead: new Date(),
+      },
+    })
+    await atomService.create({
+      table: 'article_read_count',
+      data: {
+        userId: '2', // Different user
+        articleId: article2Id,
+        count: '1',
+        archived: false,
+        readTime: '300',
+        lastRead: new Date(),
+      },
+    })
+    await atomService.create({
+      table: 'article_read_count',
+      data: {
+        userId: '3', // Different user
+        articleId: article3Id,
+        count: '1',
+        archived: false,
+        readTime: '200',
+        lastRead: new Date(),
+      },
+    })
+
     // Refresh materialized views (non-concurrently since test DB may not have unique indexes)
     await connections.knex.raw(
       'refresh materialized view article_read_time_materialized'
@@ -479,18 +517,38 @@ describe('following ReadArticlesTagsActivity', () => {
     await connections.knex.raw(
       'refresh materialized view recently_read_tags_materialized'
     )
-    await connections.knex.raw(
-      'refresh materialized view recommended_articles_from_read_tags_materialized'
-    )
   })
 
-  test('returns recommended articles based on read tags', async () => {
+  test('returns non-empty recommended articles based on read tags', async () => {
     const result = await makeReadArticlesTagsActivityQuery(
       { userId: viewerId },
       connections.knexRO
     )
     // Should return articles that share tags with articles the user has read
     expect(Array.isArray(result)).toBe(true)
+    expect(result.length).toBeGreaterThan(0)
+
+    // Verify result structure
+    const firstResult = result[0]
+    expect(firstResult).toHaveProperty('articleId')
+    expect(firstResult).toHaveProperty('score')
+    expect(firstResult).toHaveProperty('tagsBased')
+
+    // Verify articles are ordered by score (descending)
+    for (let i = 1; i < result.length; i++) {
+      expect(Number(result[i - 1].score)).toBeGreaterThanOrEqual(
+        Number(result[i].score)
+      )
+    }
+
+    // Verify the recommended articles include our test articles
+    const recommendedArticleIds = result.map((r: any) => r.articleId)
+    // At least one of our test articles should be in the results
+    const hasTestArticle =
+      recommendedArticleIds.includes(article1Id) ||
+      recommendedArticleIds.includes(article2Id) ||
+      recommendedArticleIds.includes(article3Id)
+    expect(hasTestArticle).toBe(true)
   })
 
   test('blocked users articles are excluded', async () => {
@@ -498,7 +556,14 @@ describe('following ReadArticlesTagsActivity', () => {
       { userId: viewerId },
       connections.knexRO
     )
+    expect(initialResult.length).toBeGreaterThan(0)
     const initialArticleIds = initialResult.map((r: any) => r.articleId)
+
+    // Verify author1's articles are in initial results
+    const hasAuthor1Articles =
+      initialArticleIds.includes(article1Id) ||
+      initialArticleIds.includes(article2Id)
+    expect(hasAuthor1Articles).toBe(true)
 
     // Block author1
     await userService.block(viewerId, author1Id)
@@ -509,14 +574,12 @@ describe('following ReadArticlesTagsActivity', () => {
     )
     const afterBlockArticleIds = afterBlockResult.map((r: any) => r.articleId)
 
-    // If author1's articles were in initial results, they should be excluded now
-    if (
-      initialArticleIds.includes(article1Id) ||
-      initialArticleIds.includes(article2Id)
-    ) {
-      expect(afterBlockArticleIds).not.toContain(article1Id)
-      expect(afterBlockArticleIds).not.toContain(article2Id)
-    }
+    // author1's articles should be excluded after blocking
+    expect(afterBlockArticleIds).not.toContain(article1Id)
+    expect(afterBlockArticleIds).not.toContain(article2Id)
+
+    // author2's article should still be included
+    expect(afterBlockArticleIds).toContain(article3Id)
 
     // Unblock for other tests
     await userService.unblock(viewerId, author1Id)
