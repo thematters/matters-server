@@ -252,7 +252,7 @@ Resources:
           Input: |
             {
               "data": {
-                "viewName": "recommended_articles_from_read_tags_materialized"
+                "viewName": "recently_read_tags_materialized"
               }
             }
   CronEvent8Permission:
