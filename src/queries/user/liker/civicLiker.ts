@@ -1,20 +1,7 @@
 import type { GQLLikerResolvers } from '#definitions/index.js'
 
-const resolver: GQLLikerResolvers['civicLiker'] = async (
-  { id },
-  _,
-  { dataSources: { userService, likecoin } }
-) => {
-  const liker = await userService.findLiker({ userId: id })
-
-  if (!liker) {
-    return false
-  }
-
-  return likecoin.isCivicLiker({
-    likerId: liker.likerId,
-    userId: id,
-  })
+const resolver: GQLLikerResolvers['civicLiker'] = async () => {
+  return false
 }
 
 export default resolver

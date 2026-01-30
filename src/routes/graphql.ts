@@ -31,7 +31,6 @@ import {
   ChannelService,
   TranslationService,
   SearchService,
-  LikeCoin,
   ExchangeRate,
 } from '#connectors/index.js'
 import {
@@ -158,7 +157,6 @@ export const graphql = async (app: Express) => {
       campaignService: new CampaignService(connections),
       channelService: new ChannelService(connections),
       openseaService: new OpenSeaService(),
-      likecoin: new LikeCoin(connections),
       exchangeRate: new ExchangeRate(connections.objectCacheRedis),
       translationService: new TranslationService(connections),
       notificationService: new NotificationService(connections),

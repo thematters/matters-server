@@ -7,7 +7,6 @@ import type {
   DraftService,
   ExchangeRate,
   MomentService,
-  LikeCoin,
   NotificationService,
   OAuthService,
   OpenSeaService,
@@ -203,7 +202,6 @@ export interface DataSources {
   translationService: TranslationService
   channelService: ChannelService
   searchService: SearchService
-  likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
   queues: {

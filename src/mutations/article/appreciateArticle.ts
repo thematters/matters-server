@@ -7,7 +7,6 @@ import {
   NOTICE_TYPE,
   NODE_TYPES,
 } from '#common/enums/index.js'
-import { environment } from '#common/environment.js'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
@@ -17,7 +16,6 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
-import { LikeCoin } from '#connectors/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
@@ -101,19 +99,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     amount: validAmount,
     type: APPRECIATION_TYPES.like,
   })
-
-  // insert record to LikeCoin
-  const likecoin = new LikeCoin(connections)
-  if (author.likerId && sender.likerId && author.likerId !== sender.likerId) {
-    likecoin.like({
-      likerId: sender.likerId,
-      likerIp: viewer.ip,
-      userAgent: viewer.userAgent,
-      authorLikerId: author.likerId,
-      url: `https://${environment.siteDomain}/a/${article.shortHash}`,
-      amount: validAmount,
-    })
-  }
 
   // trigger notifications
   notificationService.trigger({

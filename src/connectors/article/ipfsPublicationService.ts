@@ -2,7 +2,6 @@ import type {
   Connections,
   ArticleVersion,
   Article,
-  UserOAuthLikeCoin,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -24,7 +23,6 @@ import { PinataSDK } from 'pinata-web3'
 
 import { AtomService } from '../atomService.js'
 import { aws } from '../aws/index.js'
-import { LikeCoin } from '../likecoin/index.js'
 
 const logger = getLogger('service-ipfs-publication')
 
@@ -36,7 +34,6 @@ export class IPFSPublicationService {
   private knexRO: Knex
   private models: AtomService
   private aws: typeof aws
-  private likecoin: LikeCoin
 
   public constructor(connections: Connections) {
     this.connections = connections
@@ -44,7 +41,6 @@ export class IPFSPublicationService {
     this.knex = connections.knex
     this.knexRO = connections.knexRO
     this.aws = aws
-    this.likecoin = new LikeCoin(connections)
   }
 
   private async initStorachaClient() {
@@ -351,54 +347,6 @@ export class IPFSPublicationService {
           .update({ secret: key })
       }
     })
-
-    // publish to ISCN
-    try {
-      const draft = await this.models.findFirst({
-        table: 'draft',
-        where: { articleId },
-      })
-
-      if (article && draft && draft.iscnPublish) {
-        const author = await this.models.findFirst({
-          table: 'user',
-          where: { id: draft.authorId },
-        })
-
-        let liker: UserOAuthLikeCoin | undefined
-        if (author?.likerId) {
-          liker = await this.models.findFirst({
-            table: 'user_oauth_likecoin',
-            where: { likerId: author.likerId },
-          })
-        }
-
-        if (liker && author) {
-          const cosmosWallet = await this.likecoin.getCosmosWallet({ liker })
-
-          const { displayName, userName } = author
-          const iscnId = await this.likecoin.iscnPublish({
-            mediaHash: `hash://sha256/${mediaHash}`,
-            ipfsHash: `ipfs://${dataHash}`,
-            cosmosWallet,
-            userName: `${displayName} (@${userName})`,
-            title: articleVersion.title,
-            description: articleVersion.summary,
-            datePublished: article.createdAt?.toISOString().substring(0, 10),
-            url: `https://${environment.siteDomain}/a/${article.shortHash}`,
-            tags: articleVersion.tags,
-            liker,
-          })
-
-          await this.knex('article_version')
-            .where({ id: articleVersionId })
-            .update({ iscnId })
-        }
-      }
-    } catch (err) {
-      console.log('Failed to publish to ISCN')
-      console.error(err)
-    }
 
     // invalidate cache
     await invalidateFQC({
