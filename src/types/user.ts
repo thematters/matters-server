@@ -976,6 +976,7 @@ export default /* GraphQL */ `
     Google
     Twitter
     Facebook
+    Threads
   }
 
   input EmailLoginInput {

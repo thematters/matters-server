@@ -3523,6 +3523,7 @@ enum SocialAccountType {
   Google
   Twitter
   Facebook
+  Threads
 }
 
 input EmailLoginInput {

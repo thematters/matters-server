@@ -62,6 +62,26 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       language: language || viewer.language,
       referralCode,
     })
+  } else if (type === SOCIAL_LOGIN_TYPE.Threads) {
+    if (authorizationCode === undefined) {
+      throw new UserInputError('authorizationCode is required')
+    }
+    let userInfo: {
+      id: string
+      userName: string
+    }
+    if (isE2ETest) {
+      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+    } else {
+      userInfo = await userService.fetchThreadsUserInfo(authorizationCode)
+    }
+    user = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Threads,
+      userName: userInfo.userName,
+      language: language || viewer.language,
+      referralCode,
+    })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
     throw new UserInputError('Facebook login is not supported')
     // if (codeVerifier === undefined || authorizationCode === undefined) {
@@ -174,6 +194,25 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
+    })
+  } else if (type === SOCIAL_LOGIN_TYPE.Threads) {
+    if (authorizationCode === undefined) {
+      throw new UserInputError('authorizationCode is required')
+    }
+    let userInfo: {
+      id: string
+      userName: string
+    }
+    if (isE2ETest) {
+      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+    } else {
+      userInfo = await userService.fetchThreadsUserInfo(authorizationCode)
+    }
+    await userService.createSocialAccount({
+      userId: viewer.id,
+      providerAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Threads,
+      userName: userInfo.userName,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
     if (codeVerifier === undefined || authorizationCode === undefined) {
