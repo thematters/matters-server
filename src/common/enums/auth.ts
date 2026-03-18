@@ -21,4 +21,5 @@ export const SOCIAL_LOGIN_TYPE = {
   Google: 'Google',
   Twitter: 'Twitter',
   Facebook: 'Facebook',
+  Threads: 'Threads',
 } as const

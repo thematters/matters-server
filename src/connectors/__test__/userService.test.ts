@@ -580,6 +580,10 @@ describe('createUserSocialAccount', () => {
     id: 'createUserSocialAccountFacebook1',
     username: 'testtfacebookusername',
   }
+  const threadsUserInfo1 = {
+    id: 'createUserSocialAccountThreads1',
+    userName: 'testthreadsusername',
+  }
   test('user can only have 1 social account per type', async () => {
     await userService.createSocialAccount({
       userId: userId1,
@@ -600,6 +604,15 @@ describe('createUserSocialAccount', () => {
     })
     const socialAccounts = await userService.findSocialAccountsByUserId(userId1)
     expect(socialAccounts.length).toBe(2)
+    await userService.createSocialAccount({
+      userId: userId1,
+      providerAccountId: threadsUserInfo1.id,
+      type: 'Threads',
+      userName: threadsUserInfo1.userName,
+    })
+    const socialAccountsWithThreads =
+      await userService.findSocialAccountsByUserId(userId1)
+    expect(socialAccountsWithThreads.length).toBe(3)
   })
   test('user can not bind binded social accounts', async () => {
     await expect(
@@ -616,6 +629,13 @@ describe('createUserSocialAccount', () => {
     })
     const socialAccounts = await userService.findSocialAccountsByUserId(userId2)
     expect(socialAccounts.length).toBe(1)
+    await expect(
+      userService.createSocialAccount({
+        userId: userId2,
+        providerAccountId: threadsUserInfo1.id,
+        type: 'Threads',
+      })
+    ).rejects.toThrow(ActionFailedError)
   })
 })
 
@@ -658,6 +678,25 @@ describe('getOrCreateUserBySocialAccount', () => {
       language: 'en',
     })
     expect(user.id).toBe(createdUser.id)
+
+    const createdThreadsUser = await userService.getOrCreateUserBySocialAccount(
+      {
+        providerAccountId: 'threads-getorcreate-1',
+        userName: 'testthreadsuser',
+        type: 'Threads',
+        language: 'en',
+      }
+    )
+    expect(createdThreadsUser.id).toBeDefined()
+    expect(createdThreadsUser.userName).toBeNull()
+
+    const threadsUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: 'threads-getorcreate-1',
+      userName: 'testthreadsuser',
+      type: 'Threads',
+      language: 'en',
+    })
+    expect(threadsUser.id).toBe(createdThreadsUser.id)
   })
   test('create new user w/o email when social account email have been used by other user but not verified', async () => {
     const user = await userService.create({
@@ -788,6 +827,16 @@ describe('test remove login methods', () => {
     expect(userService.removeSocialAccount(user2.id, 'Google')).rejects.toThrow(
       ActionFailedError
     )
+
+    const user3 = await userService.create({})
+    await userService.createSocialAccount({
+      userId: user3.id,
+      providerAccountId: 'threads-remove-only',
+      type: 'Threads',
+    })
+    expect(
+      userService.removeSocialAccount(user3.id, 'Threads')
+    ).rejects.toThrow(ActionFailedError)
   })
   test('remove login methods succeed', async () => {
     const user = await userService.create({
@@ -804,6 +853,17 @@ describe('test remove login methods', () => {
     })
     await userService.removeSocialAccount(user.id, 'Google')
     expect(await userService.findSocialAccountsByUserId(user.id)).toEqual([])
+
+    await userService.createSocialAccount({
+      userId: user.id,
+      providerAccountId: 'threads-remove-ok',
+      type: 'Threads',
+      userName: 'threadsuser',
+    })
+    await userService.removeSocialAccount(user.id, 'Threads')
+    expect(
+      await userService.findSocialAccountsByUserId(user.id, 'Threads')
+    ).toEqual([])
   })
 })
 

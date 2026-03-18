@@ -3735,7 +3735,7 @@ export type GQLSocialAccount = {
   userName?: Maybe<Scalars['String']['output']>
 }
 
-export type GQLSocialAccountType = 'Facebook' | 'Google' | 'Twitter'
+export type GQLSocialAccountType = 'Facebook' | 'Google' | 'Threads' | 'Twitter'
 
 export type GQLSocialLoginInput = {
   authorizationCode?: InputMaybe<Scalars['String']['input']>

@@ -2707,6 +2707,56 @@ export class UserService extends BaseService<User> {
     }
   }
 
+  public fetchThreadsUserInfo = async (authorizationCode: string) => {
+    const { access_token } = await this.exchangeThreadsToken(authorizationCode)
+    const url = 'https://graph.threads.net/v1.0/me'
+    try {
+      const response = await axios.get(url, {
+        params: { fields: 'id,username', access_token },
+      })
+      return {
+        id: response.data.id as string,
+        userName: response.data.username as string,
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        logger.warn('fetch threads user info failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('fetch threads user info failed')
+      }
+      logger.error('fetch threads user info error: ', error)
+      throw new UnknownError('fetch threads user info failed')
+    }
+  }
+
+  private exchangeThreadsToken = async (
+    authorizationCode: string
+  ): Promise<{ access_token: string; user_id: number }> => {
+    const url = 'https://graph.threads.net/oauth/access_token'
+    const data = {
+      client_id: environment.threadsClientId,
+      client_secret: environment.threadsClientSecret,
+      code: authorizationCode,
+      grant_type: 'authorization_code',
+      redirect_uri: environment.threadsRedirectUri,
+    }
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    try {
+      const response = await axios.post(url, data, { headers })
+      return response.data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        logger.warn('exchange threads token failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange threads token failed')
+      }
+      logger.error('exchange threads token error: ', error)
+      throw new UnknownError('exchange threads token failed')
+    }
+  }
+
   private countLoginMethods = async (userId: string) => {
     const user = await this.models.userIdLoader.load(userId)
     const email = user.email ? 1 : 0
