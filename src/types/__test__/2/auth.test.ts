@@ -1119,6 +1119,48 @@ describe('setUseName', () => {
   })
 })
 
+describe('socialLogin with Threads', () => {
+  const SOCIAL_LOGIN = /* GraphQL */ `
+    mutation ($input: SocialLoginInput!) {
+      socialLogin(input: $input) {
+        auth
+        token
+        type
+        user {
+          userName
+        }
+      }
+    }
+  `
+  test('succeed', async () => {
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Threads',
+          authorizationCode: 'e2etest-threads-login',
+        },
+      },
+    })
+    expect(data?.socialLogin.auth).toBe(true)
+    expect(data?.socialLogin.token).toBeDefined()
+    expect(data?.socialLogin.user).toBeDefined()
+  })
+  test('missing authorizationCode', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Threads',
+        },
+      },
+    })
+    expect(errors && errors.length).toBeGreaterThanOrEqual(1)
+  })
+})
+
 describe('add social accounts', () => {
   const ADD_SOCIAL_LOGIN = /* GraphQL */ `
     mutation ($input: SocialLoginInput!) {
@@ -1168,6 +1210,20 @@ describe('add social accounts', () => {
       },
     })
     expect(data?.addSocialLogin.info.email).toBe(null)
+  })
+  test('addSocialLogin with Threads', async () => {
+    const user = await userService.create({})
+    const server = await testClient({ context: { viewer: user }, connections })
+    const { data } = await server.executeOperation({
+      query: ADD_SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Threads',
+          authorizationCode: 'e2etest-threads-add',
+        },
+      },
+    })
+    expect(data?.addSocialLogin).toBeDefined()
   })
 })
 

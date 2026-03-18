@@ -679,13 +679,14 @@ describe('getOrCreateUserBySocialAccount', () => {
     })
     expect(user.id).toBe(createdUser.id)
 
-    const createdThreadsUser =
-      await userService.getOrCreateUserBySocialAccount({
+    const createdThreadsUser = await userService.getOrCreateUserBySocialAccount(
+      {
         providerAccountId: 'threads-getorcreate-1',
         userName: 'testthreadsuser',
         type: 'Threads',
         language: 'en',
-      })
+      }
+    )
     expect(createdThreadsUser.id).toBeDefined()
     expect(createdThreadsUser.userName).toBeNull()
 
