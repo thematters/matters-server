@@ -580,6 +580,10 @@ describe('createUserSocialAccount', () => {
     id: 'createUserSocialAccountFacebook1',
     username: 'testtfacebookusername',
   }
+  const threadsUserInfo1 = {
+    id: 'createUserSocialAccountThreads1',
+    userName: 'testthreadsusername',
+  }
   test('user can only have 1 social account per type', async () => {
     await userService.createSocialAccount({
       userId: userId1,
@@ -600,6 +604,15 @@ describe('createUserSocialAccount', () => {
     })
     const socialAccounts = await userService.findSocialAccountsByUserId(userId1)
     expect(socialAccounts.length).toBe(2)
+    await userService.createSocialAccount({
+      userId: userId1,
+      providerAccountId: threadsUserInfo1.id,
+      type: 'Threads',
+      userName: threadsUserInfo1.userName,
+    })
+    const socialAccountsWithThreads =
+      await userService.findSocialAccountsByUserId(userId1)
+    expect(socialAccountsWithThreads.length).toBe(3)
   })
   test('user can not bind binded social accounts', async () => {
     await expect(
