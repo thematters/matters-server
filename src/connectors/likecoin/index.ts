@@ -1,12 +1,9 @@
 import type { UserOAuthLikeCoin, Connections } from '#definitions/index.js'
-import type { Redis } from 'ioredis'
 import type { Knex } from 'knex'
 
-import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
   LikerEmailExistsError,
-  LikerISCNPublishWithoutWalletError,
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
 } from '#common/errors.js'
@@ -14,40 +11,9 @@ import { getLogger } from '#common/logger.js'
 import * as Sentry from '@sentry/node'
 import axios, { type AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
-import { v4 } from 'uuid'
-
-import { aws } from '../aws/index.js'
-import { Cache } from '../cache/index.js'
 
 const logger = getLogger('service-likecoin')
 
-interface LikeData {
-  likerId: string
-  likerIp?: string
-  userAgent: string
-  authorLikerId: string
-  url: string
-  amount: number
-}
-
-interface SendPVData {
-  likerId?: string
-  likerIp?: string
-  userAgent: string
-  authorLikerId: string
-  url: string
-}
-
-interface UpdateCivicLikerCacheData {
-  likerId: string
-  userId: string
-  expire: (typeof CACHE_TTL)[keyof typeof CACHE_TTL]
-}
-
-interface BaseUpdateCivicLikerCacheData {
-  likerId: string
-  expire: number
-}
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 
@@ -88,15 +54,9 @@ const ENDPOINTS = {
  */
 export class LikeCoin {
   private knex: Knex
-  private redis: Redis
-  private objectCacheRedis: Redis
-  private aws: typeof aws
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
-    this.redis = connections.redis
-    this.objectCacheRedis = connections.objectCacheRedis
-    this.aws = aws
   }
 
   /**
@@ -285,33 +245,6 @@ export class LikeCoin {
   /**
    * Check if user is a civic liker
    */
-  public isCivicLiker = async ({
-    likerId,
-    userId,
-  }: {
-    likerId: string
-    userId: string
-  }): Promise<boolean> => {
-    const cache = new Cache(CACHE_PREFIX.CIVIC_LIKER, this.objectCacheRedis)
-    const keys = { id: likerId }
-    const isCivicLiker = (await cache.getObject({
-      keys,
-      getter: async () => {
-        this.updateCivicLikerCache({
-          likerId,
-          userId,
-          expire: CACHE_TTL.LONG,
-        })
-        return false
-      },
-      expire: CACHE_TTL.MEDIUM,
-    })) as boolean | null
-    return isCivicLiker ?? false
-  }
-
-  /**
-   * Check if user is a civic liker
-   */
   public getCosmosWallet = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
     const res = await this.request({
       endpoint: `/users/id/${liker.likerId}/min`,
@@ -319,138 +252,6 @@ export class LikeCoin {
       // liker,
     })
     return _.get(res, 'data.cosmosWallet')
-  }
-
-  /**
-   * Send page view to likecoin
-   */
-  public sendPV = async (data: SendPVData) =>
-    this.aws.sqsSendMessage({
-      messageBody: data,
-      queueUrl: QUEUE_URL.likecoinSendPV,
-    })
-
-  /**
-   * Like a content.
-   */
-  public like = async (data: LikeData) =>
-    this.aws.sqsSendMessage({
-      messageBody: data,
-      queueUrl: QUEUE_URL.likecoinLike,
-      messageGroupId: 'like',
-      messageDeduplicationId: v4(),
-    })
-
-  public iscnPublish = async ({
-    mediaHash,
-    ipfsHash,
-    cosmosWallet,
-    userName,
-    title,
-    description,
-    datePublished,
-    url,
-    tags,
-    liker,
-  }: // likerIp,
-  // userAgent,
-  {
-    mediaHash: string
-    ipfsHash: string
-    cosmosWallet: string
-    userName: string
-    title: string
-    description: string
-    datePublished: string // in format like 'YYYY-mm-dd'
-    url: string
-    tags: string[]
-    liker: UserOAuthLikeCoin
-    // likerIp?: string
-    // userAgent?: string
-  }) => {
-    const endpoint = `${ENDPOINTS.iscnPublish}`
-
-    if (!(cosmosWallet && liker)) {
-      throw new LikerISCNPublishWithoutWalletError('no liker or no wallet')
-    }
-
-    const postData = {
-      recordNotes: 'Add IPFS fingerprint (by Matters.News)',
-      contentFingerprints: [
-        // "hash://sha256/9564b85669d5e96ac969dd0161b8475bbced9e5999c6ec598da718a3045d6f2e",
-        mediaHash,
-        ipfsHash, // "ipfs://QmNrgEMcUygbKzZeZgYFosdd27VE9KnWbyUD73bKZJ3bGi111"
-      ],
-      stakeholders: [
-        {
-          entity: {
-            '@id': `did:cosmos:${cosmosWallet}`,
-            name: userName,
-          },
-          rewardProportion: 100,
-          contributionType: 'http://schema.org/author',
-        },
-        {
-          rewardProportion: 0,
-          contributionType: 'http://schema.org/publisher',
-          entity: {
-            name: 'Matters.News',
-          },
-          // "footprint": "https://en.wikipedia.org/wiki/Fibonacci_number",
-          // "description": "The blog post referred the matrix form of computing Fibonacci numbers."
-        },
-      ],
-      type: 'Article',
-      name: title,
-      description,
-      datePublished,
-      url,
-      // "usageInfo": "https://creativecommons.org/licenses/by/4.0",
-      keywords: tags,
-    }
-
-    const res = await this.request({
-      endpoint,
-      // ip: likerIp,
-      // userAgent,
-      withClientCredential: true,
-      method: 'POST',
-      data: postData,
-      liker,
-    })
-
-    const data = _.get(res, 'data')
-
-    const cache = new Cache(CACHE_PREFIX.LIKECOIN, this.redis)
-    await cache.storeObject({
-      // keys: ['iscnPublish', userName, 'likerId', liker.likerId],
-      keys: {
-        type: 'iscnPublish',
-        id: userName,
-        field: 'likerId',
-        args: { likerId: liker.likerId, mediaHash },
-      },
-      data: {
-        postData,
-        resData: data,
-      },
-      expire: CACHE_TTL.LONG, // save for 1 day
-    })
-
-    if (!data) {
-      logger.error('iscnPublish with no data: %j', res)
-      throw res
-    }
-
-    if (!data.iscnId) {
-      logger.warn(
-        'iscnPublish failed posted results: %j with: %j',
-        res,
-        postData
-      )
-    }
-
-    return data.iscnId
   }
 
   public getCosmosTxData = async ({ hash }: { hash: string }) => {
@@ -472,233 +273,5 @@ export class LikeCoin {
     const msgSend = _.find(msg, { '@type': '/cosmos.bank.v1beta1.MsgSend' })
     const amount = _.get(msgSend, 'amount[0].amount')
     return { amount }
-  }
-
-  private updateCivicLikerCache = async (data: UpdateCivicLikerCacheData) =>
-    this.aws.sqsSendMessage({
-      messageBody: data,
-      queueUrl: QUEUE_URL.likecoinUpdateCivicLikerCache,
-    })
-
-  // Lambda handler implementations
-  public handleLike = async (data: LikeData) => {
-    const { likerId, url, authorLikerId } = data
-    const liker = await this.findLiker({ likerId })
-
-    if (likerId === authorLikerId) {
-      logger.info('cannot like self, skip.')
-      return
-    }
-
-    if (!liker) {
-      throw new Error(`liker (${likerId}) not found.`)
-    }
-
-    if (url.startsWith('https://matters.news')) {
-      await this.requestLike({
-        liker,
-        ...data,
-        url: url.replace('https://matters.news', 'https://matters.town'),
-      })
-    } else {
-      await this.requestLike({
-        liker,
-        ...data,
-      })
-    }
-  }
-
-  public handleSendPV = async (data: SendPVData) => {
-    const { likerId } = data
-    const liker =
-      likerId === undefined
-        ? undefined
-        : (await this.findLiker({ likerId })) || undefined
-
-    await this.requestCount({
-      liker: liker,
-      ...data,
-    })
-  }
-
-  public handleUpdateCivicLikerCache = async ({
-    likerId,
-    userId,
-    expire,
-  }: UpdateCivicLikerCacheData) => {
-    let isCivicLiker
-    const cache = new Cache(CACHE_PREFIX.CIVIC_LIKER, this.objectCacheRedis)
-    try {
-      isCivicLiker = await this.requestIsCivicLiker({
-        likerId,
-      })
-    } catch (e) {
-      // remove from cache so new request can trigger a retry
-      await cache.removeObject({ keys: { id: likerId } })
-      throw e
-    }
-
-    const hour = 60 * 60
-    await this._handleUpdateCivicLikerCache({
-      likerId,
-      userId,
-      isCivicLiker,
-      expire: expire + this.getRandomInt(1, hour),
-    })
-  }
-
-  public updateCivicLikerCaches = async (
-    likerCacheData: BaseUpdateCivicLikerCacheData[]
-  ) => {
-    const likerIdToExpires = Object.fromEntries(
-      likerCacheData.map(({ likerId, expire }) => [likerId, expire])
-    )
-    const mattersLikerData = await this.knex('user')
-      .select('id', 'liker_id')
-      .whereIn(
-        'liker_id',
-        likerCacheData.map(({ likerId }) => likerId)
-      )
-    await Promise.all(
-      mattersLikerData.map(async ({ id, likerId }) => {
-        await this._handleUpdateCivicLikerCache({
-          likerId,
-          userId: id,
-          isCivicLiker: true,
-          expire: likerIdToExpires[likerId],
-        })
-      })
-    )
-  }
-
-  private _handleUpdateCivicLikerCache = async ({
-    likerId,
-    userId,
-    isCivicLiker,
-    expire,
-  }: {
-    likerId: string
-    userId: string
-    isCivicLiker: boolean
-    expire: number
-  }) => {
-    const cache = new Cache(CACHE_PREFIX.CIVIC_LIKER, this.objectCacheRedis)
-    // update cache
-    await cache.storeObject({
-      keys: { id: likerId },
-      data: isCivicLiker,
-      expire,
-    })
-
-    // invalidation should after data update
-    const { invalidateFQC } = await import('@matters/apollo-response-cache')
-    await invalidateFQC({
-      node: { type: 'User', id: userId },
-      redis: this.redis,
-    })
-  }
-
-  private requestLike = async ({
-    authorLikerId,
-    liker,
-    url,
-    likerIp,
-    amount,
-    userAgent,
-  }: {
-    authorLikerId: string
-    liker: UserOAuthLikeCoin
-    url: string
-    likerIp?: string
-    amount: number
-    userAgent: string
-  }) => {
-    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
-    const result = await this.request({
-      ip: likerIp,
-      userAgent,
-      endpoint,
-      method: 'POST',
-      liker,
-      data: {
-        referrer: encodeURI(url),
-      },
-    })
-    const data = _.get(result, 'data')
-    if (data === 'OK') {
-      return data
-    } else {
-      throw result
-    }
-  }
-
-  /**
-   * current user like count of a content
-   */
-  private requestCount = async ({
-    liker,
-    authorLikerId,
-    url,
-    likerIp,
-    userAgent,
-  }: {
-    liker?: UserOAuthLikeCoin
-    authorLikerId: string
-    url: string
-    likerIp?: string
-    userAgent: string
-  }) => {
-    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/self`
-    const res = await this.request({
-      endpoint,
-      method: 'GET',
-      liker,
-      ip: likerIp,
-      userAgent,
-      data: {
-        referrer: encodeURI(url),
-      },
-    })
-    const data = _.get(res, 'data')
-    logger.info('count response:', data)
-
-    if (!data) {
-      throw res
-    }
-
-    return data.count
-  }
-
-  private requestIsCivicLiker = async ({ likerId }: { likerId: string }) => {
-    let res: any
-    try {
-      res = await this.request({
-        endpoint: `/users/id/${likerId}/min`,
-        method: 'GET',
-        timeout: 2000,
-      })
-    } catch (e: any) {
-      const code = e.response?.status as any
-      if (code === 404) {
-        logger.warn(`likerId ${likerId} not exist`)
-        return false
-      }
-      throw e
-    }
-    logger.info('civicLiker response:', res?.data)
-    return !!_.get(res, 'data.isSubscribedCivicLiker')
-  }
-
-  private findLiker = async ({
-    likerId,
-  }: {
-    likerId: string
-  }): Promise<UserOAuthLikeCoin | null> =>
-    this.knex.select().from('user_oauth_likecoin').where({ likerId }).first()
-
-  private getRandomInt = (min: number, max: number): number => {
-    min = Math.ceil(min)
-    max = Math.floor(max)
-    return Math.floor(Math.random() * (max - min)) + min
   }
 }
