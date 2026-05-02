@@ -158,12 +158,44 @@ describe('federationExportService', () => {
     expect(context.articles[0].sourceUri).toBe('https://matters.town/a/abc123')
   })
 
+  test('can enforce the federation opt-in gate when building homepage context', () => {
+    const context = buildFederationHomepageContext({
+      rows: [
+        publicRow(),
+        publicRow({
+          articleId: '103',
+          federationSetting: FEDERATION_ARTICLE_SETTING.inherit,
+          author: {
+            ...publicRow().author,
+            federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+          },
+        }),
+      ],
+      siteDomain: 'matters.town',
+      webfDomain: 'staging-gateway.matters.town',
+      enforceFederationGate: true,
+    })
+
+    expect(context.articles.map((article) => article.id)).toEqual(['103'])
+  })
+
   test('fails closed when no selected public article can be exported', () => {
     expect(() =>
       buildFederationHomepageContext({
         rows: [publicRow({ access: ARTICLE_ACCESS_TYPE.paywall })],
         siteDomain: 'matters.town',
         webfDomain: 'staging-gateway.matters.town',
+      })
+    ).toThrow('No selected public articles')
+  })
+
+  test('fails closed when the strict federation gate excludes every row', () => {
+    expect(() =>
+      buildFederationHomepageContext({
+        rows: [publicRow()],
+        siteDomain: 'matters.town',
+        webfDomain: 'staging-gateway.matters.town',
+        enforceFederationGate: true,
       })
     ).toThrow('No selected public articles')
   })

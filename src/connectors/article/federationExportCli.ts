@@ -19,6 +19,7 @@ type CliOptions = {
   siteDomain: string
   webfDomain?: string
   generatedAt?: string
+  enforceFederationGate: boolean
 }
 
 const usage = `Usage:
@@ -32,6 +33,8 @@ Options:
   --site-domain HOST    Source Matters site domain; default MATTERS_SITE_DOMAIN or matters.town
   --webf-domain HOST    ActivityPub WebFinger domain; default MATTERS_FEDERATION_WEBF_DOMAIN
   --generated-at ISO    Optional deterministic timestamp for generated output
+  --enforce-federation-gate
+                       Require explicit author opt-in and article federation settings
 `
 
 const maskSecretText = (value: string) =>
@@ -60,6 +63,8 @@ export const parseFederationExportCliArgs = (args: string[]): CliOptions => {
     articleIds: [],
     siteDomain: process.env.MATTERS_SITE_DOMAIN || 'matters.town',
     webfDomain: process.env.MATTERS_FEDERATION_WEBF_DOMAIN,
+    enforceFederationGate:
+      process.env.MATTERS_FEDERATION_REQUIRE_OPT_IN === 'true',
   }
 
   for (let i = 0; i < args.length; i += 1) {
@@ -93,6 +98,8 @@ export const parseFederationExportCliArgs = (args: string[]): CliOptions => {
     } else if (arg === '--generated-at') {
       options.generatedAt = readOptionValue({ args, index: i, option: arg })
       i += 1
+    } else if (arg === '--enforce-federation-gate') {
+      options.enforceFederationGate = true
     } else {
       throw new Error(`Unknown option: ${arg}`)
     }
@@ -136,6 +143,8 @@ const loadFixtureInput = async (
     webfDomain: parsed.webfDomain || options.webfDomain!,
     generatedAt: parsed.generatedAt || options.generatedAt,
     actor: parsed.actor,
+    enforceFederationGate:
+      parsed.enforceFederationGate ?? options.enforceFederationGate,
   }
 }
 
@@ -157,6 +166,7 @@ const loadDbInput = async (
       siteDomain: options.siteDomain,
       webfDomain: options.webfDomain!,
       generatedAt: options.generatedAt,
+      enforceFederationGate: options.enforceFederationGate,
     },
     close: async () => {
       await Promise.all([

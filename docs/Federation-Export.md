@@ -22,6 +22,8 @@ The first production-facing contract is intentionally conservative:
 
 The current pure function is `resolveFederationExportGate` in `src/connectors/article/federationExportService.ts`. It is a contract scaffold only; no database column or GraphQL mutation is created in this slice.
 
+The exporter can run in strict mode with `--enforce-federation-gate` or `MATTERS_FEDERATION_REQUIRE_OPT_IN=true`. Without strict mode, the current preflight behavior is preserved and only the public-only article boundary is applied.
+
 ## Durable state scaffold
 
 The schema scaffold uses two independent tables:

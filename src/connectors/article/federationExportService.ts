@@ -80,6 +80,7 @@ export type FederationExportBundleInput = {
   webfDomain: string
   generatedAt?: Date | string
   actor?: Partial<FederationExportAuthor>
+  enforceFederationGate?: boolean
 }
 
 export type FederationExportFile = {
@@ -143,6 +144,8 @@ type ArticleExportQueryRow = {
   authorDescription: string | null
   authorState: string | null
   ipnsKey: string | null
+  authorFederationSetting: FederationAuthorSetting | null
+  articleFederationSetting: FederationArticleSetting | null
 }
 
 export const isFederationPublicArticleRow = (row: FederationExportArticleRow) =>
@@ -218,8 +221,13 @@ export const buildFederationHomepageContext = ({
   webfDomain,
   generatedAt = new Date(),
   actor,
+  enforceFederationGate = false,
 }: FederationExportBundleInput): HomepageContext => {
-  const publicRows = rows.filter(isFederationPublicArticleRow)
+  const publicRows = rows.filter((row) =>
+    enforceFederationGate
+      ? resolveFederationExportGateForRow(row).eligible
+      : isFederationPublicArticleRow(row)
+  )
   if (publicRows.length === 0) {
     throw new Error('No selected public articles are eligible for federation')
   }
@@ -430,6 +438,12 @@ export class FederationExportService {
       .leftJoin('user_ipns_keys as ipnsKey', {
         'ipnsKey.userId': 'author.id',
       })
+      .leftJoin('user_federation_setting as authorFederation', {
+        'authorFederation.userId': 'author.id',
+      })
+      .leftJoin('article_federation_setting as articleFederation', {
+        'articleFederation.articleId': 'article.id',
+      })
       .whereIn('article.id', articleIds)
       .select([
         'article.id as articleId',
@@ -449,6 +463,8 @@ export class FederationExportService {
         'author.description as authorDescription',
         'author.state as authorState',
         'ipnsKey.ipnsKey as ipnsKey',
+        'authorFederation.state as authorFederationSetting',
+        'articleFederation.state as articleFederationSetting',
       ])
 
     const rowsByArticleId = new Map(rows.map((row) => [row.articleId, row]))
@@ -468,6 +484,7 @@ export class FederationExportService {
         circleId: row.circleId,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
+        federationSetting: row.articleFederationSetting,
         author: {
           id: row.authorId,
           userName: row.userName,
@@ -475,6 +492,7 @@ export class FederationExportService {
           description: row.authorDescription,
           state: row.authorState,
           ipnsKey: row.ipnsKey,
+          federationSetting: row.authorFederationSetting,
         },
       }))
   }
