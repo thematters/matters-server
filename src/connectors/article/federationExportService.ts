@@ -144,8 +144,8 @@ type ArticleExportQueryRow = {
   authorDescription: string | null
   authorState: string | null
   ipnsKey: string | null
-  authorFederationSetting: FederationAuthorSetting | null
-  articleFederationSetting: FederationArticleSetting | null
+  authorFederationSetting?: FederationAuthorSetting | null
+  articleFederationSetting?: FederationArticleSetting | null
 }
 
 export const isFederationPublicArticleRow = (row: FederationExportArticleRow) =>
@@ -419,13 +419,14 @@ export class FederationExportService {
   }
 
   public async loadSelectedArticleRows(
-    articleIds: string[]
+    articleIds: string[],
+    options: { includeFederationSettings?: boolean } = {}
   ): Promise<FederationExportArticleRow[]> {
     if (articleIds.length === 0) {
       throw new Error('Explicit articleIds are required for federation export')
     }
 
-    const rows = await this.knexRO<ArticleExportQueryRow>('article')
+    const query = this.knexRO<ArticleExportQueryRow>('article')
       .join('article_version_newest as articleVersion', {
         'articleVersion.articleId': 'article.id',
       })
@@ -437,12 +438,6 @@ export class FederationExportService {
       })
       .leftJoin('user_ipns_keys as ipnsKey', {
         'ipnsKey.userId': 'author.id',
-      })
-      .leftJoin('user_federation_setting as authorFederation', {
-        'authorFederation.userId': 'author.id',
-      })
-      .leftJoin('article_federation_setting as articleFederation', {
-        'articleFederation.articleId': 'article.id',
       })
       .whereIn('article.id', articleIds)
       .select([
@@ -463,9 +458,23 @@ export class FederationExportService {
         'author.description as authorDescription',
         'author.state as authorState',
         'ipnsKey.ipnsKey as ipnsKey',
-        'authorFederation.state as authorFederationSetting',
-        'articleFederation.state as articleFederationSetting',
       ])
+
+    if (options.includeFederationSettings) {
+      query
+        .leftJoin('user_federation_setting as authorFederation', {
+          'authorFederation.userId': 'author.id',
+        })
+        .leftJoin('article_federation_setting as articleFederation', {
+          'articleFederation.articleId': 'article.id',
+        })
+        .select([
+          'authorFederation.state as authorFederationSetting',
+          'articleFederation.state as articleFederationSetting',
+        ])
+    }
+
+    const rows = await query
 
     const rowsByArticleId = new Map(rows.map((row) => [row.articleId, row]))
 

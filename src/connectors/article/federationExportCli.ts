@@ -158,7 +158,9 @@ const loadDbInput = async (
     connections: Connections
   }
   const service = new FederationExportService(connections)
-  const rows = await service.loadSelectedArticleRows(options.articleIds)
+  const rows = await service.loadSelectedArticleRows(options.articleIds, {
+    includeFederationSettings: options.enforceFederationGate,
+  })
 
   return {
     input: {
