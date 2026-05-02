@@ -11,6 +11,8 @@ import {
   makeActivityPubBundles,
   makeHomepageBundles,
 } from '@matters/ipns-site-generator'
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 
 export type FederationExportAuthor = {
   id: string
@@ -263,6 +265,50 @@ export const buildFederationExportBundle = (
   ]
 
   return { context, files, manifest }
+}
+
+const resolveBundleOutputPath = ({
+  outputDir,
+  filePath,
+}: {
+  outputDir: string
+  filePath: string
+}) => {
+  const root = path.resolve(outputDir)
+  const outputPath = path.resolve(root, filePath)
+  const relativePath = path.relative(root, outputPath)
+
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    throw new Error(`Unsafe federation export file path: ${filePath}`)
+  }
+
+  return outputPath
+}
+
+export const writeFederationExportBundle = async ({
+  bundle,
+  outputDir,
+}: {
+  bundle: FederationExportBundle
+  outputDir: string
+}) => {
+  const root = path.resolve(outputDir)
+  const written: string[] = []
+
+  await mkdir(root, { recursive: true })
+
+  for (const file of bundle.files) {
+    const outputPath = resolveBundleOutputPath({
+      outputDir: root,
+      filePath: file.path,
+    })
+
+    await mkdir(path.dirname(outputPath), { recursive: true })
+    await writeFile(outputPath, file.content, 'utf8')
+    written.push(path.relative(root, outputPath))
+  }
+
+  return written.sort()
 }
 
 export class FederationExportService {
