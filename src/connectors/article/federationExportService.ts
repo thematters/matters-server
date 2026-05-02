@@ -21,6 +21,7 @@ export type FederationExportAuthor = {
   description?: string | null
   state?: string | null
   ipnsKey?: string | null
+  federationSetting?: FederationAuthorSetting | null
 }
 
 export type FederationExportArticleRow = {
@@ -36,6 +37,7 @@ export type FederationExportArticleRow = {
   coverUrl?: string | null
   createdAt: Date | string
   updatedAt?: Date | string | null
+  federationSetting?: FederationArticleSetting | null
   author: FederationExportAuthor
 }
 
@@ -188,6 +190,15 @@ export const resolveFederationExportGate = ({
     effectiveArticleSetting,
   }
 }
+
+export const resolveFederationExportGateForRow = (
+  row: FederationExportArticleRow
+) =>
+  resolveFederationExportGate({
+    row,
+    authorSetting: row.author.federationSetting,
+    articleSetting: row.federationSetting,
+  })
 
 const toIsoString = (value: Date | string) => new Date(value).toISOString()
 

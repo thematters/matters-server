@@ -16,6 +16,7 @@ import {
   isFederationPublicArticleRow,
   FederationExportArticleRow,
   resolveFederationExportGate,
+  resolveFederationExportGateForRow,
   writeFederationExportBundle,
 } from '#connectors/article/federationExportService.js'
 
@@ -118,6 +119,20 @@ describe('federationExportService', () => {
         authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
       }).reason
     ).toBe('article_not_public')
+  })
+
+  test('can resolve the gate from row-level contract fields', () => {
+    expect(
+      resolveFederationExportGateForRow(
+        publicRow({
+          federationSetting: FEDERATION_ARTICLE_SETTING.inherit,
+          author: {
+            ...publicRow().author,
+            federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+          },
+        })
+      ).eligible
+    ).toBe(true)
   })
 
   test('builds homepage context and excludes non-public selected rows', () => {
