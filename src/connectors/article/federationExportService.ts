@@ -59,11 +59,14 @@ export type FederationExportBundle = {
 }
 
 export type FederationExportManifest = {
-  schemaVersion: 1
+  version: 1
   generatedAt: string
   generator: {
     package: '@matters/ipns-site-generator'
     mode: 'homepage-and-activitypub'
+  }
+  visibility: {
+    federatedPublicOnly: true
   }
   actor: {
     handle: string
@@ -217,11 +220,14 @@ export const buildFederationExportManifest = (
   }
 
   return {
-    schemaVersion: 1,
+    version: 1,
     generatedAt: toIsoString(generatedAt),
     generator: {
       package: '@matters/ipns-site-generator',
       mode: 'homepage-and-activitypub',
+    },
+    visibility: {
+      federatedPublicOnly: true,
     },
     actor: {
       handle: author.userName,
@@ -294,17 +300,20 @@ export const writeFederationExportBundle = async ({
 }) => {
   const root = path.resolve(outputDir)
   const written: string[] = []
+  const filesByPath = new Map(
+    bundle.files.map((file) => [file.path, file.content])
+  )
 
   await mkdir(root, { recursive: true })
 
-  for (const file of bundle.files) {
+  for (const [filePath, content] of filesByPath) {
     const outputPath = resolveBundleOutputPath({
       outputDir: root,
-      filePath: file.path,
+      filePath,
     })
 
     await mkdir(path.dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, file.content, 'utf8')
+    await writeFile(outputPath, content, 'utf8')
     written.push(path.relative(root, outputPath))
   }
 

@@ -21,6 +21,7 @@
     "watch:server": "nodemon build/index.js",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
+    "federation:export": "node build/connectors/article/federationExportCli.js",
     "testcmd": "MATTERS_ENV=test node --experimental-vm-modules --no-experimental-fetch node_modules/.bin/jest",
     "test:connectors": "npm run testcmd -- build/connectors/ --forceExit",
     "test:utils": "npm run testcmd -- build/common/utils/",

@@ -131,6 +131,8 @@ describe('federationExportService', () => {
     expect(bundle.manifest.actor.webfingerSubject).toBe(
       'acct:mashbean@staging-gateway.matters.town'
     )
+    expect(bundle.manifest.version).toBe(1)
+    expect(bundle.manifest.visibility.federatedPublicOnly).toBe(true)
     expect(outbox.orderedItems[0].object.type).toBe('Article')
   })
 
@@ -168,6 +170,11 @@ describe('federationExportService', () => {
       expect(manifest.actor.webfingerSubject).toBe(
         'acct:mashbean@staging-gateway.matters.town'
       )
+      expect(manifest.version).toBe(1)
+      expect(manifest.visibility.federatedPublicOnly).toBe(true)
+      expect(
+        written.filter((file) => file === 'activitypub-manifest.json')
+      ).toHaveLength(1)
     } finally {
       await rm(outputDir, { force: true, recursive: true })
     }
