@@ -10,6 +10,7 @@ import {
   buildFederationExportBundle,
   buildFederationHomepageContext,
   buildMattersArticleUrl,
+  evaluateFederationExportRows,
   FEDERATION_ARTICLE_SETTING,
   FEDERATION_AUTHOR_SETTING,
   FederationExportBundle,
@@ -179,6 +180,38 @@ describe('federationExportService', () => {
     expect(context.articles.map((article) => article.id)).toEqual(['103'])
   })
 
+  test('reports selected, eligible, and skipped rows for auditability', () => {
+    const report = evaluateFederationExportRows({
+      rows: [
+        publicRow({
+          author: {
+            ...publicRow().author,
+            federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+          },
+        }),
+        publicRow({
+          articleId: '102',
+          federationSetting: FEDERATION_ARTICLE_SETTING.disabled,
+          author: {
+            ...publicRow().author,
+            federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+          },
+        }),
+        publicRow({ articleId: '103', access: ARTICLE_ACCESS_TYPE.paywall }),
+      ],
+      enforceFederationGate: true,
+    })
+
+    expect(report.selected).toBe(3)
+    expect(report.eligible).toBe(1)
+    expect(report.skipped).toBe(2)
+    expect(report.decisions.map((decision) => decision.reason)).toEqual([
+      'eligible',
+      'article_disabled',
+      'article_not_public',
+    ])
+  })
+
   test('fails closed when no selected public article can be exported', () => {
     expect(() =>
       buildFederationHomepageContext({
@@ -228,6 +261,7 @@ describe('federationExportService', () => {
     )
     expect(bundle.manifest.version).toBe(1)
     expect(bundle.manifest.visibility.federatedPublicOnly).toBe(true)
+    expect(bundle.decisionReport.eligible).toBe(1)
     expect(outbox.orderedItems[0].object.type).toBe('Article')
   })
 

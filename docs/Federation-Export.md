@@ -24,6 +24,8 @@ The current pure function is `resolveFederationExportGate` in `src/connectors/ar
 
 The exporter can run in strict mode with `--enforce-federation-gate` or `MATTERS_FEDERATION_REQUIRE_OPT_IN=true`. Without strict mode, the current preflight behavior is preserved and only the public-only article boundary is applied.
 
+Every generated bundle includes a `decisionReport` in the CLI output. It records how many selected rows were eligible or skipped and the per-article skip reason, without exposing credentials or private content.
+
 ## Durable state scaffold
 
 The schema scaffold uses two independent tables:

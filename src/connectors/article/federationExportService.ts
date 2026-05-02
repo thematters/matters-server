@@ -74,6 +74,20 @@ export type FederationExportGateResult = {
   effectiveArticleSetting: FederationArticleSetting
 }
 
+export type FederationExportDecision = FederationExportGateResult & {
+  articleId: string
+  authorSetting: FederationAuthorSetting | null
+  articleSetting: FederationArticleSetting | null
+}
+
+export type FederationExportDecisionReport = {
+  enforceFederationGate: boolean
+  selected: number
+  eligible: number
+  skipped: number
+  decisions: FederationExportDecision[]
+}
+
 export type FederationExportBundleInput = {
   rows: FederationExportArticleRow[]
   siteDomain: string
@@ -92,6 +106,7 @@ export type FederationExportBundle = {
   context: HomepageContext
   files: FederationExportFile[]
   manifest: FederationExportManifest
+  decisionReport: FederationExportDecisionReport
 }
 
 export type FederationExportManifest = {
@@ -203,6 +218,43 @@ export const resolveFederationExportGateForRow = (
     articleSetting: row.federationSetting,
   })
 
+export const evaluateFederationExportRows = ({
+  rows,
+  enforceFederationGate = false,
+}: {
+  rows: FederationExportArticleRow[]
+  enforceFederationGate?: boolean
+}): FederationExportDecisionReport => {
+  const decisions = rows.map((row) => {
+    const gate: FederationExportGateResult = enforceFederationGate
+      ? resolveFederationExportGateForRow(row)
+      : {
+          eligible: isFederationPublicArticleRow(row),
+          reason: isFederationPublicArticleRow(row)
+            ? 'eligible'
+            : 'article_not_public',
+          effectiveArticleSetting:
+            row.federationSetting ?? FEDERATION_ARTICLE_SETTING.inherit,
+        }
+
+    return {
+      ...gate,
+      articleId: row.articleId,
+      authorSetting: row.author.federationSetting ?? null,
+      articleSetting: row.federationSetting ?? null,
+    }
+  })
+  const eligible = decisions.filter((decision) => decision.eligible).length
+
+  return {
+    enforceFederationGate,
+    selected: rows.length,
+    eligible,
+    skipped: rows.length - eligible,
+    decisions,
+  }
+}
+
 const toIsoString = (value: Date | string) => new Date(value).toISOString()
 
 export const buildMattersArticleUrl = ({
@@ -223,10 +275,12 @@ export const buildFederationHomepageContext = ({
   actor,
   enforceFederationGate = false,
 }: FederationExportBundleInput): HomepageContext => {
-  const publicRows = rows.filter((row) =>
-    enforceFederationGate
-      ? resolveFederationExportGateForRow(row).eligible
-      : isFederationPublicArticleRow(row)
+  const decisionReport = evaluateFederationExportRows({
+    rows,
+    enforceFederationGate,
+  })
+  const publicRows = rows.filter(
+    (_, index) => decisionReport.decisions[index].eligible
   )
   if (publicRows.length === 0) {
     throw new Error('No selected public articles are eligible for federation')
@@ -347,6 +401,10 @@ export const buildFederationExportBundle = (
   input: FederationExportBundleInput
 ): FederationExportBundle => {
   const generatedAt = input.generatedAt ?? new Date()
+  const decisionReport = evaluateFederationExportRows({
+    rows: input.rows,
+    enforceFederationGate: input.enforceFederationGate,
+  })
   const context = buildFederationHomepageContext({
     ...input,
     generatedAt,
@@ -361,7 +419,7 @@ export const buildFederationExportBundle = (
     },
   ]
 
-  return { context, files, manifest }
+  return { context, files, manifest, decisionReport }
 }
 
 const resolveBundleOutputPath = ({

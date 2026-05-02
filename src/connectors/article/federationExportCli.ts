@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises'
 
 import {
   buildFederationExportBundle,
+  FederationExportDecisionReport,
   FederationExportService,
   writeFederationExportBundle,
 } from './federationExportService.js'
@@ -41,6 +42,20 @@ const maskSecretText = (value: string) =>
   value
     .replace(/postgres(?:ql)?:\/\/[^@\s]+@/g, 'postgresql://***@')
     .replace(/password=[^&\s]+/g, 'password=***')
+
+const summarizeDecisionReport = (report: FederationExportDecisionReport) => ({
+  enforceFederationGate: report.enforceFederationGate,
+  selected: report.selected,
+  eligible: report.eligible,
+  skipped: report.skipped,
+  decisions: report.decisions.map((decision) => ({
+    articleId: decision.articleId,
+    eligible: decision.eligible,
+    reason: decision.reason,
+    authorSetting: decision.authorSetting,
+    articleSetting: decision.articleSetting,
+  })),
+})
 
 const readOptionValue = ({
   args,
@@ -205,6 +220,7 @@ export const runFederationExportCli = async (args: string[]) => {
           files,
           actor: bundle.manifest.actor,
           articleCount: bundle.manifest.articles.length,
+          decisionReport: summarizeDecisionReport(bundle.decisionReport),
         },
         null,
         2
