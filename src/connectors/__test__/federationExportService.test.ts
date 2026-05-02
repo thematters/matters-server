@@ -10,9 +10,12 @@ import {
   buildFederationExportBundle,
   buildFederationHomepageContext,
   buildMattersArticleUrl,
+  FEDERATION_ARTICLE_SETTING,
+  FEDERATION_AUTHOR_SETTING,
   FederationExportBundle,
   isFederationPublicArticleRow,
   FederationExportArticleRow,
+  resolveFederationExportGate,
   writeFederationExportBundle,
 } from '#connectors/article/federationExportService.js'
 
@@ -70,6 +73,51 @@ describe('federationExportService', () => {
         })
       )
     ).toBe(false)
+  })
+
+  test('requires explicit author opt-in before a public article can federate', () => {
+    expect(
+      resolveFederationExportGate({
+        row: publicRow(),
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+      })
+    ).toEqual({
+      eligible: true,
+      reason: 'eligible',
+      effectiveArticleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+    })
+
+    expect(
+      resolveFederationExportGate({
+        row: publicRow(),
+        authorSetting: FEDERATION_AUTHOR_SETTING.disabled,
+      }).reason
+    ).toBe('author_not_opted_in')
+
+    expect(
+      resolveFederationExportGate({
+        row: publicRow(),
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleSetting: FEDERATION_ARTICLE_SETTING.disabled,
+      }).reason
+    ).toBe('article_disabled')
+  })
+
+  test('does not let federation settings override the public-only boundary', () => {
+    expect(
+      resolveFederationExportGate({
+        row: publicRow({ access: ARTICLE_ACCESS_TYPE.paywall }),
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleSetting: FEDERATION_ARTICLE_SETTING.enabled,
+      }).reason
+    ).toBe('article_not_public')
+
+    expect(
+      resolveFederationExportGate({
+        row: publicRow({ articleState: ARTICLE_STATE.archived }),
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+      }).reason
+    ).toBe('article_not_public')
   })
 
   test('builds homepage context and excludes non-public selected rows', () => {

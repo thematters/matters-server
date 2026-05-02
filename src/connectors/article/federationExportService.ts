@@ -39,6 +39,39 @@ export type FederationExportArticleRow = {
   author: FederationExportAuthor
 }
 
+export const FEDERATION_AUTHOR_SETTING = {
+  enabled: 'enabled',
+  disabled: 'disabled',
+} as const
+
+export const FEDERATION_ARTICLE_SETTING = {
+  inherit: 'inherit',
+  enabled: 'enabled',
+  disabled: 'disabled',
+} as const
+
+export type FederationAuthorSetting =
+  (typeof FEDERATION_AUTHOR_SETTING)[keyof typeof FEDERATION_AUTHOR_SETTING]
+
+export type FederationArticleSetting =
+  (typeof FEDERATION_ARTICLE_SETTING)[keyof typeof FEDERATION_ARTICLE_SETTING]
+
+export type FederationExportGateInput = {
+  row: FederationExportArticleRow
+  authorSetting?: FederationAuthorSetting | null
+  articleSetting?: FederationArticleSetting | null
+}
+
+export type FederationExportGateResult = {
+  eligible: boolean
+  reason:
+    | 'eligible'
+    | 'article_not_public'
+    | 'author_not_opted_in'
+    | 'article_disabled'
+  effectiveArticleSetting: FederationArticleSetting
+}
+
 export type FederationExportBundleInput = {
   rows: FederationExportArticleRow[]
   siteDomain: string
@@ -116,6 +149,45 @@ export const isFederationPublicArticleRow = (row: FederationExportArticleRow) =>
   row.author.state !== USER_STATE.archived &&
   !!row.author.userName &&
   !!row.author.displayName
+
+export const resolveFederationExportGate = ({
+  row,
+  authorSetting,
+  articleSetting,
+}: FederationExportGateInput): FederationExportGateResult => {
+  const effectiveArticleSetting =
+    articleSetting ?? FEDERATION_ARTICLE_SETTING.inherit
+
+  if (!isFederationPublicArticleRow(row)) {
+    return {
+      eligible: false,
+      reason: 'article_not_public',
+      effectiveArticleSetting,
+    }
+  }
+
+  if (effectiveArticleSetting === FEDERATION_ARTICLE_SETTING.disabled) {
+    return {
+      eligible: false,
+      reason: 'article_disabled',
+      effectiveArticleSetting,
+    }
+  }
+
+  if (authorSetting !== FEDERATION_AUTHOR_SETTING.enabled) {
+    return {
+      eligible: false,
+      reason: 'author_not_opted_in',
+      effectiveArticleSetting,
+    }
+  }
+
+  return {
+    eligible: true,
+    reason: 'eligible',
+    effectiveArticleSetting,
+  }
+}
 
 const toIsoString = (value: Date | string) => new Date(value).toISOString()
 
