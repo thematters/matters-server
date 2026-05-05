@@ -65,6 +65,13 @@ describe('federationExportService', () => {
         shortHash: 'abc123',
       })
     ).toBe('https://matters.town/a/abc123')
+
+    expect(
+      buildMattersArticleUrl({
+        siteDomain: 'matters.town',
+        articleId: '101',
+      })
+    ).toBe('https://matters.town/a/101')
   })
 
   test('accepts only active public articles with usable author identity', () => {
@@ -83,6 +90,20 @@ describe('federationExportService', () => {
       isFederationPublicArticleRow(
         publicRow({
           author: { ...publicRow().author, state: USER_STATE.archived },
+        })
+      )
+    ).toBe(false)
+    expect(
+      isFederationPublicArticleRow(
+        publicRow({
+          author: { ...publicRow().author, userName: null },
+        })
+      )
+    ).toBe(false)
+    expect(
+      isFederationPublicArticleRow(
+        publicRow({
+          author: { ...publicRow().author, displayName: null },
         })
       )
     ).toBe(false)
@@ -176,6 +197,38 @@ describe('federationExportService', () => {
       'eligible',
       'article_disabled',
       'article_not_public',
+    ])
+  })
+
+  test('reports the default public-only preflight gate without strict opt-in', () => {
+    const report = evaluateFederationExportRows({
+      rows: [
+        publicRow(),
+        publicRow({
+          articleId: '102',
+          access: ARTICLE_ACCESS_TYPE.paywall,
+          federationSetting: FEDERATION_ARTICLE_SETTING.enabled,
+        }),
+      ],
+    })
+
+    expect(report.enforceFederationGate).toBe(false)
+    expect(report.selected).toBe(2)
+    expect(report.eligible).toBe(1)
+    expect(report.skipped).toBe(1)
+    expect(report.decisions).toEqual([
+      expect.objectContaining({
+        articleId: '101',
+        eligible: true,
+        reason: 'eligible',
+        articleSetting: null,
+      }),
+      expect.objectContaining({
+        articleId: '102',
+        eligible: false,
+        reason: 'article_not_public',
+        articleSetting: FEDERATION_ARTICLE_SETTING.enabled,
+      }),
     ])
   })
 
