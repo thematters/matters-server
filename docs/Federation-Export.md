@@ -1,13 +1,13 @@
 # Federation Export Contract
 
-This document records the non-production contract for turning selected public Matters articles into ActivityPub export bundles.
+This document records the server-side contract for deciding whether selected Matters articles may be exported to external federation services.
 
 ## Current scope
 
-- Export is explicit and bounded by selected article IDs.
-- Export reads through the read-only database connection or through a fixture file.
-- Export writes local files only.
-- Export does not deploy, push to IPFS, mutate production data, or publish ActivityPub by itself.
+- Server-side export eligibility is explicit and bounded by selected article IDs.
+- `matters-server` owns federation settings, public-only gate decisions, and read-only candidate loading.
+- `matters-server` does not build ActivityPub bundles, write files, deploy, push to IPFS/IPNS, or publish ActivityPub.
+- Bundle generation and retryable file publication should live outside the main server runtime, for example in `lambda-handlers`.
 
 ## Eligibility gate
 
@@ -20,11 +20,11 @@ The first production-facing contract is intentionally conservative:
 | Public boundary | Article must still be active, public, and attached to an active author identity. |
 | Non-public override | No setting can override paid, private, archived, missing-identity, or otherwise non-public content. |
 
-The current pure function is `resolveFederationExportGate` in `src/connectors/article/federationExportService.ts`. It is a contract scaffold only; no database column or GraphQL mutation is created in this slice.
+The current pure function is `resolveFederationExportGate` in `src/connectors/article/federationExportService.ts`.
 
-The exporter can run in strict mode with `--enforce-federation-gate` or `MATTERS_FEDERATION_REQUIRE_OPT_IN=true`. Without strict mode, the current preflight behavior is preserved and only the public-only article boundary is applied.
+The candidate loader can include federation setting joins when strict opt-in input is needed. Without that strict input, the service preserves the public-only preflight boundary.
 
-Every generated bundle includes a `decisionReport` in the CLI output. It records how many selected rows were eligible or skipped and the per-article skip reason, without exposing credentials or private content.
+`evaluateFederationExportRows` returns a `decisionReport` with selected, eligible, skipped, and per-article skip reasons. Downstream async workers can persist or log that report without exposing credentials or private content.
 
 ## Durable state scaffold
 
@@ -40,6 +40,7 @@ Both tables include `updated_by`, `created_at`, and `updated_at`. The migration 
 ## Deferred production work
 
 - Add product copy and UI controls.
-- Wire export trigger behavior after publishing or editing an eligible article.
+- Move bundle generation and file publication to `lambda-handlers`.
+- Wire async export trigger behavior after publishing or editing an eligible article.
 - Add audit logs for export decisions and skipped reasons.
 - Complete legal/privacy approval before beta rollout.

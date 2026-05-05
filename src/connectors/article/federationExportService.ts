@@ -1,5 +1,4 @@
 import type { Connections } from '#definitions/index.js'
-import type { HomepageContext } from '@matters/ipns-site-generator'
 import type { Knex } from 'knex'
 
 import {
@@ -7,12 +6,6 @@ import {
   ARTICLE_STATE,
   USER_STATE,
 } from '#common/enums/index.js'
-import {
-  makeActivityPubBundles,
-  makeHomepageBundles,
-} from '@matters/ipns-site-generator'
-import { mkdir, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 
 export type FederationExportAuthor = {
   id: string
@@ -86,59 +79,6 @@ export type FederationExportDecisionReport = {
   eligible: number
   skipped: number
   decisions: FederationExportDecision[]
-}
-
-export type FederationExportBundleInput = {
-  rows: FederationExportArticleRow[]
-  siteDomain: string
-  webfDomain: string
-  generatedAt?: Date | string
-  actor?: Partial<FederationExportAuthor>
-  enforceFederationGate?: boolean
-}
-
-export type FederationExportFile = {
-  path: string
-  content: string
-}
-
-export type FederationExportBundle = {
-  context: HomepageContext
-  files: FederationExportFile[]
-  manifest: FederationExportManifest
-  decisionReport: FederationExportDecisionReport
-}
-
-export type FederationExportManifest = {
-  version: 1
-  generatedAt: string
-  generator: {
-    package: '@matters/ipns-site-generator'
-    mode: 'homepage-and-activitypub'
-  }
-  visibility: {
-    federatedPublicOnly: true
-  }
-  actor: {
-    handle: string
-    displayName: string
-    webfingerSubject: string
-    sourceProfileUrl: string
-    sourceActorId: string
-  }
-  files: {
-    homepage: string
-    rss: string
-    feed: string
-    webfinger: string
-    actor: string
-    outbox: string
-  }
-  articles: Array<{
-    id: string
-    sourceUri: string
-    visibility: 'public'
-  }>
 }
 
 type ArticleExportQueryRow = {
@@ -255,8 +195,6 @@ export const evaluateFederationExportRows = ({
   }
 }
 
-const toIsoString = (value: Date | string) => new Date(value).toISOString()
-
 export const buildMattersArticleUrl = ({
   siteDomain,
   articleId,
@@ -266,208 +204,6 @@ export const buildMattersArticleUrl = ({
   articleId: string
   shortHash?: string | null
 }) => `https://${siteDomain}/a/${shortHash || articleId}`
-
-export const buildFederationHomepageContext = ({
-  rows,
-  siteDomain,
-  webfDomain,
-  generatedAt = new Date(),
-  actor,
-  enforceFederationGate = false,
-}: FederationExportBundleInput): HomepageContext => {
-  const decisionReport = evaluateFederationExportRows({
-    rows,
-    enforceFederationGate,
-  })
-  const publicRows = rows.filter(
-    (_, index) => decisionReport.decisions[index].eligible
-  )
-  if (publicRows.length === 0) {
-    throw new Error('No selected public articles are eligible for federation')
-  }
-
-  const firstAuthor = publicRows[0].author
-  const author = {
-    ...firstAuthor,
-    ...actor,
-  }
-  if (!author.userName || !author.displayName) {
-    throw new Error('Federation actor requires userName and displayName')
-  }
-
-  const sourceProfileUrl = `https://${siteDomain}/@${author.userName}`
-  const articleDigests = publicRows.map((row) => {
-    const sourceUri = buildMattersArticleUrl({
-      siteDomain,
-      articleId: row.articleId,
-      shortHash: row.shortHash,
-    })
-
-    return {
-      id: row.articleId,
-      author: {
-        userName: author.userName!,
-        displayName: author.displayName!,
-        description: author.description ?? undefined,
-      },
-      title: row.title,
-      summary: row.summary,
-      date: toIsoString(row.createdAt),
-      image: row.coverUrl ?? undefined,
-      content: row.content,
-      tags: row.tags ?? [],
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt ?? row.createdAt,
-      access: row.access,
-      status: row.articleState,
-      uri: sourceUri,
-      sourceUri,
-    }
-  })
-
-  return {
-    meta: {
-      siteDomain,
-      title: `${author.displayName} on Matters`,
-      description:
-        author.description ||
-        `Public Matters articles by ${author.displayName}`,
-      authorName: author.displayName,
-    },
-    byline: {
-      date: toIsoString(generatedAt),
-      author: {
-        userName: author.userName,
-        displayName: author.displayName,
-        description: author.description ?? undefined,
-        name: `${author.displayName} (${author.userName})`,
-        uri: sourceProfileUrl,
-        ipnsKey: author.ipnsKey ?? undefined,
-        webfDomain,
-      },
-      website: {
-        name: 'Matters',
-        uri: `https://${siteDomain}`,
-      },
-    },
-    articles: articleDigests,
-  }
-}
-
-export const buildFederationExportManifest = (
-  context: HomepageContext,
-  generatedAt: Date | string
-): FederationExportManifest => {
-  const author = context.byline.author
-  const webfDomain = author.webfDomain
-  if (!webfDomain) {
-    throw new Error('Federation actor requires webfDomain')
-  }
-
-  return {
-    version: 1,
-    generatedAt: toIsoString(generatedAt),
-    generator: {
-      package: '@matters/ipns-site-generator',
-      mode: 'homepage-and-activitypub',
-    },
-    visibility: {
-      federatedPublicOnly: true,
-    },
-    actor: {
-      handle: author.userName,
-      displayName: author.displayName,
-      webfingerSubject: `acct:${author.userName}@${webfDomain}`,
-      sourceProfileUrl: author.uri,
-      sourceActorId: `https://${webfDomain}/about.jsonld`,
-    },
-    files: {
-      homepage: 'index.html',
-      rss: 'rss.xml',
-      feed: 'feed.json',
-      webfinger: '.well-known/webfinger',
-      actor: 'about.jsonld',
-      outbox: 'outbox.jsonld',
-    },
-    articles: context.articles.map((article) => ({
-      id: article.id,
-      sourceUri: article.sourceUri,
-      visibility: 'public',
-    })),
-  }
-}
-
-export const buildFederationExportBundle = (
-  input: FederationExportBundleInput
-): FederationExportBundle => {
-  const generatedAt = input.generatedAt ?? new Date()
-  const decisionReport = evaluateFederationExportRows({
-    rows: input.rows,
-    enforceFederationGate: input.enforceFederationGate,
-  })
-  const context = buildFederationHomepageContext({
-    ...input,
-    generatedAt,
-  })
-  const manifest = buildFederationExportManifest(context, generatedAt)
-  const files = [
-    ...makeHomepageBundles(context),
-    ...makeActivityPubBundles(context),
-    {
-      path: 'activitypub-manifest.json',
-      content: JSON.stringify(manifest, null, 2),
-    },
-  ]
-
-  return { context, files, manifest, decisionReport }
-}
-
-const resolveBundleOutputPath = ({
-  outputDir,
-  filePath,
-}: {
-  outputDir: string
-  filePath: string
-}) => {
-  const root = path.resolve(outputDir)
-  const outputPath = path.resolve(root, filePath)
-  const relativePath = path.relative(root, outputPath)
-
-  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-    throw new Error(`Unsafe federation export file path: ${filePath}`)
-  }
-
-  return outputPath
-}
-
-export const writeFederationExportBundle = async ({
-  bundle,
-  outputDir,
-}: {
-  bundle: FederationExportBundle
-  outputDir: string
-}) => {
-  const root = path.resolve(outputDir)
-  const written: string[] = []
-  const filesByPath = new Map(
-    bundle.files.map((file) => [file.path, file.content])
-  )
-
-  await mkdir(root, { recursive: true })
-
-  for (const [filePath, content] of filesByPath) {
-    const outputPath = resolveBundleOutputPath({
-      outputDir: root,
-      filePath,
-    })
-
-    await mkdir(path.dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, content, 'utf8')
-    written.push(path.relative(root, outputPath))
-  }
-
-  return written.sort()
-}
 
 export class FederationExportService {
   private knexRO: Knex

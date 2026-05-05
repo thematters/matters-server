@@ -3,24 +3,17 @@ import {
   ARTICLE_STATE,
   USER_STATE,
 } from '#common/enums/index.js'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import path from 'node:path'
 import { jest } from '@jest/globals'
 import {
-  buildFederationExportBundle,
-  buildFederationHomepageContext,
   buildMattersArticleUrl,
   evaluateFederationExportRows,
   FEDERATION_ARTICLE_SETTING,
   FEDERATION_AUTHOR_SETTING,
-  FederationExportBundle,
   FederationExportService,
   isFederationPublicArticleRow,
   FederationExportArticleRow,
   resolveFederationExportGate,
   resolveFederationExportGateForRow,
-  writeFederationExportBundle,
 } from '#connectors/article/federationExportService.js'
 
 const publicRow = (
@@ -154,50 +147,6 @@ describe('federationExportService', () => {
     ).toBe(true)
   })
 
-  test('builds homepage context and excludes non-public selected rows', () => {
-    const context = buildFederationHomepageContext({
-      rows: [
-        publicRow(),
-        publicRow({
-          articleId: '102',
-          shortHash: 'private',
-          access: ARTICLE_ACCESS_TYPE.paywall,
-        }),
-      ],
-      siteDomain: 'matters.town',
-      webfDomain: 'staging-gateway.matters.town',
-      generatedAt: '2026-05-02T02:00:00.000Z',
-    })
-
-    expect(context.byline.author.userName).toBe('mashbean')
-    expect(context.byline.author.webfDomain).toBe(
-      'staging-gateway.matters.town'
-    )
-    expect(context.articles).toHaveLength(1)
-    expect(context.articles[0].sourceUri).toBe('https://matters.town/a/abc123')
-  })
-
-  test('can enforce the federation opt-in gate when building homepage context', () => {
-    const context = buildFederationHomepageContext({
-      rows: [
-        publicRow(),
-        publicRow({
-          articleId: '103',
-          federationSetting: FEDERATION_ARTICLE_SETTING.inherit,
-          author: {
-            ...publicRow().author,
-            federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
-          },
-        }),
-      ],
-      siteDomain: 'matters.town',
-      webfDomain: 'staging-gateway.matters.town',
-      enforceFederationGate: true,
-    })
-
-    expect(context.articles.map((article) => article.id)).toEqual(['103'])
-  })
-
   test('reports selected, eligible, and skipped rows for auditability', () => {
     const report = evaluateFederationExportRows({
       rows: [
@@ -228,130 +177,6 @@ describe('federationExportService', () => {
       'article_disabled',
       'article_not_public',
     ])
-  })
-
-  test('fails closed when no selected public article can be exported', () => {
-    expect(() =>
-      buildFederationHomepageContext({
-        rows: [publicRow({ access: ARTICLE_ACCESS_TYPE.paywall })],
-        siteDomain: 'matters.town',
-        webfDomain: 'staging-gateway.matters.town',
-      })
-    ).toThrow('No selected public articles')
-  })
-
-  test('fails closed when the strict federation gate excludes every row', () => {
-    expect(() =>
-      buildFederationHomepageContext({
-        rows: [publicRow()],
-        siteDomain: 'matters.town',
-        webfDomain: 'staging-gateway.matters.town',
-        enforceFederationGate: true,
-      })
-    ).toThrow('No selected public articles')
-  })
-
-  test('generates homepage, ActivityPub files, and gateway manifest', () => {
-    const bundle = buildFederationExportBundle({
-      rows: [publicRow()],
-      siteDomain: 'matters.town',
-      webfDomain: 'staging-gateway.matters.town',
-      generatedAt: '2026-05-02T02:00:00.000Z',
-    })
-    const paths = bundle.files.map((file) => file.path)
-    const outbox = JSON.parse(
-      bundle.files.find((file) => file.path === 'outbox.jsonld')!.content
-    )
-
-    expect(paths).toEqual(
-      expect.arrayContaining([
-        'index.html',
-        'rss.xml',
-        'feed.json',
-        '.well-known/webfinger',
-        'about.jsonld',
-        'outbox.jsonld',
-        'activitypub-manifest.json',
-      ])
-    )
-    expect(bundle.manifest.actor.webfingerSubject).toBe(
-      'acct:mashbean@staging-gateway.matters.town'
-    )
-    expect(bundle.manifest.version).toBe(1)
-    expect(bundle.manifest.visibility.federatedPublicOnly).toBe(true)
-    expect(bundle.decisionReport.eligible).toBe(1)
-    expect(outbox.orderedItems[0].object.type).toBe('Article')
-  })
-
-  test('writes generated files to a local output directory', async () => {
-    const outputDir = await mkdtemp(
-      path.join(tmpdir(), 'matters-federation-export-')
-    )
-
-    try {
-      const bundle = buildFederationExportBundle({
-        rows: [publicRow()],
-        siteDomain: 'matters.town',
-        webfDomain: 'staging-gateway.matters.town',
-        generatedAt: '2026-05-02T02:00:00.000Z',
-      })
-      const written = await writeFederationExportBundle({
-        bundle,
-        outputDir,
-      })
-      const manifest = JSON.parse(
-        await readFile(
-          path.join(outputDir, 'activitypub-manifest.json'),
-          'utf8'
-        )
-      )
-
-      expect(written).toEqual(
-        expect.arrayContaining([
-          '.well-known/webfinger',
-          'about.jsonld',
-          'activitypub-manifest.json',
-          'outbox.jsonld',
-        ])
-      )
-      expect(manifest.actor.webfingerSubject).toBe(
-        'acct:mashbean@staging-gateway.matters.town'
-      )
-      expect(manifest.version).toBe(1)
-      expect(manifest.visibility.federatedPublicOnly).toBe(true)
-      expect(
-        written.filter((file) => file === 'activitypub-manifest.json')
-      ).toHaveLength(1)
-    } finally {
-      await rm(outputDir, { force: true, recursive: true })
-    }
-  })
-
-  test('rejects generated file paths outside the output directory', async () => {
-    const outputDir = await mkdtemp(
-      path.join(tmpdir(), 'matters-federation-export-')
-    )
-    const safeBundle = buildFederationExportBundle({
-      rows: [publicRow()],
-      siteDomain: 'matters.town',
-      webfDomain: 'staging-gateway.matters.town',
-      generatedAt: '2026-05-02T02:00:00.000Z',
-    })
-    const unsafeBundle: FederationExportBundle = {
-      ...safeBundle,
-      files: [{ path: '../outside.txt', content: 'nope' }],
-    }
-
-    try {
-      await expect(
-        writeFederationExportBundle({
-          bundle: unsafeBundle,
-          outputDir,
-        })
-      ).rejects.toThrow('Unsafe federation export file path')
-    } finally {
-      await rm(outputDir, { force: true, recursive: true })
-    }
   })
 
   test('loads selected article rows from read-only DB without federation setting joins by default', async () => {
