@@ -4,7 +4,14 @@ import type { Connections } from '#definitions/index.js'
 import _get from 'lodash/get.js'
 import { jest } from '@jest/globals'
 
-import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from '#common/enums/index.js'
+import {
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  NODE_TYPES,
+  NOTICE_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+  USER_FEATURE_FLAG_TYPE,
+} from '#common/enums/index.js'
 import {
   AtomService,
   CommentService,
@@ -58,6 +65,14 @@ const PUT_COMMENT = /* GraphQL */ `
 const DELETE_COMMENT = /* GraphQL */ `
   mutation ($input: DeleteCommentInput!) {
     deleteComment(input: $input) {
+      state
+    }
+  }
+`
+
+const COMMUNITY_WATCH_REMOVE_COMMENT = /* GraphQL */ `
+  mutation ($input: CommunityWatchRemoveCommentInput!) {
+    communityWatchRemoveComment(input: $input) {
       state
     }
   }
@@ -495,6 +510,89 @@ describe('delete commment', () => {
       },
     })
     expect(dataDeleted.deleteComment.state).toBe('archived')
+  })
+})
+
+describe('community watch remove comment', () => {
+  test('remove an article comment and write audit evidence', async () => {
+    const watcher = await userService.create({
+      userName: `watcher${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+    })
+    await atomService.create({
+      table: 'user_feature_flag',
+      data: {
+        userId: watcher.id,
+        type: USER_FEATURE_FLAG_TYPE.communityWatch,
+      },
+    })
+
+    const article = await atomService.articleIdLoader.load('1')
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>spam ad</p>',
+        authorId: '2',
+        targetId: article.id,
+        targetTypeId,
+        parentCommentId: null,
+        type: COMMENT_TYPE.article,
+        state: COMMENT_STATE.active,
+      },
+    })
+    const mockTrigger = jest.fn()
+    const server = await testClient({
+      userId: watcher.id,
+      isAuth: true,
+      connections,
+      dataSources: { notificationService: { trigger: mockTrigger } },
+    })
+
+    const { errors, data } = await server.executeOperation({
+      query: COMMUNITY_WATCH_REMOVE_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
+          reason: 'spam_ad',
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.communityWatchRemoveComment.state).toBe(COMMENT_STATE.banned)
+
+    const auditAction = await atomService.findFirst({
+      table: 'community_watch_action',
+      where: { commentId: comment.id },
+    })
+    expect(auditAction).toMatchObject({
+      commentId: comment.id,
+      commentType: COMMENT_TYPE.article,
+      targetType: COMMENT_TYPE.article,
+      targetId: article.id,
+      targetShortHash: article.shortHash,
+      reason: 'spam_ad',
+      actorId: watcher.id,
+      commentAuthorId: '2',
+      originalContent: '<p>spam ad</p>',
+      originalState: COMMENT_STATE.active,
+      actionState: 'active',
+      appealState: 'none',
+      reviewState: 'pending',
+    })
+    expect(auditAction.contentExpiresAt.getTime()).toBeGreaterThan(
+      auditAction.createdAt.getTime()
+    )
+    expect(mockTrigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
+        recipientId: '2',
+      })
+    )
   })
 })
 
