@@ -529,6 +529,7 @@ export default /* GraphQL */ `
     bypassSpamDetection
     unlimitedArticleFetch
     readSpamStatus
+    communityWatch
   }
 
   enum ReportReason {

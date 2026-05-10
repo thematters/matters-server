@@ -4530,6 +4530,7 @@ export type GQLUserFeatureFlag = {
 
 export type GQLUserFeatureFlagType =
   | 'bypassSpamDetection'
+  | 'communityWatch'
   | 'readSpamStatus'
   | 'unlimitedArticleFetch'
 

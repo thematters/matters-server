@@ -2624,6 +2624,7 @@ enum UserFeatureFlagType {
   bypassSpamDetection
   unlimitedArticleFetch
   readSpamStatus
+  communityWatch
 }
 
 enum ReportReason {
