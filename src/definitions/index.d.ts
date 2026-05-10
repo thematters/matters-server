@@ -89,6 +89,7 @@ import type {
 } from './circle.js'
 import type { Collection, CollectionArticle } from './collection.js'
 import type { Comment, FeaturedCommentMaterialized } from './comment.js'
+import type { CommunityWatchAction } from './communityWatch.js'
 import type { Draft } from './draft.js'
 import type { TopicChannelFeedback } from './feedback.ts'
 import type {
@@ -149,6 +150,7 @@ export * from './tag.js'
 export * from './circle.js'
 export * from './collection.js'
 export * from './comment.js'
+export * from './communityWatch.js'
 export * from './language.js'
 export * from './notification.js'
 export * from './generic.js'
@@ -264,6 +266,7 @@ export interface TableTypeMap {
   collection: Collection
   collection_article: CollectionArticle
   comment: Comment
+  community_watch_action: CommunityWatchAction
   crypto_wallet: CryptoWallet
   crypto_wallet_signature: CryptoWalletSignature
   customer: Customer

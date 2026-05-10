@@ -1,3 +1,4 @@
+import communityWatchRemoveComment from './communityWatchRemoveComment.js'
 import deleteComment from './deleteComment.js'
 import pinComment from './pinComment.js'
 import putComment from './putComment.js'
@@ -17,5 +18,6 @@ export default {
     unvoteComment,
     updateCommentsState,
     togglePinComment,
+    communityWatchRemoveComment,
   },
 }

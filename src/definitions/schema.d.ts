@@ -1437,6 +1437,13 @@ export type GQLCommentsInput = {
   sort?: InputMaybe<GQLCommentSort>
 }
 
+export type GQLCommunityWatchRemoveCommentInput = {
+  id: Scalars['ID']['input']
+  reason: GQLCommunityWatchRemoveCommentReason
+}
+
+export type GQLCommunityWatchRemoveCommentReason = 'porn_ad' | 'spam_ad'
+
 export type GQLConfirmVerificationCodeInput = {
   code: Scalars['String']['input']
   email: Scalars['String']['input']
@@ -2084,6 +2091,8 @@ export type GQLMutation = {
   clearReadHistory: GQLUser
   /** Clear search history for user. */
   clearSearchHistory?: Maybe<Scalars['Boolean']['output']>
+  /** Remove a spam comment as a Community Watch member. */
+  communityWatchRemoveComment: GQLComment
   /** Confirm verification code from email. */
   confirmVerificationCode: Scalars['ID']['output']
   /** Create Stripe Connect account for Payout */
@@ -2305,6 +2314,10 @@ export type GQLMutationClassifyArticlesChannelsArgs = {
 
 export type GQLMutationClearReadHistoryArgs = {
   input: GQLClearReadHistoryInput
+}
+
+export type GQLMutationCommunityWatchRemoveCommentArgs = {
+  input: GQLCommunityWatchRemoveCommentInput
 }
 
 export type GQLMutationConfirmVerificationCodeArgs = {
@@ -5340,6 +5353,8 @@ export type GQLResolversTypes = ResolversObject<{
   CommentType: GQLCommentType
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
+  CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
+  CommunityWatchRemoveCommentReason: GQLCommunityWatchRemoveCommentReason
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
   ConnectStripeAccountResult: ResolverTypeWrapper<GQLConnectStripeAccountResult>
@@ -6050,6 +6065,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CommentNotice: NoticeItemModel
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
+  CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
   ConnectStripeAccountResult: GQLConnectStripeAccountResult
@@ -8678,6 +8694,12 @@ export type GQLMutationResolvers<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
+  >
+  communityWatchRemoveComment?: Resolver<
+    GQLResolversTypes['Comment'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationCommunityWatchRemoveCommentArgs, 'input'>
   >
   confirmVerificationCode?: Resolver<
     GQLResolversTypes['ID'],
