@@ -111,6 +111,9 @@ type Mutation {
   """Update a comments' state."""
   updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
 
+  """Remove a spam comment as a Community Watch member."""
+  communityWatchRemoveComment(input: CommunityWatchRemoveCommentInput!): Comment!
+
   """Pin a comment."""
   pinComment(input: PinCommentInput!): Comment!
 
@@ -1722,6 +1725,16 @@ input UnvoteCommentInput {
 input UpdateCommentsStateInput {
   ids: [ID!]!
   state: CommentState!
+}
+
+input CommunityWatchRemoveCommentInput {
+  id: ID!
+  reason: CommunityWatchRemoveCommentReason!
+}
+
+enum CommunityWatchRemoveCommentReason {
+  porn_ad
+  spam_ad
 }
 
 """Enums for vote types."""
