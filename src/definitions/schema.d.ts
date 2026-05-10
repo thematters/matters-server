@@ -11,6 +11,7 @@ import { ETHWallet as ETHWalletModel } from './wallet.js'
 import { Tag as TagModel } from './tag.js'
 import { Collection as CollectionModel } from './collection.js'
 import { Comment as CommentModel } from './comment.js'
+import { CommunityWatchAction as CommunityWatchActionModel } from './communityWatch.js'
 import {
   Article as ArticleModel,
   ArticleVersion as ArticleVersionModel,
@@ -1441,11 +1442,53 @@ export type GQLCommentsInput = {
 
 export type GQLCommunityWatchAction = {
   __typename?: 'CommunityWatchAction'
+  actionState: GQLCommunityWatchActionState
+  actorDisplayName: Scalars['String']['output']
+  appealState: GQLCommunityWatchAppealState
+  commentId: Scalars['ID']['output']
+  contentCleared: Scalars['Boolean']['output']
   createdAt: Scalars['DateTime']['output']
+  originalContent?: Maybe<Scalars['String']['output']>
   reason: GQLCommunityWatchRemoveCommentReason
+  reviewState: GQLCommunityWatchReviewState
+  sourceId: Scalars['ID']['output']
+  sourceTitle: Scalars['String']['output']
+  sourceType: GQLCommunityWatchActionSourceType
   /** Public identifier used by the Community Watch transparency page. */
   uuid: Scalars['ID']['output']
 }
+
+export type GQLCommunityWatchActionConnection = GQLConnection & {
+  __typename?: 'CommunityWatchActionConnection'
+  edges?: Maybe<Array<GQLCommunityWatchActionEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLCommunityWatchActionEdge = {
+  __typename?: 'CommunityWatchActionEdge'
+  cursor: Scalars['String']['output']
+  node: GQLCommunityWatchAction
+}
+
+export type GQLCommunityWatchActionInput = {
+  uuid: Scalars['ID']['input']
+}
+
+export type GQLCommunityWatchActionSourceType = 'article' | 'moment'
+
+export type GQLCommunityWatchActionState = 'active' | 'restored' | 'voided'
+
+export type GQLCommunityWatchActionsInput = {
+  actionState?: InputMaybe<GQLCommunityWatchActionState>
+  after?: InputMaybe<Scalars['String']['input']>
+  appealState?: InputMaybe<GQLCommunityWatchAppealState>
+  first?: InputMaybe<Scalars['Int']['input']>
+  reason?: InputMaybe<GQLCommunityWatchRemoveCommentReason>
+  reviewState?: InputMaybe<GQLCommunityWatchReviewState>
+}
+
+export type GQLCommunityWatchAppealState = 'none' | 'received' | 'resolved'
 
 export type GQLCommunityWatchRemoveCommentInput = {
   id: Scalars['ID']['input']
@@ -1453,6 +1496,12 @@ export type GQLCommunityWatchRemoveCommentInput = {
 }
 
 export type GQLCommunityWatchRemoveCommentReason = 'porn_ad' | 'spam_ad'
+
+export type GQLCommunityWatchReviewState =
+  | 'pending'
+  | 'reason_adjusted'
+  | 'reversed'
+  | 'upheld'
 
 export type GQLConfirmVerificationCodeInput = {
   code: Scalars['String']['input']
@@ -3273,6 +3322,10 @@ export type GQLQuery = {
   channel?: Maybe<GQLChannel>
   channels: Array<GQLChannel>
   circle?: Maybe<GQLCircle>
+  /** One public Community Watch audit record. */
+  communityWatchAction?: Maybe<GQLCommunityWatchAction>
+  /** Recent public Community Watch audit records. */
+  communityWatchActions: GQLCommunityWatchActionConnection
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
   moment?: Maybe<GQLMoment>
@@ -3313,6 +3366,14 @@ export type GQLQueryChannelsArgs = {
 
 export type GQLQueryCircleArgs = {
   input: GQLCircleInput
+}
+
+export type GQLQueryCommunityWatchActionArgs = {
+  input: GQLCommunityWatchActionInput
+}
+
+export type GQLQueryCommunityWatchActionsArgs = {
+  input: GQLCommunityWatchActionsInput
 }
 
 export type GQLQueryExchangeRatesArgs = {
@@ -5027,6 +5088,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLCommentConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['CommentEdge']>>
       })
+    | (Omit<GQLCommunityWatchActionConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['CommunityWatchActionEdge']>>
+      })
     | (Omit<GQLDraftConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['DraftEdge']>>
       })
@@ -5363,9 +5427,25 @@ export type GQLResolversTypes = ResolversObject<{
   CommentType: GQLCommentType
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
-  CommunityWatchAction: ResolverTypeWrapper<GQLCommunityWatchAction>
+  CommunityWatchAction: ResolverTypeWrapper<CommunityWatchActionModel>
+  CommunityWatchActionConnection: ResolverTypeWrapper<
+    Omit<GQLCommunityWatchActionConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['CommunityWatchActionEdge']>>
+    }
+  >
+  CommunityWatchActionEdge: ResolverTypeWrapper<
+    Omit<GQLCommunityWatchActionEdge, 'node'> & {
+      node: GQLResolversTypes['CommunityWatchAction']
+    }
+  >
+  CommunityWatchActionInput: GQLCommunityWatchActionInput
+  CommunityWatchActionSourceType: GQLCommunityWatchActionSourceType
+  CommunityWatchActionState: GQLCommunityWatchActionState
+  CommunityWatchActionsInput: GQLCommunityWatchActionsInput
+  CommunityWatchAppealState: GQLCommunityWatchAppealState
   CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
   CommunityWatchRemoveCommentReason: GQLCommunityWatchRemoveCommentReason
+  CommunityWatchReviewState: GQLCommunityWatchReviewState
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
   ConnectStripeAccountResult: ResolverTypeWrapper<GQLConnectStripeAccountResult>
@@ -6076,7 +6156,18 @@ export type GQLResolversParentTypes = ResolversObject<{
   CommentNotice: NoticeItemModel
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
-  CommunityWatchAction: GQLCommunityWatchAction
+  CommunityWatchAction: CommunityWatchActionModel
+  CommunityWatchActionConnection: Omit<
+    GQLCommunityWatchActionConnection,
+    'edges'
+  > & {
+    edges?: Maybe<Array<GQLResolversParentTypes['CommunityWatchActionEdge']>>
+  }
+  CommunityWatchActionEdge: Omit<GQLCommunityWatchActionEdge, 'node'> & {
+    node: GQLResolversParentTypes['CommunityWatchAction']
+  }
+  CommunityWatchActionInput: GQLCommunityWatchActionInput
+  CommunityWatchActionsInput: GQLCommunityWatchActionsInput
   CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
@@ -7982,13 +8073,78 @@ export type GQLCommunityWatchActionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CommunityWatchAction'] = GQLResolversParentTypes['CommunityWatchAction']
 > = ResolversObject<{
+  actionState?: Resolver<
+    GQLResolversTypes['CommunityWatchActionState'],
+    ParentType,
+    ContextType
+  >
+  actorDisplayName?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType
+  >
+  appealState?: Resolver<
+    GQLResolversTypes['CommunityWatchAppealState'],
+    ParentType,
+    ContextType
+  >
+  commentId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  contentCleared?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  originalContent?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   reason?: Resolver<
     GQLResolversTypes['CommunityWatchRemoveCommentReason'],
     ParentType,
     ContextType
   >
+  reviewState?: Resolver<
+    GQLResolversTypes['CommunityWatchReviewState'],
+    ParentType,
+    ContextType
+  >
+  sourceId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  sourceTitle?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  sourceType?: Resolver<
+    GQLResolversTypes['CommunityWatchActionSourceType'],
+    ParentType,
+    ContextType
+  >
   uuid?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCommunityWatchActionConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CommunityWatchActionConnection'] = GQLResolversParentTypes['CommunityWatchActionConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['CommunityWatchActionEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCommunityWatchActionEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CommunityWatchActionEdge'] = GQLResolversParentTypes['CommunityWatchActionEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8015,6 +8171,7 @@ export type GQLConnectionResolvers<
     | 'CircleConnection'
     | 'CollectionConnection'
     | 'CommentConnection'
+    | 'CommunityWatchActionConnection'
     | 'DraftConnection'
     | 'FollowingActivityConnection'
     | 'IcymiTopicConnection'
@@ -9838,6 +9995,18 @@ export type GQLQueryResolvers<
     ContextType,
     RequireFields<GQLQueryCircleArgs, 'input'>
   >
+  communityWatchAction?: Resolver<
+    Maybe<GQLResolversTypes['CommunityWatchAction']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryCommunityWatchActionArgs, 'input'>
+  >
+  communityWatchActions?: Resolver<
+    GQLResolversTypes['CommunityWatchActionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryCommunityWatchActionsArgs, 'input'>
+  >
   exchangeRates?: Resolver<
     Maybe<Array<GQLResolversTypes['ExchangeRate']>>,
     ParentType,
@@ -11325,6 +11494,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CommentEdge?: GQLCommentEdgeResolvers<ContextType>
   CommentNotice?: GQLCommentNoticeResolvers<ContextType>
   CommunityWatchAction?: GQLCommunityWatchActionResolvers<ContextType>
+  CommunityWatchActionConnection?: GQLCommunityWatchActionConnectionResolvers<ContextType>
+  CommunityWatchActionEdge?: GQLCommunityWatchActionEdgeResolvers<ContextType>
   ConnectStripeAccountResult?: GQLConnectStripeAccountResultResolvers<ContextType>
   Connection?: GQLConnectionResolvers<ContextType>
   CryptoWallet?: GQLCryptoWalletResolvers<ContextType>

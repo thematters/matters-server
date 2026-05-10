@@ -33,6 +33,7 @@
           "TagOSS": "./tag.js#Tag",
           "Collection": "./collection.js#Collection",
           "Comment": "./comment.js#Comment",
+          "CommunityWatchAction": "./communityWatch.js#CommunityWatchAction",
           "Article": "./article.js#Article",
           "ArticleAccess": "./article.js#Article",
           "ArticleOSS": "./article.js#Article",
