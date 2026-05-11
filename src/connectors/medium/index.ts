@@ -83,6 +83,9 @@ export class Medium {
       })
       const disposition = response.headers['content-disposition']
       const mimetype = response.headers['content-type']
+      if (typeof mimetype !== 'string') {
+        throw new Error('Invalid image type.')
+      }
       const filename = getFileName(disposition, url)
       const upload = {
         createReadStream: () => response.data,
@@ -92,7 +95,9 @@ export class Medium {
       }
       const uuid = v4()
 
-      if (!ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
+      if (
+        !(ACCEPTED_UPLOAD_IMAGE_TYPES as readonly string[]).includes(mimetype)
+      ) {
         throw new Error('Invalid image type.')
       }
 
