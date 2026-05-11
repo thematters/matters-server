@@ -270,6 +270,26 @@ export class FederationExportService {
     return row
   }
 
+  public async loadAuthorFederationSetting(
+    userId: string
+  ): Promise<FederationAuthorSettingRow | null> {
+    const row = await this.knexRO('user_federation_setting')
+      .where({ userId })
+      .first(['userId', 'state', 'updatedBy'])
+
+    return row ?? null
+  }
+
+  public async loadArticleFederationSetting(
+    articleId: string
+  ): Promise<FederationArticleSettingRow | null> {
+    const row = await this.knexRO('article_federation_setting')
+      .where({ articleId })
+      .first(['articleId', 'state', 'updatedBy'])
+
+    return row ?? null
+  }
+
   public async loadSelectedArticleRows(
     articleIds: string[],
     options: { includeFederationSettings?: boolean } = {}

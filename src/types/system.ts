@@ -542,6 +542,7 @@ export default /* GraphQL */ `
     unlimitedArticleFetch
     readSpamStatus
     communityWatch
+    fediverseBeta
   }
 
   enum FederationAuthorSettingState {
@@ -555,6 +556,13 @@ export default /* GraphQL */ `
     disabled
   }
 
+  enum FederationExportDecisionReason {
+    eligible
+    article_not_public
+    author_not_opted_in
+    article_disabled
+  }
+
   type UserFederationSetting {
     userId: ID!
     state: FederationAuthorSettingState!
@@ -565,6 +573,12 @@ export default /* GraphQL */ `
     articleId: ID!
     state: FederationArticleSettingState!
     updatedBy: ID
+  }
+
+  type ArticleFederationEligibility {
+    eligible: Boolean!
+    reason: FederationExportDecisionReason!
+    effectiveArticleSetting: FederationArticleSettingState!
   }
 
   enum ReportReason {

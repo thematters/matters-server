@@ -52,6 +52,9 @@ type Mutation {
   """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
 
+  """Set current author's Fediverse federation preference for an article."""
+  setArticleFederationSetting(input: SetArticleFederationSettingInput!): ArticleFederationSetting!
+
   """Bookmark or unbookmark article"""
   toggleSubscribeArticle(input: ToggleItemInput!): Article! @deprecated(reason: "Use toggleBookmarkArticle instead")
   toggleBookmarkArticle(input: ToggleItemInput!): Article!
@@ -192,6 +195,9 @@ type Mutation {
 
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
+
+  """Set current viewer's Fediverse federation preference."""
+  setViewerFederationSetting(input: SetViewerFederationSettingInput!): UserFederationSetting!
 
   """Login user."""
   emailLogin(input: EmailLoginInput!): AuthResult!
@@ -378,6 +384,12 @@ type Article implements Node & PinnableWork {
 
   """Original language of content"""
   language: String
+
+  """Article-level federation setting override."""
+  federationSetting: ArticleFederationSetting
+
+  """Computed federation export eligibility for this article."""
+  federationEligibility: ArticleFederationEligibility!
 
   """List of articles which added this article into their connections."""
   connectedBy(input: ConnectionArgs!): ArticleConnection!
@@ -819,6 +831,11 @@ input EditArticleInput {
   campaigns: [ArticleCampaignInput!]
 }
 
+input SetArticleFederationSettingInput {
+  id: ID!
+  state: FederationArticleSettingState!
+}
+
 input ArticleCampaignInput {
   campaign: ID!
   stage: ID
@@ -1255,6 +1272,9 @@ type User implements Node {
 
   """User settings."""
   settings: UserSettings!
+
+  """User-level federation opt-in setting."""
+  federationSetting: UserFederationSetting
 
   """Recommendations for current user."""
   recommendation: Recommendation!
@@ -2753,6 +2773,7 @@ enum UserFeatureFlagType {
   unlimitedArticleFetch
   readSpamStatus
   communityWatch
+  fediverseBeta
 }
 
 enum FederationAuthorSettingState {
@@ -2766,6 +2787,13 @@ enum FederationArticleSettingState {
   disabled
 }
 
+enum FederationExportDecisionReason {
+  eligible
+  article_not_public
+  author_not_opted_in
+  article_disabled
+}
+
 type UserFederationSetting {
   userId: ID!
   state: FederationAuthorSettingState!
@@ -2776,6 +2804,12 @@ type ArticleFederationSetting {
   articleId: ID!
   state: FederationArticleSettingState!
   updatedBy: ID
+}
+
+type ArticleFederationEligibility {
+  eligible: Boolean!
+  reason: FederationExportDecisionReason!
+  effectiveArticleSetting: FederationArticleSettingState!
 }
 
 enum ReportReason {
@@ -3426,6 +3460,10 @@ input VerifyEmailInput {
 
 input SetCurrencyInput {
   currency: QuoteCurrency
+}
+
+input SetViewerFederationSettingInput {
+  state: FederationAuthorSettingState!
 }
 
 input GenerateSigningMessageInput {

@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Set current viewer's Fediverse federation preference."
+    setViewerFederationSetting(input: SetViewerFederationSettingInput!): UserFederationSetting! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Login user."
     emailLogin(input: EmailLoginInput!): AuthResult!
 
@@ -136,6 +139,9 @@ export default /* GraphQL */ `
 
     "User settings."
     settings: UserSettings! @auth(mode: "${AUTH_MODE.oauth}")
+
+    "User-level federation opt-in setting."
+    federationSetting: UserFederationSetting
 
     "Recommendations for current user."
     recommendation: Recommendation!
@@ -722,6 +728,10 @@ export default /* GraphQL */ `
 
   input SetCurrencyInput {
       currency: QuoteCurrency
+  }
+
+  input SetViewerFederationSettingInput {
+    state: FederationAuthorSettingState!
   }
 
   input GenerateSigningMessageInput {

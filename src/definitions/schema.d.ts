@@ -276,6 +276,10 @@ export type GQLArticle = GQLNode &
     donations: GQLArticleDonationConnection
     /** List of featured comments of this article. */
     featuredComments: GQLCommentConnection
+    /** Computed federation export eligibility for this article. */
+    federationEligibility: GQLArticleFederationEligibility
+    /** Article-level federation setting override. */
+    federationSetting?: Maybe<GQLArticleFederationSetting>
     /** This value determines if current viewer has appreciated or not. */
     hasAppreciate: Scalars['Boolean']['output']
     /** Unique ID of this article */
@@ -548,6 +552,13 @@ export type GQLArticleEdge = {
   __typename?: 'ArticleEdge'
   cursor: Scalars['String']['output']
   node: GQLArticle
+}
+
+export type GQLArticleFederationEligibility = {
+  __typename?: 'ArticleFederationEligibility'
+  effectiveArticleSetting: GQLFederationArticleSettingState
+  eligible: Scalars['Boolean']['output']
+  reason: GQLFederationExportDecisionReason
 }
 
 export type GQLArticleFederationSetting = {
@@ -1846,6 +1857,12 @@ export type GQLFederationArticleSettingState =
 
 export type GQLFederationAuthorSettingState = 'disabled' | 'enabled'
 
+export type GQLFederationExportDecisionReason =
+  | 'article_disabled'
+  | 'article_not_public'
+  | 'author_not_opted_in'
+  | 'eligible'
+
 export type GQLFilterInput = {
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
   inRangeStart?: InputMaybe<Scalars['DateTime']['input']>
@@ -2266,6 +2283,8 @@ export type GQLMutation = {
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
   setAdStatus: GQLArticle
+  /** Set current author's Fediverse federation preference for an article. */
+  setArticleFederationSetting: GQLArticleFederationSetting
   setArticleTopicChannels: GQLArticle
   setBoost: GQLNode
   /** Set user currency preference. */
@@ -2278,6 +2297,8 @@ export type GQLMutation = {
   setSpamStatus: GQLWriting
   /** Set user name. */
   setUserName: GQLUser
+  /** Set current viewer's Fediverse federation preference. */
+  setViewerFederationSetting: GQLUserFederationSetting
   /** Upload a single file. */
   singleFileUpload: GQLAsset
   /** Login/Signup via social accounts. */
@@ -2638,6 +2659,10 @@ export type GQLMutationSetAdStatusArgs = {
   input: GQLSetAdStatusInput
 }
 
+export type GQLMutationSetArticleFederationSettingArgs = {
+  input: GQLSetArticleFederationSettingInput
+}
+
 export type GQLMutationSetArticleTopicChannelsArgs = {
   input: GQLSetArticleTopicChannelsInput
 }
@@ -2668,6 +2693,10 @@ export type GQLMutationSetSpamStatusArgs = {
 
 export type GQLMutationSetUserNameArgs = {
   input: GQLSetUserNameInput
+}
+
+export type GQLMutationSetViewerFederationSettingArgs = {
+  input: GQLSetViewerFederationSettingInput
 }
 
 export type GQLMutationSingleFileUploadArgs = {
@@ -3779,6 +3808,11 @@ export type GQLSetAdStatusInput = {
   isAd: Scalars['Boolean']['input']
 }
 
+export type GQLSetArticleFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationArticleSettingState
+}
+
 export type GQLSetArticleTopicChannelsInput = {
   channels: Array<Scalars['ID']['input']>
   id: Scalars['ID']['input']
@@ -3815,6 +3849,10 @@ export type GQLSetSpamStatusInput = {
 
 export type GQLSetUserNameInput = {
   userName: Scalars['String']['input']
+}
+
+export type GQLSetViewerFederationSettingInput = {
+  state: GQLFederationAuthorSettingState
 }
 
 export type GQLSigningMessagePurpose =
@@ -4474,6 +4512,8 @@ export type GQLUser = GQLNode & {
   displayName?: Maybe<Scalars['String']['output']>
   /** Drafts authored by current user. */
   drafts: GQLDraftConnection
+  /** User-level federation opt-in setting. */
+  federationSetting?: Maybe<GQLUserFederationSetting>
   /** Followers of this user. */
   followers: GQLUserConnection
   /** Following contents of this user. */
@@ -4685,6 +4725,7 @@ export type GQLUserFeatureFlag = {
 export type GQLUserFeatureFlagType =
   | 'bypassSpamDetection'
   | 'communityWatch'
+  | 'fediverseBeta'
   | 'readSpamStatus'
   | 'unlimitedArticleFetch'
 
@@ -5328,6 +5369,7 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleEdge: ResolverTypeWrapper<
     Omit<GQLArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
+  ArticleFederationEligibility: ResolverTypeWrapper<GQLArticleFederationEligibility>
   ArticleFederationSetting: ResolverTypeWrapper<GQLArticleFederationSetting>
   ArticleInput: GQLArticleInput
   ArticleLicenseType: GQLArticleLicenseType
@@ -5573,6 +5615,7 @@ export type GQLResolversTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FederationArticleSettingState: GQLFederationArticleSettingState
   FederationAuthorSettingState: GQLFederationAuthorSettingState
+  FederationExportDecisionReason: GQLFederationExportDecisionReason
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
   Following: ResolverTypeWrapper<UserModel>
@@ -5842,6 +5885,7 @@ export type GQLResolversTypes = ResolversObject<{
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetAdStatusInput: GQLSetAdStatusInput
+  SetArticleFederationSettingInput: GQLSetArticleFederationSettingInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5850,6 +5894,7 @@ export type GQLResolversTypes = ResolversObject<{
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
+  SetViewerFederationSettingInput: GQLSetViewerFederationSettingInput
   SigningMessagePurpose: GQLSigningMessagePurpose
   SigningMessageResult: ResolverTypeWrapper<GQLSigningMessageResult>
   SingleFileUploadInput: GQLSingleFileUploadInput
@@ -6116,6 +6161,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleEdge: Omit<GQLArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
+  ArticleFederationEligibility: GQLArticleFederationEligibility
   ArticleFederationSetting: GQLArticleFederationSetting
   ArticleInput: GQLArticleInput
   ArticleNotice: NoticeItemModel
@@ -6495,6 +6541,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetAdStatusInput: GQLSetAdStatusInput
+  SetArticleFederationSettingInput: GQLSetArticleFederationSettingInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -6503,6 +6550,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
+  SetViewerFederationSettingInput: GQLSetViewerFederationSettingInput
   SigningMessageResult: GQLSigningMessageResult
   SingleFileUploadInput: GQLSingleFileUploadInput
   SkippedListItem: GQLSkippedListItem
@@ -7020,6 +7068,16 @@ export type GQLArticleResolvers<
     ContextType,
     RequireFields<GQLArticleFeaturedCommentsArgs, 'input'>
   >
+  federationEligibility?: Resolver<
+    GQLResolversTypes['ArticleFederationEligibility'],
+    ParentType,
+    ContextType
+  >
+  federationSetting?: Resolver<
+    Maybe<GQLResolversTypes['ArticleFederationSetting']>,
+    ParentType,
+    ContextType
+  >
   hasAppreciate?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7261,6 +7319,24 @@ export type GQLArticleEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleFederationEligibilityResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleFederationEligibility'] = GQLResolversParentTypes['ArticleFederationEligibility']
+> = ResolversObject<{
+  effectiveArticleSetting?: Resolver<
+    GQLResolversTypes['FederationArticleSettingState'],
+    ParentType,
+    ContextType
+  >
+  eligible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  reason?: Resolver<
+    GQLResolversTypes['FederationExportDecisionReason'],
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9354,6 +9430,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSetAdStatusArgs, 'input'>
   >
+  setArticleFederationSetting?: Resolver<
+    GQLResolversTypes['ArticleFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetArticleFederationSettingArgs, 'input'>
+  >
   setArticleTopicChannels?: Resolver<
     GQLResolversTypes['Article'],
     ParentType,
@@ -9401,6 +9483,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetUserNameArgs, 'input'>
+  >
+  setViewerFederationSetting?: Resolver<
+    GQLResolversTypes['UserFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetViewerFederationSettingArgs, 'input'>
   >
   singleFileUpload?: Resolver<
     GQLResolversTypes['Asset'],
@@ -10957,6 +11045,11 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserDraftsArgs, 'input'>
   >
+  federationSetting?: Resolver<
+    Maybe<GQLResolversTypes['UserFederationSetting']>,
+    ParentType,
+    ContextType
+  >
   followers?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
@@ -11595,6 +11688,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleDonationConnection?: GQLArticleDonationConnectionResolvers<ContextType>
   ArticleDonationEdge?: GQLArticleDonationEdgeResolvers<ContextType>
   ArticleEdge?: GQLArticleEdgeResolvers<ContextType>
+  ArticleFederationEligibility?: GQLArticleFederationEligibilityResolvers<ContextType>
   ArticleFederationSetting?: GQLArticleFederationSettingResolvers<ContextType>
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
