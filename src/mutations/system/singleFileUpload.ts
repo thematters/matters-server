@@ -103,10 +103,14 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
       })
       const disposition = res.headers['content-disposition']
       const filename = getFileName(disposition, url)
+      const mimetype = res.headers['content-type']
+      if (typeof mimetype !== 'string') {
+        throw new UserInputError('Invalid file format.')
+      }
 
       upload = {
         createReadStream: () => res.data,
-        mimetype: res.headers['content-type'],
+        mimetype,
         encoding: 'utf8',
         filename,
       }
@@ -123,11 +127,19 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
     const acceptedImageTypes = isCoverType
       ? ACCEPTED_COVER_UPLOAD_IMAGE_TYPES
       : ACCEPTED_UPLOAD_IMAGE_TYPES
-    if (isImageType && !acceptedImageTypes.includes(upload.mimetype)) {
+    if (
+      isImageType &&
+      !(acceptedImageTypes as readonly string[]).includes(upload.mimetype)
+    ) {
       throw new UserInputError('Invalid image format.')
     }
 
-    if (isAudioType && !ACCEPTED_UPLOAD_AUDIO_TYPES.includes(upload.mimetype)) {
+    if (
+      isAudioType &&
+      !(ACCEPTED_UPLOAD_AUDIO_TYPES as readonly string[]).includes(
+        upload.mimetype
+      )
+    ) {
       throw new UserInputError('Invalid audio format.')
     }
   }
