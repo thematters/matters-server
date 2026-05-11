@@ -90,7 +90,10 @@ import type {
 } from './circle.js'
 import type { Collection, CollectionArticle } from './collection.js'
 import type { Comment, FeaturedCommentMaterialized } from './comment.js'
-import type { CommunityWatchAction } from './communityWatch.js'
+import type {
+  CommunityWatchAction,
+  CommunityWatchReviewEvent,
+} from './communityWatch.js'
 import type { Draft } from './draft.js'
 import type { TopicChannelFeedback } from './feedback.ts'
 import type {
@@ -269,6 +272,7 @@ export interface TableTypeMap {
   collection_article: CollectionArticle
   comment: Comment
   community_watch_action: CommunityWatchAction
+  community_watch_review_event: CommunityWatchReviewEvent
   crypto_wallet: CryptoWallet
   crypto_wallet_signature: CryptoWalletSignature
   customer: Customer

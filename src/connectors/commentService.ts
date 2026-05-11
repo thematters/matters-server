@@ -3,9 +3,12 @@ import type {
   Circle,
   Comment,
   CommunityWatchAction,
+  CommunityWatchActionReason,
+  CommunityWatchAppealState,
   Connections,
   GQLCommentCommentsInput,
   GQLCommentsInput,
+  CommunityWatchReviewState,
   User,
   ValueOf,
 } from '#definitions/index.js'
@@ -20,7 +23,13 @@ import {
   NOTICE_TYPE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
-import { ForbiddenByStateError, ForbiddenError } from '#common/errors.js'
+import {
+  CommentNotFoundError,
+  ForbiddenByStateError,
+  ForbiddenError,
+  UserInputError,
+} from '#common/errors.js'
+import { v4 } from 'uuid'
 
 import { BaseService } from './baseService.js'
 import { NotificationService } from './notification/notificationService.js'
@@ -43,6 +52,25 @@ export type CommunityWatchActionsFilter = {
   appealState?: string | null
   reviewState?: string | null
 }
+
+export type CommunityWatchActionStateUpdate = {
+  uuid: string
+  actorId: string
+  appealState?: CommunityWatchAppealState | null
+  reviewState?: CommunityWatchReviewState | null
+  reason?: CommunityWatchActionReason | null
+  note?: string | null
+}
+
+type CommunityWatchReviewEventType =
+  | 'appeal_received'
+  | 'appeal_resolved'
+  | 'review_upheld'
+  | 'review_reversed'
+  | 'reason_changed'
+  | 'comment_restored'
+  | 'content_cleared'
+  | 'state_updated'
 
 export class CommentService extends BaseService<Comment> {
   public constructor(connections: Connections) {
@@ -104,6 +132,264 @@ export class CommentService extends BaseService<Comment> {
     ])
 
     return [actions, Number(countResult?.count || 0)]
+  }
+
+  public updateCommunityWatchActionState = async ({
+    uuid,
+    actorId,
+    appealState,
+    reviewState,
+    reason,
+    note,
+  }: CommunityWatchActionStateUpdate): Promise<CommunityWatchAction> => {
+    if (!appealState && !reviewState && !reason) {
+      throw new UserInputError('no Community Watch action update provided')
+    }
+    if (reviewState === 'reversed') {
+      throw new UserInputError(
+        'use restoreCommunityWatchComment to reverse an action'
+      )
+    }
+
+    return this.knex.transaction(async (trx) => {
+      const action = await trx<CommunityWatchAction>('community_watch_action')
+        .select()
+        .where({ uuid })
+        .forUpdate()
+        .first()
+      if (!action) {
+        throw new UserInputError('Community Watch action not found')
+      }
+
+      const now = new Date()
+      const patch: Partial<CommunityWatchAction> = {
+        reviewerId: actorId,
+        reviewNote: note || null,
+        reviewedAt: now,
+        updatedAt: now,
+      }
+      const events: Array<{
+        eventType: CommunityWatchReviewEventType
+        oldValue: string | null
+        newValue: string | null
+      }> = []
+
+      if (appealState && appealState !== action.appealState) {
+        patch.appealState = appealState
+        events.push({
+          eventType:
+            appealState === 'received'
+              ? 'appeal_received'
+              : appealState === 'resolved'
+              ? 'appeal_resolved'
+              : 'state_updated',
+          oldValue: action.appealState,
+          newValue: appealState,
+        })
+      }
+
+      if (reviewState && reviewState !== action.reviewState) {
+        patch.reviewState = reviewState
+        events.push({
+          eventType:
+            reviewState === 'upheld'
+              ? 'review_upheld'
+              : 'state_updated',
+          oldValue: action.reviewState,
+          newValue: reviewState,
+        })
+      }
+
+      if (reason && reason !== action.reason) {
+        patch.reason = reason
+        if (!patch.reviewState) {
+          patch.reviewState = 'reason_adjusted'
+        }
+        events.push({
+          eventType: 'reason_changed',
+          oldValue: action.reason,
+          newValue: reason,
+        })
+      }
+
+      if (events.length === 0) {
+        events.push({
+          eventType: 'state_updated',
+          oldValue: null,
+          newValue: null,
+        })
+      }
+
+      const [updatedAction] = await trx<CommunityWatchAction>(
+        'community_watch_action'
+      )
+        .where({ id: action.id })
+        .update(patch)
+        .returning('*')
+
+      await this.insertCommunityWatchReviewEvents(trx, {
+        actionId: action.id,
+        actorId,
+        note,
+        events,
+      })
+
+      return updatedAction
+    })
+  }
+
+  public restoreCommunityWatchComment = async ({
+    uuid,
+    actorId,
+    note,
+  }: {
+    uuid: string
+    actorId: string
+    note?: string | null
+  }): Promise<{ action: CommunityWatchAction; comment: Comment }> =>
+    this.knex.transaction(async (trx) => {
+      const action = await trx<CommunityWatchAction>('community_watch_action')
+        .select()
+        .where({ uuid })
+        .forUpdate()
+        .first()
+      if (!action) {
+        throw new UserInputError('Community Watch action not found')
+      }
+      if (action.actionState !== 'active') {
+        throw new UserInputError('Community Watch action is not active')
+      }
+
+      const comment = await trx<Comment>('comment')
+        .select()
+        .where({ id: action.commentId })
+        .forUpdate()
+        .first()
+      if (!comment) {
+        throw new CommentNotFoundError('comment not found')
+      }
+      if (comment.state !== COMMENT_STATE.banned) {
+        throw new UserInputError('comment is not restorable')
+      }
+
+      const now = new Date()
+      const [updatedComment] = await trx<Comment>('comment')
+        .where({ id: comment.id })
+        .update({
+          state: action.originalState,
+          updatedAt: now,
+        })
+        .returning('*')
+      const [updatedAction] = await trx<CommunityWatchAction>(
+        'community_watch_action'
+      )
+        .where({ id: action.id })
+        .update({
+          actionState: 'restored',
+          reviewState: 'reversed',
+          reviewerId: actorId,
+          reviewNote: note || null,
+          reviewedAt: now,
+          updatedAt: now,
+        })
+        .returning('*')
+
+      await this.insertCommunityWatchReviewEvents(trx, {
+        actionId: action.id,
+        actorId,
+        note,
+        events: [
+          {
+            eventType: 'comment_restored',
+            oldValue: comment.state,
+            newValue: action.originalState,
+          },
+        ],
+      })
+
+      return { action: updatedAction, comment: updatedComment }
+    })
+
+  public clearCommunityWatchOriginalContent = async ({
+    uuid,
+    actorId,
+    note,
+  }: {
+    uuid: string
+    actorId: string
+    note?: string | null
+  }): Promise<CommunityWatchAction> =>
+    this.knex.transaction(async (trx) => {
+      const action = await trx<CommunityWatchAction>('community_watch_action')
+        .select()
+        .where({ uuid })
+        .forUpdate()
+        .first()
+      if (!action) {
+        throw new UserInputError('Community Watch action not found')
+      }
+
+      const now = new Date()
+      const [updatedAction] = await trx<CommunityWatchAction>(
+        'community_watch_action'
+      )
+        .where({ id: action.id })
+        .update({
+          originalContent: null,
+          reviewerId: actorId,
+          reviewNote: note || null,
+          reviewedAt: now,
+          updatedAt: now,
+        })
+        .returning('*')
+
+      await this.insertCommunityWatchReviewEvents(trx, {
+        actionId: action.id,
+        actorId,
+        note,
+        events: [
+          {
+            eventType: 'content_cleared',
+            oldValue: action.originalContent ? 'present' : null,
+            newValue: null,
+          },
+        ],
+      })
+
+      return updatedAction
+    })
+
+  private insertCommunityWatchReviewEvents = async (
+    trx: Knex.Transaction,
+    {
+      actionId,
+      actorId,
+      note,
+      events,
+    }: {
+      actionId: string
+      actorId: string
+      note?: string | null
+      events: Array<{
+        eventType: CommunityWatchReviewEventType
+        oldValue: string | null
+        newValue: string | null
+      }>
+    }
+  ) => {
+    const now = new Date()
+    await trx('community_watch_review_event').insert(
+      events.map(({ eventType, oldValue, newValue }) => ({
+        uuid: v4(),
+        actionId,
+        eventType,
+        actorId,
+        oldValue,
+        newValue,
+        note: note || null,
+        createdAt: now,
+      }))
+    )
   }
 
   /**
