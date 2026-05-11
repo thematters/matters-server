@@ -159,6 +159,8 @@ type Mutation {
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
   putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
+  putUserFederationSetting(input: PutUserFederationSettingInput!): UserFederationSetting!
+  putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Writing!
   setAdStatus(input: SetAdStatusInput!): Article!
@@ -2587,6 +2589,16 @@ input PutUserFeatureFlagsInput {
   flags: [UserFeatureFlagType!]!
 }
 
+input PutUserFederationSettingInput {
+  id: ID!
+  state: FederationAuthorSettingState!
+}
+
+input PutArticleFederationSettingInput {
+  id: ID!
+  state: FederationArticleSettingState!
+}
+
 input SubmitReportInput {
   targetId: ID!
   reason: ReportReason!
@@ -2714,6 +2726,29 @@ enum UserFeatureFlagType {
   unlimitedArticleFetch
   readSpamStatus
   communityWatch
+}
+
+enum FederationAuthorSettingState {
+  enabled
+  disabled
+}
+
+enum FederationArticleSettingState {
+  inherit
+  enabled
+  disabled
+}
+
+type UserFederationSetting {
+  userId: ID!
+  state: FederationAuthorSettingState!
+  updatedBy: ID
+}
+
+type ArticleFederationSetting {
+  articleId: ID!
+  state: FederationArticleSettingState!
+  updatedBy: ID
 }
 
 enum ReportReason {

@@ -13,18 +13,29 @@ This document records the server-side contract for deciding whether selected Mat
 
 The first production-facing contract is intentionally conservative:
 
-| Gate | Rule |
-|---|---|
-| Author setting | Must be explicitly `enabled`. Missing or `disabled` means no federation. |
-| Article setting | `inherit` follows the author setting. `enabled` is allowed only when the author is enabled. `disabled` blocks the article. |
-| Public boundary | Article must still be active, public, and attached to an active author identity. |
-| Non-public override | No setting can override paid, private, archived, missing-identity, or otherwise non-public content. |
+| Gate                | Rule                                                                                                                       |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Author setting      | Must be explicitly `enabled`. Missing or `disabled` means no federation.                                                   |
+| Article setting     | `inherit` follows the author setting. `enabled` is allowed only when the author is enabled. `disabled` blocks the article. |
+| Public boundary     | Article must still be active, public, and attached to an active author identity.                                           |
+| Non-public override | No setting can override paid, private, archived, missing-identity, or otherwise non-public content.                        |
 
 The current pure function is `resolveFederationExportGate` in `src/connectors/article/federationExportService.ts`.
 
 The candidate loader can include federation setting joins when strict opt-in input is needed. Without that strict input, the service preserves the public-only preflight boundary.
 
-`FederationExportService` also exposes bounded upsert methods for author and article federation settings. These methods validate allowed states before writing and are intended for future product/admin entry points.
+`FederationExportService` also exposes bounded upsert methods for author and article federation settings. These methods validate allowed states before writing and are wired to admin-only GraphQL mutations for internal/staging control.
+
+## Internal admin entry points
+
+The current GraphQL surface is intentionally narrow and admin-only:
+
+| Mutation                                            | Purpose                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------- |
+| `putUserFederationSetting(input: { id, state })`    | Sets an author's federation opt-in state to `enabled` or `disabled`. |
+| `putArticleFederationSetting(input: { id, state })` | Sets an article override to `inherit`, `enabled`, or `disabled`.     |
+
+Both mutations require global GraphQL IDs and record the admin viewer ID in `updated_by`. They do not generate bundles, call IPFS/IPNS, publish ActivityPub, or change article visibility.
 
 `evaluateFederationExportRows` returns a `decisionReport` with selected, eligible, skipped, and per-article skip reasons. Downstream async workers can persist or log that report without exposing credentials or private content.
 
@@ -32,16 +43,16 @@ The candidate loader can include federation setting joins when strict opt-in inp
 
 The schema scaffold uses two independent tables:
 
-| Table | Purpose |
-|---|---|
-| `user_federation_setting` | One row per author. `state` is `enabled` or `disabled`; missing rows are treated as disabled by the service contract. |
-| `article_federation_setting` | One row per article. `state` is `inherit`, `enabled`, or `disabled`; missing rows are treated as `inherit`. |
+| Table                        | Purpose                                                                                                               |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `user_federation_setting`    | One row per author. `state` is `enabled` or `disabled`; missing rows are treated as disabled by the service contract. |
+| `article_federation_setting` | One row per article. `state` is `inherit`, `enabled`, or `disabled`; missing rows are treated as `inherit`.           |
 
-Both tables include `updated_by`, `created_at`, and `updated_at`. The migration and service methods are present for branch review and staging validation, but this slice does not run it against production or wire it to GraphQL.
+Both tables include `updated_by`, `created_at`, and `updated_at`. The migration, service methods, and internal admin GraphQL mutations are present for branch review and staging validation, but this slice does not run it against production or expose user-facing UI.
 
 ## Deferred production work
 
-- Add product copy, UI controls, and GraphQL/admin entry points.
+- Add product copy and UI controls.
 - Move bundle generation and file publication to `lambda-handlers`.
 - Wire async export trigger behavior after publishing or editing an eligible article.
 - Add audit logs for export decisions and skipped reasons.
