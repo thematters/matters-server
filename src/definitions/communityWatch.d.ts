@@ -9,6 +9,15 @@ export type CommunityWatchReviewState =
   | 'upheld'
   | 'reversed'
   | 'reason_adjusted'
+export type CommunityWatchReviewEventType =
+  | 'appeal_received'
+  | 'appeal_resolved'
+  | 'review_upheld'
+  | 'review_reversed'
+  | 'reason_changed'
+  | 'comment_restored'
+  | 'content_cleared'
+  | 'state_updated'
 
 export interface CommunityWatchAction {
   id: string
@@ -33,4 +42,16 @@ export interface CommunityWatchAction {
   contentExpiresAt: Date
   createdAt: Date
   updatedAt: Date
+}
+
+export interface CommunityWatchReviewEvent {
+  id: string
+  uuid: string
+  actionId: string
+  eventType: CommunityWatchReviewEventType
+  actorId: string
+  oldValue: string | null
+  newValue: string | null
+  note: string | null
+  createdAt: Date
 }

@@ -39,6 +39,15 @@ export default /* GraphQL */ `
     "Remove a spam comment as a Community Watch member."
     communityWatchRemoveComment(input: CommunityWatchRemoveCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
+    "Update Community Watch appeal, review, or reason as staff."
+    updateCommunityWatchActionState(input: UpdateCommunityWatchActionStateInput!): CommunityWatchAction! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
+
+    "Restore a comment removed by Community Watch as staff."
+    restoreCommunityWatchComment(input: RestoreCommunityWatchCommentInput!): CommunityWatchAction! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
+
+    "Clear stored original content for a Community Watch action as staff."
+    clearCommunityWatchOriginalContent(input: ClearCommunityWatchOriginalContentInput!): CommunityWatchAction! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
+
 
     ##############
     # DEPRECATED #
@@ -250,6 +259,24 @@ export default /* GraphQL */ `
 
   input CommunityWatchActionInput {
     uuid: ID!
+  }
+
+  input UpdateCommunityWatchActionStateInput {
+    uuid: ID!
+    appealState: CommunityWatchAppealState
+    reviewState: CommunityWatchReviewState
+    reason: CommunityWatchRemoveCommentReason
+    note: String
+  }
+
+  input RestoreCommunityWatchCommentInput {
+    uuid: ID!
+    note: String
+  }
+
+  input ClearCommunityWatchOriginalContentInput {
+    uuid: ID!
+    note: String
   }
 
   enum CommunityWatchRemoveCommentReason {

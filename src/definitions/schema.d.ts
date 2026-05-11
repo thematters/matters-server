@@ -1226,6 +1226,11 @@ export type GQLClassifyArticlesChannelsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
+export type GQLClearCommunityWatchOriginalContentInput = {
+  note?: InputMaybe<Scalars['String']['input']>
+  uuid: Scalars['ID']['input']
+}
+
 export type GQLClearReadHistoryInput = {
   id?: InputMaybe<Scalars['ID']['input']>
 }
@@ -2160,6 +2165,8 @@ export type GQLMutation = {
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
   classifyArticlesChannels: Scalars['Boolean']['output']
+  /** Clear stored original content for a Community Watch action as staff. */
+  clearCommunityWatchOriginalContent: GQLCommunityWatchAction
   /** Clear read history for user. */
   clearReadHistory: GQLUser
   /** Clear search history for user. */
@@ -2252,6 +2259,8 @@ export type GQLMutation = {
   resetLikerId: GQLUser
   /** Reset user or payment password. */
   resetPassword?: Maybe<Scalars['Boolean']['output']>
+  /** Restore a comment removed by Community Watch as staff. */
+  restoreCommunityWatchComment: GQLCommunityWatchAction
   reviewTopicChannelFeedback: GQLTopicChannelFeedback
   sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
@@ -2321,6 +2330,8 @@ export type GQLMutation = {
   updateCampaignApplicationState: GQLCampaign
   /** Update a comments' state. */
   updateCommentsState: Array<GQLComment>
+  /** Update Community Watch appeal, review, or reason as staff. */
+  updateCommunityWatchActionState: GQLCommunityWatchAction
   /** Update user notification settings. */
   updateNotificationSetting: GQLUser
   /** Update referralCode of a user, used in OSS. */
@@ -2385,6 +2396,10 @@ export type GQLMutationClaimLogbooksArgs = {
 
 export type GQLMutationClassifyArticlesChannelsArgs = {
   input: GQLClassifyArticlesChannelsInput
+}
+
+export type GQLMutationClearCommunityWatchOriginalContentArgs = {
+  input: GQLClearCommunityWatchOriginalContentInput
 }
 
 export type GQLMutationClearReadHistoryArgs = {
@@ -2603,6 +2618,10 @@ export type GQLMutationResetPasswordArgs = {
   input: GQLResetPasswordInput
 }
 
+export type GQLMutationRestoreCommunityWatchCommentArgs = {
+  input: GQLRestoreCommunityWatchCommentInput
+}
+
 export type GQLMutationReviewTopicChannelFeedbackArgs = {
   input: GQLReviewTopicChannelFeedbackInput
 }
@@ -2761,6 +2780,10 @@ export type GQLMutationUpdateCampaignApplicationStateArgs = {
 
 export type GQLMutationUpdateCommentsStateArgs = {
   input: GQLUpdateCommentsStateInput
+}
+
+export type GQLMutationUpdateCommunityWatchActionStateArgs = {
+  input: GQLUpdateCommunityWatchActionStateInput
 }
 
 export type GQLMutationUpdateNotificationSettingArgs = {
@@ -3676,6 +3699,11 @@ export type GQLResponsesInput = {
   sort?: InputMaybe<GQLResponseSort>
 }
 
+export type GQLRestoreCommunityWatchCommentInput = {
+  note?: InputMaybe<Scalars['String']['input']>
+  uuid: Scalars['ID']['input']
+}
+
 export type GQLReviewTopicChannelFeedbackInput = {
   action: GQLTopicChannelFeedbackAction
   feedback: Scalars['ID']['input']
@@ -4375,6 +4403,14 @@ export type GQLUpdateCampaignApplicationStateInput = {
 export type GQLUpdateCommentsStateInput = {
   ids: Array<Scalars['ID']['input']>
   state: GQLCommentState
+}
+
+export type GQLUpdateCommunityWatchActionStateInput = {
+  appealState?: InputMaybe<GQLCommunityWatchAppealState>
+  note?: InputMaybe<Scalars['String']['input']>
+  reason?: InputMaybe<GQLCommunityWatchRemoveCommentReason>
+  reviewState?: InputMaybe<GQLCommunityWatchReviewState>
+  uuid: Scalars['ID']['input']
 }
 
 export type GQLUpdateNotificationSettingInput = {
@@ -5436,6 +5472,7 @@ export type GQLResolversTypes = ResolversObject<{
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: ResolverTypeWrapper<GQLClaimLogbooksResult>
   ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
+  ClearCommunityWatchOriginalContentInput: GQLClearCommunityWatchOriginalContentInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
   Collection: ResolverTypeWrapper<CollectionModel>
   CollectionArticlesInput: GQLCollectionArticlesInput
@@ -5786,6 +5823,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ResponseSort: GQLResponseSort
   ResponsesInput: GQLResponsesInput
+  RestoreCommunityWatchCommentInput: GQLRestoreCommunityWatchCommentInput
   ReviewTopicChannelFeedbackInput: GQLReviewTopicChannelFeedbackInput
   Role: GQLRole
   SearchAPIVersion: GQLSearchApiVersion
@@ -5928,6 +5966,7 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateArticleStateInput: GQLUpdateArticleStateInput
   UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
+  UpdateCommunityWatchActionStateInput: GQLUpdateCommunityWatchActionStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
@@ -6181,6 +6220,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: GQLClaimLogbooksResult
   ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
+  ClearCommunityWatchOriginalContentInput: GQLClearCommunityWatchOriginalContentInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
   Collection: CollectionModel
   CollectionArticlesInput: GQLCollectionArticlesInput
@@ -6442,6 +6482,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Response']
   }
   ResponsesInput: GQLResponsesInput
+  RestoreCommunityWatchCommentInput: GQLRestoreCommunityWatchCommentInput
   ReviewTopicChannelFeedbackInput: GQLReviewTopicChannelFeedbackInput
   SearchFilter: GQLSearchFilter
   SearchInput: GQLSearchInput
@@ -6545,6 +6586,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateArticleStateInput: GQLUpdateArticleStateInput
   UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
+  UpdateCommunityWatchActionStateInput: GQLUpdateCommunityWatchActionStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
@@ -8937,6 +8979,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationClassifyArticlesChannelsArgs, 'input'>
   >
+  clearCommunityWatchOriginalContent?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationClearCommunityWatchOriginalContentArgs, 'input'>
+  >
   clearReadHistory?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -9276,6 +9324,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationResetPasswordArgs, 'input'>
   >
+  restoreCommunityWatchComment?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationRestoreCommunityWatchCommentArgs, 'input'>
+  >
   reviewTopicChannelFeedback?: Resolver<
     GQLResolversTypes['TopicChannelFeedback'],
     ParentType,
@@ -9518,6 +9572,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUpdateCommentsStateArgs, 'input'>
+  >
+  updateCommunityWatchActionState?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUpdateCommunityWatchActionStateArgs, 'input'>
   >
   updateNotificationSetting?: Resolver<
     GQLResolversTypes['User'],
