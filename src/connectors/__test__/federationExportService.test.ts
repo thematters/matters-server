@@ -56,6 +56,21 @@ const createKnexRO = (rows: any[]) => {
   return { knexRO, query }
 }
 
+const createKnexWrite = (rows: any[]) => {
+  const query: any = {
+    insert: jest.fn(() => query),
+    onConflict: jest.fn(() => query),
+    merge: jest.fn(() => query),
+    returning: jest.fn(() => Promise.resolve(rows)),
+  }
+  const knex = jest.fn(() => query) as any
+  knex.fn = {
+    now: jest.fn(() => 'now'),
+  }
+
+  return { knex, query }
+}
+
 describe('federationExportService', () => {
   test('builds canonical Matters article URLs from short hashes', () => {
     expect(
@@ -354,5 +369,103 @@ describe('federationExportService', () => {
       'Explicit articleIds are required'
     )
     expect(knexRO).not.toHaveBeenCalled()
+  })
+
+  test('upserts author federation settings through the write connection', async () => {
+    const { knex, query } = createKnexWrite([
+      {
+        userId: '1',
+        state: FEDERATION_AUTHOR_SETTING.enabled,
+        updatedBy: '99',
+      },
+    ])
+    const service = new FederationExportService({ knex } as any)
+
+    const row = await service.upsertAuthorFederationSetting({
+      userId: '1',
+      state: FEDERATION_AUTHOR_SETTING.enabled,
+      updatedBy: '99',
+    })
+
+    expect(knex).toHaveBeenCalledWith('user_federation_setting')
+    expect(query.insert).toHaveBeenCalledWith({
+      userId: '1',
+      state: FEDERATION_AUTHOR_SETTING.enabled,
+      updatedBy: '99',
+    })
+    expect(query.onConflict).toHaveBeenCalledWith('userId')
+    expect(query.merge).toHaveBeenCalledWith({
+      state: FEDERATION_AUTHOR_SETTING.enabled,
+      updatedBy: '99',
+      updatedAt: 'now',
+    })
+    expect(query.returning).toHaveBeenCalledWith([
+      'userId',
+      'state',
+      'updatedBy',
+    ])
+    expect(row).toEqual({
+      userId: '1',
+      state: FEDERATION_AUTHOR_SETTING.enabled,
+      updatedBy: '99',
+    })
+  })
+
+  test('upserts article federation settings through the write connection', async () => {
+    const { knex, query } = createKnexWrite([
+      {
+        articleId: '101',
+        state: FEDERATION_ARTICLE_SETTING.disabled,
+        updatedBy: null,
+      },
+    ])
+    const service = new FederationExportService({ knex } as any)
+
+    const row = await service.upsertArticleFederationSetting({
+      articleId: '101',
+      state: FEDERATION_ARTICLE_SETTING.disabled,
+    })
+
+    expect(knex).toHaveBeenCalledWith('article_federation_setting')
+    expect(query.insert).toHaveBeenCalledWith({
+      articleId: '101',
+      state: FEDERATION_ARTICLE_SETTING.disabled,
+      updatedBy: null,
+    })
+    expect(query.onConflict).toHaveBeenCalledWith('articleId')
+    expect(query.merge).toHaveBeenCalledWith({
+      state: FEDERATION_ARTICLE_SETTING.disabled,
+      updatedBy: null,
+      updatedAt: 'now',
+    })
+    expect(query.returning).toHaveBeenCalledWith([
+      'articleId',
+      'state',
+      'updatedBy',
+    ])
+    expect(row).toEqual({
+      articleId: '101',
+      state: FEDERATION_ARTICLE_SETTING.disabled,
+      updatedBy: null,
+    })
+  })
+
+  test('rejects invalid federation setting states before writing', async () => {
+    const { knex } = createKnexWrite([])
+    const service = new FederationExportService({ knex } as any)
+
+    await expect(
+      service.upsertAuthorFederationSetting({
+        userId: '1',
+        state: 'inherit' as any,
+      })
+    ).rejects.toThrow('Invalid author federation setting')
+    await expect(
+      service.upsertArticleFederationSetting({
+        articleId: '101',
+        state: 'unknown' as any,
+      })
+    ).rejects.toThrow('Invalid article federation setting')
+    expect(knex).not.toHaveBeenCalled()
   })
 })

@@ -81,6 +81,18 @@ export type FederationExportDecisionReport = {
   decisions: FederationExportDecision[]
 }
 
+export type FederationAuthorSettingRow = {
+  userId: string
+  state: FederationAuthorSetting
+  updatedBy?: string | null
+}
+
+export type FederationArticleSettingRow = {
+  articleId: string
+  state: FederationArticleSetting
+  updatedBy?: string | null
+}
+
 type ArticleExportQueryRow = {
   articleId: string
   articleState: string
@@ -206,10 +218,56 @@ export const buildMattersArticleUrl = ({
 }) => `https://${siteDomain}/a/${shortHash || articleId}`
 
 export class FederationExportService {
+  private knex: Knex
   private knexRO: Knex
 
   public constructor(connections: Connections) {
+    this.knex = connections.knex
     this.knexRO = connections.knexRO
+  }
+
+  public async upsertAuthorFederationSetting({
+    userId,
+    state,
+    updatedBy = null,
+  }: FederationAuthorSettingRow): Promise<FederationAuthorSettingRow> {
+    if (!Object.values(FEDERATION_AUTHOR_SETTING).includes(state)) {
+      throw new Error(`Invalid author federation setting: ${state}`)
+    }
+
+    const [row] = await this.knex('user_federation_setting')
+      .insert({ userId, state, updatedBy })
+      .onConflict('userId')
+      .merge({
+        state,
+        updatedBy,
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning(['userId', 'state', 'updatedBy'])
+
+    return row
+  }
+
+  public async upsertArticleFederationSetting({
+    articleId,
+    state,
+    updatedBy = null,
+  }: FederationArticleSettingRow): Promise<FederationArticleSettingRow> {
+    if (!Object.values(FEDERATION_ARTICLE_SETTING).includes(state)) {
+      throw new Error(`Invalid article federation setting: ${state}`)
+    }
+
+    const [row] = await this.knex('article_federation_setting')
+      .insert({ articleId, state, updatedBy })
+      .onConflict('articleId')
+      .merge({
+        state,
+        updatedBy,
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning(['articleId', 'state', 'updatedBy'])
+
+    return row
   }
 
   public async loadSelectedArticleRows(
