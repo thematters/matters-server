@@ -81,6 +81,9 @@ const { version } = require('../package.json')
   // see https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback
   app.use('/facebook', routes.facebook)
 
+  // Threads Data Deletion Request Callback
+  app.use('/threads', routes.threads)
+
   // Sentry error handler
   Sentry.setupExpressErrorHandler(app)
 

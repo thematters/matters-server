@@ -1148,10 +1148,16 @@ describe('query social accounts', () => {
       email: 'testsocialaccounts@gmail.com',
       providerAccountId: 'test2',
     })
+    await userService.createSocialAccount({
+      userId,
+      type: 'Threads',
+      userName: 'testthreads',
+      providerAccountId: 'test3',
+    })
     const { data: data2 } = await server.executeOperation({
       query: GET_VIEWER_SOCIAL_ACCOUNTS,
     })
-    expect(data2.viewer.info.socialAccounts.length).toBe(3)
+    expect(data2.viewer.info.socialAccounts.length).toBe(4)
 
     // users can not visit others social accounts
     const userName = data.viewer.userName

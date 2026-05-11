@@ -165,6 +165,9 @@ export const environment = {
   googleClientId: process.env.MATTERS_GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.MATTERS_GOOGLE_CLIENT_SECRET || '',
   googleRedirectUri: process.env.MATTERS_GOOGLE_REDIRECT_URI || '',
+  threadsClientId: process.env.MATTERS_THREADS_CLIENT_ID || '',
+  threadsClientSecret: process.env.MATTERS_THREADS_CLIENT_SECRET || '',
+  threadsRedirectUri: process.env.MATTERS_THREADS_REDIRECT_URI || '',
 
   passphrasesApiUrl: process.env.MATTERS_PASSPHRASES_API_URL || '',
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',

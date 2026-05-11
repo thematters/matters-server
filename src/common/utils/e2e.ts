@@ -68,5 +68,10 @@ export const throwOrReturnUserInfo = (
       id: code,
       username: code,
     }
+  } else if (type === SOCIAL_LOGIN_TYPE.Threads) {
+    return {
+      id: code,
+      userName: code,
+    }
   }
 }
