@@ -12,6 +12,7 @@ export * from './languageDetector.js'
 
 export * from './baseService.js'
 export * from './article/articleService.js'
+export * from './article/federationExportService.js'
 export * from './article/ipfsPublicationService.js'
 export * from './article/publicationService.js'
 export * from './atomService.js'

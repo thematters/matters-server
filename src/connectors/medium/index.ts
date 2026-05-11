@@ -84,7 +84,7 @@ export class Medium {
       const disposition = response.headers['content-disposition']
       const mimetype = response.headers['content-type']
       if (typeof mimetype !== 'string') {
-        throw new Error('Invalid image type.')
+        throw new Error('Invalid content-type.')
       }
       const filename = getFileName(disposition, url)
       const upload = {
