@@ -950,6 +950,29 @@ describe('user feature flags', () => {
     ).toEqual(['bypassSpamDetection'])
   })
 
+  test('admin can assign community watch once from duplicate input', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: {
+          ids: [userId1],
+          flags: ['communityWatch', 'communityWatch'],
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(
+      data!.putUserFeatureFlags![0]!.oss!.featureFlags.map(
+        ({ type }: { type: GQLUserFeatureFlagType }) => type
+      )
+    ).toEqual(['communityWatch'])
+  })
+
   test('bulk update', async () => {
     const server = await testClient({
       isAuth: true,

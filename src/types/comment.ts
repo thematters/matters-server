@@ -23,6 +23,9 @@ export default /* GraphQL */ `
     "Update a comments' state."
     updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
+    "Remove a spam comment as a Community Watch member."
+    communityWatchRemoveComment(input: CommunityWatchRemoveCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
+
 
     ##############
     # DEPRECATED #
@@ -51,6 +54,9 @@ export default /* GraphQL */ `
 
     "Content of this comment."
     content: String
+
+    "Community Watch audit action when this comment was removed by Community Watch."
+    communityWatchAction: CommunityWatchAction
 
     "Author of this comment."
     author: User! @logCache(type: "${NODE_TYPES.User}")
@@ -213,6 +219,23 @@ export default /* GraphQL */ `
   input UpdateCommentsStateInput {
     ids: [ID!]!
     state: CommentState!
+  }
+
+  input CommunityWatchRemoveCommentInput {
+    id: ID!
+    reason: CommunityWatchRemoveCommentReason!
+  }
+
+  enum CommunityWatchRemoveCommentReason {
+    porn_ad
+    spam_ad
+  }
+
+  type CommunityWatchAction {
+    "Public identifier used by the Community Watch transparency page."
+    uuid: ID!
+    reason: CommunityWatchRemoveCommentReason!
+    createdAt: DateTime!
   }
 
   "Enums for vote types."
