@@ -7,15 +7,7 @@ import type {
 const resolver: GQLCommentResolvers['communityWatchAction'] = (
   { id }: Comment,
   _: unknown,
-  {
-    dataSources: {
-      connections: { knex },
-    },
-  }: Context
-) =>
-  knex('community_watch_action')
-    .select('uuid', 'reason', 'createdAt')
-    .where({ commentId: id, actionState: 'active' })
-    .first()
+  { dataSources: { commentService } }: Context
+) => commentService.findActiveCommunityWatchAction(id)
 
 export default resolver

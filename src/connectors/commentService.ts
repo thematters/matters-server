@@ -4,6 +4,7 @@ import type {
   Comment,
   Connections,
   GQLCommentCommentsInput,
+  GQLCommunityWatchAction,
   GQLCommentsInput,
   User,
   ValueOf,
@@ -39,6 +40,16 @@ export interface CommentFilter {
 export class CommentService extends BaseService<Comment> {
   public constructor(connections: Connections) {
     super('comment', connections)
+  }
+
+  public findActiveCommunityWatchAction = async (
+    commentId: string
+  ): Promise<GQLCommunityWatchAction | null> => {
+    const action = await this.knexRO('community_watch_action')
+      .select('uuid', 'reason', 'createdAt')
+      .where({ commentId, actionState: 'active' })
+      .first()
+    return action ?? null
   }
 
   /**
