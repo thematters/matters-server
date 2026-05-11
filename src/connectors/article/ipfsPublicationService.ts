@@ -14,10 +14,11 @@ import {
   makeArticlePage,
 } from '@matters/ipns-site-generator'
 import { File } from '@web-std/file'
-import * as Client from '@web3-storage/w3up-client'
-import { Signer } from '@web3-storage/w3up-client/principal/ed25519'
-import * as Proof from '@web3-storage/w3up-client/proof'
-import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
+// Storacha (web3.storage) — preserved for reference, replaced by direct Pinata upload
+// import * as Client from '@web3-storage/w3up-client'
+// import { Signer } from '@web3-storage/w3up-client/principal/ed25519'
+// import * as Proof from '@web3-storage/w3up-client/proof'
+// import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import * as cheerio from 'cheerio'
 import { PinataSDK } from 'pinata-web3'
 
@@ -43,36 +44,37 @@ export class IPFSPublicationService {
     this.aws = aws
   }
 
-  private async initStorachaClient() {
-    if (!environment.storachaProofS3Bucket || !environment.storachaProofS3Key) {
-      throw new Error(
-        'STORACHA_PROOF_S3_BUCKET or STORACHA_PROOF_S3_KEY is not set'
-      )
-    }
-
-    if (!environment.storachaPrivateKey) {
-      throw new Error('STORACHA_PRIVATE_KEY is not set')
-    }
-
-    const proofFile = await this.aws.s3GetFile({
-      bucket: environment.storachaProofS3Bucket,
-      key: environment.storachaProofS3Key,
-    })
-    const proofString = await proofFile.Body?.transformToString()
-    if (!proofString) {
-      throw new Error('Proof is not set')
-    }
-
-    const principal = Signer.parse(environment.storachaPrivateKey)
-    const store = new StoreMemory()
-    const client = await Client.create({ principal, store })
-    // Add proof that this agent has been delegated capabilities on the space
-    const proof = await Proof.parse(proofString)
-    const space = await client.addSpace(proof)
-    await client.setCurrentSpace(space.did())
-
-    return client
-  }
+  // Storacha (web3.storage) — preserved for reference, replaced by direct Pinata upload
+  // private async initStorachaClient() {
+  //   if (!environment.storachaProofS3Bucket || !environment.storachaProofS3Key) {
+  //     throw new Error(
+  //       'STORACHA_PROOF_S3_BUCKET or STORACHA_PROOF_S3_KEY is not set'
+  //     )
+  //   }
+  //
+  //   if (!environment.storachaPrivateKey) {
+  //     throw new Error('STORACHA_PRIVATE_KEY is not set')
+  //   }
+  //
+  //   const proofFile = await this.aws.s3GetFile({
+  //     bucket: environment.storachaProofS3Bucket,
+  //     key: environment.storachaProofS3Key,
+  //   })
+  //   const proofString = await proofFile.Body?.transformToString()
+  //   if (!proofString) {
+  //     throw new Error('Proof is not set')
+  //   }
+  //
+  //   const principal = Signer.parse(environment.storachaPrivateKey)
+  //   const store = new StoreMemory()
+  //   const client = await Client.create({ principal, store })
+  //   // Add proof that this agent has been delegated capabilities on the space
+  //   const proof = await Proof.parse(proofString)
+  //   const space = await client.addSpace(proof)
+  //   await client.setCurrentSpace(space.did())
+  //
+  //   return client
+  // }
 
   private initPinataClient() {
     if (
@@ -182,38 +184,57 @@ export class IPFSPublicationService {
       skipAssets,
     })
 
-    // upload directory to Storacha (web3.storage) and Pinata
-    const storachaClient = await this.initStorachaClient()
     const pinata = this.initPinataClient()
 
     const files = bundle
       .filter((file): file is NonNullable<typeof file> => !!file)
       .map((file) => new File([file.content], file.path))
 
-    logger.info(`Uploading bundle to IPFS...`)
-    const storachaCid = await storachaClient.uploadDirectory(files)
-    const contentHash = storachaCid.toString()
-    const mediaHash = storachaCid.toV1().toString()
+    // Storacha (web3.storage) — preserved for reference, replaced by direct Pinata upload
+    // const storachaClient = await this.initStorachaClient()
+    // logger.info(`Uploading bundle to IPFS...`)
+    // const storachaCid = await storachaClient.uploadDirectory(files)
+    // const contentHash = storachaCid.toString()
+    // const mediaHash = storachaCid.toV1().toString()
+    //
+    // logger.info(`Uploaded bundle ${skipAssets ? 'without' : 'with'} assets:`, {
+    //   storacha: contentHash,
+    //   storachaV1: mediaHash,
+    // })
+    //
+    // try {
+    //   logger.info('Pinning to Pinata with CID: %j', contentHash)
+    //   const pinataResult = await pinata.upload
+    //     .cid(contentHash)
+    //     .peerAddress([
+    //       // https://docs.ipfs.tech/how-to/peering-with-content-providers/#web3-storage
+    //       '/dns4/elastic.dag.house/tcp/4001/ipfs/bafzbeibhqavlasjc7dvbiopygwncnrtvjd2xmryk5laib7zyjor6kf3avm',
+    //     ])
+    //     .group(environment.pinataGroupId!)
+    //     .addMetadata({ name: mediaHash })
+    //
+    //   logger.info('pinata result: %j', pinataResult)
+    // } catch (error) {
+    //   logger.error('failed to upload to pinata %o', error)
+    // }
+
+    logger.info(`Uploading bundle to Pinata...`)
+    const pinataResult = await pinata.upload
+      .fileArray(files)
+      .group(environment.pinataGroupId!)
+      .cidVersion(1)
+
+    const contentHash = pinataResult.IpfsHash
+    const mediaHash = pinataResult.IpfsHash
 
     logger.info(`Uploaded bundle ${skipAssets ? 'without' : 'with'} assets:`, {
-      storacha: contentHash,
-      storachaV1: mediaHash,
+      cid: contentHash,
     })
 
     try {
-      logger.info('Pinning to Pinata with CID: %j', contentHash)
-      const pinataResult = await pinata.upload
-        .cid(contentHash)
-        .peerAddress([
-          // https://docs.ipfs.tech/how-to/peering-with-content-providers/#web3-storage
-          '/dns4/elastic.dag.house/tcp/4001/ipfs/bafzbeibhqavlasjc7dvbiopygwncnrtvjd2xmryk5laib7zyjor6kf3avm',
-        ])
-        .group(environment.pinataGroupId!)
-        .addMetadata({ name: mediaHash })
-
-      logger.info('pinata result: %j', pinataResult)
+      await pinata.updateMetadata({ cid: contentHash, name: contentHash })
     } catch (error) {
-      logger.error('failed to upload to pinata %o', error)
+      logger.error('failed to update pinata metadata %o', error)
     }
 
     return { contentHash, mediaHash, key }
