@@ -21,6 +21,7 @@ import type {
   ChannelService,
   SearchService,
   PublicationService,
+  FederationExportService,
 } from '#connectors/index.js'
 import type {
   RevisionQueue,
@@ -205,6 +206,7 @@ export interface DataSources {
   translationService: TranslationService
   channelService: ChannelService
   searchService: SearchService
+  federationExportService: FederationExportService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections

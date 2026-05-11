@@ -549,6 +549,13 @@ export type GQLArticleEdge = {
   node: GQLArticle
 }
 
+export type GQLArticleFederationSetting = {
+  __typename?: 'ArticleFederationSetting'
+  articleId: Scalars['ID']['output']
+  state: GQLFederationArticleSettingState
+  updatedBy?: Maybe<Scalars['ID']['output']>
+}
+
 export type GQLArticleInput = {
   mediaHash?: InputMaybe<Scalars['String']['input']>
   shortHash?: InputMaybe<Scalars['String']['input']>
@@ -1778,6 +1785,13 @@ export type GQLFeaturedTagsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
+export type GQLFederationArticleSettingState =
+  | 'disabled'
+  | 'enabled'
+  | 'inherit'
+
+export type GQLFederationAuthorSettingState = 'disabled' | 'enabled'
+
 export type GQLFilterInput = {
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
   inRangeStart?: InputMaybe<Scalars['DateTime']['input']>
@@ -2147,6 +2161,7 @@ export type GQLMutation = {
   /** Publish an article onto IPFS. */
   publishArticle: GQLDraft
   putAnnouncement: GQLAnnouncement
+  putArticleFederationSetting: GQLArticleFederationSetting
   /** Create or update a Circle. */
   putCircle: GQLCircle
   /**
@@ -2172,6 +2187,7 @@ export type GQLMutation = {
   putTagChannel: GQLTag
   putTopicChannel: GQLTopicChannel
   putUserFeatureFlags: Array<GQLUser>
+  putUserFederationSetting: GQLUserFederationSetting
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
@@ -2434,6 +2450,10 @@ export type GQLMutationPutAnnouncementArgs = {
   input: GQLPutAnnouncementInput
 }
 
+export type GQLMutationPutArticleFederationSettingArgs = {
+  input: GQLPutArticleFederationSettingInput
+}
+
 export type GQLMutationPutCircleArgs = {
   input: GQLPutCircleInput
 }
@@ -2496,6 +2516,10 @@ export type GQLMutationPutTopicChannelArgs = {
 
 export type GQLMutationPutUserFeatureFlagsArgs = {
   input: GQLPutUserFeatureFlagsInput
+}
+
+export type GQLMutationPutUserFederationSettingArgs = {
+  input: GQLPutUserFederationSettingInput
 }
 
 export type GQLMutationPutWritingChallengeArgs = {
@@ -3088,6 +3112,11 @@ export type GQLPutAnnouncementInput = {
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
 
+export type GQLPutArticleFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationArticleSettingState
+}
+
 export type GQLPutCircleArticlesInput = {
   /** Access Type, `public` or `paywall` only. */
   accessType: GQLArticleAccessType
@@ -3239,6 +3268,11 @@ export type GQLPutTopicChannelInput = {
 export type GQLPutUserFeatureFlagsInput = {
   flags: Array<GQLUserFeatureFlagType>
   ids: Array<Scalars['ID']['input']>
+}
+
+export type GQLPutUserFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationAuthorSettingState
 }
 
 export type GQLPutWritingChallengeInput = {
@@ -4557,6 +4591,13 @@ export type GQLUserFeatureFlagType =
   | 'readSpamStatus'
   | 'unlimitedArticleFetch'
 
+export type GQLUserFederationSetting = {
+  __typename?: 'UserFederationSetting'
+  state: GQLFederationAuthorSettingState
+  updatedBy?: Maybe<Scalars['ID']['output']>
+  userId: Scalars['ID']['output']
+}
+
 export type GQLUserGroup = 'a' | 'b'
 
 export type GQLUserInfo = {
@@ -5187,6 +5228,7 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleEdge: ResolverTypeWrapper<
     Omit<GQLArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
+  ArticleFederationSetting: ResolverTypeWrapper<GQLArticleFederationSetting>
   ArticleInput: GQLArticleInput
   ArticleLicenseType: GQLArticleLicenseType
   ArticleNotice: ResolverTypeWrapper<NoticeItemModel>
@@ -5412,6 +5454,8 @@ export type GQLResolversTypes = ResolversObject<{
   FeatureName: GQLFeatureName
   FeaturedCommentsInput: GQLFeaturedCommentsInput
   FeaturedTagsInput: GQLFeaturedTagsInput
+  FederationArticleSettingState: GQLFederationArticleSettingState
+  FederationAuthorSettingState: GQLFederationAuthorSettingState
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
   Following: ResolverTypeWrapper<UserModel>
@@ -5583,6 +5627,7 @@ export type GQLResolversTypes = ResolversObject<{
   PublishArticleInput: GQLPublishArticleInput
   PublishState: GQLPublishState
   PutAnnouncementInput: GQLPutAnnouncementInput
+  PutArticleFederationSettingInput: GQLPutArticleFederationSettingInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleArticlesType: GQLPutCircleArticlesType
   PutCircleInput: GQLPutCircleInput
@@ -5599,6 +5644,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
+  PutUserFederationSettingInput: GQLPutUserFederationSettingInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: ResolverTypeWrapper<{}>
   QuoteCurrency: GQLQuoteCurrency
@@ -5844,6 +5890,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   UserFeatureFlag: ResolverTypeWrapper<GQLUserFeatureFlag>
   UserFeatureFlagType: GQLUserFeatureFlagType
+  UserFederationSetting: ResolverTypeWrapper<GQLUserFederationSetting>
   UserGroup: GQLUserGroup
   UserInfo: ResolverTypeWrapper<UserModel>
   UserInfoFields: GQLUserInfoFields
@@ -5950,6 +5997,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleEdge: Omit<GQLArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
+  ArticleFederationSetting: GQLArticleFederationSetting
   ArticleInput: GQLArticleInput
   ArticleNotice: NoticeItemModel
   ArticleOSS: ArticleModel
@@ -6242,6 +6290,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Price: CirclePriceModel
   PublishArticleInput: GQLPublishArticleInput
   PutAnnouncementInput: GQLPutAnnouncementInput
+  PutArticleFederationSettingInput: GQLPutArticleFederationSettingInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleInput: GQLPutCircleInput
   PutCollectionInput: GQLPutCollectionInput
@@ -6257,6 +6306,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
+  PutUserFederationSettingInput: GQLPutUserFederationSettingInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: {}
   ReadArticleInput: GQLReadArticleInput
@@ -6445,6 +6495,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['User']
   }
   UserFeatureFlag: GQLUserFeatureFlag
+  UserFederationSetting: GQLUserFederationSetting
   UserInfo: UserModel
   UserInput: GQLUserInput
   UserNotice: NoticeItemModel
@@ -7077,6 +7128,20 @@ export type GQLArticleEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleFederationSettingResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleFederationSetting'] = GQLResolversParentTypes['ArticleFederationSetting']
+> = ResolversObject<{
+  articleId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  state?: Resolver<
+    GQLResolversTypes['FederationArticleSettingState'],
+    ParentType,
+    ContextType
+  >
+  updatedBy?: Resolver<Maybe<GQLResolversTypes['ID']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8893,6 +8958,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutAnnouncementArgs, 'input'>
   >
+  putArticleFederationSetting?: Resolver<
+    GQLResolversTypes['ArticleFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutArticleFederationSettingArgs, 'input'>
+  >
   putCircle?: Resolver<
     GQLResolversTypes['Circle'],
     ParentType,
@@ -8988,6 +9059,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutUserFeatureFlagsArgs, 'input'>
+  >
+  putUserFederationSetting?: Resolver<
+    GQLResolversTypes['UserFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutUserFederationSettingArgs, 'input'>
   >
   putWritingChallenge?: Resolver<
     GQLResolversTypes['WritingChallenge'],
@@ -10862,6 +10939,20 @@ export type GQLUserFeatureFlagResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLUserFederationSettingResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['UserFederationSetting'] = GQLResolversParentTypes['UserFederationSetting']
+> = ResolversObject<{
+  state?: Resolver<
+    GQLResolversTypes['FederationAuthorSettingState'],
+    ParentType,
+    ContextType
+  >
+  updatedBy?: Resolver<Maybe<GQLResolversTypes['ID']>, ParentType, ContextType>
+  userId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLUserInfoResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserInfo'] = GQLResolversParentTypes['UserInfo']
@@ -11275,6 +11366,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleDonationConnection?: GQLArticleDonationConnectionResolvers<ContextType>
   ArticleDonationEdge?: GQLArticleDonationEdgeResolvers<ContextType>
   ArticleEdge?: GQLArticleEdgeResolvers<ContextType>
+  ArticleFederationSetting?: GQLArticleFederationSettingResolvers<ContextType>
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityResolvers<ContextType>
@@ -11430,6 +11522,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserCreateCircleActivity?: GQLUserCreateCircleActivityResolvers<ContextType>
   UserEdge?: GQLUserEdgeResolvers<ContextType>
   UserFeatureFlag?: GQLUserFeatureFlagResolvers<ContextType>
+  UserFederationSetting?: GQLUserFederationSettingResolvers<ContextType>
   UserInfo?: GQLUserInfoResolvers<ContextType>
   UserNotice?: GQLUserNoticeResolvers<ContextType>
   UserOSS?: GQLUserOssResolvers<ContextType>

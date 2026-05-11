@@ -4,11 +4,13 @@ import deleteBlockedSearchKeywords from './deleteBlockedSearchKeywords.js'
 import directImageUpload from './directImageUpload.js'
 import logRecord from './logRecord.js'
 import putAnnouncement from './putAnnouncement.js'
+import putArticleFederationSetting from './putArticleFederationSetting.js'
 import putIcymiTopic from './putIcymiTopic.js'
 import putRemark from './putRemark.js'
 import putRestrictedUsers from './putRestrictedUsers.js'
 import putSkippedListItem from './putSkippedListItem.js'
 import putUserFeatureFlags from './putUserFeatureFlags.js'
+import putUserFederationSetting from './putUserFederationSetting.js'
 import reviewTopicChannelFeedback from './reviewTopicChannelFeedback.js'
 import setAdStatus from './setAdStatus.js'
 import setBoost from './setBoost.js'
@@ -34,6 +36,8 @@ export default {
     deleteBlockedSearchKeywords,
     putRestrictedUsers,
     putUserFeatureFlags,
+    putUserFederationSetting,
+    putArticleFederationSetting,
     submitReport,
     putIcymiTopic,
     setSpamStatus,

@@ -300,6 +300,26 @@ const PUT_USER_FEATURE_FLAGS = /* GraphQL */ `
   }
 `
 
+const PUT_USER_FEDERATION_SETTING = /* GraphQL */ `
+  mutation ($input: PutUserFederationSettingInput!) {
+    putUserFederationSetting(input: $input) {
+      userId
+      state
+      updatedBy
+    }
+  }
+`
+
+const PUT_ARTICLE_FEDERATION_SETTING = /* GraphQL */ `
+  mutation ($input: PutArticleFederationSettingInput!) {
+    putArticleFederationSetting(input: $input) {
+      articleId
+      state
+      updatedBy
+    }
+  }
+`
+
 describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
@@ -995,6 +1015,65 @@ describe('user feature flags', () => {
         ({ type }: { type: GQLUserFeatureFlagType }) => type
       )
     ).toEqual(['bypassSpamDetection'])
+  })
+})
+
+describe('federation settings', () => {
+  const userId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+  const articleId = toGlobalId({ type: NODE_TYPES.Article, id: '1' })
+
+  test('only admin can update author federation setting', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_USER_FEDERATION_SETTING,
+      variables: { input: { id: userId, state: 'enabled' } },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_USER_FEDERATION_SETTING,
+      variables: { input: { id: userId, state: 'enabled' } },
+    })
+    expect(data!.putUserFederationSetting).toMatchObject({
+      userId,
+      state: 'enabled',
+    })
+  })
+
+  test('only admin can update article federation setting', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'disabled' } },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'disabled' } },
+    })
+    expect(data!.putArticleFederationSetting).toMatchObject({
+      articleId,
+      state: 'disabled',
+    })
   })
 })
 
