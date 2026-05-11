@@ -60,51 +60,31 @@ const actions: CommunityWatchAction[] = [
   },
 ]
 
-const createKnex = (rows: CommunityWatchAction[]) => {
-  const createBuilder = (
-    filters: Record<string, string> = {},
-    isCount = false,
-    offset = 0
-  ) => {
-    const filtered = () =>
-      rows.filter((row) =>
-        Object.entries(filters).every(
-          ([key, value]) => row[key as keyof CommunityWatchAction] === value
-        )
-      )
-
-    const builder: any = {
-      select: () => builder,
-      where: (filter: Record<string, string>) => {
-        Object.assign(filters, filter)
-        return builder
-      },
-      clone: () => createBuilder({ ...filters }, isCount, offset),
-      orderBy: () => builder,
-      offset: (value: number) => {
-        offset = value
-        return builder
-      },
-      limit: async (take: number) => filtered().slice(offset, offset + take),
-      count: () => createBuilder({ ...filters }, true, offset),
-      first: async () => {
-        if (isCount) {
-          return { count: filtered().length }
-        }
-        return filtered()[0]
-      },
-    }
-    return builder
-  }
-
-  return (() => createBuilder()) as any
-}
+const filterActions = (filter: Record<string, string | null | undefined>) =>
+  actions.filter((row) =>
+    (['reason', 'actionState', 'appealState', 'reviewState'] as const).every(
+      (key) => !filter[key] || row[key] === filter[key]
+    )
+  )
 
 const createContext = () =>
   ({
     dataSources: {
-      connections: {
-        knex: createKnex(actions),
+      commentService: {
+        findCommunityWatchActions: async ({
+          filter,
+          skip,
+          take,
+        }: {
+          filter: Record<string, string | null | undefined>
+          skip: number
+          take: number
+        }) => {
+          const filtered = filterActions(filter)
+          return [filtered.slice(skip, skip + take), filtered.length]
+        },
+        findCommunityWatchActionByUUID: async (uuid: string) =>
+          actions.find((action) => action.uuid === uuid) ?? null,
       },
       atomService: {
         userIdLoader: {

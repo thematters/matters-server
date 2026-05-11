@@ -2,9 +2,9 @@ import type {
   Article,
   Circle,
   Comment,
+  CommunityWatchAction,
   Connections,
   GQLCommentCommentsInput,
-  GQLCommunityWatchAction,
   GQLCommentsInput,
   User,
   ValueOf,
@@ -37,6 +37,13 @@ export interface CommentFilter {
   state?: string
 }
 
+export type CommunityWatchActionsFilter = {
+  reason?: string | null
+  actionState?: string | null
+  appealState?: string | null
+  reviewState?: string | null
+}
+
 export class CommentService extends BaseService<Comment> {
   public constructor(connections: Connections) {
     super('comment', connections)
@@ -44,12 +51,59 @@ export class CommentService extends BaseService<Comment> {
 
   public findActiveCommunityWatchAction = async (
     commentId: string
-  ): Promise<GQLCommunityWatchAction | null> => {
+  ): Promise<CommunityWatchAction | null> => {
     const action = await this.knexRO('community_watch_action')
-      .select('uuid', 'reason', 'createdAt')
+      .select()
       .where({ commentId, actionState: 'active' })
       .first()
     return action ?? null
+  }
+
+  public findCommunityWatchActionByUUID = async (
+    uuid: string
+  ): Promise<CommunityWatchAction | null> => {
+    const action = await this.knexRO('community_watch_action')
+      .select()
+      .where({ uuid })
+      .first()
+    return action ?? null
+  }
+
+  public findCommunityWatchActions = async ({
+    filter,
+    skip,
+    take,
+  }: {
+    filter: CommunityWatchActionsFilter
+    skip: number
+    take: number
+  }): Promise<[CommunityWatchAction[], number]> => {
+    const baseQuery = this.knexRO('community_watch_action').select()
+
+    if (filter.reason) {
+      baseQuery.where({ reason: filter.reason })
+    }
+    if (filter.actionState) {
+      baseQuery.where({ actionState: filter.actionState })
+    }
+    if (filter.appealState) {
+      baseQuery.where({ appealState: filter.appealState })
+    }
+    if (filter.reviewState) {
+      baseQuery.where({ reviewState: filter.reviewState })
+    }
+
+    const [actions, countResult] = await Promise.all([
+      baseQuery
+        .clone()
+        .orderBy('createdAt', 'desc')
+        .orderBy('id', 'desc')
+        .offset(skip)
+        .limit(take),
+      baseQuery.clone().count('*').first(),
+    ])
+
+    return [actions, Number(countResult?.count || 0)]
   }
 
   /**
