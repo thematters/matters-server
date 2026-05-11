@@ -39,6 +39,18 @@ Both mutations require global GraphQL IDs and record the admin viewer ID in `upd
 
 `evaluateFederationExportRows` returns a `decisionReport` with selected, eligible, skipped, and per-article skip reasons. Downstream async workers can persist or log that report without exposing credentials or private content.
 
+## Read-side product fields
+
+G2-B adds read-side fields for Matters Web/App to display the current contract state without writing settings:
+
+| Field                           | Purpose                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------- |
+| `User.federationSetting`        | Returns the author's explicit opt-in row, or `null` when default-off.   |
+| `Article.federationSetting`     | Returns the article override row, or `null` when it inherits.           |
+| `Article.federationEligibility` | Returns the computed server-side decision and effective article setting. |
+
+`Article.federationEligibility` uses the same server gate as export runs. Matters Web may use it to show disabled states, but the UI must not treat its own state as authoritative.
+
 ## Durable state scaffold
 
 The schema scaffold uses two independent tables:

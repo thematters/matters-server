@@ -121,6 +121,12 @@ export default /* GraphQL */ `
     "Original language of content"
     language: String
 
+    "Article-level federation setting override."
+    federationSetting: ArticleFederationSetting
+
+    "Computed federation export eligibility for this article."
+    federationEligibility: ArticleFederationEligibility!
+
     "List of articles which added this article into their connections."
     connectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 

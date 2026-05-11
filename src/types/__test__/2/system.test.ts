@@ -320,6 +320,32 @@ const PUT_ARTICLE_FEDERATION_SETTING = /* GraphQL */ `
   }
 `
 
+const GET_FEDERATION_SETTINGS = /* GraphQL */ `
+  query ($userInput: UserInput!, $articleInput: ArticleInput!) {
+    user(input: $userInput) {
+      id
+      federationSetting {
+        userId
+        state
+        updatedBy
+      }
+    }
+    article(input: $articleInput) {
+      id
+      federationSetting {
+        articleId
+        state
+        updatedBy
+      }
+      federationEligibility {
+        eligible
+        reason
+        effectiveArticleSetting
+      }
+    }
+  }
+`
+
 describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
@@ -1073,6 +1099,45 @@ describe('federation settings', () => {
     expect(data!.putArticleFederationSetting).toMatchObject({
       articleId,
       state: 'disabled',
+    })
+  })
+
+  test('exposes read-side federation settings and article eligibility', async () => {
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await adminServer.executeOperation({
+      query: PUT_USER_FEDERATION_SETTING,
+      variables: { input: { id: userId, state: 'enabled' } },
+    })
+    await adminServer.executeOperation({
+      query: PUT_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'disabled' } },
+    })
+
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: GET_FEDERATION_SETTINGS,
+      variables: {
+        userInput: { userName: 'test2' },
+        articleInput: { shortHash: 'test1' },
+      },
+    })
+
+    expect(data!.user!.federationSetting).toMatchObject({
+      userId,
+      state: 'enabled',
+    })
+    expect(data!.article!.federationSetting).toMatchObject({
+      articleId,
+      state: 'disabled',
+    })
+    expect(data!.article!.federationEligibility).toMatchObject({
+      eligible: false,
+      reason: 'article_disabled',
+      effectiveArticleSetting: 'disabled',
     })
   })
 })

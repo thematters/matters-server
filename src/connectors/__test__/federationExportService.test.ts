@@ -71,6 +71,16 @@ const createKnexWrite = (rows: any[]) => {
   return { knex, query }
 }
 
+const createKnexFirst = (row: any) => {
+  const query: any = {
+    where: jest.fn(() => query),
+    first: jest.fn(() => Promise.resolve(row)),
+  }
+  const knexRO = jest.fn(() => query)
+
+  return { knexRO, query }
+}
+
 describe('federationExportService', () => {
   test('builds canonical Matters article URLs from short hashes', () => {
     expect(
@@ -439,6 +449,50 @@ describe('federationExportService', () => {
       updatedAt: 'now',
     })
     expect(query.returning).toHaveBeenCalledWith([
+      'articleId',
+      'state',
+      'updatedBy',
+    ])
+    expect(row).toEqual({
+      articleId: '101',
+      state: FEDERATION_ARTICLE_SETTING.disabled,
+      updatedBy: null,
+    })
+  })
+
+  test('loads author federation setting from read-only DB', async () => {
+    const { knexRO, query } = createKnexFirst({
+      userId: '1',
+      state: FEDERATION_AUTHOR_SETTING.enabled,
+      updatedBy: '99',
+    })
+    const service = new FederationExportService({ knexRO } as any)
+
+    const row = await service.loadAuthorFederationSetting('1')
+
+    expect(knexRO).toHaveBeenCalledWith('user_federation_setting')
+    expect(query.where).toHaveBeenCalledWith({ userId: '1' })
+    expect(query.first).toHaveBeenCalledWith(['userId', 'state', 'updatedBy'])
+    expect(row).toEqual({
+      userId: '1',
+      state: FEDERATION_AUTHOR_SETTING.enabled,
+      updatedBy: '99',
+    })
+  })
+
+  test('loads article federation setting from read-only DB', async () => {
+    const { knexRO, query } = createKnexFirst({
+      articleId: '101',
+      state: FEDERATION_ARTICLE_SETTING.disabled,
+      updatedBy: null,
+    })
+    const service = new FederationExportService({ knexRO } as any)
+
+    const row = await service.loadArticleFederationSetting('101')
+
+    expect(knexRO).toHaveBeenCalledWith('article_federation_setting')
+    expect(query.where).toHaveBeenCalledWith({ articleId: '101' })
+    expect(query.first).toHaveBeenCalledWith([
       'articleId',
       'state',
       'updatedBy',

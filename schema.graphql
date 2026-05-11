@@ -364,6 +364,12 @@ type Article implements Node & PinnableWork {
   """Original language of content"""
   language: String
 
+  """Article-level federation setting override."""
+  federationSetting: ArticleFederationSetting
+
+  """Computed federation export eligibility for this article."""
+  federationEligibility: ArticleFederationEligibility!
+
   """List of articles which added this article into their connections."""
   connectedBy(input: ConnectionArgs!): ArticleConnection!
 
@@ -1240,6 +1246,9 @@ type User implements Node {
 
   """User settings."""
   settings: UserSettings!
+
+  """User-level federation opt-in setting."""
+  federationSetting: UserFederationSetting
 
   """Recommendations for current user."""
   recommendation: Recommendation!
@@ -2675,6 +2684,13 @@ enum FederationArticleSettingState {
   disabled
 }
 
+enum FederationExportDecisionReason {
+  eligible
+  article_not_public
+  author_not_opted_in
+  article_disabled
+}
+
 type UserFederationSetting {
   userId: ID!
   state: FederationAuthorSettingState!
@@ -2685,6 +2701,12 @@ type ArticleFederationSetting {
   articleId: ID!
   state: FederationArticleSettingState!
   updatedBy: ID
+}
+
+type ArticleFederationEligibility {
+  eligible: Boolean!
+  reason: FederationExportDecisionReason!
+  effectiveArticleSetting: FederationArticleSettingState!
 }
 
 enum ReportReason {

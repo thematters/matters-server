@@ -275,6 +275,10 @@ export type GQLArticle = GQLNode &
     donations: GQLArticleDonationConnection
     /** List of featured comments of this article. */
     featuredComments: GQLCommentConnection
+    /** Computed federation export eligibility for this article. */
+    federationEligibility: GQLArticleFederationEligibility
+    /** Article-level federation setting override. */
+    federationSetting?: Maybe<GQLArticleFederationSetting>
     /** This value determines if current viewer has appreciated or not. */
     hasAppreciate: Scalars['Boolean']['output']
     /** Unique ID of this article */
@@ -547,6 +551,13 @@ export type GQLArticleEdge = {
   __typename?: 'ArticleEdge'
   cursor: Scalars['String']['output']
   node: GQLArticle
+}
+
+export type GQLArticleFederationEligibility = {
+  __typename?: 'ArticleFederationEligibility'
+  effectiveArticleSetting: GQLFederationArticleSettingState
+  eligible: Scalars['Boolean']['output']
+  reason: GQLFederationExportDecisionReason
 }
 
 export type GQLArticleFederationSetting = {
@@ -1791,6 +1802,12 @@ export type GQLFederationArticleSettingState =
   | 'inherit'
 
 export type GQLFederationAuthorSettingState = 'disabled' | 'enabled'
+
+export type GQLFederationExportDecisionReason =
+  | 'article_disabled'
+  | 'article_not_public'
+  | 'author_not_opted_in'
+  | 'eligible'
 
 export type GQLFilterInput = {
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
@@ -4377,6 +4394,8 @@ export type GQLUser = GQLNode & {
   displayName?: Maybe<Scalars['String']['output']>
   /** Drafts authored by current user. */
   drafts: GQLDraftConnection
+  /** User-level federation opt-in setting. */
+  federationSetting?: Maybe<GQLUserFederationSetting>
   /** Followers of this user. */
   followers: GQLUserConnection
   /** Following contents of this user. */
@@ -5228,6 +5247,7 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleEdge: ResolverTypeWrapper<
     Omit<GQLArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
+  ArticleFederationEligibility: ResolverTypeWrapper<GQLArticleFederationEligibility>
   ArticleFederationSetting: ResolverTypeWrapper<GQLArticleFederationSetting>
   ArticleInput: GQLArticleInput
   ArticleLicenseType: GQLArticleLicenseType
@@ -5456,6 +5476,7 @@ export type GQLResolversTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FederationArticleSettingState: GQLFederationArticleSettingState
   FederationAuthorSettingState: GQLFederationAuthorSettingState
+  FederationExportDecisionReason: GQLFederationExportDecisionReason
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
   Following: ResolverTypeWrapper<UserModel>
@@ -5997,6 +6018,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleEdge: Omit<GQLArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
+  ArticleFederationEligibility: GQLArticleFederationEligibility
   ArticleFederationSetting: GQLArticleFederationSetting
   ArticleInput: GQLArticleInput
   ArticleNotice: NoticeItemModel
@@ -6887,6 +6909,16 @@ export type GQLArticleResolvers<
     ContextType,
     RequireFields<GQLArticleFeaturedCommentsArgs, 'input'>
   >
+  federationEligibility?: Resolver<
+    GQLResolversTypes['ArticleFederationEligibility'],
+    ParentType,
+    ContextType
+  >
+  federationSetting?: Resolver<
+    Maybe<GQLResolversTypes['ArticleFederationSetting']>,
+    ParentType,
+    ContextType
+  >
   hasAppreciate?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7128,6 +7160,24 @@ export type GQLArticleEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleFederationEligibilityResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleFederationEligibility'] = GQLResolversParentTypes['ArticleFederationEligibility']
+> = ResolversObject<{
+  effectiveArticleSetting?: Resolver<
+    GQLResolversTypes['FederationArticleSettingState'],
+    ParentType,
+    ContextType
+  >
+  eligible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  reason?: Resolver<
+    GQLResolversTypes['FederationExportDecisionReason'],
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -10728,6 +10778,11 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserDraftsArgs, 'input'>
   >
+  federationSetting?: Resolver<
+    Maybe<GQLResolversTypes['UserFederationSetting']>,
+    ParentType,
+    ContextType
+  >
   followers?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
@@ -11366,6 +11421,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleDonationConnection?: GQLArticleDonationConnectionResolvers<ContextType>
   ArticleDonationEdge?: GQLArticleDonationEdgeResolvers<ContextType>
   ArticleEdge?: GQLArticleEdgeResolvers<ContextType>
+  ArticleFederationEligibility?: GQLArticleFederationEligibilityResolvers<ContextType>
   ArticleFederationSetting?: GQLArticleFederationSettingResolvers<ContextType>
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>

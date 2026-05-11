@@ -137,6 +137,9 @@ export default /* GraphQL */ `
     "User settings."
     settings: UserSettings! @auth(mode: "${AUTH_MODE.oauth}")
 
+    "User-level federation opt-in setting."
+    federationSetting: UserFederationSetting
+
     "Recommendations for current user."
     recommendation: Recommendation!
 
