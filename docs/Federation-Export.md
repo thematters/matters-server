@@ -24,7 +24,7 @@ The current pure function is `resolveFederationExportGate` in `src/connectors/ar
 
 The candidate loader can include federation setting joins when strict opt-in input is needed. Without that strict input, the service preserves the public-only preflight boundary.
 
-`FederationExportService` also exposes bounded upsert methods for author and article federation settings. These methods validate allowed states before writing and are wired to admin-only GraphQL mutations for internal/staging control.
+`FederationExportService` also exposes bounded upsert methods for author and article federation settings. These methods validate allowed states before writing and are wired to admin-only GraphQL mutations for internal/staging control plus pilot-scoped user mutations for G2-B.
 
 ## Internal admin entry points
 
@@ -39,14 +39,25 @@ Both mutations require global GraphQL IDs and record the admin viewer ID in `upd
 
 `evaluateFederationExportRows` returns a `decisionReport` with selected, eligible, skipped, and per-article skip reasons. Downstream async workers can persist or log that report without exposing credentials or private content.
 
+## Pilot product entry points
+
+G2-B adds two OAuth mutations gated by the `fediverseBeta` user feature flag:
+
+| Mutation                                            | Purpose                                                                 |
+| --------------------------------------------------- | ----------------------------------------------------------------------- |
+| `setViewerFederationSetting(input: { state })`      | Lets a pilot viewer set only their own author-level federation setting. |
+| `setArticleFederationSetting(input: { id, state })` | Lets a pilot author set only their own article federation override.     |
+
+The feature flag is assigned through the existing admin feature-flag tooling. These mutations do not publish, backfill, delete, or export content; they only record settings for the server-side gate.
+
 ## Read-side product fields
 
 G2-B adds read-side fields for Matters Web/App to display the current contract state without writing settings:
 
-| Field                           | Purpose                                                                 |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| `User.federationSetting`        | Returns the author's explicit opt-in row, or `null` when default-off.   |
-| `Article.federationSetting`     | Returns the article override row, or `null` when it inherits.           |
+| Field                           | Purpose                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| `User.federationSetting`        | Returns the author's explicit opt-in row, or `null` when default-off.    |
+| `Article.federationSetting`     | Returns the article override row, or `null` when it inherits.            |
 | `Article.federationEligibility` | Returns the computed server-side decision and effective article setting. |
 
 `Article.federationEligibility` uses the same server gate as export runs. Matters Web may use it to show disabled states, but the UI must not treat its own state as authoritative.
@@ -60,11 +71,11 @@ The schema scaffold uses two independent tables:
 | `user_federation_setting`    | One row per author. `state` is `enabled` or `disabled`; missing rows are treated as disabled by the service contract. |
 | `article_federation_setting` | One row per article. `state` is `inherit`, `enabled`, or `disabled`; missing rows are treated as `inherit`.           |
 
-Both tables include `updated_by`, `created_at`, and `updated_at`. The migration, service methods, and internal admin GraphQL mutations are present for branch review and staging validation, but this slice does not run it against production or expose user-facing UI.
+Both tables include `updated_by`, `created_at`, and `updated_at`. The migration, service methods, internal admin GraphQL mutations, and pilot product mutations are present for branch review and staging validation, but this slice does not run it against production or expose broad user-facing UI.
 
 ## Deferred production work
 
-- Add product copy and UI controls.
+- Add product copy and Matters Web UI controls.
 - Move bundle generation and file publication to `lambda-handlers`.
 - Wire async export trigger behavior after publishing or editing an eligible article.
 - Add audit logs for export decisions and skipped reasons.

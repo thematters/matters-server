@@ -542,6 +542,7 @@ export default /* GraphQL */ `
     unlimitedArticleFetch
     readSpamStatus
     communityWatch
+    fediverseBeta
   }
 
   enum FederationAuthorSettingState {

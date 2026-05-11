@@ -46,6 +46,9 @@ type Mutation {
   """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
 
+  """Set current author's Fediverse federation preference for an article."""
+  setArticleFederationSetting(input: SetArticleFederationSettingInput!): ArticleFederationSetting!
+
   """Bookmark or unbookmark article"""
   toggleSubscribeArticle(input: ToggleItemInput!): Article! @deprecated(reason: "Use toggleBookmarkArticle instead")
   toggleBookmarkArticle(input: ToggleItemInput!): Article!
@@ -177,6 +180,9 @@ type Mutation {
 
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
+
+  """Set current viewer's Fediverse federation preference."""
+  setViewerFederationSetting(input: SetViewerFederationSettingInput!): UserFederationSetting!
 
   """Login user."""
   emailLogin(input: EmailLoginInput!): AuthResult!
@@ -808,6 +814,11 @@ input EditArticleInput {
 
   """which campaigns to attach"""
   campaigns: [ArticleCampaignInput!]
+}
+
+input SetArticleFederationSettingInput {
+  id: ID!
+  state: FederationArticleSettingState!
 }
 
 input ArticleCampaignInput {
@@ -2671,6 +2682,7 @@ enum UserFeatureFlagType {
   unlimitedArticleFetch
   readSpamStatus
   communityWatch
+  fediverseBeta
 }
 
 enum FederationAuthorSettingState {
@@ -3357,6 +3369,10 @@ input VerifyEmailInput {
 
 input SetCurrencyInput {
   currency: QuoteCurrency
+}
+
+input SetViewerFederationSettingInput {
+  state: FederationAuthorSettingState!
 }
 
 input GenerateSigningMessageInput {

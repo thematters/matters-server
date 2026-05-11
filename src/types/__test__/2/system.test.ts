@@ -321,7 +321,7 @@ const PUT_ARTICLE_FEDERATION_SETTING = /* GraphQL */ `
 `
 
 const GET_FEDERATION_SETTINGS = /* GraphQL */ `
-  query ($userInput: UserInput!, $articleInput: ArticleInput!) {
+  query ($userInput: UserInput!, $articleId: ID!) {
     user(input: $userInput) {
       id
       federationSetting {
@@ -330,17 +330,19 @@ const GET_FEDERATION_SETTINGS = /* GraphQL */ `
         updatedBy
       }
     }
-    article(input: $articleInput) {
-      id
-      federationSetting {
-        articleId
-        state
-        updatedBy
-      }
-      federationEligibility {
-        eligible
-        reason
-        effectiveArticleSetting
+    article: node(input: { id: $articleId }) {
+      ... on Article {
+        id
+        federationSetting {
+          articleId
+          state
+          updatedBy
+        }
+        federationEligibility {
+          eligible
+          reason
+          effectiveArticleSetting
+        }
       }
     }
   }
@@ -1122,7 +1124,7 @@ describe('federation settings', () => {
       query: GET_FEDERATION_SETTINGS,
       variables: {
         userInput: { userName: 'test2' },
-        articleInput: { shortHash: 'test1' },
+        articleId,
       },
     })
 

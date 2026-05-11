@@ -2225,6 +2225,8 @@ export type GQLMutation = {
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
   setAdStatus: GQLArticle
+  /** Set current author's Fediverse federation preference for an article. */
+  setArticleFederationSetting: GQLArticleFederationSetting
   setArticleTopicChannels: GQLArticle
   setBoost: GQLNode
   /** Set user currency preference. */
@@ -2237,6 +2239,8 @@ export type GQLMutation = {
   setSpamStatus: GQLWriting
   /** Set user name. */
   setUserName: GQLUser
+  /** Set current viewer's Fediverse federation preference. */
+  setViewerFederationSetting: GQLUserFederationSetting
   /** Upload a single file. */
   singleFileUpload: GQLAsset
   /** Login/Signup via social accounts. */
@@ -2587,6 +2591,10 @@ export type GQLMutationSetAdStatusArgs = {
   input: GQLSetAdStatusInput
 }
 
+export type GQLMutationSetArticleFederationSettingArgs = {
+  input: GQLSetArticleFederationSettingInput
+}
+
 export type GQLMutationSetArticleTopicChannelsArgs = {
   input: GQLSetArticleTopicChannelsInput
 }
@@ -2617,6 +2625,10 @@ export type GQLMutationSetSpamStatusArgs = {
 
 export type GQLMutationSetUserNameArgs = {
   input: GQLSetUserNameInput
+}
+
+export type GQLMutationSetViewerFederationSettingArgs = {
+  input: GQLSetViewerFederationSettingInput
 }
 
 export type GQLMutationSingleFileUploadArgs = {
@@ -3707,6 +3719,11 @@ export type GQLSetAdStatusInput = {
   isAd: Scalars['Boolean']['input']
 }
 
+export type GQLSetArticleFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationArticleSettingState
+}
+
 export type GQLSetArticleTopicChannelsInput = {
   channels: Array<Scalars['ID']['input']>
   id: Scalars['ID']['input']
@@ -3743,6 +3760,10 @@ export type GQLSetSpamStatusInput = {
 
 export type GQLSetUserNameInput = {
   userName: Scalars['String']['input']
+}
+
+export type GQLSetViewerFederationSettingInput = {
+  state: GQLFederationAuthorSettingState
 }
 
 export type GQLSigningMessagePurpose =
@@ -4607,6 +4628,7 @@ export type GQLUserFeatureFlag = {
 export type GQLUserFeatureFlagType =
   | 'bypassSpamDetection'
   | 'communityWatch'
+  | 'fediverseBeta'
   | 'readSpamStatus'
   | 'unlimitedArticleFetch'
 
@@ -5745,6 +5767,7 @@ export type GQLResolversTypes = ResolversObject<{
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetAdStatusInput: GQLSetAdStatusInput
+  SetArticleFederationSettingInput: GQLSetArticleFederationSettingInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5753,6 +5776,7 @@ export type GQLResolversTypes = ResolversObject<{
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
+  SetViewerFederationSettingInput: GQLSetViewerFederationSettingInput
   SigningMessagePurpose: GQLSigningMessagePurpose
   SigningMessageResult: ResolverTypeWrapper<GQLSigningMessageResult>
   SingleFileUploadInput: GQLSingleFileUploadInput
@@ -6385,6 +6409,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetAdStatusInput: GQLSetAdStatusInput
+  SetArticleFederationSettingInput: GQLSetArticleFederationSettingInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -6393,6 +6418,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
+  SetViewerFederationSettingInput: GQLSetViewerFederationSettingInput
   SigningMessageResult: GQLSigningMessageResult
   SingleFileUploadInput: GQLSingleFileUploadInput
   SkippedListItem: GQLSkippedListItem
@@ -9193,6 +9219,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSetAdStatusArgs, 'input'>
   >
+  setArticleFederationSetting?: Resolver<
+    GQLResolversTypes['ArticleFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetArticleFederationSettingArgs, 'input'>
+  >
   setArticleTopicChannels?: Resolver<
     GQLResolversTypes['Article'],
     ParentType,
@@ -9240,6 +9272,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetUserNameArgs, 'input'>
+  >
+  setViewerFederationSetting?: Resolver<
+    GQLResolversTypes['UserFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetViewerFederationSettingArgs, 'input'>
   >
   singleFileUpload?: Resolver<
     GQLResolversTypes['Asset'],

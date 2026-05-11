@@ -23,6 +23,9 @@ export default /* GraphQL */ `
     "Edit an article."
     editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}")
 
+    "Set current author's Fediverse federation preference for an article."
+    setArticleFederationSetting(input: SetArticleFederationSettingInput!): ArticleFederationSetting! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}")
+
     "Bookmark or unbookmark article"
     toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}") @deprecated(reason: "Use toggleBookmarkArticle instead")
     toggleBookmarkArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}")
@@ -540,6 +543,11 @@ export default /* GraphQL */ `
 
     "which campaigns to attach"
     campaigns: [ArticleCampaignInput!]
+  }
+
+  input SetArticleFederationSettingInput {
+    id: ID!
+    state: FederationArticleSettingState!
   }
 
   input ArticleCampaignInput {

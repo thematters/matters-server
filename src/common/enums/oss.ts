@@ -8,4 +8,5 @@ export const USER_FEATURE_FLAG_TYPE = {
   unlimitedArticleFetch: 'unlimitedArticleFetch',
   readSpamStatus: 'readSpamStatus',
   communityWatch: 'communityWatch',
+  fediverseBeta: 'fediverseBeta',
 } as const
