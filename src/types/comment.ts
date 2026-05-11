@@ -1,9 +1,22 @@
-import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from '#common/enums/index.js'
+import {
+  AUTH_MODE,
+  CACHE_TTL,
+  NODE_TYPES,
+  SCOPE_GROUP,
+} from '#common/enums/index.js'
 import { isProd } from '#common/environment.js'
 
 const PUT_COMMENT_RATE_LIMIT = isProd ? 6 : 1000
 
 export default /* GraphQL */ `
+  extend type Query {
+    "Recent public Community Watch audit records."
+    communityWatchActions(input: CommunityWatchActionsInput!): CommunityWatchActionConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+
+    "One public Community Watch audit record."
+    communityWatchAction(input: CommunityWatchActionInput!): CommunityWatchAction @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+  }
+
   extend type Mutation {
     "Publish or update a comment."
     putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}") @rateLimit(limit: ${PUT_COMMENT_RATE_LIMIT}, period: 60)
@@ -226,16 +239,74 @@ export default /* GraphQL */ `
     reason: CommunityWatchRemoveCommentReason!
   }
 
+  input CommunityWatchActionsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    reason: CommunityWatchRemoveCommentReason
+    actionState: CommunityWatchActionState
+    appealState: CommunityWatchAppealState
+    reviewState: CommunityWatchReviewState
+  }
+
+  input CommunityWatchActionInput {
+    uuid: ID!
+  }
+
   enum CommunityWatchRemoveCommentReason {
     porn_ad
     spam_ad
   }
 
+  enum CommunityWatchActionSourceType {
+    article
+    moment
+  }
+
+  enum CommunityWatchActionState {
+    active
+    restored
+    voided
+  }
+
+  enum CommunityWatchAppealState {
+    none
+    received
+    resolved
+  }
+
+  enum CommunityWatchReviewState {
+    pending
+    upheld
+    reversed
+    reason_adjusted
+  }
+
   type CommunityWatchAction {
     "Public identifier used by the Community Watch transparency page."
     uuid: ID!
+    commentId: ID!
+    sourceType: CommunityWatchActionSourceType!
+    sourceTitle: String!
+    sourceId: ID!
+    actorDisplayName: String!
     reason: CommunityWatchRemoveCommentReason!
+    actionState: CommunityWatchActionState!
+    appealState: CommunityWatchAppealState!
+    reviewState: CommunityWatchReviewState!
+    originalContent: String
+    contentCleared: Boolean!
     createdAt: DateTime!
+  }
+
+  type CommunityWatchActionConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CommunityWatchActionEdge!]
+  }
+
+  type CommunityWatchActionEdge {
+    cursor: String!
+    node: CommunityWatchAction!
   }
 
   "Enums for vote types."
