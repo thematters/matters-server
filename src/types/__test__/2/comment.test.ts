@@ -74,6 +74,11 @@ const COMMUNITY_WATCH_REMOVE_COMMENT = /* GraphQL */ `
   mutation ($input: CommunityWatchRemoveCommentInput!) {
     communityWatchRemoveComment(input: $input) {
       state
+      communityWatchAction {
+        uuid
+        reason
+        createdAt
+      }
     }
   }
 `
@@ -564,11 +569,19 @@ describe('community watch remove comment', () => {
 
     expect(errors).toBeUndefined()
     expect(data.communityWatchRemoveComment.state).toBe(COMMENT_STATE.banned)
+    expect(data.communityWatchRemoveComment.communityWatchAction).toEqual({
+      uuid: expect.any(String),
+      reason: 'spam_ad',
+      createdAt: expect.anything(),
+    })
 
     const auditAction = await atomService.findFirst({
       table: 'community_watch_action',
       where: { commentId: comment.id },
     })
+    expect(data.communityWatchRemoveComment.communityWatchAction.uuid).toBe(
+      auditAction.uuid
+    )
     expect(auditAction).toMatchObject({
       commentId: comment.id,
       commentType: COMMENT_TYPE.article,

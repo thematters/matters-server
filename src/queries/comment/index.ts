@@ -17,6 +17,7 @@ import circleDiscussionCount from './circle/discussionCount.js'
 import circleDiscussionThreadCount from './circle/discussionThreadCount.js'
 import circlePinnedBroadcast from './circle/pinnedBroadcast.js'
 import comments from './comments.js'
+import communityWatchAction from './communityWatchAction.js'
 import content from './content.js'
 import downvotes from './downvotes.js'
 import fromDonator from './fromDonator.js'
@@ -44,6 +45,7 @@ export default {
     id: ({ id }: { id: string }) =>
       toGlobalId({ type: NODE_TYPES.Comment, id }),
     replyTo,
+    communityWatchAction,
     content,
     author,
     upvotes,

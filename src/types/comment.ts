@@ -55,6 +55,9 @@ export default /* GraphQL */ `
     "Content of this comment."
     content: String
 
+    "Community Watch audit action when this comment was removed by Community Watch."
+    communityWatchAction: CommunityWatchAction
+
     "Author of this comment."
     author: User! @logCache(type: "${NODE_TYPES.User}")
 
@@ -226,6 +229,13 @@ export default /* GraphQL */ `
   enum CommunityWatchRemoveCommentReason {
     porn_ad
     spam_ad
+  }
+
+  type CommunityWatchAction {
+    "Public identifier used by the Community Watch transparency page."
+    uuid: ID!
+    reason: CommunityWatchRemoveCommentReason!
+    createdAt: DateTime!
   }
 
   "Enums for vote types."

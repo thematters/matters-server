@@ -1301,6 +1301,8 @@ export type GQLComment = GQLNode & {
   author: GQLUser
   /** Descendant comments of this comment. */
   comments: GQLCommentConnection
+  /** Community Watch audit action when this comment was removed by Community Watch. */
+  communityWatchAction?: Maybe<GQLCommunityWatchAction>
   /** Content of this comment. */
   content?: Maybe<Scalars['String']['output']>
   /** Time of this comment was created. */
@@ -1435,6 +1437,14 @@ export type GQLCommentsInput = {
   includeAfter?: InputMaybe<Scalars['Boolean']['input']>
   includeBefore?: InputMaybe<Scalars['Boolean']['input']>
   sort?: InputMaybe<GQLCommentSort>
+}
+
+export type GQLCommunityWatchAction = {
+  __typename?: 'CommunityWatchAction'
+  createdAt: Scalars['DateTime']['output']
+  reason: GQLCommunityWatchRemoveCommentReason
+  /** Public identifier used by the Community Watch transparency page. */
+  uuid: Scalars['ID']['output']
 }
 
 export type GQLCommunityWatchRemoveCommentInput = {
@@ -5353,6 +5363,7 @@ export type GQLResolversTypes = ResolversObject<{
   CommentType: GQLCommentType
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
+  CommunityWatchAction: ResolverTypeWrapper<GQLCommunityWatchAction>
   CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
   CommunityWatchRemoveCommentReason: GQLCommunityWatchRemoveCommentReason
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
@@ -6065,6 +6076,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CommentNotice: NoticeItemModel
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
+  CommunityWatchAction: GQLCommunityWatchAction
   CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
@@ -7861,6 +7873,11 @@ export type GQLCommentResolvers<
     ContextType,
     RequireFields<GQLCommentCommentsArgs, 'input'>
   >
+  communityWatchAction?: Resolver<
+    Maybe<GQLResolversTypes['CommunityWatchAction']>,
+    ParentType,
+    ContextType
+  >
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -7958,6 +7975,20 @@ export type GQLCommentNoticeResolvers<
     ContextType
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCommunityWatchActionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CommunityWatchAction'] = GQLResolversParentTypes['CommunityWatchAction']
+> = ResolversObject<{
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  reason?: Resolver<
+    GQLResolversTypes['CommunityWatchRemoveCommentReason'],
+    ParentType,
+    ContextType
+  >
+  uuid?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -11293,6 +11324,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CommentConnection?: GQLCommentConnectionResolvers<ContextType>
   CommentEdge?: GQLCommentEdgeResolvers<ContextType>
   CommentNotice?: GQLCommentNoticeResolvers<ContextType>
+  CommunityWatchAction?: GQLCommunityWatchActionResolvers<ContextType>
   ConnectStripeAccountResult?: GQLConnectStripeAccountResultResolvers<ContextType>
   Connection?: GQLConnectionResolvers<ContextType>
   CryptoWallet?: GQLCryptoWalletResolvers<ContextType>
