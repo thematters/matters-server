@@ -20,13 +20,19 @@ import {
   NODE_TYPES,
   MAX_CONTENT_LINK_TEXT_LENGTH,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleRevisionReachLimitError,
   CircleNotFoundError,
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import { fromGlobalId, stripHtml } from '#common/utils/index.js'
+import {
+  FEDERATION_EXPORT_TRIGGER,
+  FEDERATION_EXPORT_TRIGGER_MODE,
+} from '#connectors/article/federationExportService.js'
 import {
   AtomService,
   CampaignService,
@@ -38,6 +44,8 @@ import pkg from 'lodash'
 import { createRequire } from 'node:module'
 
 const { isUndefined, omitBy } = pkg
+
+const logger = getLogger('federation-export-trigger')
 
 const require = createRequire(import.meta.url)
 const {
@@ -83,6 +91,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       systemService,
       campaignService,
       collectionService,
+      federationExportService,
       queues: { revisionQueue },
       connections: { redis },
     },
@@ -225,6 +234,25 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
         oldArticleVersionId: articleVersion.id,
         iscnPublish,
       })
+
+      if (
+        environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+      ) {
+        try {
+          await federationExportService.recordExportTriggerDecision({
+            articleId: article.id,
+            actorId: viewer.id,
+            trigger: FEDERATION_EXPORT_TRIGGER.reviseArticle,
+          })
+        } catch (error) {
+          logger.error('Failed to record federation export trigger decision', {
+            articleId: article.id,
+            actorId: viewer.id,
+            error,
+          })
+        }
+      }
     }
   }
 
