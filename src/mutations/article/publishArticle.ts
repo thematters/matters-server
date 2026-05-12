@@ -7,6 +7,7 @@ import {
   AUDIT_LOG_ACTION,
   ARTICLE_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   DraftNotFoundError,
   ForbiddenByStateError,
@@ -15,10 +16,16 @@ import {
   ArticleNotFoundError,
   ArticleInactiveError,
 } from '#common/errors.js'
-import { auditLog } from '#common/logger.js'
+import { auditLog, getLogger } from '#common/logger.js'
 import { fromGlobalId } from '#common/utils/index.js'
+import {
+  FEDERATION_EXPORT_TRIGGER,
+  FEDERATION_EXPORT_TRIGGER_MODE,
+} from '#connectors/article/federationExportService.js'
 import { AtomService } from '#connectors/index.js'
 import { createRequire } from 'node:module'
+
+const logger = getLogger('federation-export-trigger')
 
 const require = createRequire(import.meta.url)
 const {
@@ -31,7 +38,12 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   { input: { id: globalId, iscnPublish, publishAt } },
   {
     viewer,
-    dataSources: { atomService, publicationService, collectionService },
+    dataSources: {
+      atomService,
+      publicationService,
+      collectionService,
+      federationExportService,
+    },
   }
 ) => {
   if (
@@ -137,6 +149,27 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
       entityId: draft.id,
       status: 'succeeded',
     })
+
+    if (
+      environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly &&
+      publishedDraft.articleId
+    ) {
+      try {
+        await federationExportService.recordExportTriggerDecision({
+          articleId: publishedDraft.articleId,
+          actorId: viewer.id,
+          trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+        })
+      } catch (error) {
+        logger.error('Failed to record federation export trigger decision', {
+          articleId: publishedDraft.articleId,
+          actorId: viewer.id,
+          error,
+        })
+      }
+    }
+
     return publishedDraft
   }
 

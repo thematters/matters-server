@@ -39,6 +39,26 @@ Both mutations require global GraphQL IDs and record the admin viewer ID in `upd
 
 `evaluateFederationExportRows` returns a `decisionReport` with selected, eligible, skipped, and per-article skip reasons. Downstream async workers can persist or log that report without exposing credentials or private content.
 
+## Trigger scaffold
+
+`MATTERS_FEDERATION_EXPORT_TRIGGER_MODE` controls whether publish/edit flows record export decisions:
+
+| Value         | Behavior                                                                                                        |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| `off`         | Default. Publishing and editing articles do not touch the federation export trigger scaffold.                   |
+| `record_only` | After immediate publish or content revision, server records the strict eligibility decision for audit purposes. |
+
+`record_only` writes to `federation_export_event` only. It does not call Lambda, write S3, generate bundles, deliver ActivityPub, push IPNS, or block normal publishing/editing if the audit write fails.
+
+The recorded trigger names are:
+
+| Trigger           | Source                                          |
+| ----------------- | ----------------------------------------------- |
+| `publish_article` | Immediate `publishArticle` mutation completion. |
+| `revise_article`  | `editArticle` content revision path.            |
+
+Scheduled publish, backfill, deletes, update activities, and external delivery remain outside this server scaffold until product and rollout approval.
+
 ## Pilot product entry points
 
 G2-B adds two OAuth mutations gated by the `fediverseBeta` user feature flag:
@@ -70,13 +90,15 @@ The schema scaffold uses two independent tables:
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `user_federation_setting`    | One row per author. `state` is `enabled` or `disabled`; missing rows are treated as disabled by the service contract. |
 | `article_federation_setting` | One row per article. `state` is `inherit`, `enabled`, or `disabled`; missing rows are treated as `inherit`.           |
+| `federation_export_event`    | One audit row per publish/edit trigger decision, including the strict `decisionReport` and skip reason.               |
 
-Both tables include `updated_by`, `created_at`, and `updated_at`. The migration, service methods, internal admin GraphQL mutations, and pilot product mutations are present for branch review and staging validation, but this slice does not run it against production or expose broad user-facing UI.
+The setting tables include `updated_by`, `created_at`, and `updated_at`. The event table records `article_id`, optional `actor_id`, trigger, mode, status, eligibility, skip reason, author/article settings, effective article setting, and the JSONB decision report.
+
+The migration, service methods, internal admin GraphQL mutations, pilot product mutations, read fields, UI hooks, strict Lambda dry-run path, and `record_only` trigger scaffold are present for branch review and staging validation. This contract still does not run production export writes or external federation delivery.
 
 ## Deferred production work
 
-- Add product copy and Matters Web UI controls.
-- Move bundle generation and file publication to `lambda-handlers`.
-- Wire async export trigger behavior after publishing or editing an eligible article.
-- Add audit logs for export decisions and skipped reasons.
+- Decide whether production triggers should remain `record_only`, invoke a dry-run Lambda, or enqueue a write-capable worker.
+- Add scheduled publish, backfill, delete/update, and retry semantics if product requires them.
+- Select the production storage target, retention policy, and credentials owner.
 - Complete legal/privacy approval before beta rollout.
