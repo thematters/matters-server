@@ -214,7 +214,10 @@ describe('validateExternalUrl', () => {
   describe('IPv6 alternate representations', () => {
     it.each([
       ['fully expanded loopback', '0:0:0:0:0:0:0:1'],
-      ['fully expanded with leading zeros', '0000:0000:0000:0000:0000:0000:0000:0001'],
+      [
+        'fully expanded with leading zeros',
+        '0000:0000:0000:0000:0000:0000:0000:0001',
+      ],
       ['mixed compression', '0:0:0:0::1'],
       ['upper case fe80', 'FE80::1'],
       ['upper case fc00', 'FC00::1'],
