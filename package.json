@@ -96,6 +96,7 @@
     "helmet": "^7.0.0",
     "husky": "^9.1.7",
     "ioredis": "^5.5.0",
+    "ipaddr.js": "^1.9.1",
     "js-base64": "^3.7.5",
     "jsonwebtoken": "^9.0.0",
     "keyv": "^4.5.2",
