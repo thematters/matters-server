@@ -80,7 +80,7 @@ export class CommentService extends BaseService<Comment> {
   public findActiveCommunityWatchAction = async (
     commentId: string
   ): Promise<CommunityWatchAction | null> => {
-    const action = await this.knexRO('community_watch_action')
+    const action = await this.knex('community_watch_action')
       .select()
       .where({ commentId, actionState: 'active' })
       .first()
@@ -90,7 +90,7 @@ export class CommentService extends BaseService<Comment> {
   public findCommunityWatchActionByUUID = async (
     uuid: string
   ): Promise<CommunityWatchAction | null> => {
-    const action = await this.knexRO('community_watch_action')
+    const action = await this.knex('community_watch_action')
       .select()
       .where({ uuid })
       .first()
@@ -106,7 +106,8 @@ export class CommentService extends BaseService<Comment> {
     skip: number
     take: number
   }): Promise<[CommunityWatchAction[], number]> => {
-    const baseQuery = this.knexRO('community_watch_action').select()
+    // Community Watch audit records are read immediately after moderation and review mutations.
+    const baseQuery = this.knex('community_watch_action').select()
 
     if (filter.reason) {
       baseQuery.where({ reason: filter.reason })
