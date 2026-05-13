@@ -176,7 +176,38 @@ jobs:
           ' eb-config.json)"
 
           if [ -z "$cache_host" ] || [ "$cache_host" = "null" ]; then
-            echo "MATTERS_CACHE_HOST was not found in develop EB configuration" >&2
+            env_store_path="$(jq -r '
+              .ConfigurationSettings[0].OptionSettings[]
+              | select(.Namespace == "aws:elasticbeanstalk:application:environment")
+              | select(.OptionName == "ENV_STORE_PATH")
+              | .Value
+            ' eb-config.json)"
+
+            if [ -z "$env_store_path" ] || [ "$env_store_path" = "null" ]; then
+              echo "Neither MATTERS_CACHE_HOST nor ENV_STORE_PATH was found in develop EB configuration" >&2
+              exit 1
+            fi
+
+            aws ssm get-parameters-by-path \
+              --path "$env_store_path" \
+              --with-decryption \
+              --recursive \
+              --output json > ssm-parameters.json
+
+            cache_host="$(jq -r '
+              .Parameters[]
+              | select(.Name | endswith("MATTERS_CACHE_HOST"))
+              | .Value
+            ' ssm-parameters.json)"
+            cache_port="$(jq -r '
+              .Parameters[]
+              | select(.Name | endswith("MATTERS_CACHE_PORT"))
+              | .Value
+            ' ssm-parameters.json)"
+          fi
+
+          if [ -z "$cache_host" ] || [ "$cache_host" = "null" ]; then
+            echo "MATTERS_CACHE_HOST was not found in develop EB configuration or SSM path" >&2
             exit 1
           fi
 
