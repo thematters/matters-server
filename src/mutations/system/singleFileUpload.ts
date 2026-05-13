@@ -18,7 +18,11 @@ import {
 } from '#common/enums/index.js'
 import { UnableToUploadFromUrl, UserInputError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
-import { fromGlobalId } from '#common/utils/index.js'
+import {
+  createPinnedAgents,
+  fromGlobalId,
+  validateExternalUrl,
+} from '#common/utils/index.js'
 import axios from 'axios'
 import { FileUpload } from 'graphql-upload'
 import { v4 } from 'uuid'
@@ -93,13 +97,17 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
 
   let upload
   if (url) {
+    const validated = await validateExternalUrl(url)
+    const pinnedAgents = createPinnedAgents(validated)
     try {
       const maxContentLength = isImageType
         ? UPLOAD_IMAGE_SIZE_LIMIT
         : UPLOAD_FILE_SIZE_LIMIT
       const res = await axios.get(url, {
+        ...pinnedAgents,
         responseType: 'stream',
         maxContentLength,
+        maxRedirects: 0,
       })
       const disposition = res.headers['content-disposition']
       const filename = getFileName(disposition, url)
@@ -115,7 +123,11 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
         filename,
       }
     } catch (err) {
-      throw new UnableToUploadFromUrl(`Unable to upload from url: ${err}`)
+      if (err instanceof UserInputError) {
+        throw err
+      }
+      logger.error('upload from url failed: %o', { url, err })
+      throw new UnableToUploadFromUrl('Unable to upload from url')
     }
   } else {
     const file = fileUpload.file as FileUpload
