@@ -3,7 +3,11 @@ import {
   UPLOAD_FILE_SIZE_LIMIT,
 } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
-import { getFileName } from '#common/utils/index.js'
+import {
+  createPinnedAgents,
+  getFileName,
+  validateExternalUrl,
+} from '#common/utils/index.js'
 import { GQLAssetType } from '#definitions/index.js'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
@@ -76,10 +80,14 @@ export class Medium {
       throw new Error(`${assetType} isn't supported.`)
     }
 
+    const validated = await validateExternalUrl(url)
+    const pinnedAgents = createPinnedAgents(validated)
     try {
       const response = await axios.get(url, {
+        ...pinnedAgents,
         responseType: 'stream',
         maxContentLength: UPLOAD_FILE_SIZE_LIMIT,
+        maxRedirects: 0,
       })
       const disposition = response.headers['content-disposition']
       const mimetype = response.headers['content-type']
@@ -108,10 +116,10 @@ export class Medium {
 
       const key = await cfThrottledUpload('embed' as GQLAssetType, upload, uuid)
 
-      // const failure = results.find((r) => r.status !== 'fulfilled')
       return { uuid, key }
     } catch (error) {
-      throw new Error(`Unable to upload from url: ${error}`)
+      logger.error('upload from url failed: %o', { url, error })
+      throw new Error('Unable to upload from url')
     }
   }
 
