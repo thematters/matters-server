@@ -74,6 +74,44 @@ describe('find subcomments by parent comment id', () => {
 
     const [_, count2] = await commentService.findByParent({ id: '1' })
     expect(count2).toBe(count)
+
+    const communityWatchRemoved = await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: '1',
+        state: COMMENT_STATE.banned,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+    await atomService.create({
+      table: 'community_watch_action',
+      data: {
+        uuid: uuidv4(),
+        commentId: communityWatchRemoved.id,
+        commentType: COMMENT_TYPE.article,
+        targetType: COMMENT_TYPE.article,
+        targetId: communityWatchRemoved.targetId,
+        targetTitle: 'Test article',
+        targetShortHash: 'test-short-hash',
+        reason: 'porn_ad',
+        actorId: '1',
+        commentAuthorId: '1',
+        originalContent: '<p>spam</p>',
+        originalState: COMMENT_STATE.active,
+        actionState: 'active',
+        appealState: 'none',
+        reviewState: 'pending',
+        contentExpiresAt: new Date('2026-05-20T00:00:00.000Z'),
+      },
+    })
+
+    const [comments3, count3] = await commentService.findByParent({ id: '1' })
+    expect(comments3.map((c) => c.id)).toContain(communityWatchRemoved.id)
+    expect(count3).toBe(count + 1)
   })
 })
 
@@ -208,6 +246,53 @@ describe('find comments', () => {
     expect(comments4.map((c) => c.id)).toContain(archived.id)
     expect(comments4.map((c) => c.id)).toContain(banned.id)
     expect(count4).toBe(count + 2)
+
+    const communityWatchRemoved = await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.banned,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+    await atomService.create({
+      table: 'community_watch_action',
+      data: {
+        uuid: uuidv4(),
+        commentId: communityWatchRemoved.id,
+        commentType: COMMENT_TYPE.article,
+        targetType: COMMENT_TYPE.article,
+        targetId: communityWatchRemoved.targetId,
+        targetTitle: 'Test article',
+        targetShortHash: 'test-short-hash',
+        reason: 'porn_ad',
+        actorId: '1',
+        commentAuthorId: '1',
+        originalContent: '<p>spam</p>',
+        originalState: COMMENT_STATE.active,
+        actionState: 'active',
+        appealState: 'none',
+        reviewState: 'pending',
+        contentExpiresAt: new Date('2026-05-20T00:00:00.000Z'),
+      },
+    })
+    const [commentsWithCommunityWatch, countWithCommunityWatch] =
+      await commentService.find({
+        where: {
+          type: 'article',
+          targetId: '1',
+          targetTypeId,
+          parentCommentId: null,
+        },
+      })
+    expect(commentsWithCommunityWatch.map((c) => c.id)).toContain(
+      communityWatchRemoved.id
+    )
+    expect(countWithCommunityWatch).toBe(count + 3)
 
     // when state is provided, filter by state
     const [comments5, _] = await commentService.find({

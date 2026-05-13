@@ -193,9 +193,7 @@ export class CommentService extends BaseService<Comment> {
         patch.reviewState = reviewState
         events.push({
           eventType:
-            reviewState === 'upheld'
-              ? 'review_upheld'
-              : 'state_updated',
+            reviewState === 'upheld' ? 'review_upheld' : 'state_updated',
           oldValue: action.reviewState,
           newValue: reviewState,
         })
@@ -439,7 +437,20 @@ export class CommentService extends BaseService<Comment> {
         .select(['*', this.knex.raw('count(1) OVER() AS total_count')])
         .from(this.table)
         .where(where)
-        .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
+        .andWhere((builder) => {
+          builder
+            .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
+            .orWhere((communityWatchBuilder) => {
+              communityWatchBuilder
+                .where({ state: COMMENT_STATE.banned })
+                .andWhere(
+                  this.knexRO.raw(
+                    'EXISTS (SELECT 1 FROM community_watch_action WHERE community_watch_action.comment_id = comment.id AND community_watch_action.action_state = ?)',
+                    ['active']
+                  )
+                )
+            })
+        })
         .orderBy('created_at', by)
 
     if (author) {
@@ -491,6 +502,16 @@ export class CommentService extends BaseService<Comment> {
           andWhereBuilder
             .where({ state: COMMENT_STATE.active })
             .orWhere({ state: COMMENT_STATE.collapsed })
+            .orWhere((orWhereBuilder) => {
+              orWhereBuilder
+                .where({ state: COMMENT_STATE.banned })
+                .andWhere(
+                  this.knexRO.raw(
+                    'EXISTS (SELECT 1 FROM community_watch_action WHERE community_watch_action.comment_id = outer_comment.id AND community_watch_action.action_state = ?)',
+                    ['active']
+                  )
+                )
+            })
             .orWhere((orWhereBuilder) => {
               orWhereBuilder.andWhere(
                 this.knexRO.raw(
