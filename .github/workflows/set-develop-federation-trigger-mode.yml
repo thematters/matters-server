@@ -1,0 +1,58 @@
+name: Set Develop Federation Trigger Mode
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Develop-only trigger mode for MATTERS_FEDERATION_EXPORT_TRIGGER_MODE'
+        required: true
+        default: 'record_only'
+        type: choice
+        options:
+          - record_only
+          - off
+
+concurrency:
+  group: set-develop-federation-trigger-mode
+  cancel-in-progress: false
+
+jobs:
+  set-develop-env:
+    name: Set matters.icu develop EB env var
+    runs-on: ubuntu-latest
+    environment: develop
+    permissions:
+      contents: read
+    steps:
+      - name: Validate input
+        run: |
+          case "${{ inputs.mode }}" in
+            record_only|off) ;;
+            *) echo "Unsupported mode: ${{ inputs.mode }}" >&2; exit 1 ;;
+          esac
+
+      - name: Setup AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION_DEV }}
+
+      - name: Update develop Elastic Beanstalk environment
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "${{ secrets.AWS_EB_ENV_NAME_DEV }}" \
+            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=MATTERS_FEDERATION_EXPORT_TRIGGER_MODE,Value="${{ inputs.mode }}"
+
+      - name: Wait for develop environment
+        run: |
+          aws elasticbeanstalk wait environment-updated \
+            --environment-names "${{ secrets.AWS_EB_ENV_NAME_DEV }}"
+
+      - name: Verify develop setting
+        run: |
+          aws elasticbeanstalk describe-configuration-settings \
+            --application-name matters-stage \
+            --environment-name "${{ secrets.AWS_EB_ENV_NAME_DEV }}" \
+            --query "ConfigurationSettings[0].OptionSettings[?Namespace=='aws:elasticbeanstalk:application:environment' && OptionName=='MATTERS_FEDERATION_EXPORT_TRIGGER_MODE'].{OptionName:OptionName,Value:Value}" \
+            --output table
