@@ -1,0 +1,127 @@
+name: Ensure Develop User Feature Flag
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: 'matters.icu staging user email'
+        required: true
+        type: string
+      flag:
+        description: 'Feature flag to ensure'
+        required: true
+        default: fediverseBeta
+        type: choice
+        options:
+          - fediverseBeta
+
+concurrency:
+  group: ensure-develop-user-feature-flag-${{ github.event.inputs.email }}-${{ github.event.inputs.flag }}
+  cancel-in-progress: false
+
+jobs:
+  ensure:
+    name: Ensure matters.icu develop user feature flag
+    runs-on: ubuntu-latest
+    environment: develop
+    timeout-minutes: 10
+
+    steps:
+      - name: Validate input
+        run: |
+          case "${{ inputs.email }}" in
+            *@*.*) ;;
+            *)
+              echo "email must look like an email address" >&2
+              exit 1
+              ;;
+          esac
+
+          case "${{ inputs.flag }}" in
+            fediverseBeta) ;;
+            *)
+              echo "unsupported flag" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn postgresql-client
+
+      - name: Start develop VPN
+        run: |
+          mkdir -p .github
+          echo "$VPN_AUTH" | base64 -d > "$VPN_AUTH_PATH"
+          echo "$VPN_CONFIG" | base64 -d > "$VPN_CONFIG_PATH"
+          sudo openvpn --config "$VPN_CONFIG_PATH" --auth-user-pass "$VPN_AUTH_PATH" --daemon
+          sleep 15s
+        env:
+          VPN_CONFIG: ${{ secrets.DEVELOP_VPN_CONFIG }}
+          VPN_CONFIG_PATH: '.github/config.ovpn'
+          VPN_AUTH: ${{ secrets.DEVELOP_VPN_AUTH }}
+          VPN_AUTH_PATH: '.github/auth.txt'
+
+      - name: Check develop DB connection
+        run: nc -zv -w 5 "$MATTERS_PG_HOST" 5432
+        env:
+          MATTERS_PG_HOST: ${{ secrets.DEVELOP_PG_HOST }}
+
+      - name: Ensure feature flag
+        run: |
+          psql \
+            --host "$MATTERS_PG_HOST" \
+            --username "$MATTERS_PG_USER" \
+            --dbname "$MATTERS_PG_DATABASE" \
+            --no-password \
+            --set ON_ERROR_STOP=1 \
+            --set user_email="${{ inputs.email }}" \
+            --set feature_flag="${{ inputs.flag }}" <<'SQL'
+              do $$
+              declare
+                target_user_id bigint;
+              begin
+                select id
+                into target_user_id
+                from "user"
+                where lower(email) = lower(:'user_email')
+                  and state <> 'archived'
+                order by id desc
+                limit 1;
+
+                if target_user_id is null then
+                  raise exception 'No active staging user found for email %', :'user_email';
+                end if;
+
+                insert into user_feature_flag (user_id, type)
+                values (target_user_id, :'feature_flag')
+                on conflict (user_id, type) do nothing;
+              end
+              $$;
+
+              select
+                u.id,
+                u.user_name,
+                u.email,
+                coalesce(
+                  jsonb_agg(uff.type order by uff.type) filter (where uff.type is not null),
+                  '[]'::jsonb
+                ) as feature_flags
+              from "user" u
+              left join user_feature_flag uff on uff.user_id = u.id
+              where lower(u.email) = lower(:'user_email')
+                and u.state <> 'archived'
+              group by u.id, u.user_name, u.email
+              order by u.id desc
+              limit 1;
+          SQL
+        env:
+          MATTERS_PG_HOST: ${{ secrets.DEVELOP_PG_HOST }}
+          MATTERS_PG_DATABASE: ${{ secrets.DEVELOP_PG_DATABASE }}
+          MATTERS_PG_USER: ${{ secrets.DEVELOP_PG_USER }}
+          PGPASSWORD: ${{ secrets.DEVELOP_PG_PASSWORD }}
+
+      - name: Kill VPN
+        if: always()
+        run: sudo killall openvpn || true
