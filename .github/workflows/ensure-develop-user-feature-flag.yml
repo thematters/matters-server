@@ -48,7 +48,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y openvpn postgresql-client
+          sudo apt-get install -y jq openvpn postgresql-client redis-tools
 
       - name: Start develop VPN
         run: |
@@ -69,6 +69,7 @@ jobs:
           MATTERS_PG_HOST: ${{ secrets.DEVELOP_PG_HOST }}
 
       - name: Ensure feature flag
+        id: ensure_feature_flag
         run: |
           psql \
             --host "$MATTERS_PG_HOST" \
@@ -115,11 +116,105 @@ jobs:
               order by u.id desc
               limit 1;
           SQL
+
+          user_id="$(psql \
+            --host "$MATTERS_PG_HOST" \
+            --username "$MATTERS_PG_USER" \
+            --dbname "$MATTERS_PG_DATABASE" \
+            --no-password \
+            --tuples-only \
+            --no-align \
+            --set ON_ERROR_STOP=1 \
+            --set user_email="${{ inputs.email }}" <<'SQL'
+              select id
+              from "user"
+              where lower(email) = lower(:'user_email')
+                and state <> 'archived'
+              order by id desc
+              limit 1;
+          SQL
+          )"
+
+          if [ -z "$user_id" ]; then
+            echo "user not found after ensuring feature flag" >&2
+            exit 1
+          fi
+
+          echo "user_id=$user_id" >> "$GITHUB_OUTPUT"
         env:
           MATTERS_PG_HOST: ${{ secrets.DEVELOP_PG_HOST }}
           MATTERS_PG_DATABASE: ${{ secrets.DEVELOP_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.DEVELOP_PG_USER }}
           PGPASSWORD: ${{ secrets.DEVELOP_PG_PASSWORD }}
+
+      - name: Setup AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION_DEV }}
+
+      - name: Resolve develop cache endpoint
+        id: cache_endpoint
+        run: |
+          aws elasticbeanstalk describe-configuration-settings \
+            --application-name "$AWS_EB_APP_NAME" \
+            --environment-name "$AWS_EB_ENV_NAME" \
+            --output json > eb-config.json
+
+          cache_host="$(jq -r '
+            .ConfigurationSettings[0].OptionSettings[]
+            | select(.Namespace == "aws:elasticbeanstalk:application:environment")
+            | select(.OptionName == "MATTERS_CACHE_HOST")
+            | .Value
+          ' eb-config.json)"
+          cache_port="$(jq -r '
+            .ConfigurationSettings[0].OptionSettings[]
+            | select(.Namespace == "aws:elasticbeanstalk:application:environment")
+            | select(.OptionName == "MATTERS_CACHE_PORT")
+            | .Value
+          ' eb-config.json)"
+
+          if [ -z "$cache_host" ] || [ "$cache_host" = "null" ]; then
+            echo "MATTERS_CACHE_HOST was not found in develop EB configuration" >&2
+            exit 1
+          fi
+
+          if [ -z "$cache_port" ] || [ "$cache_port" = "null" ]; then
+            cache_port=6379
+          fi
+
+          echo "cache_host=$cache_host" >> "$GITHUB_OUTPUT"
+          echo "cache_port=$cache_port" >> "$GITHUB_OUTPUT"
+        env:
+          AWS_EB_APP_NAME: matters-stage
+          AWS_EB_ENV_NAME: ${{ secrets.AWS_EB_ENV_NAME_DEV }}
+
+      - name: Invalidate user full-query cache
+        run: |
+          cache_host="${{ steps.cache_endpoint.outputs.cache_host }}"
+          cache_port="${{ steps.cache_endpoint.outputs.cache_port }}"
+          user_id="${{ steps.ensure_feature_flag.outputs.user_id }}"
+          node_key="node-fqcs:User:${user_id}"
+
+          redis-cli -h "$cache_host" -p "$cache_port" ping
+
+          hashes="$(redis-cli -h "$cache_host" -p "$cache_port" smembers "$node_key" || true)"
+          if [ -z "$hashes" ]; then
+            echo "No full-query cache entries found for User:${user_id}"
+            exit 0
+          fi
+
+          count=0
+          while IFS= read -r hash; do
+            if [ -n "$hash" ]; then
+              redis-cli -h "$cache_host" -p "$cache_port" del "fqc:${hash}" >/dev/null
+              redis-cli -h "$cache_host" -p "$cache_port" srem "$node_key" "$hash" >/dev/null
+              count=$((count + 1))
+            fi
+          done <<< "$hashes"
+
+          echo "Invalidated ${count} full-query cache entrie(s) for User:${user_id}"
 
       - name: Kill VPN
         if: always()
