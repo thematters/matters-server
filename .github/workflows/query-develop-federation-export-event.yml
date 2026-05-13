@@ -77,8 +77,6 @@ jobs:
             --dbname "$MATTERS_PG_DATABASE" \
             --no-password \
             --set ON_ERROR_STOP=1 \
-            --set article_id="${{ inputs.article_id }}" \
-            --set row_limit="${{ inputs.limit }}" \
             --command "
               select coalesce(jsonb_pretty(jsonb_agg(row_to_json(events)::jsonb)), '[]'::text) as federation_export_events
               from (
@@ -97,9 +95,9 @@ jobs:
                   decision_report,
                   created_at
                 from federation_export_event
-                where article_id = :'article_id'::bigint
+                where article_id = ${{ inputs.article_id }}::bigint
                 order by created_at desc
-                limit :'row_limit'::integer
+                limit ${{ inputs.limit }}::integer
               ) events;
             "
         env:
