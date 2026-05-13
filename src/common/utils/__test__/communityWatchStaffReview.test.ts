@@ -151,7 +151,56 @@ const createMutationContext = ({
     },
   }) as any
 
+const createReadService = () => {
+  const createBuilder = () => {
+    let countQuery = false
+    const builder: any = {
+      select: () => builder,
+      where: () => builder,
+      orderBy: () => builder,
+      offset: () => builder,
+      limit: async () => [baseAction],
+      count: () => {
+        countQuery = true
+        return builder
+      },
+      clone: () => builder,
+      first: async () => (countQuery ? { count: '1' } : baseAction),
+    }
+    return builder
+  }
+  const knex = jest.fn((_: string) => createBuilder()) as any
+  const knexRO = jest.fn((_: string) => createBuilder()) as any
+  const service = new CommentService({
+    knex,
+    knexRO,
+    knexSearch: knex,
+    redis: {},
+    objectCacheRedis: {},
+  } as any)
+
+  return { service, knex, knexRO }
+}
+
 describe('community watch staff review service', () => {
+  test('reads audit records from primary database for immediate consistency', async () => {
+    const { service, knex, knexRO } = createReadService()
+
+    await service.findActiveCommunityWatchAction(baseAction.commentId)
+    await service.findCommunityWatchActionByUUID(baseAction.uuid)
+    await service.findCommunityWatchActions({
+      filter: { actionState: 'active' },
+      skip: 0,
+      take: 10,
+    })
+
+    expect(knex).toHaveBeenCalledTimes(3)
+    expect(knex).toHaveBeenNthCalledWith(1, 'community_watch_action')
+    expect(knex).toHaveBeenNthCalledWith(2, 'community_watch_action')
+    expect(knex).toHaveBeenNthCalledWith(3, 'community_watch_action')
+    expect(knexRO).not.toHaveBeenCalled()
+  })
+
   test('updates appeal, review, and reason with review events', async () => {
     const { service, actionUpdates, eventInserts } = createService()
 
