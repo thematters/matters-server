@@ -246,7 +246,7 @@ export const graphql = async (app: Express) => {
     expressMiddleware<Context>(server, { context: makeContext })
   )
 
-  if (!isProd) {
+  if (isLocal) {
     app.get(
       PLAYGROUND_ENDPOINT,
       expressPlayground({
