@@ -5,6 +5,7 @@ import { jest } from '@jest/globals'
 import {
   COMMENT_STATE,
   COMMENT_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
 } from '#common/enums/index.js'
 import { CommentService } from '#connectors/commentService.js'
 import clearCommunityWatchOriginalContent from '#mutations/comment/clearCommunityWatchOriginalContent.js'
@@ -136,9 +137,11 @@ const createService = ({
 const createMutationContext = ({
   isAdmin = true,
   commentService = {},
+  notificationService = { trigger: jest.fn<any>() },
 }: {
   isAdmin?: boolean
   commentService?: Record<string, unknown>
+  notificationService?: Record<string, unknown>
 } = {}) =>
   ({
     viewer: {
@@ -147,9 +150,10 @@ const createMutationContext = ({
     },
     dataSources: {
       commentService,
+      notificationService,
       connections: { redis: { smembers: async () => [] } },
     },
-  }) as any
+  } as any)
 
 const createReadService = () => {
   const createBuilder = () => {
@@ -383,10 +387,12 @@ describe('community watch staff review mutations', () => {
     const restoreCommunityWatchCommentService = jest
       .fn<any>()
       .mockResolvedValue({ action: baseAction, comment: baseComment })
+    const notificationTrigger = jest.fn<any>()
     const context = createMutationContext({
       commentService: {
         restoreCommunityWatchComment: restoreCommunityWatchCommentService,
       },
+      notificationService: { trigger: notificationTrigger },
     })
 
     const result = await restoreMutation(
@@ -401,6 +407,34 @@ describe('community watch staff review mutations', () => {
       uuid: baseAction.uuid,
       actorId: '9',
       note: 'appeal accepted',
+    })
+    expect(notificationTrigger).toHaveBeenCalledWith({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored,
+      recipientId: baseAction.commentAuthorId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'comment',
+          entity: baseComment,
+        },
+      ],
+      data: {
+        link: `https://community-watch.matters.town/records/${baseAction.uuid}/`,
+      },
+    })
+    expect(notificationTrigger).toHaveBeenCalledWith({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_action_reversed,
+      recipientId: baseAction.actorId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'comment',
+          entity: baseComment,
+        },
+      ],
+      data: {
+        link: `https://community-watch.matters.town/records/${baseAction.uuid}/`,
+      },
     })
   })
 
