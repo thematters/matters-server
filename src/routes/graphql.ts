@@ -244,16 +244,17 @@ export const graphql = async (app: Express) => {
     expressMiddleware<Context>(server, { context: makeContext })
   )
 
-  // Playground
-  app.get(
-    PLAYGROUND_ENDPOINT,
-    expressPlayground({
-      endpoint: API_ENDPOINT,
-      settings: {
-        'schema.polling.enable': false,
-      },
-    })
-  )
+  if (isLocal) {
+    app.get(
+      PLAYGROUND_ENDPOINT,
+      expressPlayground({
+        endpoint: API_ENDPOINT,
+        settings: {
+          'schema.polling.enable': false,
+        },
+      })
+    )
+  }
 
   return server
 }
