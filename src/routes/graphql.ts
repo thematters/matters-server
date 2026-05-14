@@ -223,7 +223,7 @@ export const graphql = async (app: Express) => {
         nodeFQCTTL: CACHE_TTL.PUBLIC_QUERY,
       }),
     ],
-    introspection: true,
+    introspection: !isProd,
     csrfPrevention: true,
     logger,
   })
@@ -246,16 +246,17 @@ export const graphql = async (app: Express) => {
     expressMiddleware<Context>(server, { context: makeContext })
   )
 
-  // Playground
-  app.get(
-    PLAYGROUND_ENDPOINT,
-    expressPlayground({
-      endpoint: API_ENDPOINT,
-      settings: {
-        'schema.polling.enable': false,
-      },
-    })
-  )
+  if (!isProd) {
+    app.get(
+      PLAYGROUND_ENDPOINT,
+      expressPlayground({
+        endpoint: API_ENDPOINT,
+        settings: {
+          'schema.polling.enable': false,
+        },
+      })
+    )
+  }
 
   return server
 }
