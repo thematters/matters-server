@@ -3582,6 +3582,7 @@ enum BadgeType {
   golden_motor
   architect
   grand_slam
+  community_watch
   nomad1
   nomad2
   nomad3
