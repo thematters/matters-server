@@ -296,6 +296,11 @@ const PUT_USER_FEATURE_FLAGS = /* GraphQL */ `
           createdAt
         }
       }
+      info {
+        badges {
+          type
+        }
+      }
     }
   }
 `
@@ -1039,6 +1044,44 @@ describe('user feature flags', () => {
         ({ type }: { type: GQLUserFeatureFlagType }) => type
       )
     ).toEqual(['communityWatch'])
+    expect(
+      data!.putUserFeatureFlags![0]!.info!.badges!.map(
+        ({ type }: { type: GQLBadgeType }) => type
+      )
+    ).toContain('community_watch')
+  })
+
+  test('admin removes community watch badge when removing community watch flag', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: {
+          ids: [userId1],
+          flags: ['communityWatch'],
+        },
+      },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: {
+          ids: [userId1],
+          flags: [],
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data!.putUserFeatureFlags![0]!.oss!.featureFlags).toEqual([])
+    expect(
+      data!.putUserFeatureFlags![0]!.info!.badges!.map(
+        ({ type }: { type: GQLBadgeType }) => type
+      )
+    ).not.toContain('community_watch')
   })
 
   test('bulk update', async () => {

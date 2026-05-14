@@ -760,6 +760,7 @@ export type GQLBadge = {
 
 export type GQLBadgeType =
   | 'architect'
+  | 'community_watch'
   | 'golden_motor'
   | 'grand_slam'
   | 'nomad1'

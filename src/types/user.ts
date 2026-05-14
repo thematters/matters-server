@@ -854,6 +854,7 @@ export default /* GraphQL */ `
     golden_motor
     architect
     grand_slam
+    community_watch
     # can only have 1 of the 4 levels of nomad badges
     nomad1
     nomad2
