@@ -64,6 +64,10 @@ const { version } = require('../package.json')
   app.use(requestIp.mw())
   app.use(cors(CORS_OPTIONS))
 
+  app.get('/health', (_req, res) => {
+    res.status(200).end()
+  })
+
   /**
    * Routes
    *
