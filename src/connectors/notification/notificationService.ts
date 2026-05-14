@@ -706,6 +706,10 @@ export class NotificationService {
       user_frozen: true,
       user_unbanned: true,
       comment_banned: true,
+      community_watch_comment_restored: true,
+      community_watch_action_reversed: true,
+      community_watch_enabled: true,
+      community_watch_disabled: true,
       article_banned: true,
       comment_reported: true,
       article_reported: true,
@@ -863,6 +867,40 @@ export class NotificationService {
             }),
           ],
           entities: params.entities,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientIds: [params.recipientId],
+          messages: [
+            trans.community_watch_comment_restored(recipient.language, {}),
+          ],
+          entities: params.entities,
+          data: params.data,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_action_reversed:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientIds: [params.recipientId],
+          messages: [
+            trans.community_watch_action_reversed(recipient.language, {}),
+          ],
+          entities: params.entities,
+          data: params.data,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_enabled:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientIds: [params.recipientId],
+          messages: [trans.community_watch_enabled(recipient.language, {})],
+          data: params.data,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_disabled:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientIds: [params.recipientId],
+          messages: [trans.community_watch_disabled(recipient.language, {})],
+          data: params.data,
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.article_banned: {
         const article = await articleService.loadLatestArticleVersion(

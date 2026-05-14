@@ -68,6 +68,28 @@ export default {
         21
       )}" has been archived from Matters for violating the community rules`,
   }),
+  community_watch_comment_restored: i18n({
+    zh_hant: '你的一則留言已由站方覆核恢復',
+    zh_hans: '你的一则评论已由站方复核恢复',
+    en: 'One of your comments has been restored after staff review.',
+  }),
+  community_watch_action_reversed: i18n({
+    zh_hant:
+      '你處理的一則留言已由站方覆核恢復，請參考公開紀錄與隊員規章調整後續判斷',
+    zh_hans:
+      '你处理的一则评论已由站方复核恢复，请参考公开记录与队员规章调整后续判断',
+    en: 'A comment you handled has been restored after staff review. Please review the public record and Community Watch rules.',
+  }),
+  community_watch_enabled: i18n({
+    zh_hant: '你已加入馬特市守望相助隊，請先閱讀隊員規章',
+    zh_hans: '你已加入马特市守望相助队，请先阅读队员规章',
+    en: 'You have joined Community Watch. Please read the member rules first.',
+  }),
+  community_watch_disabled: i18n({
+    zh_hant: '你的馬特市守望相助隊權限已停用',
+    zh_hans: '你的马特市守望相助队权限已停用',
+    en: 'Your Community Watch access has been disabled.',
+  }),
   article_banned: i18n<{ title: string }>({
     zh_hant: ({ title }) => `因為違反社區規則，您的作品《${title}》已被隱藏`,
     zh_hans: ({ title }) => `因为违反社区规则，您的作品《${title}》已被隐藏`,

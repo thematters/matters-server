@@ -373,6 +373,35 @@ interface NoticeCommentBannedParams extends NotificationRequiredParams {
   recipientId: string
 }
 
+interface NoticeCommunityWatchCommentRestoredParams
+  extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored
+  entities: [NotificationEntity<'target', 'comment'>]
+  recipientId: string
+  data: { link: string }
+}
+
+interface NoticeCommunityWatchActionReversedParams
+  extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_action_reversed
+  entities: [NotificationEntity<'target', 'comment'>]
+  recipientId: string
+  data: { link: string }
+}
+
+interface NoticeCommunityWatchEnabledParams extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_enabled
+  recipientId: string
+  data: { link: string }
+}
+
+interface NoticeCommunityWatchDisabledParams
+  extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_disabled
+  recipientId: string
+  data: { link: string }
+}
+
 interface NoticeArticleBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.article_banned
   entities: [NotificationEntity<'target', 'article'>]
@@ -458,6 +487,10 @@ export type NotificationParams =
   | NoticeUserFrozenParams
   | NoticeUserUnbannedParams
   | NoticeCommentBannedParams
+  | NoticeCommunityWatchCommentRestoredParams
+  | NoticeCommunityWatchActionReversedParams
+  | NoticeCommunityWatchEnabledParams
+  | NoticeCommunityWatchDisabledParams
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
