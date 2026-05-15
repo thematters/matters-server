@@ -254,6 +254,10 @@ export const graphql = async (app: Express) => {
         },
       })
     )
+  } else {
+    app.get(PLAYGROUND_ENDPOINT, (_req, res) => {
+      res.status(200).end()
+    })
   }
 
   return server
