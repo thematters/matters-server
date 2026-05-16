@@ -39,7 +39,7 @@ export interface CommunityWatchAction {
   reviewerId: string | null
   reviewNote: string | null
   reviewedAt: Date | null
-  contentExpiresAt: Date
+  contentExpiresAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

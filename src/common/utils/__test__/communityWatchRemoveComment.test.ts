@@ -186,9 +186,7 @@ describe('communityWatchRemoveComment', () => {
         originalState: COMMENT_STATE.active,
       })
     )
-    expect(insertedActions[0].contentExpiresAt.getTime()).toBeGreaterThan(
-      insertedActions[0].createdAt.getTime()
-    )
+    expect(insertedActions[0].contentExpiresAt).toBeNull()
     expect(
       context.dataSources.notificationService.trigger
     ).toHaveBeenCalledWith(
