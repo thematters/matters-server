@@ -649,9 +649,7 @@ describe('community watch remove comment', () => {
       appealState: 'none',
       reviewState: 'pending',
     })
-    expect(auditAction.contentExpiresAt.getTime()).toBeGreaterThan(
-      auditAction.createdAt.getTime()
-    )
+    expect(auditAction.contentExpiresAt).toBeNull()
     expect(mockTrigger).toHaveBeenCalledWith(
       expect.objectContaining({
         event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,

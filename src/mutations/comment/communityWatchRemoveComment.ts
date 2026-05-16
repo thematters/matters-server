@@ -24,8 +24,6 @@ import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
 
-const ORIGINAL_CONTENT_RETENTION_DAYS = 7
-
 const allowedCommentStates = [COMMENT_STATE.active, COMMENT_STATE.collapsed]
 const allowedCommentTypes = [COMMENT_TYPE.article, COMMENT_TYPE.moment]
 
@@ -87,11 +85,6 @@ const resolver = async (
       : undefined
 
   const now = new Date()
-  const contentExpiresAt = new Date(now)
-  contentExpiresAt.setDate(
-    contentExpiresAt.getDate() + ORIGINAL_CONTENT_RETENTION_DAYS
-  )
-
   const updatedComment = await connections.knex.transaction(
     async (trx: Knex.Transaction) => {
       const activeAction = await trx('community_watch_action')
@@ -137,7 +130,7 @@ const resolver = async (
         commentAuthorId: freshComment.authorId,
         originalContent: freshComment.content,
         originalState: freshComment.state,
-        contentExpiresAt,
+        contentExpiresAt: null,
         createdAt: now,
         updatedAt: now,
       })
