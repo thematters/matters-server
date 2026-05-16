@@ -4,6 +4,7 @@ export const ALL_BADGE_TYPES = [
   'golden_motor',
   'seed',
   'grand_slam',
+  'community_watch',
   // user can only get 1 of the 4 nomad badges
   'nomad1',
   'nomad2',

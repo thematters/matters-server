@@ -23,6 +23,12 @@ type Query {
   campaigns(input: CampaignsInput!): CampaignConnection!
   campaignOrganizers(input: ConnectionArgs!): UserConnection!
   circle(input: CircleInput!): Circle
+
+  """Recent public Community Watch audit records."""
+  communityWatchActions(input: CommunityWatchActionsInput!): CommunityWatchActionConnection!
+
+  """One public Community Watch audit record."""
+  communityWatchAction(input: CommunityWatchActionInput!): CommunityWatchAction
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
   frequentSearch(input: FrequentSearchInput!): [String!]
@@ -45,6 +51,9 @@ type Mutation {
 
   """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
+
+  """Set current author's Fediverse federation preference for an article."""
+  setArticleFederationSetting(input: SetArticleFederationSettingInput!): ArticleFederationSetting!
 
   """Bookmark or unbookmark article"""
   toggleSubscribeArticle(input: ToggleItemInput!): Article! @deprecated(reason: "Use toggleBookmarkArticle instead")
@@ -111,6 +120,18 @@ type Mutation {
   """Update a comments' state."""
   updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
 
+  """Remove a spam comment as a Community Watch member."""
+  communityWatchRemoveComment(input: CommunityWatchRemoveCommentInput!): Comment!
+
+  """Update Community Watch appeal, review, or reason as staff."""
+  updateCommunityWatchActionState(input: UpdateCommunityWatchActionStateInput!): CommunityWatchAction!
+
+  """Restore a comment removed by Community Watch as staff."""
+  restoreCommunityWatchComment(input: RestoreCommunityWatchCommentInput!): CommunityWatchAction!
+
+  """Clear stored original content for a Community Watch action as staff."""
+  clearCommunityWatchOriginalContent(input: ClearCommunityWatchOriginalContentInput!): CommunityWatchAction!
+
   """Pin a comment."""
   pinComment(input: PinCommentInput!): Comment!
 
@@ -150,6 +171,8 @@ type Mutation {
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
   putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
+  putUserFederationSetting(input: PutUserFederationSettingInput!): UserFederationSetting!
+  putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Writing!
   setAdStatus(input: SetAdStatusInput!): Article!
@@ -172,6 +195,9 @@ type Mutation {
 
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
+
+  """Set current viewer's Fediverse federation preference."""
+  setViewerFederationSetting(input: SetViewerFederationSettingInput!): UserFederationSetting!
 
   """Login user."""
   emailLogin(input: EmailLoginInput!): AuthResult!
@@ -358,6 +384,12 @@ type Article implements Node & PinnableWork {
 
   """Original language of content"""
   language: String
+
+  """Article-level federation setting override."""
+  federationSetting: ArticleFederationSetting
+
+  """Computed federation export eligibility for this article."""
+  federationEligibility: ArticleFederationEligibility!
 
   """List of articles which added this article into their connections."""
   connectedBy(input: ConnectionArgs!): ArticleConnection!
@@ -799,6 +831,11 @@ input EditArticleInput {
   campaigns: [ArticleCampaignInput!]
 }
 
+input SetArticleFederationSettingInput {
+  id: ID!
+  state: FederationArticleSettingState!
+}
+
 input ArticleCampaignInput {
   campaign: ID!
   stage: ID
@@ -1236,6 +1273,9 @@ type User implements Node {
   """User settings."""
   settings: UserSettings!
 
+  """User-level federation opt-in setting."""
+  federationSetting: UserFederationSetting
+
   """Recommendations for current user."""
   recommendation: Recommendation!
 
@@ -1603,6 +1643,11 @@ type Comment implements Node {
   """Content of this comment."""
   content: String
 
+  """
+  Community Watch audit action when this comment was removed by Community Watch.
+  """
+  communityWatchAction: CommunityWatchAction
+
   """Author of this comment."""
   author: User!
 
@@ -1722,6 +1767,99 @@ input UnvoteCommentInput {
 input UpdateCommentsStateInput {
   ids: [ID!]!
   state: CommentState!
+}
+
+input CommunityWatchRemoveCommentInput {
+  id: ID!
+  reason: CommunityWatchRemoveCommentReason!
+}
+
+input CommunityWatchActionsInput {
+  after: String
+  first: Int
+  reason: CommunityWatchRemoveCommentReason
+  actionState: CommunityWatchActionState
+  appealState: CommunityWatchAppealState
+  reviewState: CommunityWatchReviewState
+}
+
+input CommunityWatchActionInput {
+  uuid: ID!
+}
+
+input UpdateCommunityWatchActionStateInput {
+  uuid: ID!
+  appealState: CommunityWatchAppealState
+  reviewState: CommunityWatchReviewState
+  reason: CommunityWatchRemoveCommentReason
+  note: String
+}
+
+input RestoreCommunityWatchCommentInput {
+  uuid: ID!
+  note: String
+}
+
+input ClearCommunityWatchOriginalContentInput {
+  uuid: ID!
+  note: String
+}
+
+enum CommunityWatchRemoveCommentReason {
+  porn_ad
+  spam_ad
+}
+
+enum CommunityWatchActionSourceType {
+  article
+  moment
+}
+
+enum CommunityWatchActionState {
+  active
+  restored
+  voided
+}
+
+enum CommunityWatchAppealState {
+  none
+  received
+  resolved
+}
+
+enum CommunityWatchReviewState {
+  pending
+  upheld
+  reversed
+  reason_adjusted
+}
+
+type CommunityWatchAction {
+  """Public identifier used by the Community Watch transparency page."""
+  uuid: ID!
+  commentId: ID!
+  sourceType: CommunityWatchActionSourceType!
+  sourceTitle: String!
+  sourceId: ID!
+  actorDisplayName: String!
+  reason: CommunityWatchRemoveCommentReason!
+  actionState: CommunityWatchActionState!
+  appealState: CommunityWatchAppealState!
+  reviewState: CommunityWatchReviewState!
+  originalContent: String
+  contentCleared: Boolean!
+  createdAt: DateTime!
+}
+
+type CommunityWatchActionConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CommunityWatchActionEdge!]
+}
+
+type CommunityWatchActionEdge {
+  cursor: String!
+  node: CommunityWatchAction!
 }
 
 """Enums for vote types."""
@@ -2498,6 +2636,16 @@ input PutUserFeatureFlagsInput {
   flags: [UserFeatureFlagType!]!
 }
 
+input PutUserFederationSettingInput {
+  id: ID!
+  state: FederationAuthorSettingState!
+}
+
+input PutArticleFederationSettingInput {
+  id: ID!
+  state: FederationArticleSettingState!
+}
+
 input SubmitReportInput {
   targetId: ID!
   reason: ReportReason!
@@ -2624,6 +2772,44 @@ enum UserFeatureFlagType {
   bypassSpamDetection
   unlimitedArticleFetch
   readSpamStatus
+  communityWatch
+  fediverseBeta
+}
+
+enum FederationAuthorSettingState {
+  enabled
+  disabled
+}
+
+enum FederationArticleSettingState {
+  inherit
+  enabled
+  disabled
+}
+
+enum FederationExportDecisionReason {
+  eligible
+  article_not_public
+  author_not_opted_in
+  article_disabled
+}
+
+type UserFederationSetting {
+  userId: ID!
+  state: FederationAuthorSettingState!
+  updatedBy: ID
+}
+
+type ArticleFederationSetting {
+  articleId: ID!
+  state: FederationArticleSettingState!
+  updatedBy: ID
+}
+
+type ArticleFederationEligibility {
+  eligible: Boolean!
+  reason: FederationExportDecisionReason!
+  effectiveArticleSetting: FederationArticleSettingState!
 }
 
 enum ReportReason {
@@ -3276,6 +3462,10 @@ input SetCurrencyInput {
   currency: QuoteCurrency
 }
 
+input SetViewerFederationSettingInput {
+  state: FederationAuthorSettingState!
+}
+
 input GenerateSigningMessageInput {
   address: String!
   purpose: SigningMessagePurpose
@@ -3392,6 +3582,7 @@ enum BadgeType {
   golden_motor
   architect
   grand_slam
+  community_watch
   nomad1
   nomad2
   nomad3

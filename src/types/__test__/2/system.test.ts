@@ -296,6 +296,79 @@ const PUT_USER_FEATURE_FLAGS = /* GraphQL */ `
           createdAt
         }
       }
+      info {
+        badges {
+          type
+        }
+      }
+    }
+  }
+`
+
+const PUT_USER_FEDERATION_SETTING = /* GraphQL */ `
+  mutation ($input: PutUserFederationSettingInput!) {
+    putUserFederationSetting(input: $input) {
+      userId
+      state
+      updatedBy
+    }
+  }
+`
+
+const PUT_ARTICLE_FEDERATION_SETTING = /* GraphQL */ `
+  mutation ($input: PutArticleFederationSettingInput!) {
+    putArticleFederationSetting(input: $input) {
+      articleId
+      state
+      updatedBy
+    }
+  }
+`
+
+const SET_VIEWER_FEDERATION_SETTING = /* GraphQL */ `
+  mutation ($input: SetViewerFederationSettingInput!) {
+    setViewerFederationSetting(input: $input) {
+      userId
+      state
+      updatedBy
+    }
+  }
+`
+
+const SET_ARTICLE_FEDERATION_SETTING = /* GraphQL */ `
+  mutation ($input: SetArticleFederationSettingInput!) {
+    setArticleFederationSetting(input: $input) {
+      articleId
+      state
+      updatedBy
+    }
+  }
+`
+
+const GET_FEDERATION_SETTINGS = /* GraphQL */ `
+  query ($userInput: UserInput!, $articleId: ID!) {
+    user(input: $userInput) {
+      id
+      federationSetting {
+        userId
+        state
+        updatedBy
+      }
+    }
+    article: node(input: { id: $articleId }) {
+      ... on Article {
+        id
+        federationSetting {
+          articleId
+          state
+          updatedBy
+        }
+        federationEligibility {
+          eligible
+          reason
+          effectiveArticleSetting
+        }
+      }
     }
   }
 `
@@ -950,6 +1023,67 @@ describe('user feature flags', () => {
     ).toEqual(['bypassSpamDetection'])
   })
 
+  test('admin can assign community watch once from duplicate input', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: {
+          ids: [userId1],
+          flags: ['communityWatch', 'communityWatch'],
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(
+      data!.putUserFeatureFlags![0]!.oss!.featureFlags.map(
+        ({ type }: { type: GQLUserFeatureFlagType }) => type
+      )
+    ).toEqual(['communityWatch'])
+    expect(
+      data!.putUserFeatureFlags![0]!.info!.badges!.map(
+        ({ type }: { type: GQLBadgeType }) => type
+      )
+    ).toContain('community_watch')
+  })
+
+  test('admin removes community watch badge when removing community watch flag', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: {
+          ids: [userId1],
+          flags: ['communityWatch'],
+        },
+      },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: {
+          ids: [userId1],
+          flags: [],
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data!.putUserFeatureFlags![0]!.oss!.featureFlags).toEqual([])
+    expect(
+      data!.putUserFeatureFlags![0]!.info!.badges!.map(
+        ({ type }: { type: GQLBadgeType }) => type
+      )
+    ).not.toContain('community_watch')
+  })
+
   test('bulk update', async () => {
     const server = await testClient({
       isAuth: true,
@@ -972,6 +1106,192 @@ describe('user feature flags', () => {
         ({ type }: { type: GQLUserFeatureFlagType }) => type
       )
     ).toEqual(['bypassSpamDetection'])
+  })
+})
+
+describe('federation settings', () => {
+  const viewerId = toGlobalId({ type: NODE_TYPES.User, id: '1' })
+  const userId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+  const articleId = toGlobalId({ type: NODE_TYPES.Article, id: '1' })
+
+  test('returns null when federation settings are not configured', async () => {
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: GET_FEDERATION_SETTINGS,
+      variables: {
+        userInput: { userName: 'test2' },
+        articleId,
+      },
+    })
+
+    expect(data!.user!.federationSetting).toBeNull()
+    expect(data!.article!.federationSetting).toBeNull()
+  })
+
+  test('only admin can update author federation setting', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_USER_FEDERATION_SETTING,
+      variables: { input: { id: userId, state: 'enabled' } },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_USER_FEDERATION_SETTING,
+      variables: { input: { id: userId, state: 'enabled' } },
+    })
+    expect(data!.putUserFederationSetting).toMatchObject({
+      userId,
+      state: 'enabled',
+    })
+  })
+
+  test('only admin can update article federation setting', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'disabled' } },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'disabled' } },
+    })
+    expect(data!.putArticleFederationSetting).toMatchObject({
+      articleId,
+      state: 'disabled',
+    })
+  })
+
+  test('pilot viewer can update own author federation setting', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: SET_VIEWER_FEDERATION_SETTING,
+      variables: { input: { state: 'enabled' } },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await adminServer.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: { input: { ids: [viewerId], flags: ['fediverseBeta'] } },
+    })
+
+    const { data } = await server.executeOperation({
+      query: SET_VIEWER_FEDERATION_SETTING,
+      variables: { input: { state: 'enabled' } },
+    })
+    expect(data!.setViewerFederationSetting).toMatchObject({
+      userId: viewerId,
+      state: 'enabled',
+      updatedBy: viewerId,
+    })
+  })
+
+  test('pilot author can update own article federation setting', async () => {
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await adminServer.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: { ids: [viewerId, userId], flags: ['fediverseBeta'] },
+      },
+    })
+
+    const nonAuthorServer = await testClient({
+      userId: '2',
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await nonAuthorServer.executeOperation({
+      query: SET_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'enabled' } },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const authorServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { data } = await authorServer.executeOperation({
+      query: SET_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'enabled' } },
+    })
+    expect(data!.setArticleFederationSetting).toMatchObject({
+      articleId,
+      state: 'enabled',
+      updatedBy: viewerId,
+    })
+  })
+
+  test('exposes read-side federation settings and article eligibility', async () => {
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await adminServer.executeOperation({
+      query: PUT_USER_FEDERATION_SETTING,
+      variables: { input: { id: userId, state: 'enabled' } },
+    })
+    await adminServer.executeOperation({
+      query: PUT_ARTICLE_FEDERATION_SETTING,
+      variables: { input: { id: articleId, state: 'disabled' } },
+    })
+
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: GET_FEDERATION_SETTINGS,
+      variables: {
+        userInput: { userName: 'test2' },
+        articleId,
+      },
+    })
+
+    expect(data!.user!.federationSetting).toMatchObject({
+      userId,
+      state: 'enabled',
+    })
+    expect(data!.article!.federationSetting).toMatchObject({
+      articleId,
+      state: 'disabled',
+    })
+    expect(data!.article!.federationEligibility).toMatchObject({
+      eligible: false,
+      reason: 'article_disabled',
+      effectiveArticleSetting: 'disabled',
+    })
   })
 })
 

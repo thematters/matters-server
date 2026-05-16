@@ -46,6 +46,8 @@ export default /* GraphQL */ `
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
+    putUserFederationSetting(input: PutUserFederationSettingInput!): UserFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
+    putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
     setSpamStatus(input: SetSpamStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
     setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
@@ -403,6 +405,16 @@ export default /* GraphQL */ `
     flags: [UserFeatureFlagType!]!
   }
 
+  input PutUserFederationSettingInput {
+    id: ID!
+    state: FederationAuthorSettingState!
+  }
+
+  input PutArticleFederationSettingInput {
+    id: ID!
+    state: FederationArticleSettingState!
+  }
+
   input SubmitReportInput {
     targetId: ID!
     reason: ReportReason!
@@ -529,6 +541,44 @@ export default /* GraphQL */ `
     bypassSpamDetection
     unlimitedArticleFetch
     readSpamStatus
+    communityWatch
+    fediverseBeta
+  }
+
+  enum FederationAuthorSettingState {
+    enabled
+    disabled
+  }
+
+  enum FederationArticleSettingState {
+    inherit
+    enabled
+    disabled
+  }
+
+  enum FederationExportDecisionReason {
+    eligible
+    article_not_public
+    author_not_opted_in
+    article_disabled
+  }
+
+  type UserFederationSetting {
+    userId: ID!
+    state: FederationAuthorSettingState!
+    updatedBy: ID
+  }
+
+  type ArticleFederationSetting {
+    articleId: ID!
+    state: FederationArticleSettingState!
+    updatedBy: ID
+  }
+
+  type ArticleFederationEligibility {
+    eligible: Boolean!
+    reason: FederationExportDecisionReason!
+    effectiveArticleSetting: FederationArticleSettingState!
   }
 
   enum ReportReason {

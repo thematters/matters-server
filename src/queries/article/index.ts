@@ -30,6 +30,8 @@ import displayCover from './displayCover.js'
 import donated from './donated.js'
 import donationCount from './donationCount.js'
 import donations from './donations.js'
+import federationEligibility from './federationEligibility.js'
+import federationSetting from './federationSetting.js'
 import hasAppreciate from './hasAppreciate.js'
 import idResolver from './id.js'
 import indentFirstLine from './indentFirstLine.js'
@@ -105,6 +107,8 @@ const schema: GQLResolvers = {
     connectedBy,
     hasAppreciate,
     canSuperLike,
+    federationSetting,
+    federationEligibility,
     language,
     oss: (root) => root,
     relatedArticles,

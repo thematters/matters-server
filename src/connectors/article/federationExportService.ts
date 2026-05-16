@@ -45,11 +45,29 @@ export const FEDERATION_ARTICLE_SETTING = {
   disabled: 'disabled',
 } as const
 
+export const FEDERATION_EXPORT_TRIGGER = {
+  publishArticle: 'publish_article',
+  reviseArticle: 'revise_article',
+  manual: 'manual',
+  settingChange: 'setting_change',
+} as const
+
+export const FEDERATION_EXPORT_TRIGGER_MODE = {
+  off: 'off',
+  recordOnly: 'record_only',
+} as const
+
 export type FederationAuthorSetting =
   (typeof FEDERATION_AUTHOR_SETTING)[keyof typeof FEDERATION_AUTHOR_SETTING]
 
 export type FederationArticleSetting =
   (typeof FEDERATION_ARTICLE_SETTING)[keyof typeof FEDERATION_ARTICLE_SETTING]
+
+export type FederationExportTrigger =
+  (typeof FEDERATION_EXPORT_TRIGGER)[keyof typeof FEDERATION_EXPORT_TRIGGER]
+
+export type FederationExportTriggerMode =
+  (typeof FEDERATION_EXPORT_TRIGGER_MODE)[keyof typeof FEDERATION_EXPORT_TRIGGER_MODE]
 
 export type FederationExportGateInput = {
   row: FederationExportArticleRow
@@ -79,6 +97,40 @@ export type FederationExportDecisionReport = {
   eligible: number
   skipped: number
   decisions: FederationExportDecision[]
+}
+
+export type FederationExportEvent = {
+  id: string
+  articleId: string
+  actorId: string | null
+  trigger: FederationExportTrigger
+  mode: typeof FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+  status: 'recorded'
+  eligible: boolean
+  reason: FederationExportDecision['reason']
+  authorSetting: FederationAuthorSetting | null
+  articleSetting: FederationArticleSetting | null
+  effectiveArticleSetting: FederationArticleSetting
+  decisionReport: FederationExportDecisionReport
+}
+
+export type FederationAuthorSettingRow = {
+  userId: string
+  state: FederationAuthorSetting
+  updatedBy?: string | null
+}
+
+export type FederationArticleSettingRow = {
+  articleId: string
+  state: FederationArticleSetting
+  updatedBy?: string | null
+}
+
+export type RecordFederationExportTriggerInput = {
+  articleId: string
+  actorId?: string | null
+  trigger: FederationExportTrigger
+  mode?: typeof FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
 }
 
 type ArticleExportQueryRow = {
@@ -206,10 +258,76 @@ export const buildMattersArticleUrl = ({
 }) => `https://${siteDomain}/a/${shortHash || articleId}`
 
 export class FederationExportService {
+  private knex: Knex
   private knexRO: Knex
 
   public constructor(connections: Connections) {
+    this.knex = connections.knex
     this.knexRO = connections.knexRO
+  }
+
+  public async upsertAuthorFederationSetting({
+    userId,
+    state,
+    updatedBy = null,
+  }: FederationAuthorSettingRow): Promise<FederationAuthorSettingRow> {
+    if (!Object.values(FEDERATION_AUTHOR_SETTING).includes(state)) {
+      throw new Error(`Invalid author federation setting: ${state}`)
+    }
+
+    const [row] = await this.knex('user_federation_setting')
+      .insert({ userId, state, updatedBy })
+      .onConflict('userId')
+      .merge({
+        state,
+        updatedBy,
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning(['userId', 'state', 'updatedBy'])
+
+    return row
+  }
+
+  public async upsertArticleFederationSetting({
+    articleId,
+    state,
+    updatedBy = null,
+  }: FederationArticleSettingRow): Promise<FederationArticleSettingRow> {
+    if (!Object.values(FEDERATION_ARTICLE_SETTING).includes(state)) {
+      throw new Error(`Invalid article federation setting: ${state}`)
+    }
+
+    const [row] = await this.knex('article_federation_setting')
+      .insert({ articleId, state, updatedBy })
+      .onConflict('articleId')
+      .merge({
+        state,
+        updatedBy,
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning(['articleId', 'state', 'updatedBy'])
+
+    return row
+  }
+
+  public async loadAuthorFederationSetting(
+    userId: string
+  ): Promise<FederationAuthorSettingRow | null> {
+    const row = await this.knexRO('user_federation_setting')
+      .where({ userId })
+      .first(['userId', 'state', 'updatedBy'])
+
+    return row ?? null
+  }
+
+  public async loadArticleFederationSetting(
+    articleId: string
+  ): Promise<FederationArticleSettingRow | null> {
+    const row = await this.knexRO('article_federation_setting')
+      .where({ articleId })
+      .first(['articleId', 'state', 'updatedBy'])
+
+    return row ?? null
   }
 
   public async loadSelectedArticleRows(
@@ -298,5 +416,65 @@ export class FederationExportService {
           federationSetting: row.authorFederationSetting,
         },
       }))
+  }
+
+  public async recordExportTriggerDecision({
+    articleId,
+    actorId = null,
+    trigger,
+    mode = FEDERATION_EXPORT_TRIGGER_MODE.recordOnly,
+  }: RecordFederationExportTriggerInput): Promise<FederationExportEvent> {
+    if (mode !== FEDERATION_EXPORT_TRIGGER_MODE.recordOnly) {
+      throw new Error(`Unsupported federation export trigger mode: ${mode}`)
+    }
+
+    if (!Object.values(FEDERATION_EXPORT_TRIGGER).includes(trigger)) {
+      throw new Error(`Invalid federation export trigger: ${trigger}`)
+    }
+
+    const rows = await this.loadSelectedArticleRows([articleId], {
+      includeFederationSettings: true,
+    })
+
+    if (rows.length === 0) {
+      throw new Error(`Article not found for federation export: ${articleId}`)
+    }
+
+    const decisionReport = evaluateFederationExportRows({
+      rows,
+      enforceFederationGate: true,
+    })
+    const [decision] = decisionReport.decisions
+
+    const [row] = await this.knex('federation_export_event')
+      .insert({
+        articleId,
+        actorId,
+        trigger,
+        mode,
+        status: 'recorded',
+        eligible: decision.eligible,
+        reason: decision.reason,
+        authorSetting: decision.authorSetting,
+        articleSetting: decision.articleSetting,
+        effectiveArticleSetting: decision.effectiveArticleSetting,
+        decisionReport,
+      })
+      .returning([
+        'id',
+        'articleId',
+        'actorId',
+        'trigger',
+        'mode',
+        'status',
+        'eligible',
+        'reason',
+        'authorSetting',
+        'articleSetting',
+        'effectiveArticleSetting',
+        'decisionReport',
+      ])
+
+    return row
   }
 }

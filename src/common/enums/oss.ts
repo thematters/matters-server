@@ -7,4 +7,6 @@ export const USER_FEATURE_FLAG_TYPE = {
   bypassSpamDetection: 'bypassSpamDetection',
   unlimitedArticleFetch: 'unlimitedArticleFetch',
   readSpamStatus: 'readSpamStatus',
+  communityWatch: 'communityWatch',
+  fediverseBeta: 'fediverseBeta',
 } as const

@@ -11,6 +11,7 @@ import { ETHWallet as ETHWalletModel } from './wallet.js'
 import { Tag as TagModel } from './tag.js'
 import { Collection as CollectionModel } from './collection.js'
 import { Comment as CommentModel } from './comment.js'
+import { CommunityWatchAction as CommunityWatchActionModel } from './communityWatch.js'
 import {
   Article as ArticleModel,
   ArticleVersion as ArticleVersionModel,
@@ -275,6 +276,10 @@ export type GQLArticle = GQLNode &
     donations: GQLArticleDonationConnection
     /** List of featured comments of this article. */
     featuredComments: GQLCommentConnection
+    /** Computed federation export eligibility for this article. */
+    federationEligibility: GQLArticleFederationEligibility
+    /** Article-level federation setting override. */
+    federationSetting?: Maybe<GQLArticleFederationSetting>
     /** This value determines if current viewer has appreciated or not. */
     hasAppreciate: Scalars['Boolean']['output']
     /** Unique ID of this article */
@@ -549,6 +554,20 @@ export type GQLArticleEdge = {
   node: GQLArticle
 }
 
+export type GQLArticleFederationEligibility = {
+  __typename?: 'ArticleFederationEligibility'
+  effectiveArticleSetting: GQLFederationArticleSettingState
+  eligible: Scalars['Boolean']['output']
+  reason: GQLFederationExportDecisionReason
+}
+
+export type GQLArticleFederationSetting = {
+  __typename?: 'ArticleFederationSetting'
+  articleId: Scalars['ID']['output']
+  state: GQLFederationArticleSettingState
+  updatedBy?: Maybe<Scalars['ID']['output']>
+}
+
 export type GQLArticleInput = {
   mediaHash?: InputMaybe<Scalars['String']['input']>
   shortHash?: InputMaybe<Scalars['String']['input']>
@@ -741,6 +760,7 @@ export type GQLBadge = {
 
 export type GQLBadgeType =
   | 'architect'
+  | 'community_watch'
   | 'golden_motor'
   | 'grand_slam'
   | 'nomad1'
@@ -1218,6 +1238,11 @@ export type GQLClassifyArticlesChannelsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
+export type GQLClearCommunityWatchOriginalContentInput = {
+  note?: InputMaybe<Scalars['String']['input']>
+  uuid: Scalars['ID']['input']
+}
+
 export type GQLClearReadHistoryInput = {
   id?: InputMaybe<Scalars['ID']['input']>
 }
@@ -1301,6 +1326,8 @@ export type GQLComment = GQLNode & {
   author: GQLUser
   /** Descendant comments of this comment. */
   comments: GQLCommentConnection
+  /** Community Watch audit action when this comment was removed by Community Watch. */
+  communityWatchAction?: Maybe<GQLCommunityWatchAction>
   /** Content of this comment. */
   content?: Maybe<Scalars['String']['output']>
   /** Time of this comment was created. */
@@ -1436,6 +1463,69 @@ export type GQLCommentsInput = {
   includeBefore?: InputMaybe<Scalars['Boolean']['input']>
   sort?: InputMaybe<GQLCommentSort>
 }
+
+export type GQLCommunityWatchAction = {
+  __typename?: 'CommunityWatchAction'
+  actionState: GQLCommunityWatchActionState
+  actorDisplayName: Scalars['String']['output']
+  appealState: GQLCommunityWatchAppealState
+  commentId: Scalars['ID']['output']
+  contentCleared: Scalars['Boolean']['output']
+  createdAt: Scalars['DateTime']['output']
+  originalContent?: Maybe<Scalars['String']['output']>
+  reason: GQLCommunityWatchRemoveCommentReason
+  reviewState: GQLCommunityWatchReviewState
+  sourceId: Scalars['ID']['output']
+  sourceTitle: Scalars['String']['output']
+  sourceType: GQLCommunityWatchActionSourceType
+  /** Public identifier used by the Community Watch transparency page. */
+  uuid: Scalars['ID']['output']
+}
+
+export type GQLCommunityWatchActionConnection = GQLConnection & {
+  __typename?: 'CommunityWatchActionConnection'
+  edges?: Maybe<Array<GQLCommunityWatchActionEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLCommunityWatchActionEdge = {
+  __typename?: 'CommunityWatchActionEdge'
+  cursor: Scalars['String']['output']
+  node: GQLCommunityWatchAction
+}
+
+export type GQLCommunityWatchActionInput = {
+  uuid: Scalars['ID']['input']
+}
+
+export type GQLCommunityWatchActionSourceType = 'article' | 'moment'
+
+export type GQLCommunityWatchActionState = 'active' | 'restored' | 'voided'
+
+export type GQLCommunityWatchActionsInput = {
+  actionState?: InputMaybe<GQLCommunityWatchActionState>
+  after?: InputMaybe<Scalars['String']['input']>
+  appealState?: InputMaybe<GQLCommunityWatchAppealState>
+  first?: InputMaybe<Scalars['Int']['input']>
+  reason?: InputMaybe<GQLCommunityWatchRemoveCommentReason>
+  reviewState?: InputMaybe<GQLCommunityWatchReviewState>
+}
+
+export type GQLCommunityWatchAppealState = 'none' | 'received' | 'resolved'
+
+export type GQLCommunityWatchRemoveCommentInput = {
+  id: Scalars['ID']['input']
+  reason: GQLCommunityWatchRemoveCommentReason
+}
+
+export type GQLCommunityWatchRemoveCommentReason = 'porn_ad' | 'spam_ad'
+
+export type GQLCommunityWatchReviewState =
+  | 'pending'
+  | 'reason_adjusted'
+  | 'reversed'
+  | 'upheld'
 
 export type GQLConfirmVerificationCodeInput = {
   code: Scalars['String']['input']
@@ -1761,6 +1851,19 @@ export type GQLFeaturedTagsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
+export type GQLFederationArticleSettingState =
+  | 'disabled'
+  | 'enabled'
+  | 'inherit'
+
+export type GQLFederationAuthorSettingState = 'disabled' | 'enabled'
+
+export type GQLFederationExportDecisionReason =
+  | 'article_disabled'
+  | 'article_not_public'
+  | 'author_not_opted_in'
+  | 'eligible'
+
 export type GQLFilterInput = {
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
   inRangeStart?: InputMaybe<Scalars['DateTime']['input']>
@@ -2080,10 +2183,14 @@ export type GQLMutation = {
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
   classifyArticlesChannels: Scalars['Boolean']['output']
+  /** Clear stored original content for a Community Watch action as staff. */
+  clearCommunityWatchOriginalContent: GQLCommunityWatchAction
   /** Clear read history for user. */
   clearReadHistory: GQLUser
   /** Clear search history for user. */
   clearSearchHistory?: Maybe<Scalars['Boolean']['output']>
+  /** Remove a spam comment as a Community Watch member. */
+  communityWatchRemoveComment: GQLComment
   /** Confirm verification code from email. */
   confirmVerificationCode: Scalars['ID']['output']
   /** Create Stripe Connect account for Payout */
@@ -2128,6 +2235,7 @@ export type GQLMutation = {
   /** Publish an article onto IPFS. */
   publishArticle: GQLDraft
   putAnnouncement: GQLAnnouncement
+  putArticleFederationSetting: GQLArticleFederationSetting
   /** Create or update a Circle. */
   putCircle: GQLCircle
   /**
@@ -2153,6 +2261,7 @@ export type GQLMutation = {
   putTagChannel: GQLTag
   putTopicChannel: GQLTopicChannel
   putUserFeatureFlags: Array<GQLUser>
+  putUserFederationSetting: GQLUserFederationSetting
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
@@ -2168,11 +2277,15 @@ export type GQLMutation = {
   resetLikerId: GQLUser
   /** Reset user or payment password. */
   resetPassword?: Maybe<Scalars['Boolean']['output']>
+  /** Restore a comment removed by Community Watch as staff. */
+  restoreCommunityWatchComment: GQLCommunityWatchAction
   reviewTopicChannelFeedback: GQLTopicChannelFeedback
   sendCampaignAnnouncement?: Maybe<Scalars['Boolean']['output']>
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>
   setAdStatus: GQLArticle
+  /** Set current author's Fediverse federation preference for an article. */
+  setArticleFederationSetting: GQLArticleFederationSetting
   setArticleTopicChannels: GQLArticle
   setBoost: GQLNode
   /** Set user currency preference. */
@@ -2185,6 +2298,8 @@ export type GQLMutation = {
   setSpamStatus: GQLWriting
   /** Set user name. */
   setUserName: GQLUser
+  /** Set current viewer's Fediverse federation preference. */
+  setViewerFederationSetting: GQLUserFederationSetting
   /** Upload a single file. */
   singleFileUpload: GQLAsset
   /** Login/Signup via social accounts. */
@@ -2237,6 +2352,8 @@ export type GQLMutation = {
   updateCampaignApplicationState: GQLCampaign
   /** Update a comments' state. */
   updateCommentsState: Array<GQLComment>
+  /** Update Community Watch appeal, review, or reason as staff. */
+  updateCommunityWatchActionState: GQLCommunityWatchAction
   /** Update user notification settings. */
   updateNotificationSetting: GQLUser
   /** Update referralCode of a user, used in OSS. */
@@ -2303,8 +2420,16 @@ export type GQLMutationClassifyArticlesChannelsArgs = {
   input: GQLClassifyArticlesChannelsInput
 }
 
+export type GQLMutationClearCommunityWatchOriginalContentArgs = {
+  input: GQLClearCommunityWatchOriginalContentInput
+}
+
 export type GQLMutationClearReadHistoryArgs = {
   input: GQLClearReadHistoryInput
+}
+
+export type GQLMutationCommunityWatchRemoveCommentArgs = {
+  input: GQLCommunityWatchRemoveCommentInput
 }
 
 export type GQLMutationConfirmVerificationCodeArgs = {
@@ -2411,6 +2536,10 @@ export type GQLMutationPutAnnouncementArgs = {
   input: GQLPutAnnouncementInput
 }
 
+export type GQLMutationPutArticleFederationSettingArgs = {
+  input: GQLPutArticleFederationSettingInput
+}
+
 export type GQLMutationPutCircleArgs = {
   input: GQLPutCircleInput
 }
@@ -2475,6 +2604,10 @@ export type GQLMutationPutUserFeatureFlagsArgs = {
   input: GQLPutUserFeatureFlagsInput
 }
 
+export type GQLMutationPutUserFederationSettingArgs = {
+  input: GQLPutUserFederationSettingInput
+}
+
 export type GQLMutationPutWritingChallengeArgs = {
   input: GQLPutWritingChallengeInput
 }
@@ -2507,6 +2640,10 @@ export type GQLMutationResetPasswordArgs = {
   input: GQLResetPasswordInput
 }
 
+export type GQLMutationRestoreCommunityWatchCommentArgs = {
+  input: GQLRestoreCommunityWatchCommentInput
+}
+
 export type GQLMutationReviewTopicChannelFeedbackArgs = {
   input: GQLReviewTopicChannelFeedbackInput
 }
@@ -2521,6 +2658,10 @@ export type GQLMutationSendVerificationCodeArgs = {
 
 export type GQLMutationSetAdStatusArgs = {
   input: GQLSetAdStatusInput
+}
+
+export type GQLMutationSetArticleFederationSettingArgs = {
+  input: GQLSetArticleFederationSettingInput
 }
 
 export type GQLMutationSetArticleTopicChannelsArgs = {
@@ -2553,6 +2694,10 @@ export type GQLMutationSetSpamStatusArgs = {
 
 export type GQLMutationSetUserNameArgs = {
   input: GQLSetUserNameInput
+}
+
+export type GQLMutationSetViewerFederationSettingArgs = {
+  input: GQLSetViewerFederationSettingInput
 }
 
 export type GQLMutationSingleFileUploadArgs = {
@@ -2665,6 +2810,10 @@ export type GQLMutationUpdateCampaignApplicationStateArgs = {
 
 export type GQLMutationUpdateCommentsStateArgs = {
   input: GQLUpdateCommentsStateInput
+}
+
+export type GQLMutationUpdateCommunityWatchActionStateArgs = {
+  input: GQLUpdateCommunityWatchActionStateInput
 }
 
 export type GQLMutationUpdateNotificationSettingArgs = {
@@ -3065,6 +3214,11 @@ export type GQLPutAnnouncementInput = {
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
 
+export type GQLPutArticleFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationArticleSettingState
+}
+
 export type GQLPutCircleArticlesInput = {
   /** Access Type, `public` or `paywall` only. */
   accessType: GQLArticleAccessType
@@ -3218,6 +3372,11 @@ export type GQLPutUserFeatureFlagsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
+export type GQLPutUserFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationAuthorSettingState
+}
+
 export type GQLPutWritingChallengeInput = {
   announcements?: InputMaybe<Array<Scalars['ID']['input']>>
   applicationPeriod?: InputMaybe<GQLDatetimeRangeInput>
@@ -3250,6 +3409,10 @@ export type GQLQuery = {
   channel?: Maybe<GQLChannel>
   channels: Array<GQLChannel>
   circle?: Maybe<GQLCircle>
+  /** One public Community Watch audit record. */
+  communityWatchAction?: Maybe<GQLCommunityWatchAction>
+  /** Recent public Community Watch audit records. */
+  communityWatchActions: GQLCommunityWatchActionConnection
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
   moment?: Maybe<GQLMoment>
@@ -3290,6 +3453,14 @@ export type GQLQueryChannelsArgs = {
 
 export type GQLQueryCircleArgs = {
   input: GQLCircleInput
+}
+
+export type GQLQueryCommunityWatchActionArgs = {
+  input: GQLCommunityWatchActionInput
+}
+
+export type GQLQueryCommunityWatchActionsArgs = {
+  input: GQLCommunityWatchActionsInput
 }
 
 export type GQLQueryExchangeRatesArgs = {
@@ -3558,6 +3729,11 @@ export type GQLResponsesInput = {
   sort?: InputMaybe<GQLResponseSort>
 }
 
+export type GQLRestoreCommunityWatchCommentInput = {
+  note?: InputMaybe<Scalars['String']['input']>
+  uuid: Scalars['ID']['input']
+}
+
 export type GQLReviewTopicChannelFeedbackInput = {
   action: GQLTopicChannelFeedbackAction
   feedback: Scalars['ID']['input']
@@ -3633,6 +3809,11 @@ export type GQLSetAdStatusInput = {
   isAd: Scalars['Boolean']['input']
 }
 
+export type GQLSetArticleFederationSettingInput = {
+  id: Scalars['ID']['input']
+  state: GQLFederationArticleSettingState
+}
+
 export type GQLSetArticleTopicChannelsInput = {
   channels: Array<Scalars['ID']['input']>
   id: Scalars['ID']['input']
@@ -3669,6 +3850,10 @@ export type GQLSetSpamStatusInput = {
 
 export type GQLSetUserNameInput = {
   userName: Scalars['String']['input']
+}
+
+export type GQLSetViewerFederationSettingInput = {
+  state: GQLFederationAuthorSettingState
 }
 
 export type GQLSigningMessagePurpose =
@@ -4259,6 +4444,14 @@ export type GQLUpdateCommentsStateInput = {
   state: GQLCommentState
 }
 
+export type GQLUpdateCommunityWatchActionStateInput = {
+  appealState?: InputMaybe<GQLCommunityWatchAppealState>
+  note?: InputMaybe<Scalars['String']['input']>
+  reason?: InputMaybe<GQLCommunityWatchRemoveCommentReason>
+  reviewState?: InputMaybe<GQLCommunityWatchReviewState>
+  uuid: Scalars['ID']['input']
+}
+
 export type GQLUpdateNotificationSettingInput = {
   enabled: Scalars['Boolean']['input']
   type: GQLNotificationSettingType
@@ -4320,6 +4513,8 @@ export type GQLUser = GQLNode & {
   displayName?: Maybe<Scalars['String']['output']>
   /** Drafts authored by current user. */
   drafts: GQLDraftConnection
+  /** User-level federation opt-in setting. */
+  federationSetting?: Maybe<GQLUserFederationSetting>
   /** Followers of this user. */
   followers: GQLUserConnection
   /** Following contents of this user. */
@@ -4530,8 +4725,17 @@ export type GQLUserFeatureFlag = {
 
 export type GQLUserFeatureFlagType =
   | 'bypassSpamDetection'
+  | 'communityWatch'
+  | 'fediverseBeta'
   | 'readSpamStatus'
   | 'unlimitedArticleFetch'
+
+export type GQLUserFederationSetting = {
+  __typename?: 'UserFederationSetting'
+  state: GQLFederationAuthorSettingState
+  updatedBy?: Maybe<Scalars['ID']['output']>
+  userId: Scalars['ID']['output']
+}
 
 export type GQLUserGroup = 'a' | 'b'
 
@@ -5003,6 +5207,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLCommentConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['CommentEdge']>>
       })
+    | (Omit<GQLCommunityWatchActionConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['CommunityWatchActionEdge']>>
+      })
     | (Omit<GQLDraftConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['DraftEdge']>>
       })
@@ -5163,6 +5370,8 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleEdge: ResolverTypeWrapper<
     Omit<GQLArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
+  ArticleFederationEligibility: ResolverTypeWrapper<GQLArticleFederationEligibility>
+  ArticleFederationSetting: ResolverTypeWrapper<GQLArticleFederationSetting>
   ArticleInput: GQLArticleInput
   ArticleLicenseType: GQLArticleLicenseType
   ArticleNotice: ResolverTypeWrapper<NoticeItemModel>
@@ -5306,6 +5515,7 @@ export type GQLResolversTypes = ResolversObject<{
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: ResolverTypeWrapper<GQLClaimLogbooksResult>
   ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
+  ClearCommunityWatchOriginalContentInput: GQLClearCommunityWatchOriginalContentInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
   Collection: ResolverTypeWrapper<CollectionModel>
   CollectionArticlesInput: GQLCollectionArticlesInput
@@ -5339,6 +5549,25 @@ export type GQLResolversTypes = ResolversObject<{
   CommentType: GQLCommentType
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
+  CommunityWatchAction: ResolverTypeWrapper<CommunityWatchActionModel>
+  CommunityWatchActionConnection: ResolverTypeWrapper<
+    Omit<GQLCommunityWatchActionConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['CommunityWatchActionEdge']>>
+    }
+  >
+  CommunityWatchActionEdge: ResolverTypeWrapper<
+    Omit<GQLCommunityWatchActionEdge, 'node'> & {
+      node: GQLResolversTypes['CommunityWatchAction']
+    }
+  >
+  CommunityWatchActionInput: GQLCommunityWatchActionInput
+  CommunityWatchActionSourceType: GQLCommunityWatchActionSourceType
+  CommunityWatchActionState: GQLCommunityWatchActionState
+  CommunityWatchActionsInput: GQLCommunityWatchActionsInput
+  CommunityWatchAppealState: GQLCommunityWatchAppealState
+  CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
+  CommunityWatchRemoveCommentReason: GQLCommunityWatchRemoveCommentReason
+  CommunityWatchReviewState: GQLCommunityWatchReviewState
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
   ConnectStripeAccountResult: ResolverTypeWrapper<GQLConnectStripeAccountResult>
@@ -5385,6 +5614,9 @@ export type GQLResolversTypes = ResolversObject<{
   FeatureName: GQLFeatureName
   FeaturedCommentsInput: GQLFeaturedCommentsInput
   FeaturedTagsInput: GQLFeaturedTagsInput
+  FederationArticleSettingState: GQLFederationArticleSettingState
+  FederationAuthorSettingState: GQLFederationAuthorSettingState
+  FederationExportDecisionReason: GQLFederationExportDecisionReason
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
   Following: ResolverTypeWrapper<UserModel>
@@ -5556,6 +5788,7 @@ export type GQLResolversTypes = ResolversObject<{
   PublishArticleInput: GQLPublishArticleInput
   PublishState: GQLPublishState
   PutAnnouncementInput: GQLPutAnnouncementInput
+  PutArticleFederationSettingInput: GQLPutArticleFederationSettingInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleArticlesType: GQLPutCircleArticlesType
   PutCircleInput: GQLPutCircleInput
@@ -5572,6 +5805,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
+  PutUserFederationSettingInput: GQLPutUserFederationSettingInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: ResolverTypeWrapper<{}>
   QuoteCurrency: GQLQuoteCurrency
@@ -5633,6 +5867,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ResponseSort: GQLResponseSort
   ResponsesInput: GQLResponsesInput
+  RestoreCommunityWatchCommentInput: GQLRestoreCommunityWatchCommentInput
   ReviewTopicChannelFeedbackInput: GQLReviewTopicChannelFeedbackInput
   Role: GQLRole
   SearchAPIVersion: GQLSearchApiVersion
@@ -5651,6 +5886,7 @@ export type GQLResolversTypes = ResolversObject<{
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetAdStatusInput: GQLSetAdStatusInput
+  SetArticleFederationSettingInput: GQLSetArticleFederationSettingInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -5659,6 +5895,7 @@ export type GQLResolversTypes = ResolversObject<{
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
+  SetViewerFederationSettingInput: GQLSetViewerFederationSettingInput
   SigningMessagePurpose: GQLSigningMessagePurpose
   SigningMessageResult: ResolverTypeWrapper<GQLSigningMessageResult>
   SingleFileUploadInput: GQLSingleFileUploadInput
@@ -5775,6 +6012,7 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateArticleStateInput: GQLUpdateArticleStateInput
   UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
+  UpdateCommunityWatchActionStateInput: GQLUpdateCommunityWatchActionStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
@@ -5817,6 +6055,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   UserFeatureFlag: ResolverTypeWrapper<GQLUserFeatureFlag>
   UserFeatureFlagType: GQLUserFeatureFlagType
+  UserFederationSetting: ResolverTypeWrapper<GQLUserFederationSetting>
   UserGroup: GQLUserGroup
   UserInfo: ResolverTypeWrapper<UserModel>
   UserInfoFields: GQLUserInfoFields
@@ -5923,6 +6162,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleEdge: Omit<GQLArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
+  ArticleFederationEligibility: GQLArticleFederationEligibility
+  ArticleFederationSetting: GQLArticleFederationSetting
   ArticleInput: GQLArticleInput
   ArticleNotice: NoticeItemModel
   ArticleOSS: ArticleModel
@@ -6026,6 +6267,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: GQLClaimLogbooksResult
   ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
+  ClearCommunityWatchOriginalContentInput: GQLClearCommunityWatchOriginalContentInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
   Collection: CollectionModel
   CollectionArticlesInput: GQLCollectionArticlesInput
@@ -6049,6 +6291,19 @@ export type GQLResolversParentTypes = ResolversObject<{
   CommentNotice: NoticeItemModel
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
+  CommunityWatchAction: CommunityWatchActionModel
+  CommunityWatchActionConnection: Omit<
+    GQLCommunityWatchActionConnection,
+    'edges'
+  > & {
+    edges?: Maybe<Array<GQLResolversParentTypes['CommunityWatchActionEdge']>>
+  }
+  CommunityWatchActionEdge: Omit<GQLCommunityWatchActionEdge, 'node'> & {
+    node: GQLResolversParentTypes['CommunityWatchAction']
+  }
+  CommunityWatchActionInput: GQLCommunityWatchActionInput
+  CommunityWatchActionsInput: GQLCommunityWatchActionsInput
+  CommunityWatchRemoveCommentInput: GQLCommunityWatchRemoveCommentInput
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
   ConnectStripeAccountInput: GQLConnectStripeAccountInput
   ConnectStripeAccountResult: GQLConnectStripeAccountResult
@@ -6213,6 +6468,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Price: CirclePriceModel
   PublishArticleInput: GQLPublishArticleInput
   PutAnnouncementInput: GQLPutAnnouncementInput
+  PutArticleFederationSettingInput: GQLPutArticleFederationSettingInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleInput: GQLPutCircleInput
   PutCollectionInput: GQLPutCollectionInput
@@ -6228,6 +6484,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutTagChannelInput: GQLPutTagChannelInput
   PutTopicChannelInput: GQLPutTopicChannelInput
   PutUserFeatureFlagsInput: GQLPutUserFeatureFlagsInput
+  PutUserFederationSettingInput: GQLPutUserFederationSettingInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: {}
   ReadArticleInput: GQLReadArticleInput
@@ -6272,6 +6529,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Response']
   }
   ResponsesInput: GQLResponsesInput
+  RestoreCommunityWatchCommentInput: GQLRestoreCommunityWatchCommentInput
   ReviewTopicChannelFeedbackInput: GQLReviewTopicChannelFeedbackInput
   SearchFilter: GQLSearchFilter
   SearchInput: GQLSearchInput
@@ -6284,6 +6542,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SendCampaignAnnouncementInput: GQLSendCampaignAnnouncementInput
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetAdStatusInput: GQLSetAdStatusInput
+  SetArticleFederationSettingInput: GQLSetArticleFederationSettingInput
   SetArticleTopicChannelsInput: GQLSetArticleTopicChannelsInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
@@ -6292,6 +6551,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
+  SetViewerFederationSettingInput: GQLSetViewerFederationSettingInput
   SigningMessageResult: GQLSigningMessageResult
   SingleFileUploadInput: GQLSingleFileUploadInput
   SkippedListItem: GQLSkippedListItem
@@ -6375,6 +6635,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateArticleStateInput: GQLUpdateArticleStateInput
   UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
+  UpdateCommunityWatchActionStateInput: GQLUpdateCommunityWatchActionStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
@@ -6416,6 +6677,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['User']
   }
   UserFeatureFlag: GQLUserFeatureFlag
+  UserFederationSetting: GQLUserFederationSetting
   UserInfo: UserModel
   UserInput: GQLUserInput
   UserNotice: NoticeItemModel
@@ -6807,6 +7069,16 @@ export type GQLArticleResolvers<
     ContextType,
     RequireFields<GQLArticleFeaturedCommentsArgs, 'input'>
   >
+  federationEligibility?: Resolver<
+    GQLResolversTypes['ArticleFederationEligibility'],
+    ParentType,
+    ContextType
+  >
+  federationSetting?: Resolver<
+    Maybe<GQLResolversTypes['ArticleFederationSetting']>,
+    ParentType,
+    ContextType
+  >
   hasAppreciate?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7048,6 +7320,38 @@ export type GQLArticleEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleFederationEligibilityResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleFederationEligibility'] = GQLResolversParentTypes['ArticleFederationEligibility']
+> = ResolversObject<{
+  effectiveArticleSetting?: Resolver<
+    GQLResolversTypes['FederationArticleSettingState'],
+    ParentType,
+    ContextType
+  >
+  eligible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  reason?: Resolver<
+    GQLResolversTypes['FederationExportDecisionReason'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleFederationSettingResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleFederationSetting'] = GQLResolversParentTypes['ArticleFederationSetting']
+> = ResolversObject<{
+  articleId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  state?: Resolver<
+    GQLResolversTypes['FederationArticleSettingState'],
+    ParentType,
+    ContextType
+  >
+  updatedBy?: Resolver<Maybe<GQLResolversTypes['ID']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7844,6 +8148,11 @@ export type GQLCommentResolvers<
     ContextType,
     RequireFields<GQLCommentCommentsArgs, 'input'>
   >
+  communityWatchAction?: Resolver<
+    Maybe<GQLResolversTypes['CommunityWatchAction']>,
+    ParentType,
+    ContextType
+  >
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -7944,6 +8253,85 @@ export type GQLCommentNoticeResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLCommunityWatchActionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CommunityWatchAction'] = GQLResolversParentTypes['CommunityWatchAction']
+> = ResolversObject<{
+  actionState?: Resolver<
+    GQLResolversTypes['CommunityWatchActionState'],
+    ParentType,
+    ContextType
+  >
+  actorDisplayName?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType
+  >
+  appealState?: Resolver<
+    GQLResolversTypes['CommunityWatchAppealState'],
+    ParentType,
+    ContextType
+  >
+  commentId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  contentCleared?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  originalContent?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  reason?: Resolver<
+    GQLResolversTypes['CommunityWatchRemoveCommentReason'],
+    ParentType,
+    ContextType
+  >
+  reviewState?: Resolver<
+    GQLResolversTypes['CommunityWatchReviewState'],
+    ParentType,
+    ContextType
+  >
+  sourceId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  sourceTitle?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  sourceType?: Resolver<
+    GQLResolversTypes['CommunityWatchActionSourceType'],
+    ParentType,
+    ContextType
+  >
+  uuid?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCommunityWatchActionConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CommunityWatchActionConnection'] = GQLResolversParentTypes['CommunityWatchActionConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['CommunityWatchActionEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCommunityWatchActionEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CommunityWatchActionEdge'] = GQLResolversParentTypes['CommunityWatchActionEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLConnectStripeAccountResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ConnectStripeAccountResult'] = GQLResolversParentTypes['ConnectStripeAccountResult']
@@ -7967,6 +8355,7 @@ export type GQLConnectionResolvers<
     | 'CircleConnection'
     | 'CollectionConnection'
     | 'CommentConnection'
+    | 'CommunityWatchActionConnection'
     | 'DraftConnection'
     | 'FollowingActivityConnection'
     | 'IcymiTopicConnection'
@@ -8667,6 +9056,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationClassifyArticlesChannelsArgs, 'input'>
   >
+  clearCommunityWatchOriginalContent?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationClearCommunityWatchOriginalContentArgs, 'input'>
+  >
   clearReadHistory?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -8677,6 +9072,12 @@ export type GQLMutationResolvers<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
+  >
+  communityWatchRemoveComment?: Resolver<
+    GQLResolversTypes['Comment'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationCommunityWatchRemoveCommentArgs, 'input'>
   >
   confirmVerificationCode?: Resolver<
     GQLResolversTypes['ID'],
@@ -8839,6 +9240,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutAnnouncementArgs, 'input'>
   >
+  putArticleFederationSetting?: Resolver<
+    GQLResolversTypes['ArticleFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutArticleFederationSettingArgs, 'input'>
+  >
   putCircle?: Resolver<
     GQLResolversTypes['Circle'],
     ParentType,
@@ -8935,6 +9342,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutUserFeatureFlagsArgs, 'input'>
   >
+  putUserFederationSetting?: Resolver<
+    GQLResolversTypes['UserFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutUserFederationSettingArgs, 'input'>
+  >
   putWritingChallenge?: Resolver<
     GQLResolversTypes['WritingChallenge'],
     ParentType,
@@ -8988,6 +9401,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationResetPasswordArgs, 'input'>
   >
+  restoreCommunityWatchComment?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationRestoreCommunityWatchCommentArgs, 'input'>
+  >
   reviewTopicChannelFeedback?: Resolver<
     GQLResolversTypes['TopicChannelFeedback'],
     ParentType,
@@ -9011,6 +9430,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetAdStatusArgs, 'input'>
+  >
+  setArticleFederationSetting?: Resolver<
+    GQLResolversTypes['ArticleFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetArticleFederationSettingArgs, 'input'>
   >
   setArticleTopicChannels?: Resolver<
     GQLResolversTypes['Article'],
@@ -9059,6 +9484,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetUserNameArgs, 'input'>
+  >
+  setViewerFederationSetting?: Resolver<
+    GQLResolversTypes['UserFederationSetting'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetViewerFederationSettingArgs, 'input'>
   >
   singleFileUpload?: Resolver<
     GQLResolversTypes['Asset'],
@@ -9230,6 +9661,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUpdateCommentsStateArgs, 'input'>
+  >
+  updateCommunityWatchActionState?: Resolver<
+    GQLResolversTypes['CommunityWatchAction'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUpdateCommunityWatchActionStateArgs, 'input'>
   >
   updateNotificationSetting?: Resolver<
     GQLResolversTypes['User'],
@@ -9783,6 +10220,18 @@ export type GQLQueryResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLQueryCircleArgs, 'input'>
+  >
+  communityWatchAction?: Resolver<
+    Maybe<GQLResolversTypes['CommunityWatchAction']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryCommunityWatchActionArgs, 'input'>
+  >
+  communityWatchActions?: Resolver<
+    GQLResolversTypes['CommunityWatchActionConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryCommunityWatchActionsArgs, 'input'>
   >
   exchangeRates?: Resolver<
     Maybe<Array<GQLResolversTypes['ExchangeRate']>>,
@@ -10597,6 +11046,11 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserDraftsArgs, 'input'>
   >
+  federationSetting?: Resolver<
+    Maybe<GQLResolversTypes['UserFederationSetting']>,
+    ParentType,
+    ContextType
+  >
   followers?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
@@ -10805,6 +11259,20 @@ export type GQLUserFeatureFlagResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLUserFederationSettingResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['UserFederationSetting'] = GQLResolversParentTypes['UserFederationSetting']
+> = ResolversObject<{
+  state?: Resolver<
+    GQLResolversTypes['FederationAuthorSettingState'],
+    ParentType,
+    ContextType
+  >
+  updatedBy?: Resolver<Maybe<GQLResolversTypes['ID']>, ParentType, ContextType>
+  userId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -11221,6 +11689,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleDonationConnection?: GQLArticleDonationConnectionResolvers<ContextType>
   ArticleDonationEdge?: GQLArticleDonationEdgeResolvers<ContextType>
   ArticleEdge?: GQLArticleEdgeResolvers<ContextType>
+  ArticleFederationEligibility?: GQLArticleFederationEligibilityResolvers<ContextType>
+  ArticleFederationSetting?: GQLArticleFederationSettingResolvers<ContextType>
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityResolvers<ContextType>
@@ -11270,6 +11740,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CommentConnection?: GQLCommentConnectionResolvers<ContextType>
   CommentEdge?: GQLCommentEdgeResolvers<ContextType>
   CommentNotice?: GQLCommentNoticeResolvers<ContextType>
+  CommunityWatchAction?: GQLCommunityWatchActionResolvers<ContextType>
+  CommunityWatchActionConnection?: GQLCommunityWatchActionConnectionResolvers<ContextType>
+  CommunityWatchActionEdge?: GQLCommunityWatchActionEdgeResolvers<ContextType>
   ConnectStripeAccountResult?: GQLConnectStripeAccountResultResolvers<ContextType>
   Connection?: GQLConnectionResolvers<ContextType>
   CryptoWallet?: GQLCryptoWalletResolvers<ContextType>
@@ -11375,6 +11848,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserCreateCircleActivity?: GQLUserCreateCircleActivityResolvers<ContextType>
   UserEdge?: GQLUserEdgeResolvers<ContextType>
   UserFeatureFlag?: GQLUserFeatureFlagResolvers<ContextType>
+  UserFederationSetting?: GQLUserFederationSettingResolvers<ContextType>
   UserInfo?: GQLUserInfoResolvers<ContextType>
   UserNotice?: GQLUserNoticeResolvers<ContextType>
   UserOSS?: GQLUserOssResolvers<ContextType>

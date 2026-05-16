@@ -33,6 +33,7 @@ import {
   SearchService,
   LikeCoin,
   ExchangeRate,
+  FederationExportService,
 } from '#connectors/index.js'
 import {
   RevisionQueue,
@@ -163,6 +164,7 @@ export const graphql = async (app: Express) => {
       translationService: new TranslationService(connections),
       notificationService: new NotificationService(connections),
       searchService: new SearchService(connections),
+      federationExportService: new FederationExportService(connections),
       connections,
       queues,
     }
