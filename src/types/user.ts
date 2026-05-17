@@ -143,6 +143,9 @@ export default /* GraphQL */ `
     "User-level federation opt-in setting."
     federationSetting: UserFederationSetting
 
+    "Public-safe feature eligibility for current viewer."
+    features: UserFeatures!
+
     "Recommendations for current user."
     recommendation: Recommendation!
 
@@ -425,6 +428,14 @@ export default /* GraphQL */ `
     score: Float!
     restrictions: [UserRestriction!]!
     featureFlags: [UserFeatureFlag!]!
+  }
+
+  type UserFeatures @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+    "Whether current viewer can access Fediverse beta controls."
+    fediverseBeta: Boolean!
+
+    "Whether current viewer can use Community Watch controls."
+    communityWatch: Boolean!
   }
 
   type Appreciation {
