@@ -68,19 +68,65 @@ G2-B adds two OAuth mutations gated by the `fediverseBeta` user feature flag:
 | `setViewerFederationSetting(input: { state })`      | Lets a pilot viewer set only their own author-level federation setting. |
 | `setArticleFederationSetting(input: { id, state })` | Lets a pilot author set only their own article federation override.     |
 
-The feature flag is assigned through the existing admin feature-flag tooling. These mutations do not publish, backfill, delete, or export content; they only record settings for the server-side gate.
+The feature flag is assigned through the existing admin-only `putUserFeatureFlags` mutation. These mutations do not publish, backfill, delete, or export content; they only record settings for the server-side gate.
+
+### Enabling a pilot account
+
+Do not update `user_feature_flag` manually for staging or production pilot setup. Use the existing admin API so authorization, cache invalidation, enum validation, and duplicate handling stay on the normal server path.
+
+Recommended pilot setup flow:
+
+1. Ask the pilot user to register, verify email, and confirm they can log in.
+2. Resolve the username to the user's GraphQL global ID through the existing admin/user query path.
+3. Call `putUserFeatureFlags` as an admin and include `fediverseBeta` in the user's complete desired flag list.
+4. Ask the pilot user to reload `/me/settings/misc` and confirm the Fediverse setting is visible.
+5. To remove pilot access, call the same mutation again with `fediverseBeta` removed from the complete desired flag list.
+
+Example:
+
+```graphql
+mutation EnableFediversePilot($input: PutUserFeatureFlagsInput!) {
+  putUserFeatureFlags(input: $input) {
+    id
+    userName
+    oss {
+      featureFlags {
+        type
+      }
+    }
+  }
+}
+```
+
+Variables:
+
+```json
+{
+  "input": {
+    "ids": ["USER_GLOBAL_ID"],
+    "flags": ["fediverseBeta"]
+  }
+}
+```
+
+`putUserFeatureFlags` sets the user's complete feature-flag list, not a single add/remove toggle. If the user already has other feature flags, preserve them in `flags` when adding or removing `fediverseBeta`.
+
+For matters.icu develop-only staging operations, the GitHub Actions workflow `Ensure Develop User Feature Flag` may be used as a controlled shortcut. It is limited to the `develop` environment, resolves the target user by email, inserts `fediverseBeta` idempotently with the `user_feature_flag (user_id, type)` uniqueness constraint, and invalidates the user's full-query cache. This workflow is for staging setup only; production pilot access should keep using the admin API path above.
 
 ## Read-side product fields
 
 G2-B adds read-side fields for Matters Web/App to display the current contract state without writing settings:
 
-| Field                           | Purpose                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| `User.federationSetting`        | Returns the author's explicit opt-in row, or `null` when default-off.    |
-| `Article.federationSetting`     | Returns the article override row, or `null` when it inherits.            |
-| `Article.federationEligibility` | Returns the computed server-side decision and effective article setting. |
+| Field                           | Purpose                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `User.features.fediverseBeta`   | Public-safe current-viewer eligibility for showing Fediverse beta controls.                         |
+| `User.federationSetting`        | Returns the author's explicit opt-in row, or `null` when default-off.                               |
+| `Article.federationSetting`     | Returns the article override row, or `null` when it inherits.                                       |
+| `Article.federationEligibility` | Returns the computed server-side decision and effective article setting.                            |
 
 `Article.federationEligibility` uses the same server gate as export runs. Matters Web may use it to show disabled states, but the UI must not treat its own state as authoritative.
+
+Matters Web should gate user-facing Fediverse controls with `User.features.fediverseBeta`, not `User.oss.featureFlags`. `User.oss` remains the admin-only feature flag inventory, while `User.features` exposes only the current viewer's public-safe feature eligibility.
 
 ## Durable state scaffold
 
