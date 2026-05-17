@@ -305,6 +305,30 @@ const PUT_USER_FEATURE_FLAGS = /* GraphQL */ `
   }
 `
 
+const GET_VIEWER_FEATURES = /* GraphQL */ `
+  query {
+    viewer {
+      id
+      features {
+        fediverseBeta
+        communityWatch
+      }
+    }
+  }
+`
+
+const GET_USER_FEATURES = /* GraphQL */ `
+  query ($input: UserInput!) {
+    user(input: $input) {
+      id
+      features {
+        fediverseBeta
+        communityWatch
+      }
+    }
+  }
+`
+
 const PUT_USER_FEDERATION_SETTING = /* GraphQL */ `
   mutation ($input: PutUserFederationSettingInput!) {
     putUserFederationSetting(input: $input) {
@@ -1106,6 +1130,48 @@ describe('user feature flags', () => {
         ({ type }: { type: GQLUserFeatureFlagType }) => type
       )
     ).toEqual(['bypassSpamDetection'])
+  })
+
+  test('exposes only current viewer public-safe features outside OSS', async () => {
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await adminServer.executeOperation({
+      query: PUT_USER_FEATURE_FLAGS,
+      variables: {
+        input: { ids: [userId1], flags: ['fediverseBeta', 'communityWatch'] },
+      },
+    })
+
+    const ownerServer = await testClient({
+      userId: '2',
+      isAuth: true,
+      connections,
+    })
+    const { data: ownerData, errors } = await ownerServer.executeOperation({
+      query: GET_VIEWER_FEATURES,
+    })
+    expect(errors).toBeUndefined()
+    expect(ownerData!.viewer.features).toEqual({
+      fediverseBeta: true,
+      communityWatch: true,
+    })
+
+    const otherServer = await testClient({
+      userId: '3',
+      isAuth: true,
+      connections,
+    })
+    const { data: otherData } = await otherServer.executeOperation({
+      query: GET_USER_FEATURES,
+      variables: { input: { userName: userName1 } },
+    })
+    expect(otherData!.user.features).toEqual({
+      fediverseBeta: false,
+      communityWatch: false,
+    })
   })
 })
 
