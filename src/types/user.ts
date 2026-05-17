@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Set current viewer's Fediverse federation preference."
+    setViewerFederationSetting(input: SetViewerFederationSettingInput!): UserFederationSetting! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Login user."
     emailLogin(input: EmailLoginInput!): AuthResult!
 
@@ -136,6 +139,9 @@ export default /* GraphQL */ `
 
     "User settings."
     settings: UserSettings! @auth(mode: "${AUTH_MODE.oauth}")
+
+    "User-level federation opt-in setting."
+    federationSetting: UserFederationSetting
 
     "Recommendations for current user."
     recommendation: Recommendation!
@@ -724,6 +730,10 @@ export default /* GraphQL */ `
       currency: QuoteCurrency
   }
 
+  input SetViewerFederationSettingInput {
+    state: FederationAuthorSettingState!
+  }
+
   input GenerateSigningMessageInput {
     address: String!
     purpose: SigningMessagePurpose
@@ -844,6 +854,7 @@ export default /* GraphQL */ `
     golden_motor
     architect
     grand_slam
+    community_watch
     # can only have 1 of the 4 levels of nomad badges
     nomad1
     nomad2

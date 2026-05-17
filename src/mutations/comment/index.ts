@@ -1,10 +1,14 @@
+import clearCommunityWatchOriginalContent from './clearCommunityWatchOriginalContent.js'
+import communityWatchRemoveComment from './communityWatchRemoveComment.js'
 import deleteComment from './deleteComment.js'
 import pinComment from './pinComment.js'
 import putComment from './putComment.js'
+import restoreCommunityWatchComment from './restoreCommunityWatchComment.js'
 import togglePinComment from './togglePinComment.js'
 import unpinComment from './unpinComment.js'
 import unvoteComment from './unvoteComment.js'
 import updateCommentsState from './updateCommentsState.js'
+import updateCommunityWatchActionState from './updateCommunityWatchActionState.js'
 import voteComment from './voteComment.js'
 
 export default {
@@ -17,5 +21,9 @@ export default {
     unvoteComment,
     updateCommentsState,
     togglePinComment,
+    communityWatchRemoveComment,
+    updateCommunityWatchActionState,
+    restoreCommunityWatchComment,
+    clearCommunityWatchOriginalContent,
   },
 }

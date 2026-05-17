@@ -1813,6 +1813,28 @@ export class UserService extends BaseService<User> {
       ...toAdd.map((i) => this.addFeatureFlag(id, i)),
       ...toDel.map((i) => this.removeFeatureFlag(id, i)),
     ])
+    await this.syncCommunityWatchBadge(id, news)
+  }
+
+  private syncCommunityWatchBadge = async (
+    id: string,
+    types: Array<keyof typeof USER_FEATURE_FLAG_TYPE>
+  ) => {
+    const table = 'user_badge'
+    const type = 'community_watch'
+    const enabled = types.includes(USER_FEATURE_FLAG_TYPE.communityWatch)
+
+    if (enabled) {
+      await this.models.upsert({
+        table,
+        where: { userId: id, type },
+        update: { enabled },
+        create: { userId: id, type, enabled },
+      })
+      return
+    }
+
+    await this.models.deleteMany({ table, where: { userId: id, type } })
   }
 
   public addFeatureFlag = async (

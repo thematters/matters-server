@@ -17,6 +17,7 @@ import setCurrency from './setCurrency.js'
 import setEmail from './setEmail.js'
 import setPassword from './setPassword.js'
 import setUserName from './setUserName.js'
+import setViewerFederationSetting from './setViewerFederationSetting.js'
 import {
   socialLogin,
   addSocialLogin,
@@ -56,6 +57,7 @@ export default {
     updateUserInfo,
     updateNotificationSetting,
     setCurrency,
+    setViewerFederationSetting,
     toggleBlockUser,
     toggleBookmarkTag,
     toggleFollowTag: toggleBookmarkTag,

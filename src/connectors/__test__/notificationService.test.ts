@@ -103,6 +103,10 @@ describe('user notify setting', () => {
     user_frozen: true,
     user_unbanned: true,
     comment_banned: true,
+    community_watch_comment_restored: true,
+    community_watch_action_reversed: true,
+    community_watch_enabled: true,
+    community_watch_disabled: true,
     article_banned: true,
     comment_reported: true,
     article_reported: true,
@@ -234,6 +238,49 @@ describe('trigger notifications', () => {
       recipientId: '1',
     })
     expect(notice.id).toBeDefined()
+  })
+  test('trigger community watch official notices', async () => {
+    const [restoredNotice] = await notificationService.process({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored,
+      recipientId: '1',
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'comment',
+          entity: { id: '1' },
+        },
+      ],
+      data: { link: 'https://community-watch.matters.town/records/test/' },
+    })
+    expect(restoredNotice.id).toBeDefined()
+
+    const [reversedNotice] = await notificationService.process({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_action_reversed,
+      recipientId: '1',
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'comment',
+          entity: { id: '1' },
+        },
+      ],
+      data: { link: 'https://community-watch.matters.town/records/test/' },
+    })
+    expect(reversedNotice.id).toBeDefined()
+
+    const [enabledNotice] = await notificationService.process({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_enabled,
+      recipientId: '1',
+      data: { link: 'https://community-watch.matters.town/rules/' },
+    })
+    expect(enabledNotice.id).toBeDefined()
+
+    const [disabledNotice] = await notificationService.process({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_disabled,
+      recipientId: '1',
+      data: { link: 'https://community-watch.matters.town/rules/' },
+    })
+    expect(disabledNotice.id).toBeDefined()
   })
   test('trigger `collection_liked` notice', async () => {
     // no errors

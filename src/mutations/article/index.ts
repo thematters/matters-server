@@ -5,6 +5,7 @@ import mergeTags from './mergeTags.js'
 import publishArticle from './publishArticle.js'
 import readArticle from './readArticle.js'
 import renameTag from './renameTag.js'
+import setArticleFederationSetting from './setArticleFederationSetting.js'
 import toggleArticleRecommend from './toggleArticleRecommend.js'
 import toggleBookmarkArticle from './toggleBookmarkArticle.js'
 import updateArticleSensitive from './updateArticleSensitive.js'
@@ -14,6 +15,7 @@ export default {
   Mutation: {
     publishArticle,
     editArticle,
+    setArticleFederationSetting,
     appreciateArticle,
     readArticle,
     toggleArticleRecommend,

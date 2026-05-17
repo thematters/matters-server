@@ -30,6 +30,7 @@ import {
   TranslationService,
   ChannelService,
   SearchService,
+  FederationExportService,
 } from '#connectors/index.js'
 import {
   RevisionQueue,
@@ -195,6 +196,7 @@ export const testClient = async ({
       translationService: new TranslationService(connections),
       channelService: new ChannelService(connections),
       searchService: new SearchService(connections),
+      federationExportService: new FederationExportService(connections),
       notificationService,
       connections,
       queues,

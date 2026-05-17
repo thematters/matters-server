@@ -21,6 +21,7 @@ import type {
   ChannelService,
   SearchService,
   PublicationService,
+  FederationExportService,
 } from '#connectors/index.js'
 import type {
   RevisionQueue,
@@ -89,6 +90,10 @@ import type {
 } from './circle.js'
 import type { Collection, CollectionArticle } from './collection.js'
 import type { Comment, FeaturedCommentMaterialized } from './comment.js'
+import type {
+  CommunityWatchAction,
+  CommunityWatchReviewEvent,
+} from './communityWatch.js'
 import type { Draft } from './draft.js'
 import type { TopicChannelFeedback } from './feedback.ts'
 import type {
@@ -149,6 +154,7 @@ export * from './tag.js'
 export * from './circle.js'
 export * from './collection.js'
 export * from './comment.js'
+export * from './communityWatch.js'
 export * from './language.js'
 export * from './notification.js'
 export * from './generic.js'
@@ -203,6 +209,7 @@ export interface DataSources {
   translationService: TranslationService
   channelService: ChannelService
   searchService: SearchService
+  federationExportService: FederationExportService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -264,6 +271,8 @@ export interface TableTypeMap {
   collection: Collection
   collection_article: CollectionArticle
   comment: Comment
+  community_watch_action: CommunityWatchAction
+  community_watch_review_event: CommunityWatchReviewEvent
   crypto_wallet: CryptoWallet
   crypto_wallet_signature: CryptoWalletSignature
   customer: Customer

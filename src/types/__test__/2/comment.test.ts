@@ -4,7 +4,14 @@ import type { Connections } from '#definitions/index.js'
 import _get from 'lodash/get.js'
 import { jest } from '@jest/globals'
 
-import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from '#common/enums/index.js'
+import {
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  NODE_TYPES,
+  NOTICE_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+  USER_FEATURE_FLAG_TYPE,
+} from '#common/enums/index.js'
 import {
   AtomService,
   CommentService,
@@ -59,6 +66,71 @@ const DELETE_COMMENT = /* GraphQL */ `
   mutation ($input: DeleteCommentInput!) {
     deleteComment(input: $input) {
       state
+    }
+  }
+`
+
+const COMMUNITY_WATCH_REMOVE_COMMENT = /* GraphQL */ `
+  mutation ($input: CommunityWatchRemoveCommentInput!) {
+    communityWatchRemoveComment(input: $input) {
+      state
+      communityWatchAction {
+        uuid
+        reason
+        createdAt
+      }
+    }
+  }
+`
+
+const COMMUNITY_WATCH_ACTIONS = /* GraphQL */ `
+  query ($input: CommunityWatchActionsInput!) {
+    communityWatchActions(input: $input) {
+      totalCount
+      edges {
+        cursor
+        node {
+          uuid
+          commentId
+          sourceType
+          sourceTitle
+          sourceId
+          actorDisplayName
+          reason
+          actionState
+          appealState
+          reviewState
+          originalContent
+          contentCleared
+          createdAt
+        }
+      }
+      pageInfo {
+        startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
+      }
+    }
+  }
+`
+
+const COMMUNITY_WATCH_ACTION = /* GraphQL */ `
+  query ($input: CommunityWatchActionInput!) {
+    communityWatchAction(input: $input) {
+      uuid
+      commentId
+      sourceType
+      sourceTitle
+      sourceId
+      actorDisplayName
+      reason
+      actionState
+      appealState
+      reviewState
+      originalContent
+      contentCleared
+      createdAt
     }
   }
 `
@@ -495,6 +567,260 @@ describe('delete commment', () => {
       },
     })
     expect(dataDeleted.deleteComment.state).toBe('archived')
+  })
+})
+
+describe('community watch remove comment', () => {
+  test('remove an article comment and write audit evidence', async () => {
+    const watcher = await userService.create({
+      userName: `watcher${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+    })
+    await atomService.create({
+      table: 'user_feature_flag',
+      data: {
+        userId: watcher.id,
+        type: USER_FEATURE_FLAG_TYPE.communityWatch,
+      },
+    })
+
+    const article = await atomService.articleIdLoader.load('1')
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>spam ad</p>',
+        authorId: '2',
+        targetId: article.id,
+        targetTypeId,
+        parentCommentId: null,
+        type: COMMENT_TYPE.article,
+        state: COMMENT_STATE.active,
+      },
+    })
+    const mockTrigger = jest.fn()
+    const server = await testClient({
+      userId: watcher.id,
+      isAuth: true,
+      connections,
+      dataSources: { notificationService: { trigger: mockTrigger } },
+    })
+
+    const { errors, data } = await server.executeOperation({
+      query: COMMUNITY_WATCH_REMOVE_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
+          reason: 'spam_ad',
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.communityWatchRemoveComment.state).toBe(COMMENT_STATE.banned)
+    expect(data.communityWatchRemoveComment.communityWatchAction).toEqual({
+      uuid: expect.any(String),
+      reason: 'spam_ad',
+      createdAt: expect.anything(),
+    })
+
+    const auditAction = await atomService.findFirst({
+      table: 'community_watch_action',
+      where: { commentId: comment.id },
+    })
+    expect(data.communityWatchRemoveComment.communityWatchAction.uuid).toBe(
+      auditAction.uuid
+    )
+    expect(auditAction).toMatchObject({
+      commentId: comment.id,
+      commentType: COMMENT_TYPE.article,
+      targetType: COMMENT_TYPE.article,
+      targetId: article.id,
+      targetShortHash: article.shortHash,
+      reason: 'spam_ad',
+      actorId: watcher.id,
+      commentAuthorId: '2',
+      originalContent: '<p>spam ad</p>',
+      originalState: COMMENT_STATE.active,
+      actionState: 'active',
+      appealState: 'none',
+      reviewState: 'pending',
+    })
+    expect(auditAction.contentExpiresAt).toBeNull()
+    expect(mockTrigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
+        recipientId: '2',
+      })
+    )
+  })
+})
+
+describe('community watch public audit queries', () => {
+  const contentExpiresAt = new Date('2026-05-17T00:00:00.000Z')
+
+  test('query audit list with filters', async () => {
+    const actor = await userService.create({
+      userName: `watcher${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+      displayName: 'Community Watcher',
+    })
+    const article = await atomService.articleIdLoader.load('1')
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>spam ad</p>',
+        authorId: '2',
+        targetId: article.id,
+        targetTypeId,
+        parentCommentId: null,
+        type: COMMENT_TYPE.article,
+        state: COMMENT_STATE.banned,
+      },
+    })
+    const uuid = uuidv4()
+    await connections.knex('community_watch_action').insert({
+      uuid,
+      commentId: comment.id,
+      commentType: COMMENT_TYPE.article,
+      targetType: COMMENT_TYPE.article,
+      targetId: article.id,
+      targetTitle: 'Public API article',
+      targetShortHash: article.shortHash,
+      reason: 'porn_ad',
+      actorId: actor.id,
+      commentAuthorId: '2',
+      originalContent: '<p>spam ad</p>',
+      originalState: COMMENT_STATE.active,
+      actionState: 'active',
+      appealState: 'received',
+      reviewState: 'upheld',
+      contentExpiresAt,
+    })
+
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: COMMUNITY_WATCH_ACTIONS,
+      variables: {
+        input: {
+          first: 5,
+          reason: 'porn_ad',
+          actionState: 'active',
+          appealState: 'received',
+          reviewState: 'upheld',
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.communityWatchActions.totalCount).toBe(1)
+    expect(data.communityWatchActions.pageInfo).toMatchObject({
+      hasPreviousPage: false,
+      hasNextPage: false,
+    })
+
+    const node = data.communityWatchActions.edges[0].node
+    expect(node).toMatchObject({
+      uuid,
+      sourceType: COMMENT_TYPE.article,
+      sourceTitle: 'Public API article',
+      actorDisplayName: actor.displayName,
+      reason: 'porn_ad',
+      actionState: 'active',
+      appealState: 'received',
+      reviewState: 'upheld',
+      originalContent: '<p>spam ad</p>',
+      contentCleared: false,
+      createdAt: expect.anything(),
+    })
+    expect(fromGlobalId(node.commentId)).toEqual({
+      type: NODE_TYPES.Comment,
+      id: `${comment.id}`,
+    })
+    expect(fromGlobalId(node.sourceId)).toEqual({
+      type: NODE_TYPES.Article,
+      id: `${article.id}`,
+    })
+  })
+
+  test('query one audit record with cleared content', async () => {
+    const actor = await userService.create({
+      userName: `watcher${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+    })
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'moment' },
+    })
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>spam ad</p>',
+        authorId: '2',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: null,
+        type: COMMENT_TYPE.moment,
+        state: COMMENT_STATE.banned,
+      },
+    })
+    const uuid = uuidv4()
+    await connections.knex('community_watch_action').insert({
+      uuid,
+      commentId: comment.id,
+      commentType: COMMENT_TYPE.moment,
+      targetType: COMMENT_TYPE.moment,
+      targetId: '1',
+      targetTitle: null,
+      targetShortHash: null,
+      reason: 'spam_ad',
+      actorId: actor.id,
+      commentAuthorId: '2',
+      originalContent: null,
+      originalState: COMMENT_STATE.active,
+      actionState: 'restored',
+      appealState: 'resolved',
+      reviewState: 'reversed',
+      contentExpiresAt,
+    })
+
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: COMMUNITY_WATCH_ACTION,
+      variables: {
+        input: { uuid },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.communityWatchAction).toMatchObject({
+      uuid,
+      sourceType: COMMENT_TYPE.moment,
+      sourceTitle: '1',
+      actorDisplayName: actor.userName,
+      reason: 'spam_ad',
+      actionState: 'restored',
+      appealState: 'resolved',
+      reviewState: 'reversed',
+      originalContent: null,
+      contentCleared: true,
+      createdAt: expect.anything(),
+    })
+    expect(fromGlobalId(data.communityWatchAction.commentId)).toEqual({
+      type: NODE_TYPES.Comment,
+      id: `${comment.id}`,
+    })
+    expect(fromGlobalId(data.communityWatchAction.sourceId)).toEqual({
+      type: NODE_TYPES.Moment,
+      id: '1',
+    })
   })
 })
 

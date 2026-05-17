@@ -42,6 +42,7 @@ import commentCount from './commentCount.js'
 import cryptoWallet from './cryptoWallet.js'
 import donatedArticleCount from './donatedArticleCount.js'
 import featuredTags from './featuredTags.js'
+import federationSetting from './federationSetting.js'
 import followers from './followers.js'
 import Following from './following/index.js'
 import group from './group.js'
@@ -122,6 +123,7 @@ const user: {
     info: (root) => root,
     wallet: (root) => root,
     settings: (root) => root,
+    federationSetting,
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
     following: (root) => root,

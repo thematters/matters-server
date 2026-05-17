@@ -249,6 +249,8 @@ export const environment = {
   ),
   complaintAreaArticleId:
     process.env.MATTERS_COMPLAINT_AREA_ARTICLE_ID || '8079',
+  federationExportTriggerMode:
+    process.env.MATTERS_FEDERATION_EXPORT_TRIGGER_MODE || 'off',
 }
 
 export const contract = {

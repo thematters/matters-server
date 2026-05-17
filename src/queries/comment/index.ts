@@ -17,6 +17,9 @@ import circleDiscussionCount from './circle/discussionCount.js'
 import circleDiscussionThreadCount from './circle/discussionThreadCount.js'
 import circlePinnedBroadcast from './circle/pinnedBroadcast.js'
 import comments from './comments.js'
+import communityWatchAction from './communityWatchAction.js'
+import communityWatchActionPublic from './communityWatchActionPublic.js'
+import communityWatchActions from './communityWatchActions.js'
 import content from './content.js'
 import downvotes from './downvotes.js'
 import fromDonator from './fromDonator.js'
@@ -24,11 +27,16 @@ import myVote from './myVote.js'
 import node from './node.js'
 import parentComment from './parentComment.js'
 import replyTo from './replyTo.js'
+import rootCommunityWatchAction from './rootCommunityWatchAction.js'
 import { spamStatus } from './spamStatus.js'
 import upvotes from './upvotes.js'
 import userCommentedArticles from './user/commentedArticles.js'
 
 export default {
+  Query: {
+    communityWatchAction: rootCommunityWatchAction,
+    communityWatchActions,
+  },
   User: {
     commentedArticles: userCommentedArticles,
   },
@@ -44,6 +52,7 @@ export default {
     id: ({ id }: { id: string }) =>
       toGlobalId({ type: NODE_TYPES.Comment, id }),
     replyTo,
+    communityWatchAction,
     content,
     author,
     upvotes,
@@ -56,6 +65,7 @@ export default {
     type: ({ type }: { type: string }) => COMMENT_TYPES_REVERSED[type],
     node,
   },
+  CommunityWatchAction: communityWatchActionPublic,
   Circle: {
     broadcast: circleBroadcast,
     pinnedBroadcast: circlePinnedBroadcast,
