@@ -4513,6 +4513,8 @@ export type GQLUser = GQLNode & {
   displayName?: Maybe<Scalars['String']['output']>
   /** Drafts authored by current user. */
   drafts: GQLDraftConnection
+  /** Public-safe feature eligibility for current viewer. */
+  features: GQLUserFeatures
   /** User-level federation opt-in setting. */
   federationSetting?: Maybe<GQLUserFederationSetting>
   /** Followers of this user. */
@@ -4729,6 +4731,14 @@ export type GQLUserFeatureFlagType =
   | 'fediverseBeta'
   | 'readSpamStatus'
   | 'unlimitedArticleFetch'
+
+export type GQLUserFeatures = {
+  __typename?: 'UserFeatures'
+  /** Whether current viewer can use Community Watch controls. */
+  communityWatch: Scalars['Boolean']['output']
+  /** Whether current viewer can access Fediverse beta controls. */
+  fediverseBeta: Scalars['Boolean']['output']
+}
 
 export type GQLUserFederationSetting = {
   __typename?: 'UserFederationSetting'
@@ -6055,6 +6065,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   UserFeatureFlag: ResolverTypeWrapper<GQLUserFeatureFlag>
   UserFeatureFlagType: GQLUserFeatureFlagType
+  UserFeatures: ResolverTypeWrapper<GQLUserFeatures>
   UserFederationSetting: ResolverTypeWrapper<GQLUserFederationSetting>
   UserGroup: GQLUserGroup
   UserInfo: ResolverTypeWrapper<UserModel>
@@ -6677,6 +6688,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['User']
   }
   UserFeatureFlag: GQLUserFeatureFlag
+  UserFeatures: GQLUserFeatures
   UserFederationSetting: GQLUserFederationSetting
   UserInfo: UserModel
   UserInput: GQLUserInput
@@ -11046,6 +11058,7 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserDraftsArgs, 'input'>
   >
+  features?: Resolver<GQLResolversTypes['UserFeatures'], ParentType, ContextType>
   federationSetting?: Resolver<
     Maybe<GQLResolversTypes['UserFederationSetting']>,
     ParentType,
@@ -11256,6 +11269,23 @@ export type GQLUserFeatureFlagResolvers<
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   type?: Resolver<
     GQLResolversTypes['UserFeatureFlagType'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLUserFeaturesResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['UserFeatures'] = GQLResolversParentTypes['UserFeatures']
+> = ResolversObject<{
+  communityWatch?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
+  fediverseBeta?: Resolver<
+    GQLResolversTypes['Boolean'],
     ParentType,
     ContextType
   >
@@ -11848,6 +11878,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserCreateCircleActivity?: GQLUserCreateCircleActivityResolvers<ContextType>
   UserEdge?: GQLUserEdgeResolvers<ContextType>
   UserFeatureFlag?: GQLUserFeatureFlagResolvers<ContextType>
+  UserFeatures?: GQLUserFeaturesResolvers<ContextType>
   UserFederationSetting?: GQLUserFederationSettingResolvers<ContextType>
   UserInfo?: GQLUserInfoResolvers<ContextType>
   UserNotice?: GQLUserNoticeResolvers<ContextType>
