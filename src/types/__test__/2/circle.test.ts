@@ -294,6 +294,25 @@ const QUERY_CIRCLE_INVITED_BY = /* GraphQL */ `
   }
 `
 
+const QUERY_CIRCLE_MEMBERS = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Circle {
+        id
+        isMember
+        members(input: { first: null }) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const QUERY_VIEWER_ANALYTICS = /* GraphQL */ `
   query {
     viewer {
@@ -1253,5 +1272,44 @@ describe('circle invites query', () => {
     })
     expect(_get(data, 'node.invitedBy')).toBeTruthy()
     expect(_get(data, 'node.invitedBy.state')).toBe('pending')
+  })
+
+  test('queries member list and isMember', async () => {
+    const serverUser = await testClient({ ...userClient, connections })
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+    const circleDbId = fromGlobalId(circle.id).id
+    const price = await connections
+      .knex('circle_price')
+      .where({ circleId: circleDbId, state: 'active' })
+      .first()
+
+    // seed active matters subscription for admin
+    const [sub] = await connections
+      .knex('circle_subscription')
+      .insert({
+        provider: 'matters',
+        providerSubscriptionId: `member-test-sub-${Date.now()}`,
+        state: 'trialing',
+        userId: ADMIN_USER_ID,
+      })
+      .returning('*')
+    await connections.knex('circle_subscription_item').insert({
+      subscriptionId: sub.id,
+      userId: ADMIN_USER_ID,
+      priceId: price.id,
+      provider: 'matters',
+      providerSubscriptionItemId: `member-test-item-${Date.now()}`,
+    })
+
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const { data } = await serverAdmin.executeOperation({
+      query: QUERY_CIRCLE_MEMBERS,
+      variables: { input: { id: circle.id } },
+    })
+    expect(_get(data, 'node.isMember')).toBe(true)
+    expect(_get(data, 'node.members.totalCount')).toBeGreaterThan(0)
   })
 })
