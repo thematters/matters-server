@@ -285,6 +285,7 @@ export class CommentService extends BaseService<Comment> {
         .where({ id: action.id })
         .update({
           actionState: 'restored',
+          appealState: 'resolved',
           reviewState: 'reversed',
           reviewerId: actorId,
           reviewNote: note || null,
@@ -293,17 +294,39 @@ export class CommentService extends BaseService<Comment> {
         })
         .returning('*')
 
+      const events: Array<{
+        eventType: CommunityWatchReviewEventType
+        oldValue: string | null
+        newValue: string | null
+      }> = [
+        {
+          eventType: 'comment_restored',
+          oldValue: comment.state,
+          newValue: action.originalState,
+        },
+      ]
+
+      if (action.reviewState !== 'reversed') {
+        events.push({
+          eventType: 'review_reversed',
+          oldValue: action.reviewState,
+          newValue: 'reversed',
+        })
+      }
+
+      if (action.appealState !== 'resolved') {
+        events.push({
+          eventType: 'appeal_resolved',
+          oldValue: action.appealState,
+          newValue: 'resolved',
+        })
+      }
+
       await this.insertCommunityWatchReviewEvents(trx, {
         actionId: action.id,
         actorId,
         note,
-        events: [
-          {
-            eventType: 'comment_restored',
-            oldValue: comment.state,
-            newValue: action.originalState,
-          },
-        ],
+        events,
       })
 
       return { action: updatedAction, comment: updatedComment }

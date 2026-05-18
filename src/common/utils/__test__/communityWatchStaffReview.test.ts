@@ -266,16 +266,29 @@ describe('community watch staff review service', () => {
     expect(actionUpdates[0]).toEqual(
       expect.objectContaining({
         actionState: 'restored',
+        appealState: 'resolved',
         reviewState: 'reversed',
         reviewerId: '9',
       })
     )
-    expect(eventInserts[0]).toEqual(
-      expect.objectContaining({
-        eventType: 'comment_restored',
-        oldValue: COMMENT_STATE.banned,
-        newValue: COMMENT_STATE.active,
-      })
+    expect(eventInserts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          eventType: 'comment_restored',
+          oldValue: COMMENT_STATE.banned,
+          newValue: COMMENT_STATE.active,
+        }),
+        expect.objectContaining({
+          eventType: 'review_reversed',
+          oldValue: 'pending',
+          newValue: 'reversed',
+        }),
+        expect.objectContaining({
+          eventType: 'appeal_resolved',
+          oldValue: 'none',
+          newValue: 'resolved',
+        }),
+      ])
     )
   })
 
