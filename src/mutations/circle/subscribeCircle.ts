@@ -1,29 +1,42 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
-import type { GlobalId } from '#definitions/nominal.js'
 
-import {
-  CIRCLE_ACTION,
-  CIRCLE_STATE,
-  NOTICE_TYPE,
-  METADATA_KEY,
-  NODE_TYPES,
-  PAYMENT_PROVIDER,
-  PRICE_STATE,
-  SUBSCRIPTION_STATE,
-} from '#common/enums/index.js'
-import {
-  CircleNotFoundError,
-  DuplicateCircleSubscriptionError,
-  EntityNotFoundError,
-  ForbiddenError,
-  PasswordInvalidError,
-  PaymentPasswordNotSetError,
-  ServerError,
-} from '#common/errors.js'
-import { fromGlobalId } from '#common/utils/index.js'
-import { invalidateFQC } from '@matters/apollo-response-cache'
-import { compare } from 'bcrypt'
+import { ForbiddenError } from '#common/errors.js'
 
+/**
+ * FEATURE IS SUNSETTING: circle subscriptions are disabled.
+ */
+
+// import type { GlobalId } from '#definitions/nominal.js'
+//
+// import {
+//   CIRCLE_ACTION,
+//   CIRCLE_STATE,
+//   NOTICE_TYPE,
+//   METADATA_KEY,
+//   NODE_TYPES,
+//   PAYMENT_PROVIDER,
+//   PRICE_STATE,
+//   SUBSCRIPTION_STATE,
+// } from '#common/enums/index.js'
+// import {
+//   CircleNotFoundError,
+//   DuplicateCircleSubscriptionError,
+//   EntityNotFoundError,
+//   PasswordInvalidError,
+//   PaymentPasswordNotSetError,
+//   ServerError,
+// } from '#common/errors.js'
+// import { fromGlobalId } from '#common/utils/index.js'
+// import { invalidateFQC } from '@matters/apollo-response-cache'
+// import { compare } from 'bcrypt'
+
+const resolver: GQLMutationResolvers['subscribeCircle'] = async () => {
+  throw new ForbiddenError('circle subscriptions are disabled')
+}
+
+export default resolver
+
+/*
 const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   _,
   { input: { id, password } },
@@ -152,11 +165,9 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
     throw new ForbiddenError('limited to subscribe up to 20 circles.')
   }
 
-  /**
-   * (Sync) Subscribe via payment password
-   *
-   * @returns {{ circle: Circle }}
-   */
+  // (Sync) Subscribe via payment password
+  //
+  // @returns {{ circle: Circle }}
   if (password) {
     if (!customer.cardLast4) {
       throw new ForbiddenError(
@@ -213,12 +224,10 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
     return { circle }
   }
 
-  /**
-   * (Async) Subscirbe via credit card
-   *
-   * @see /src/routes/pay/stripe.ts
-   * @returns {{ circle: Circle, client_secret: string }}
-   */
+  // (Async) Subscirbe via credit card
+  //
+  // @see /src/routes/pay/stripe.ts
+  // @returns {{ circle: Circle, client_secret: string }}
   const setupIntent = await paymentService.stripe.createSetupIntent({
     customerId: customer.customerId,
     metadata: {
@@ -237,3 +246,5 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
 }
 
 export default resolver
+
+*/
