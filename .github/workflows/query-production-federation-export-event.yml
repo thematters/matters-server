@@ -1,0 +1,122 @@
+name: Query Production Federation Export Event
+
+on:
+  workflow_dispatch:
+    inputs:
+      article_id:
+        description: 'production article id to inspect'
+        required: true
+        type: string
+      limit:
+        description: 'Maximum rows to print'
+        required: false
+        default: '10'
+        type: string
+      include_decision_report:
+        description: 'Print decision_report JSON for the selected article'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: query-production-federation-export-event-${{ github.event.inputs.article_id }}
+  cancel-in-progress: false
+
+jobs:
+  query:
+    name: Query production federation export events
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+
+    steps:
+      - name: Validate input
+        run: |
+          case "${{ inputs.article_id }}" in
+            ''|*[!0-9]*)
+              echo "article_id must be a numeric production article id" >&2
+              exit 1
+              ;;
+          esac
+
+          case "${{ inputs.limit }}" in
+            ''|*[!0-9]*)
+              echo "limit must be numeric" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ "${{ inputs.limit }}" -lt 1 ] || [ "${{ inputs.limit }}" -gt 20 ]; then
+            echo "limit must be between 1 and 20" >&2
+            exit 1
+          fi
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn postgresql-client
+
+      - name: Start production VPN
+        run: |
+          mkdir -p .github
+          echo "$VPN_AUTH" | base64 -d > "$VPN_AUTH_PATH"
+          echo "$VPN_CONFIG" | base64 -d > "$VPN_CONFIG_PATH"
+          sudo openvpn --config "$VPN_CONFIG_PATH" --auth-user-pass "$VPN_AUTH_PATH" --daemon
+          sleep 15s
+        env:
+          VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
+          VPN_CONFIG_PATH: '.github/config.ovpn'
+          VPN_AUTH: ${{ secrets.VPN_AUTH }}
+          VPN_AUTH_PATH: '.github/auth.txt'
+
+      - name: Check production DB connection
+        run: nc -zv -w 5 "$MATTERS_PG_HOST" 5432
+        env:
+          MATTERS_PG_HOST: ${{ secrets.PROD_PG_HOST }}
+
+      - name: Query federation export event rows
+        run: |
+          if [ "${{ inputs.include_decision_report }}" = "true" ]; then
+            DECISION_REPORT_SQL='decision_report'
+          else
+            DECISION_REPORT_SQL='jsonb_build_object(''redacted'', true)'
+          fi
+
+          psql \
+            --host "$MATTERS_PG_HOST" \
+            --username "$MATTERS_PG_USER" \
+            --dbname "$MATTERS_PG_DATABASE" \
+            --no-password \
+            --set ON_ERROR_STOP=1 \
+            --command "
+              select coalesce(jsonb_pretty(jsonb_agg(row_to_json(events)::jsonb)), '[]'::text) as federation_export_events
+              from (
+                select
+                  id,
+                  article_id,
+                  actor_id,
+                  trigger,
+                  mode,
+                  status,
+                  eligible,
+                  reason,
+                  author_setting,
+                  article_setting,
+                  effective_article_setting,
+                  $DECISION_REPORT_SQL as decision_report,
+                  created_at
+                from federation_export_event
+                where article_id = ${{ inputs.article_id }}::bigint
+                order by created_at desc
+                limit ${{ inputs.limit }}::integer
+              ) events;
+            "
+        env:
+          MATTERS_PG_HOST: ${{ secrets.PROD_PG_HOST }}
+          MATTERS_PG_DATABASE: ${{ secrets.PROD_PG_DATABASE }}
+          MATTERS_PG_USER: ${{ secrets.PROD_PG_USER }}
+          PGPASSWORD: ${{ secrets.PROD_PG_PASSWORD }}
+
+      - name: Kill VPN
+        if: always()
+        run: sudo killall openvpn || true
