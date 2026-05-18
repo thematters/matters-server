@@ -1478,6 +1478,8 @@ export type GQLCommunityWatchAction = {
   sourceId: Scalars['ID']['output']
   sourceTitle: Scalars['String']['output']
   sourceType: GQLCommunityWatchActionSourceType
+  /** Public Matters URL for the removed comment when the source still has a public route. */
+  sourceUrl?: Maybe<Scalars['String']['output']>
   /** Public identifier used by the Community Watch transparency page. */
   uuid: Scalars['ID']['output']
 }
@@ -8313,6 +8315,7 @@ export type GQLCommunityWatchActionResolvers<
     ParentType,
     ContextType
   >
+  sourceUrl?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   uuid?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
