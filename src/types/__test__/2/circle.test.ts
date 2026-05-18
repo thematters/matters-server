@@ -271,6 +271,14 @@ const SUBSCRIBE_CIRCLE = /* GraphQL */ `
   }
 `
 
+const UNSUBSCRIBE_CIRCLE = /* GraphQL */ `
+  mutation ($input: UnsubscribeCircleInput!) {
+    unsubscribeCircle(input: $input) {
+      id
+    }
+  }
+`
+
 const QUERY_VIEWER_ANALYTICS = /* GraphQL */ `
   query {
     viewer {
@@ -1049,5 +1057,85 @@ describe('circle invitation management', () => {
         expect(_get(edge, 'node.state')).toBe('accepted')
       }
     })
+  })
+})
+
+describe('circle unsubscribe', () => {
+  const errorPath = 'errors.0.extensions.code'
+  const userClient = { isAuth: true, isAdmin: false }
+  const adminClient = { isAuth: true, isAdmin: true }
+
+  test('cancel subscription', async () => {
+    // get circle
+    const serverUser = await testClient({ ...userClient, connections })
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+    const circleDbId = fromGlobalId(circle.id).id
+
+    // lookup active price
+    const price = await connections
+      .knex('circle_price')
+      .where({ circleId: circleDbId, state: 'active' })
+      .first()
+
+    // seed matters subscription + item for ADMIN_USER
+    const [sub] = await connections
+      .knex('circle_subscription')
+      .insert({
+        provider: 'matters',
+        providerSubscriptionId: `sunset-test-sub-${Date.now()}`,
+        state: 'trialing',
+        userId: ADMIN_USER_ID,
+      })
+      .returning('*')
+
+    const [subItem] = await connections
+      .knex('circle_subscription_item')
+      .insert({
+        subscriptionId: sub.id,
+        userId: ADMIN_USER_ID,
+        priceId: price.id,
+        provider: 'matters',
+        providerSubscriptionItemId: `sunset-test-item-${Date.now()}`,
+      })
+      .returning('*')
+
+    // admin unsubscribes
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const result = await serverAdmin.executeOperation({
+      query: UNSUBSCRIBE_CIRCLE,
+      variables: { input: { id: circle.id } },
+    })
+
+    // response
+    expect(_get(result, 'data.unsubscribeCircle.id')).toBe(circle.id)
+
+    // db state
+    const updatedSub = await connections
+      .knex('circle_subscription')
+      .where({ id: sub.id })
+      .first()
+    expect(updatedSub.state).toBe('canceled')
+    expect(updatedSub.canceledAt).toBeTruthy()
+
+    const updatedItem = await connections
+      .knex('circle_subscription_item')
+      .where({ id: subItem.id })
+      .first()
+    expect(updatedItem.archived).toBe(true)
+    expect(updatedItem.remark).toBe('trial_cancel')
+  })
+
+  test('non-existent circle', async () => {
+    const server = await testClient({ ...userClient, connections })
+    const result = await server.executeOperation({
+      query: UNSUBSCRIBE_CIRCLE,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Circle, id: 999999 }) },
+      },
+    })
+    expect(_get(result, errorPath)).toBe('CIRCLE_NOT_FOUND')
   })
 })
