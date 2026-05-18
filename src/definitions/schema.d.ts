@@ -11058,7 +11058,11 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserDraftsArgs, 'input'>
   >
-  features?: Resolver<GQLResolversTypes['UserFeatures'], ParentType, ContextType>
+  features?: Resolver<
+    GQLResolversTypes['UserFeatures'],
+    ParentType,
+    ContextType
+  >
   federationSetting?: Resolver<
     Maybe<GQLResolversTypes['UserFederationSetting']>,
     ParentType,
