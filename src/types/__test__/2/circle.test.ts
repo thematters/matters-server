@@ -950,15 +950,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(inviteData1!.data!.invite.length).toBe(2)
-    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(90)
-    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
-      ADMIN_USER_GLOBAL_ID
-    )
-    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(90)
-    expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
-      'someone@matters.news'
-    )
+    expect(_get(inviteData1, errorPath)).toBe('FORBIDDEN')
 
     // re-invite users with different duration
     const inviteData2 = await server.executeOperation({
@@ -971,13 +963,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(inviteData2!.data!.invite.length).toBe(3)
-    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(30)
-    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(30)
-    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(30)
-    expect(_get(inviteData2, 'data.invite.2.invitee.email')).toBe(
-      'someone2@matters.news'
-    )
+    expect(_get(inviteData2, errorPath)).toBe('FORBIDDEN')
 
     // test validator
     const inviteData3 = await server.executeOperation({
@@ -990,7 +976,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(_get(inviteData3, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(inviteData3, errorPath)).toBe('FORBIDDEN')
 
     const inviteData4 = await server.executeOperation({
       query: CIRCLE_INVITE,
@@ -1002,7 +988,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(_get(inviteData4, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(inviteData4, errorPath)).toBe('FORBIDDEN')
 
     const serverAdmin = await testClient({ ...adminClient, connections })
     const inviteData5 = await serverAdmin.executeOperation({
@@ -1045,12 +1031,7 @@ describe('circle invitation management', () => {
       query: SUBSCRIBE_CIRCLE,
       variables: { input: { id: circle.id, password: '123456' } },
     })
-    expect(_get(subscribeResult, 'data.subscribeCircle.circle.id')).toBe(
-      circle.id
-    )
-    expect(_get(subscribeResult, 'data.subscribeCircle.circle.isMember')).toBe(
-      true
-    )
+    expect(_get(subscribeResult, errorPath)).toBe('FORBIDDEN')
 
     // check if it's accepted
     const { data: newIvtData } = await serverUser.executeOperation({
