@@ -315,6 +315,8 @@ export default /* GraphQL */ `
     sourceType: CommunityWatchActionSourceType!
     sourceTitle: String!
     sourceId: ID!
+    "Public Matters URL for the removed comment when the source still has a public route."
+    sourceUrl: String
     actorDisplayName: String!
     reason: CommunityWatchRemoveCommentReason!
     actionState: CommunityWatchActionState!
