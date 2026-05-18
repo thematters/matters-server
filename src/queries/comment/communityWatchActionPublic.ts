@@ -4,8 +4,8 @@ import type {
   GQLCommunityWatchActionResolvers,
 } from '#definitions/index.js'
 
-import { environment } from '#common/environment.js'
 import { COMMENT_TYPE, NODE_TYPES } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
 
 const getSourceNodeType = ({ targetType }: CommunityWatchAction) =>
