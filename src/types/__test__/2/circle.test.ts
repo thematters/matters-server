@@ -304,7 +304,9 @@ const QUERY_CIRCLE_MEMBERS = /* GraphQL */ `
           totalCount
           edges {
             node {
-              id
+              user {
+                id
+              }
             }
           }
         }
