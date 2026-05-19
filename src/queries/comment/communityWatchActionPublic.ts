@@ -5,6 +5,7 @@ import type {
 } from '#definitions/index.js'
 
 import { COMMENT_TYPE, NODE_TYPES } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
 
 const getSourceNodeType = ({ targetType }: CommunityWatchAction) =>
@@ -18,6 +19,19 @@ const communityWatchActionPublic: GQLCommunityWatchActionResolvers = {
     targetTitle || targetId,
   sourceId: (action: CommunityWatchAction) =>
     toGlobalId({ type: getSourceNodeType(action), id: action.targetId }),
+  sourceUrl: (action: CommunityWatchAction) => {
+    if (!action.targetShortHash) {
+      return null
+    }
+
+    const path = action.targetType === COMMENT_TYPE.article ? 'a' : 'm'
+    const commentId = toGlobalId({
+      type: NODE_TYPES.Comment,
+      id: action.commentId,
+    })
+
+    return `https://${environment.siteDomain}/${path}/${action.targetShortHash}#${commentId}`
+  },
   actorDisplayName: async (
     { actorId }: CommunityWatchAction,
     _: unknown,
