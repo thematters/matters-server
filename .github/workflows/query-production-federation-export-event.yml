@@ -79,7 +79,7 @@ jobs:
           if [ "${{ inputs.include_decision_report }}" = "true" ]; then
             DECISION_REPORT_SQL='decision_report'
           else
-            DECISION_REPORT_SQL='jsonb_build_object(''redacted'', true)'
+            DECISION_REPORT_SQL="jsonb_build_object('redacted', true)"
           fi
 
           psql \
