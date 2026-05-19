@@ -145,6 +145,12 @@ describe('Community Watch public queries', () => {
       createContext(),
       {} as any
     )
+    const sourceUrl = await communityWatchActionPublic.sourceUrl!(
+      actions[0],
+      {},
+      createContext(),
+      {} as any
+    )
     const sourceType = await communityWatchActionPublic.sourceType!(
       actions[0],
       {},
@@ -173,6 +179,12 @@ describe('Community Watch public queries', () => {
 
     expect(commentId).toBe(toGlobalId({ type: NODE_TYPES.Comment, id: '102' }))
     expect(sourceId).toBe(toGlobalId({ type: NODE_TYPES.Moment, id: '202' }))
+    expect(sourceUrl).toBe(
+      `https://matters.town/m/moment-hash#${toGlobalId({
+        type: NODE_TYPES.Comment,
+        id: '102',
+      })}`
+    )
     expect(sourceType).toBe('moment')
     expect(sourceTitle).toBe('202')
     expect(actorDisplayName).toBe('隊員一號')

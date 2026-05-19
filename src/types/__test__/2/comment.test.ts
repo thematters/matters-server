@@ -95,6 +95,7 @@ const COMMUNITY_WATCH_ACTIONS = /* GraphQL */ `
           sourceType
           sourceTitle
           sourceId
+          sourceUrl
           actorDisplayName
           reason
           actionState
@@ -123,6 +124,7 @@ const COMMUNITY_WATCH_ACTION = /* GraphQL */ `
       sourceType
       sourceTitle
       sourceId
+      sourceUrl
       actorDisplayName
       reason
       actionState
@@ -731,6 +733,10 @@ describe('community watch public audit queries', () => {
       uuid,
       sourceType: COMMENT_TYPE.article,
       sourceTitle: 'Public API article',
+      sourceUrl: `https://matters.town/a/${article.shortHash}#${toGlobalId({
+        type: NODE_TYPES.Comment,
+        id: comment.id,
+      })}`,
       actorDisplayName: actor.displayName,
       reason: 'porn_ad',
       actionState: 'active',
@@ -804,6 +810,7 @@ describe('community watch public audit queries', () => {
       uuid,
       sourceType: COMMENT_TYPE.moment,
       sourceTitle: '1',
+      sourceUrl: null,
       actorDisplayName: actor.userName,
       reason: 'spam_ad',
       actionState: 'restored',
