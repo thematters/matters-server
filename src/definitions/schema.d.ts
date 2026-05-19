@@ -8315,7 +8315,11 @@ export type GQLCommunityWatchActionResolvers<
     ParentType,
     ContextType
   >
-  sourceUrl?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  sourceUrl?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   uuid?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -11061,7 +11065,11 @@ export type GQLUserResolvers<
     ContextType,
     RequireFields<GQLUserDraftsArgs, 'input'>
   >
-  features?: Resolver<GQLResolversTypes['UserFeatures'], ParentType, ContextType>
+  features?: Resolver<
+    GQLResolversTypes['UserFeatures'],
+    ParentType,
+    ContextType
+  >
   federationSetting?: Resolver<
     Maybe<GQLResolversTypes['UserFederationSetting']>,
     ParentType,
