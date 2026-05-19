@@ -271,6 +271,50 @@ const SUBSCRIBE_CIRCLE = /* GraphQL */ `
   }
 `
 
+const UNSUBSCRIBE_CIRCLE = /* GraphQL */ `
+  mutation ($input: UnsubscribeCircleInput!) {
+    unsubscribeCircle(input: $input) {
+      id
+    }
+  }
+`
+
+const QUERY_CIRCLE_INVITED_BY = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Circle {
+        id
+        invitedBy {
+          id
+          state
+          freePeriod
+        }
+      }
+    }
+  }
+`
+
+const QUERY_CIRCLE_MEMBERS = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Circle {
+        id
+        isMember
+        members(input: { first: null }) {
+          totalCount
+          edges {
+            node {
+              user {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const QUERY_VIEWER_ANALYTICS = /* GraphQL */ `
   query {
     viewer {
@@ -950,15 +994,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(inviteData1!.data!.invite.length).toBe(2)
-    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(90)
-    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
-      ADMIN_USER_GLOBAL_ID
-    )
-    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(90)
-    expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
-      'someone@matters.news'
-    )
+    expect(_get(inviteData1, errorPath)).toBe('FORBIDDEN')
 
     // re-invite users with different duration
     const inviteData2 = await server.executeOperation({
@@ -971,13 +1007,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(inviteData2!.data!.invite.length).toBe(3)
-    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(30)
-    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(30)
-    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(30)
-    expect(_get(inviteData2, 'data.invite.2.invitee.email')).toBe(
-      'someone2@matters.news'
-    )
+    expect(_get(inviteData2, errorPath)).toBe('FORBIDDEN')
 
     // test validator
     const inviteData3 = await server.executeOperation({
@@ -990,7 +1020,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(_get(inviteData3, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(inviteData3, errorPath)).toBe('FORBIDDEN')
 
     const inviteData4 = await server.executeOperation({
       query: CIRCLE_INVITE,
@@ -1002,7 +1032,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(_get(inviteData4, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(inviteData4, errorPath)).toBe('FORBIDDEN')
 
     const serverAdmin = await testClient({ ...adminClient, connections })
     const inviteData5 = await serverAdmin.executeOperation({
@@ -1045,12 +1075,7 @@ describe('circle invitation management', () => {
       query: SUBSCRIBE_CIRCLE,
       variables: { input: { id: circle.id, password: '123456' } },
     })
-    expect(_get(subscribeResult, 'data.subscribeCircle.circle.id')).toBe(
-      circle.id
-    )
-    expect(_get(subscribeResult, 'data.subscribeCircle.circle.isMember')).toBe(
-      true
-    )
+    expect(_get(subscribeResult, errorPath)).toBe('FORBIDDEN')
 
     // check if it's accepted
     const { data: newIvtData } = await serverUser.executeOperation({
@@ -1068,5 +1093,225 @@ describe('circle invitation management', () => {
         expect(_get(edge, 'node.state')).toBe('accepted')
       }
     })
+  })
+})
+
+describe('circle unsubscribe', () => {
+  const errorPath = 'errors.0.extensions.code'
+  const userClient = { isAuth: true, isAdmin: false }
+  const adminClient = { isAuth: true, isAdmin: true }
+
+  test('cancel subscription', async () => {
+    // get circle
+    const serverUser = await testClient({ ...userClient, connections })
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+    const circleDbId = fromGlobalId(circle.id).id
+
+    // lookup active price
+    const price = await connections
+      .knex('circle_price')
+      .where({ circleId: circleDbId, state: 'active' })
+      .first()
+
+    // seed matters subscription + item for ADMIN_USER
+    const [sub] = await connections
+      .knex('circle_subscription')
+      .insert({
+        provider: 'matters',
+        providerSubscriptionId: `sunset-test-sub-${Date.now()}`,
+        state: 'trialing',
+        userId: ADMIN_USER_ID,
+      })
+      .returning('*')
+
+    const [subItem] = await connections
+      .knex('circle_subscription_item')
+      .insert({
+        subscriptionId: sub.id,
+        userId: ADMIN_USER_ID,
+        priceId: price.id,
+        provider: 'matters',
+        providerSubscriptionItemId: `sunset-test-item-${Date.now()}`,
+      })
+      .returning('*')
+
+    // admin unsubscribes
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const result = await serverAdmin.executeOperation({
+      query: UNSUBSCRIBE_CIRCLE,
+      variables: { input: { id: circle.id } },
+    })
+
+    // response
+    expect(_get(result, 'data.unsubscribeCircle.id')).toBe(circle.id)
+
+    // db state
+    const updatedSub = await connections
+      .knex('circle_subscription')
+      .where({ id: sub.id })
+      .first()
+    expect(updatedSub.state).toBe('canceled')
+    expect(updatedSub.canceledAt).toBeTruthy()
+
+    const updatedItem = await connections
+      .knex('circle_subscription_item')
+      .where({ id: subItem.id })
+      .first()
+    expect(updatedItem.archived).toBe(true)
+    expect(updatedItem.remark).toBe('trial_cancel')
+  })
+
+  test('non-existent circle', async () => {
+    const server = await testClient({ ...userClient, connections })
+    const result = await server.executeOperation({
+      query: UNSUBSCRIBE_CIRCLE,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Circle, id: 999999 }) },
+      },
+    })
+    expect(_get(result, errorPath)).toBe('CIRCLE_NOT_FOUND')
+  })
+
+  test('no active subscription returns circle', async () => {
+    // admin's matters subscription was cancelled in test 1; another call is a no-op
+    const serverUser = await testClient({ ...userClient, connections })
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const result = await serverAdmin.executeOperation({
+      query: UNSUBSCRIBE_CIRCLE,
+      variables: { input: { id: circle.id } },
+    })
+    expect(_get(result, 'data.unsubscribeCircle.id')).toBe(circle.id)
+  })
+})
+
+describe('circle invites query', () => {
+  const userClient = { isAuth: true, isAdmin: false }
+  const adminClient = { isAuth: true, isAdmin: true }
+
+  test('list pending and accepted invitations', async () => {
+    const serverUser = await testClient({ ...userClient, connections })
+
+    // get circle + owner id
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+    const circleDbId = fromGlobalId(circle.id).id
+    const circleRow = await connections
+      .knex('circle')
+      .where({ id: circleDbId })
+      .first()
+    const ownerId = circleRow.owner
+
+    // seed three invitations exercising different resolver branches
+    await connections.knex('circle_invitation').insert([
+      {
+        circleId: circleDbId,
+        state: 'pending',
+        inviter: ownerId,
+        userId: ADMIN_USER_ID,
+        durationInDays: 90,
+      },
+      {
+        circleId: circleDbId,
+        state: 'pending',
+        inviter: ownerId,
+        email: 'invitee-by-email@matters.news',
+        durationInDays: 30,
+      },
+      {
+        circleId: circleDbId,
+        state: 'accepted',
+        inviter: ownerId,
+        userId: ADMIN_USER_ID,
+        durationInDays: 90,
+        acceptedAt: new Date(),
+      },
+    ])
+
+    // pending edges
+    const { data: pendingData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const pendingEdges = _get(
+      pendingData,
+      'viewer.ownCircles.0.invites.pending.edges',
+      []
+    )
+    expect(pendingEdges.length).toBeGreaterThan(0)
+
+    // accepted edges
+    const { data: acceptedData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES,
+    })
+    const acceptedEdges = _get(
+      acceptedData,
+      'viewer.ownCircles.0.invites.accepted.edges',
+      []
+    )
+    expect(acceptedEdges.length).toBeGreaterThan(0)
+  })
+
+  test('admin views own invitation via Circle.invitedBy', async () => {
+    const serverUser = await testClient({ ...userClient, connections })
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const { data } = await serverAdmin.executeOperation({
+      query: QUERY_CIRCLE_INVITED_BY,
+      variables: { input: { id: circle.id } },
+    })
+    expect(_get(data, 'node.invitedBy')).toBeTruthy()
+    expect(_get(data, 'node.invitedBy.state')).toBe('pending')
+  })
+
+  test('queries member list and isMember', async () => {
+    const serverUser = await testClient({ ...userClient, connections })
+    const { data: ownData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ownData, 'viewer.ownCircles.0')
+    const circleDbId = fromGlobalId(circle.id).id
+    const price = await connections
+      .knex('circle_price')
+      .where({ circleId: circleDbId, state: 'active' })
+      .first()
+
+    // seed active matters subscription for admin
+    const [sub] = await connections
+      .knex('circle_subscription')
+      .insert({
+        provider: 'matters',
+        providerSubscriptionId: `member-test-sub-${Date.now()}`,
+        state: 'trialing',
+        userId: ADMIN_USER_ID,
+      })
+      .returning('*')
+    await connections.knex('circle_subscription_item').insert({
+      subscriptionId: sub.id,
+      userId: ADMIN_USER_ID,
+      priceId: price.id,
+      provider: 'matters',
+      providerSubscriptionItemId: `member-test-item-${Date.now()}`,
+    })
+
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const { data } = await serverAdmin.executeOperation({
+      query: QUERY_CIRCLE_MEMBERS,
+      variables: { input: { id: circle.id } },
+    })
+    expect(_get(data, 'node.isMember')).toBe(true)
+    expect(_get(data, 'node.members.totalCount')).toBeGreaterThan(0)
   })
 })

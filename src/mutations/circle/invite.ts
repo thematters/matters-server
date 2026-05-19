@@ -1,30 +1,40 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import {
-  CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
-  CIRCLE_STATE,
-  NOTICE_TYPE,
-  INVITATION_STATE,
-  NODE_TYPES,
-  USER_STATE,
-  VERIFICATION_CODE_TYPE,
-} from '#common/enums/index.js'
-import {
-  AuthenticationError,
-  EntityNotFoundError,
-  ForbiddenByStateError,
-  ForbiddenError,
-  UserInputError,
-} from '#common/errors.js'
-import {
-  fromGlobalId,
-  generateRegisterRedirectUrl,
-  makeUserName,
-} from '#common/utils/index.js'
-import { invalidateFQC } from '@matters/apollo-response-cache'
+import { ForbiddenError } from '#common/errors.js'
 
-const VALID_INVITATION_DAYS = [30, 90, 180, 360]
+/**
+ * FEATURE IS SUNSETTING: circle invitations are disabled.
+ */
 
+// import {
+//   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
+//   CIRCLE_STATE,
+//   NOTICE_TYPE,
+//   INVITATION_STATE,
+//   NODE_TYPES,
+//   USER_STATE,
+//   VERIFICATION_CODE_TYPE,
+// } from '#common/enums/index.js'
+// import {
+//   AuthenticationError,
+//   EntityNotFoundError,
+//   ForbiddenByStateError,
+//   UserInputError,
+// } from '#common/errors.js'
+// import {
+//   fromGlobalId,
+//   generateRegisterRedirectUrl,
+//   makeUserName,
+// } from '#common/utils/index.js'
+// import { invalidateFQC } from '@matters/apollo-response-cache'
+
+const resolver: GQLMutationResolvers['invite'] = async () => {
+  throw new ForbiddenError('circle invitations are disabled')
+}
+
+export default resolver
+
+/*
 const resolver: GQLMutationResolvers['invite'] = async (
   _,
   { input: { invitees, freePeriod, circleId } },
@@ -236,3 +246,4 @@ const resolver: GQLMutationResolvers['invite'] = async (
 }
 
 export default resolver
+*/
