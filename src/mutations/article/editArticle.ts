@@ -107,6 +107,13 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
+  // FEATURE IS SUNSETTING: articles can no longer be added to or moved between circles
+  if (circleGlobalId) {
+    throw new ForbiddenError(
+      'articles can no longer be added to or moved between circles'
+    )
+  }
+
   /**
    * Archive
    */
