@@ -520,17 +520,15 @@ describe('circle CRUD', () => {
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
-    // test follow circle
+    // follow is no longer allowed (sunset)
     const serverAdmin = await testClient({ ...adminClient, connections })
     const updatedData1 = await serverAdmin.executeOperation({
       query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: true } },
     })
-    expect((_get(updatedData1, `${path}.followers.edges`) as any).length).toBe(
-      1
-    )
+    expect(_get(updatedData1, errorPath)).toBe('FORBIDDEN')
 
-    // test unfollow circle
+    // unfollow still works
     const updatedData2 = await serverAdmin.executeOperation({
       query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: false } },
@@ -549,7 +547,7 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[1].node')
 
-    // add to circle with public access
+    // add is no longer allowed (sunset)
     const publicInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
@@ -562,21 +560,9 @@ describe('circle CRUD', () => {
       variables: { input: publicInput },
     })
 
-    expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
-      article.id
-    )
-    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.circle.id`)
-    ).toBe(circle.id)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.public)
-    expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
-      ARTICLE_LICENSE_TYPE.cc_0
-    )
+    expect(_get(addedPublicData, errorPath)).toBe('FORBIDDEN')
 
-    // remove public article from circle
+    // remove still works (no-op since nothing was added)
     const removedData = await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: {
@@ -591,7 +577,6 @@ describe('circle CRUD', () => {
   })
 
   test('add article to circle with public access, then turns to paywall access', async () => {
-    const path = 'data.putCircleArticles'
     const server = await testClient({ ...userClient, connections })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
@@ -603,100 +588,36 @@ describe('circle CRUD', () => {
         draft: {
           title: Math.random().toString(),
           content: Math.random().toString(),
-          // iscnPublish: true,
         },
       },
       connections
     )
     expect(_get(draft, 'id')).not.toBeNull()
 
-    const publishedDraftId = draft.id // toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
-    // const article = _get(data, 'viewer.articles.edges[0].node')
-    await publishArticle({ id: publishedDraftId }, connections)
+    await publishArticle({ id: draft.id }, connections)
     await delay(500)
 
-    // expect(publishState).toBe(PUBLISH_STATE.pending)
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const article = _get(data1, 'viewer.articles.edges[1].node')
     expect(_get(article, 'id')).not.toBeNull()
 
-    // add to circle with public access
+    // sunset: any add returns Forbidden, regardless of access type
     const publicInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
     }
-
-    await delay(500)
-
-    const addedPublicData = await server.executeOperation({
+    const result = await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
-
-    expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
-      article.id
-    )
-    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.circle.id`)
-    ).toBe(circle.id)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.public)
-    expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
-      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4
-    )
-
-    // turns to paywall access
-    const paywallInput: Record<string, any> = {
-      id: circle.id,
-      articles: [article.id],
-      type: 'add',
-      accessType: ARTICLE_ACCESS_TYPE.paywall,
-      license: ARTICLE_LICENSE_TYPE.arr,
-    }
-    await server.executeOperation({
-      query: PUT_CIRCLE_ARTICLES,
-      variables: { input: paywallInput },
-    })
-
-    await delay(500)
-
-    const { data: data2 } = await server.executeOperation({
-      query: GET_VIEWER_OWN_CIRCLES,
-    })
-
-    expect(data2.viewer.ownCircles[0].works.edges[0].node.id).toBe(article.id)
-    expect(data2.viewer.ownCircles[0].works.totalCount).toBe(1)
-    expect(
-      data2.viewer.ownCircles[0].works.edges[0].node.access.circle.id
-    ).toBe(circle.id)
-    expect(data2.viewer.ownCircles[0].works.edges[0].node.access.type).toBe(
-      ARTICLE_ACCESS_TYPE.paywall
-    )
-    expect(data2.viewer.ownCircles[0].works.edges[0].node.license).toBe(
-      ARTICLE_LICENSE_TYPE.arr
-    )
-
-    // remove from circle
-    const removedData = await server.executeOperation({
-      query: PUT_CIRCLE_ARTICLES,
-      variables: {
-        input: {
-          ...paywallInput,
-          type: 'remove',
-        },
-      },
-    })
-    expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
+    expect(_get(result, errorPath)).toBe('FORBIDDEN')
   })
 
   test('add article to circle with paywall access, then turns to public access', async () => {
-    const path = 'data.putCircleArticles'
     const server = await testClient({ ...userClient, connections })
 
     const draft = await putDraft(
@@ -704,13 +625,11 @@ describe('circle CRUD', () => {
         draft: {
           title: Math.random().toString(),
           content: Math.random().toString(),
-          // iscnPublish: true,
         },
       },
       connections
     )
-    const publishedDraftId = draft.id // toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
-    await publishArticle({ id: publishedDraftId }, connections)
+    await publishArticle({ id: draft.id }, connections)
     await delay(500)
 
     const { data } = await server.executeOperation({
@@ -718,10 +637,9 @@ describe('circle CRUD', () => {
     })
 
     const circle = _get(data, 'viewer.ownCircles[0]')
-    // the new created article
     const article = _get(data, 'viewer.articles.edges[0].node')
 
-    // add to circle with paywall access
+    // sunset: any add returns Forbidden, regardless of access type
     const paywallInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
@@ -729,43 +647,11 @@ describe('circle CRUD', () => {
       accessType: ARTICLE_ACCESS_TYPE.paywall,
       license: ARTICLE_LICENSE_TYPE.arr,
     }
-    const addedPaywallData = await server.executeOperation({
+    const result = await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
-
-    expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
-      article.id
-    )
-    expect(_get(addedPaywallData, `${path}.works.totalCount`)).toBe(1)
-    expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.circle.id`)
-    ).toBe(circle.id)
-    expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.paywall)
-    expect(_get(addedPaywallData, `${path}.works.edges[0].node.license`)).toBe(
-      ARTICLE_LICENSE_TYPE.arr
-    )
-
-    // turns to public access
-    const publicInput: Record<string, any> = {
-      id: circle.id,
-      articles: [article.id],
-      type: 'add',
-      accessType: ARTICLE_ACCESS_TYPE.public,
-      license: ARTICLE_LICENSE_TYPE.cc_0,
-    }
-
-    const { data: data2 } = await server.executeOperation({
-      query: PUT_CIRCLE_ARTICLES,
-      variables: { input: publicInput },
-    })
-
-    expect(data2.putCircleArticles.works.totalCount).toBe(1)
-    expect(data2.putCircleArticles.works.edges[0].node.access.type).toBe(
-      ARTICLE_ACCESS_TYPE.public
-    )
+    expect(_get(result, errorPath)).toBe('FORBIDDEN')
   })
 
   test('add and retrieve discussion', async () => {
@@ -946,11 +832,9 @@ describe('circle CRUD', () => {
       variables: { input: publicInput },
     })
 
-    // Should be forbidden
+    // sunset: any add returns Forbidden; the more specific
+    // "Articles in campaigns cannot be added to circles" check never runs
     expect(errors).toBeDefined()
-    expect(errors?.[0].message).toContain(
-      'Articles in campaigns cannot be added to circles'
-    )
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
 })

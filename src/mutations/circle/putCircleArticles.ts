@@ -9,14 +9,10 @@ import {
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
-  CIRCLE_ACTION,
   CIRCLE_STATE,
-  NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
-  PRICE_STATE,
   USER_STATE,
-  SUBSCRIPTION_STATE,
 } from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
@@ -28,19 +24,16 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
-import uniq from 'lodash/uniq.js'
 
 const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   _,
-  { input: { id, articles, type: actionType, accessType, license } },
+  { input: { id, articles, type: actionType, license } },
   {
     viewer,
     dataSources: {
       atomService,
       systemService,
       articleService,
-      notificationService,
-      connections: { knex },
       queues: { revisionQueue },
       publicationService,
     },
@@ -120,69 +113,9 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   // add or remove articles from circle
   const targetArticleIds = targetArticles.map((a) => a.id)
 
-  // add articles to circle
+  // FEATURE IS SUNSETTING: articles can no longer be added to circles
   if (actionType === 'add') {
-    // Check if articles are in campaigns
-    const articlesInCampaigns = await atomService.findMany({
-      table: 'campaign_article',
-      whereIn: ['article_id', targetArticleIds],
-    })
-
-    if (articlesInCampaigns?.length > 0) {
-      throw new ForbiddenError(
-        'Articles in campaigns cannot be added to circles'
-      )
-    }
-
-    // retrieve circle members and followers
-    const members = await knex
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'circle_price.circle_id': circleId,
-        'circle_price.state': PRICE_STATE.active,
-        'csi.archived': false,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-    const followers = await atomService.findMany({
-      table: 'action_circle',
-      select: ['userId'],
-      where: { targetId: circleId, action: CIRCLE_ACTION.follow },
-    })
-    const recipients = uniq([
-      ...members.map((m) => m.userId),
-      ...followers.map((f) => f.userId),
-    ])
-
-    for (const article of targetArticles) {
-      const data = { articleId: article.id, circleId: circle.id }
-      await atomService.upsert({
-        table: 'article_circle',
-        where: data,
-        create: { ...data, access: accessType },
-        update: {
-          ...data,
-          access: accessType,
-        },
-      })
-
-      await republish(article)
-
-      // notify
-      recipients.forEach((recipientId: string) => {
-        notificationService.trigger({
-          event: NOTICE_TYPE.circle_new_article,
-          recipientId,
-          entities: [
-            { type: 'target', entityTable: 'article', entity: article },
-          ],
-        })
-      })
-    }
+    throw new ForbiddenError('articles can no longer be added to circles')
   }
   // remove articles from circle
   else if (actionType === 'remove') {

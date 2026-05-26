@@ -34,6 +34,11 @@ const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
     throw new UserInputError('parameter "enabled" is required')
   }
 
+  // FEATURE IS SUNSETTING: only unfollow is allowed
+  if (enabled === true) {
+    throw new ForbiddenError('following circles is no longer allowed')
+  }
+
   // check feature is enabled or not
   const feature = await systemService.getFeatureFlag('circle_interact')
   if (

@@ -79,6 +79,11 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
 ) => {
   userService.validateUserState(viewer)
 
+  // FEATURE IS SUNSETTING: drafts can no longer be added to a circle
+  if (circleGlobalId) {
+    throw new ForbiddenError('drafts can no longer be added to a circle')
+  }
+
   const oldDraft = globalId
     ? await validateDraft({
         globalId,
