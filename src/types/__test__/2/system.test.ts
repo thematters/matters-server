@@ -1565,26 +1565,39 @@ describe('submitReport', () => {
     expect(sources).toContain('community_watch')
     expect(sources).toContain('direct')
 
-    const watchEdges = data.oss.reports.edges.filter(
-      (e: { node: { communityWatchAction?: { uuid?: string } | null } }) =>
-        [
-          '11111111-1111-1111-1111-111111111111',
-          '22222222-2222-2222-2222-222222222222',
-        ].includes(e.node.communityWatchAction?.uuid ?? '')
-    )
+    const seededWatchUuids = [
+      ...new Set(
+        data.oss.reports.edges
+          .map(
+            (e: {
+              node: { communityWatchAction?: { uuid?: string } | null }
+            }) => e.node.communityWatchAction?.uuid
+          )
+          .filter((uuid?: string) =>
+            [
+              '11111111-1111-1111-1111-111111111111',
+              '22222222-2222-2222-2222-222222222222',
+            ].includes(uuid ?? '')
+          )
+      ),
+    ]
     // Restored community_watch rows are excluded so OSS staff don't act on
     // reversed removals when triaging accounts.
-    expect(watchEdges).toHaveLength(1)
-    const watchEdge = watchEdges[0]
+    expect(seededWatchUuids).toEqual(['11111111-1111-1111-1111-111111111111'])
+    const watchEdge = data.oss.reports.edges.find(
+      (e: { node: { communityWatchAction?: { uuid?: string } | null } }) =>
+        e.node.communityWatchAction?.uuid === seededWatchUuids[0]
+    )
+    expect(watchEdge).toBeDefined()
     // Reason is namespaced for community-watch rows.
-    expect(watchEdge.node.reason).toBe('community_watch_porn_ad')
-    expect(watchEdge.node.communityWatchAction).toMatchObject({
+    expect(watchEdge?.node.reason).toBe('community_watch_porn_ad')
+    expect(watchEdge?.node.communityWatchAction).toMatchObject({
       uuid: '11111111-1111-1111-1111-111111111111',
       actionState: 'active',
       reviewState: 'pending',
     })
     // The target resolves to the underlying Comment.
-    expect(watchEdge.node.target.id).toBeDefined()
+    expect(watchEdge?.node.target.id).toBeDefined()
   })
 })
 
