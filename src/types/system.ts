@@ -243,6 +243,8 @@ export default /* GraphQL */ `
     reporter: User!
     target: Node!
     reason: ReportReason!
+    "Whether this record originates from a direct in-site report or a community watch action."
+    source: ReportSource!
     createdAt: DateTime!
   }
 
@@ -587,6 +589,17 @@ export default /* GraphQL */ `
     discrimination_insult_hatred
     pornography_involving_minors
     other
+    "Pornographic/adult advertising flagged by a community watch member."
+    community_watch_porn_ad
+    "Spam advertising flagged by a community watch member."
+    community_watch_spam_ad
+  }
+
+  enum ReportSource {
+    "Submitted directly via the in-site report form."
+    direct
+    "Created automatically when a community watch member removes a comment."
+    community_watch
   }
 
   type IcymiTopic implements Node {

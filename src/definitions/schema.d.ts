@@ -3668,6 +3668,8 @@ export type GQLReport = GQLNode & {
   id: Scalars['ID']['output']
   reason: GQLReportReason
   reporter: GQLUser
+  /** Whether this record originates from a direct in-site report or a community watch action. */
+  source: GQLReportSource
   target: GQLNode
 }
 
@@ -3685,11 +3687,21 @@ export type GQLReportEdge = {
 }
 
 export type GQLReportReason =
+  /** Pornographic/adult advertising flagged by a community watch member. */
+  | 'community_watch_porn_ad'
+  /** Spam advertising flagged by a community watch member. */
+  | 'community_watch_spam_ad'
   | 'discrimination_insult_hatred'
   | 'illegal_advertising'
   | 'other'
   | 'pornography_involving_minors'
   | 'tort'
+
+export type GQLReportSource =
+  /** Created automatically when a community watch member removes a comment. */
+  | 'community_watch'
+  /** Submitted directly via the in-site report form. */
+  | 'direct'
 
 export type GQLResetLikerIdInput = {
   id: Scalars['ID']['input']
@@ -5863,6 +5875,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLReportEdge, 'node'> & { node: GQLResolversTypes['Report'] }
   >
   ReportReason: GQLReportReason
+  ReportSource: GQLReportSource
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetPasswordType: GQLResetPasswordType
@@ -10421,6 +10434,7 @@ export type GQLReportResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
   reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  source?: Resolver<GQLResolversTypes['ReportSource'], ParentType, ContextType>
   target?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
