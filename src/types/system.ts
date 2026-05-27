@@ -245,6 +245,8 @@ export default /* GraphQL */ `
     reason: ReportReason!
     "Whether this record originates from a direct in-site report or a community watch action."
     source: ReportSource!
+    "The audit record when this report originates from a community watch action."
+    communityWatchAction: CommunityWatchAction
     createdAt: DateTime!
   }
 

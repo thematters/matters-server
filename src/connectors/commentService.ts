@@ -97,6 +97,16 @@ export class CommentService extends BaseService<Comment> {
     return action ?? null
   }
 
+  public findCommunityWatchActionById = async (
+    id: string
+  ): Promise<CommunityWatchAction | null> => {
+    const action = await this.knex('community_watch_action')
+      .select()
+      .where({ id })
+      .first()
+    return action ?? null
+  }
+
   public findCommunityWatchActions = async ({
     filter,
     skip,

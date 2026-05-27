@@ -3664,6 +3664,8 @@ export type GQLReorderMoveInput = {
 
 export type GQLReport = GQLNode & {
   __typename?: 'Report'
+  /** The audit record when this report originates from a community watch action. */
+  communityWatchAction?: Maybe<GQLCommunityWatchAction>
   createdAt: Scalars['DateTime']['output']
   id: Scalars['ID']['output']
   reason: GQLReportReason
@@ -10430,6 +10432,11 @@ export type GQLReportResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Report'] = GQLResolversParentTypes['Report']
 > = ResolversObject<{
+  communityWatchAction?: Resolver<
+    Maybe<GQLResolversTypes['CommunityWatchAction']>,
+    ParentType,
+    ContextType
+  >
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>

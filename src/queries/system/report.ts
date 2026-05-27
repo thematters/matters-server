@@ -1,4 +1,8 @@
-import type { GQLReportResolvers, ReportSource } from '#definitions/index.js'
+import type {
+  Context,
+  GQLReportResolvers,
+  ReportSource,
+} from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
 import { ServerError } from '#common/errors.js'
@@ -48,6 +52,20 @@ const report: GQLReportResolvers = {
   // `gen:schema` invokes `tsc` which would otherwise complain about `source`
   // not yet existing on the auto-generated GQLReportResolvers type.
   source: (parent: { source?: ReportSource }) => parent.source ?? 'direct',
+  communityWatchAction: (
+    parent: { id: string; source?: ReportSource },
+    _: unknown,
+    { dataSources: { commentService } }: Context
+  ) => {
+    if (parent.source !== 'community_watch') {
+      return null
+    }
+
+    const id = parent.id.startsWith('cw:')
+      ? parent.id.replace(/^cw:/, '')
+      : parent.id
+    return commentService.findCommunityWatchActionById(id)
+  },
 }
 
 export default report

@@ -1396,6 +1396,11 @@ describe('submitReport', () => {
               id
               source
               reason
+              communityWatchAction {
+                uuid
+                actionState
+                reviewState
+              }
               reporter {
                 id
               }
@@ -1474,6 +1479,8 @@ describe('submitReport', () => {
     // table and must be reported as `direct`.
     expect(dataQuery.oss.reports.edges[0].node.source).toBe('direct')
     expect(dataQuery.oss.reports.edges[1].node.source).toBe('direct')
+    expect(dataQuery.oss.reports.edges[0].node.communityWatchAction).toBeNull()
+    expect(dataQuery.oss.reports.edges[1].node.communityWatchAction).toBeNull()
   })
 
   test('reports query unions community_watch_action rows', async () => {
@@ -1563,6 +1570,11 @@ describe('submitReport', () => {
     )
     // Reason is namespaced for community-watch rows.
     expect(watchEdge.node.reason).toBe('community_watch_porn_ad')
+    expect(watchEdge.node.communityWatchAction).toMatchObject({
+      uuid: '11111111-1111-1111-1111-111111111111',
+      actionState: 'active',
+      reviewState: 'pending',
+    })
     // The target resolves to the underlying Comment.
     expect(watchEdge.node.target.id).toBeDefined()
   })
