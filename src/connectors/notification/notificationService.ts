@@ -69,6 +69,12 @@ export class NotificationService {
     if (isTest) {
       return
     }
+
+    // FEATURE IS SUNSETTING: skip all circle-related notifications
+    if (params.event.includes('circle')) {
+      return
+    }
+
     logger.info(`triggered notification params: ${JSON.stringify(params)}`)
 
     if ('tag' in params) {

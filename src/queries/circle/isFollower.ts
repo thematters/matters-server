@@ -1,7 +1,13 @@
 import type { GQLCircleResolvers } from '#definitions/index.js'
 
-import { CIRCLE_ACTION } from '#common/enums/index.js'
+// import { CIRCLE_ACTION } from '#common/enums/index.js'
 
+// FEATURE IS SUNSETTING: circle following is being disabled, always returns false
+const resolver: GQLCircleResolvers['isFollower'] = async () => false
+
+export default resolver
+
+/*
 const resolver: GQLCircleResolvers['isFollower'] = async (
   { id },
   _,
@@ -23,3 +29,4 @@ const resolver: GQLCircleResolvers['isFollower'] = async (
 }
 
 export default resolver
+*/
