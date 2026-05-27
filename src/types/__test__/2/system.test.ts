@@ -1554,10 +1554,10 @@ describe('submitReport', () => {
     })
     expect(errors).toBeUndefined()
 
-    // One direct report plus one active community_watch row. Restored
-    // community_watch rows are excluded so OSS staff don't act on reversed
-    // removals when triaging accounts.
-    expect(data.oss.reports.totalCount).toBe(2)
+    // At least one direct report plus the active community_watch row seeded
+    // here. Other test files may create direct reports in parallel against the
+    // same CI database, so avoid asserting an exact global count.
+    expect(data.oss.reports.totalCount).toBeGreaterThanOrEqual(2)
 
     const sources = data.oss.reports.edges.map(
       (e: { node: { source: string } }) => e.node.source
@@ -1565,9 +1565,17 @@ describe('submitReport', () => {
     expect(sources).toContain('community_watch')
     expect(sources).toContain('direct')
 
-    const watchEdge = data.oss.reports.edges.find(
-      (e: { node: { source: string } }) => e.node.source === 'community_watch'
+    const watchEdges = data.oss.reports.edges.filter(
+      (e: { node: { communityWatchAction?: { uuid?: string } | null } }) =>
+        [
+          '11111111-1111-1111-1111-111111111111',
+          '22222222-2222-2222-2222-222222222222',
+        ].includes(e.node.communityWatchAction?.uuid ?? '')
     )
+    // Restored community_watch rows are excluded so OSS staff don't act on
+    // reversed removals when triaging accounts.
+    expect(watchEdges).toHaveLength(1)
+    const watchEdge = watchEdges[0]
     // Reason is namespaced for community-watch rows.
     expect(watchEdge.node.reason).toBe('community_watch_porn_ad')
     expect(watchEdge.node.communityWatchAction).toMatchObject({
