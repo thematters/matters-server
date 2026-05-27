@@ -71,6 +71,7 @@ export const reports: GQLOssResolvers['reports'] = async (
       'created_at'
     )
     .from('community_watch_action')
+    .where('action_state', 'active')
 
   // Wrap the UNION in a subquery so we can ORDER BY / LIMIT / OFFSET across
   // both halves without affecting either half's selection.

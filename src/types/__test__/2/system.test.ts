@@ -1362,6 +1362,11 @@ describe('federation settings', () => {
 })
 
 describe('submitReport', () => {
+  beforeEach(async () => {
+    await connections.knex('report').delete()
+    await connections.knex('community_watch_action').delete()
+  })
+
   const SUBMIT_REPORT = /* GraphQL */ `
     mutation ($input: SubmitReportInput!) {
       submitReport(input: $input) {
@@ -1472,48 +1477,80 @@ describe('submitReport', () => {
   })
 
   test('reports query unions community_watch_action rows', async () => {
-    // Seed: insert a community_watch_action on an existing comment so the
-    // OSS reports list can surface it alongside direct reports.
-    const comment = await connections
-      .knex('comment')
-      .select('id', 'target_id')
-      .first()
-    const contentExpiresAt = new Date()
-    contentExpiresAt.setFullYear(contentExpiresAt.getFullYear() + 1)
-
-    await connections.knex('community_watch_action').insert({
-      uuid: '11111111-1111-1111-1111-111111111111',
-      commentId: comment.id,
-      commentType: 'article',
-      targetType: 'article',
-      targetId: comment.targetId,
-      targetTitle: 'seed',
-      targetShortHash: 'seed',
-      reason: 'porn_ad',
-      actorId: '1',
-      commentAuthorId: '2',
-      originalContent: '<p>banned</p>',
-      originalState: 'active',
-      actionState: 'active',
-      appealState: 'none',
-      reviewState: 'pending',
-      contentExpiresAt,
-    })
-
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
       connections,
     })
+    await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+
+    // Seed: insert community_watch_action rows on an existing comment so the
+    // OSS reports list can surface active rows alongside direct reports.
+    const comment = await connections
+      .knex('comment')
+      .select('id', 'target_id')
+      .where('type', 'article')
+      .first()
+    const contentExpiresAt = new Date()
+    contentExpiresAt.setFullYear(contentExpiresAt.getFullYear() + 1)
+
+    await connections.knex('community_watch_action').insert([
+      {
+        uuid: '11111111-1111-1111-1111-111111111111',
+        commentId: comment.id,
+        commentType: 'article',
+        targetType: 'article',
+        targetId: comment.targetId,
+        targetTitle: 'seed',
+        targetShortHash: 'seed',
+        reason: 'porn_ad',
+        actorId: '1',
+        commentAuthorId: '2',
+        originalContent: '<p>banned</p>',
+        originalState: 'active',
+        actionState: 'active',
+        appealState: 'none',
+        reviewState: 'pending',
+        contentExpiresAt,
+      },
+      {
+        uuid: '22222222-2222-2222-2222-222222222222',
+        commentId: comment.id,
+        commentType: 'article',
+        targetType: 'article',
+        targetId: comment.targetId,
+        targetTitle: 'restored seed',
+        targetShortHash: 'seed',
+        reason: 'spam_ad',
+        actorId: '1',
+        commentAuthorId: '2',
+        originalContent: '<p>restored</p>',
+        originalState: 'active',
+        actionState: 'restored',
+        appealState: 'resolved',
+        reviewState: 'reversed',
+        contentExpiresAt,
+      },
+    ])
+
     const { data, errors } = await server.executeOperation({
       query: GET_REPORTS,
       variables: { input: { first: null } },
     })
     expect(errors).toBeUndefined()
 
-    // The previous test in this describe block inserted 2 direct reports;
-    // this one adds 1 community_watch row, so totalCount should be 3.
-    expect(data.oss.reports.totalCount).toBe(3)
+    // One direct report plus one active community_watch row. Restored
+    // community_watch rows are excluded so OSS staff don't act on reversed
+    // removals when triaging accounts.
+    expect(data.oss.reports.totalCount).toBe(2)
 
     const sources = data.oss.reports.edges.map(
       (e: { node: { source: string } }) => e.node.source
