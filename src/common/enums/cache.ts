@@ -37,6 +37,7 @@ export const CACHE_PREFIX = {
   RECOMMENDATION_TAGS: 'cache-recommendation-tags',
   RECOMMENDATION_AUTHORS: 'cache-recommendation-authors',
   RECOMMENDATION_HOTTEST: 'cache-recommendation-hottest',
+  RECOMMENDATION_HOTTEST_MOMENTS: 'cache-recommendation-hottest-moments',
   CHANNEL_FLOOD: 'cache-channel-flood',
 }
 

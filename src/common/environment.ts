@@ -243,6 +243,32 @@ export const environment = {
     process.env.MATTERS_HOTTEST_ARTICLES_COMMENTS_THRESHOLD || '3',
     10
   ),
+  hottestMomentsDays: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_DAYS || '7',
+    10
+  ),
+  hottestMomentsDecayDays: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_DECAY_DAYS || '5',
+    10
+  ),
+  hottestMomentsLikeWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_MOMENTS_LIKE_WEIGHT || '4'
+  ),
+  hottestMomentsCommentWeight: parseFloat(
+    process.env.MATTERS_HOTTEST_MOMENTS_COMMENT_WEIGHT || '6'
+  ),
+  hottestMomentsLikesThreshold: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_LIKES_THRESHOLD || '2',
+    10
+  ),
+  hottestMomentsCommentsThreshold: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_COMMENTS_THRESHOLD || '1',
+    10
+  ),
+  hottestMomentsMaxTake: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_MAX_TAKE || '300',
+    10
+  ),
   channelFloodDetectWindowInSeconds: parseInt(
     process.env.MATTERS_CHANNEL_FLOOD_DETECT_WINDOW_IN_SECONDS || '86400',
     10
