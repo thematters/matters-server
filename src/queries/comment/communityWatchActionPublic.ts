@@ -9,6 +9,8 @@ import { environment } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
 import crypto from 'node:crypto'
 
+const syncedReportReason = 'illegal_advertising'
+
 const getSourceNodeType = ({ targetType }: CommunityWatchAction) =>
   targetType === COMMENT_TYPE.article ? NODE_TYPES.Article : NODE_TYPES.Moment
 
@@ -50,6 +52,21 @@ const communityWatchActionPublic: GQLCommunityWatchActionResolvers = {
   },
   contentCleared: ({ originalContent }: CommunityWatchAction) =>
     originalContent === null,
+  reportSynced: async (
+    { actorId, commentId }: CommunityWatchAction,
+    _: unknown,
+    { dataSources: { connections } }: Context
+  ) => {
+    const report = await connections.knex('report')
+      .select('id')
+      .where({
+        commentId,
+        reporterId: actorId,
+        reason: syncedReportReason,
+      })
+      .first()
+    return Boolean(report)
+  },
 }
 
 export default communityWatchActionPublic

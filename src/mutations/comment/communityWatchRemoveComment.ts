@@ -26,6 +26,7 @@ import { v4 } from 'uuid'
 
 const allowedCommentStates = [COMMENT_STATE.active, COMMENT_STATE.collapsed]
 const allowedCommentTypes = [COMMENT_TYPE.article, COMMENT_TYPE.moment]
+const syncedReportReason = 'illegal_advertising'
 
 type CommunityWatchRemoveCommentReason = 'porn_ad' | 'spam_ad'
 
@@ -112,6 +113,22 @@ const resolver = async (
       }
       if (!allowedCommentStates.includes(freshComment.state)) {
         throw new UserInputError('comment is not removable by Community Watch')
+      }
+
+      const existingReport = await trx('report')
+        .select('id')
+        .where({
+          commentId: freshComment.id,
+          reporterId: viewer.id,
+          reason: syncedReportReason,
+        })
+        .first()
+      if (!existingReport) {
+        await trx('report').insert({
+          commentId: freshComment.id,
+          reporterId: viewer.id,
+          reason: syncedReportReason,
+        })
       }
 
       await trx('community_watch_action').insert({

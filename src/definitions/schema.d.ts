@@ -1494,6 +1494,8 @@ export type GQLCommunityWatchAction = {
   createdAt: Scalars['DateTime']['output']
   originalContent?: Maybe<Scalars['String']['output']>
   reason: GQLCommunityWatchRemoveCommentReason
+  /** Whether this Community Watch action also created the normal user report flow for staff review. */
+  reportSynced: Scalars['Boolean']['output']
   reviewState: GQLCommunityWatchReviewState
   sourceId: Scalars['ID']['output']
   sourceTitle: Scalars['String']['output']
@@ -8397,6 +8399,7 @@ export type GQLCommunityWatchActionResolvers<
     ParentType,
     ContextType
   >
+  reportSynced?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   reviewState?: Resolver<
     GQLResolversTypes['CommunityWatchReviewState'],
     ParentType,

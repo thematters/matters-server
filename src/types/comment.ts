@@ -326,6 +326,8 @@ export default /* GraphQL */ `
     contentHash: String
     originalContent: String
     contentCleared: Boolean!
+    "Whether this Community Watch action also created the normal user report flow for staff review."
+    reportSynced: Boolean!
     createdAt: DateTime!
   }
 
