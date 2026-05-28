@@ -322,6 +322,8 @@ export default /* GraphQL */ `
     actionState: CommunityWatchActionState!
     appealState: CommunityWatchAppealState!
     reviewState: CommunityWatchReviewState!
+    "SHA-256 hash of normalized original content for OSS clustering without re-spreading spam text."
+    contentHash: String
     originalContent: String
     contentCleared: Boolean!
     createdAt: DateTime!

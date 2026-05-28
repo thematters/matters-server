@@ -163,14 +163,25 @@ describe('Community Watch public queries', () => {
       createContext(),
       {} as any
     )
-    const actorDisplayName =
-      await communityWatchActionPublic.actorDisplayName!(
-        actions[1],
-        {},
-        createContext(),
-        {} as any
-      )
+    const actorDisplayName = await communityWatchActionPublic.actorDisplayName!(
+      actions[1],
+      {},
+      createContext(),
+      {} as any
+    )
     const contentCleared = await communityWatchActionPublic.contentCleared!(
+      actions[0],
+      {},
+      createContext(),
+      {} as any
+    )
+    const contentHash = await communityWatchActionPublic.contentHash!(
+      actions[1],
+      {},
+      createContext(),
+      {} as any
+    )
+    const clearedContentHash = await communityWatchActionPublic.contentHash!(
       actions[0],
       {},
       createContext(),
@@ -189,5 +200,9 @@ describe('Community Watch public queries', () => {
     expect(sourceTitle).toBe('202')
     expect(actorDisplayName).toBe('隊員一號')
     expect(contentCleared).toBe(true)
+    expect(contentHash).toBe(
+      '60bf9b9a635d3ffb5dd8229ab0c541243643e252588a7e65e47a6338cc991e02'
+    )
+    expect(clearedContentHash).toBeNull()
   })
 })

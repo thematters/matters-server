@@ -152,7 +152,7 @@ export default /* GraphQL */ `
     seedingUsers(input: ConnectionArgs!): UserConnection!
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
-    reports(input: ConnectionArgs!): ReportConnection!
+    reports(input: OSSReportsInput!): ReportConnection!
     icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
     topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   }
@@ -243,6 +243,10 @@ export default /* GraphQL */ `
     reporter: User!
     target: Node!
     reason: ReportReason!
+    "Whether this record originates from a direct in-site report or a community watch action."
+    source: ReportSource!
+    "The audit record when this report originates from a community watch action."
+    communityWatchAction: CommunityWatchAction
     createdAt: DateTime!
   }
 
@@ -255,6 +259,16 @@ export default /* GraphQL */ `
   type ReportEdge {
     cursor: String!
     node: Report!
+  }
+
+  input OSSReportsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    filter: OSSReportsFilter
+  }
+
+  input OSSReportsFilter {
+    source: ReportSource
   }
 
   input NodeInput {
@@ -587,6 +601,17 @@ export default /* GraphQL */ `
     discrimination_insult_hatred
     pornography_involving_minors
     other
+    "Pornographic/adult advertising flagged by a community watch member."
+    community_watch_porn_ad
+    "Spam advertising flagged by a community watch member."
+    community_watch_spam_ad
+  }
+
+  enum ReportSource {
+    "Submitted directly via the in-site report form."
+    direct
+    "Created automatically when a community watch member removes a comment."
+    community_watch
   }
 
   type IcymiTopic implements Node {

@@ -208,6 +208,23 @@ export type GQLAppreciationPurpose =
   | 'joinByTask'
   | 'systemSubsidy'
 
+export type GQLArchiveUserFailure = {
+  __typename?: 'ArchiveUserFailure'
+  id: Scalars['ID']['output']
+  message: Scalars['String']['output']
+}
+
+export type GQLArchiveUsersInput = {
+  ids: Array<Scalars['ID']['input']>
+  password: Scalars['String']['input']
+}
+
+export type GQLArchiveUsersResult = {
+  __typename?: 'ArchiveUsersResult'
+  archived: Array<GQLUser>
+  skipped: Array<GQLArchiveUserFailure>
+}
+
 /**
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
@@ -1471,6 +1488,8 @@ export type GQLCommunityWatchAction = {
   appealState: GQLCommunityWatchAppealState
   commentId: Scalars['ID']['output']
   contentCleared: Scalars['Boolean']['output']
+  /** SHA-256 hash of normalized original content for OSS clustering without re-spreading spam text. */
+  contentHash?: Maybe<Scalars['String']['output']>
   createdAt: Scalars['DateTime']['output']
   originalContent?: Maybe<Scalars['String']['output']>
   reason: GQLCommunityWatchRemoveCommentReason
@@ -2181,6 +2200,8 @@ export type GQLMutation = {
   applyCampaign: GQLCampaign
   /** Appreciate an article. */
   appreciateArticle: GQLArticle
+  /** Archive multiple users from OSS with per-user results. */
+  archiveUsers: GQLArchiveUsersResult
   banCampaignArticles: GQLCampaign
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
@@ -2408,6 +2429,10 @@ export type GQLMutationApplyCampaignArgs = {
 
 export type GQLMutationAppreciateArticleArgs = {
   input: GQLAppreciateArticleInput
+}
+
+export type GQLMutationArchiveUsersArgs = {
+  input: GQLArchiveUsersInput
 }
 
 export type GQLMutationBanCampaignArticlesArgs = {
@@ -3035,7 +3060,7 @@ export type GQLOssOauthClientsArgs = {
 }
 
 export type GQLOssReportsArgs = {
-  input: GQLConnectionArgs
+  input: GQLOssReportsInput
 }
 
 export type GQLOssRestrictedUsersArgs = {
@@ -3073,6 +3098,16 @@ export type GQLOssArticlesInput = {
   filter?: InputMaybe<GQLOssArticlesFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
   sort?: InputMaybe<GQLArticlesSort>
+}
+
+export type GQLOssReportsFilter = {
+  source?: InputMaybe<GQLReportSource>
+}
+
+export type GQLOssReportsInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLOssReportsFilter>
+  first?: InputMaybe<Scalars['Int']['input']>
 }
 
 export type GQLOauth1CredentialInput = {
@@ -3664,10 +3699,14 @@ export type GQLReorderMoveInput = {
 
 export type GQLReport = GQLNode & {
   __typename?: 'Report'
+  /** The audit record when this report originates from a community watch action. */
+  communityWatchAction?: Maybe<GQLCommunityWatchAction>
   createdAt: Scalars['DateTime']['output']
   id: Scalars['ID']['output']
   reason: GQLReportReason
   reporter: GQLUser
+  /** Whether this record originates from a direct in-site report or a community watch action. */
+  source: GQLReportSource
   target: GQLNode
 }
 
@@ -3685,11 +3724,21 @@ export type GQLReportEdge = {
 }
 
 export type GQLReportReason =
+  /** Pornographic/adult advertising flagged by a community watch member. */
+  | 'community_watch_porn_ad'
+  /** Spam advertising flagged by a community watch member. */
+  | 'community_watch_spam_ad'
   | 'discrimination_insult_hatred'
   | 'illegal_advertising'
   | 'other'
   | 'pornography_involving_minors'
   | 'tort'
+
+export type GQLReportSource =
+  /** Created automatically when a community watch member removes a comment. */
+  | 'community_watch'
+  /** Submitted directly via the in-site report form. */
+  | 'direct'
 
 export type GQLResetLikerIdInput = {
   id: Scalars['ID']['input']
@@ -5345,6 +5394,13 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   AppreciationPurpose: GQLAppreciationPurpose
+  ArchiveUserFailure: ResolverTypeWrapper<GQLArchiveUserFailure>
+  ArchiveUsersInput: GQLArchiveUsersInput
+  ArchiveUsersResult: ResolverTypeWrapper<
+    Omit<GQLArchiveUsersResult, 'archived'> & {
+      archived: Array<GQLResolversTypes['User']>
+    }
+  >
   Article: ResolverTypeWrapper<ArticleModel>
   ArticleAccess: ResolverTypeWrapper<ArticleModel>
   ArticleAccessType: GQLArticleAccessType
@@ -5772,6 +5828,8 @@ export type GQLResolversTypes = ResolversObject<{
   >
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
+  OSSReportsFilter: GQLOssReportsFilter
+  OSSReportsInput: GQLOssReportsInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: ResolverTypeWrapper<
     Omit<GQLOfficial, 'announcements'> & {
@@ -5863,6 +5921,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLReportEdge, 'node'> & { node: GQLResolversTypes['Report'] }
   >
   ReportReason: GQLReportReason
+  ReportSource: GQLReportSource
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetPasswordType: GQLResetPasswordType
@@ -6149,6 +6208,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   AppreciationEdge: Omit<GQLAppreciationEdge, 'node'> & {
     node: GQLResolversParentTypes['Appreciation']
+  }
+  ArchiveUserFailure: GQLArchiveUserFailure
+  ArchiveUsersInput: GQLArchiveUsersInput
+  ArchiveUsersResult: Omit<GQLArchiveUsersResult, 'archived'> & {
+    archived: Array<GQLResolversParentTypes['User']>
   }
   Article: ArticleModel
   ArticleAccess: ArticleModel
@@ -6461,6 +6525,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
+  OSSReportsFilter: GQLOssReportsFilter
+  OSSReportsInput: GQLOssReportsInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: Omit<GQLOfficial, 'announcements'> & {
     announcements?: Maybe<Array<GQLResolversParentTypes['Announcement']>>
@@ -6982,6 +7048,28 @@ export type GQLAppreciationEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Appreciation'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArchiveUserFailureResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArchiveUserFailure'] = GQLResolversParentTypes['ArchiveUserFailure']
+> = ResolversObject<{
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  message?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArchiveUsersResultResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArchiveUsersResult'] = GQLResolversParentTypes['ArchiveUsersResult']
+> = ResolversObject<{
+  archived?: Resolver<Array<GQLResolversTypes['User']>, ParentType, ContextType>
+  skipped?: Resolver<
+    Array<GQLResolversTypes['ArchiveUserFailure']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8292,6 +8380,11 @@ export type GQLCommunityWatchActionResolvers<
     ParentType,
     ContextType
   >
+  contentHash?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   originalContent?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -9056,6 +9149,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationAppreciateArticleArgs, 'input'>
+  >
+  archiveUsers?: Resolver<
+    GQLResolversTypes['ArchiveUsersResult'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationArchiveUsersArgs, 'input'>
   >
   banCampaignArticles?: Resolver<
     GQLResolversTypes['Campaign'],
@@ -10417,10 +10516,16 @@ export type GQLReportResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Report'] = GQLResolversParentTypes['Report']
 > = ResolversObject<{
+  communityWatchAction?: Resolver<
+    Maybe<GQLResolversTypes['CommunityWatchAction']>,
+    ParentType,
+    ContextType
+  >
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
   reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  source?: Resolver<GQLResolversTypes['ReportSource'], ParentType, ContextType>
   target?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -11719,6 +11824,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Appreciation?: GQLAppreciationResolvers<ContextType>
   AppreciationConnection?: GQLAppreciationConnectionResolvers<ContextType>
   AppreciationEdge?: GQLAppreciationEdgeResolvers<ContextType>
+  ArchiveUserFailure?: GQLArchiveUserFailureResolvers<ContextType>
+  ArchiveUsersResult?: GQLArchiveUsersResultResolvers<ContextType>
   Article?: GQLArticleResolvers<ContextType>
   ArticleAccess?: GQLArticleAccessResolvers<ContextType>
   ArticleArticleNotice?: GQLArticleArticleNoticeResolvers<ContextType>

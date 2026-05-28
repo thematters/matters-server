@@ -265,6 +265,9 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
 
+  """Archive multiple users from OSS with per-user results."""
+  archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult!
+
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
@@ -1854,6 +1857,11 @@ type CommunityWatchAction {
   actionState: CommunityWatchActionState!
   appealState: CommunityWatchAppealState!
   reviewState: CommunityWatchReviewState!
+
+  """
+  SHA-256 hash of normalized original content for OSS clustering without re-spreading spam text.
+  """
+  contentHash: String
   originalContent: String
   contentCleared: Boolean!
   createdAt: DateTime!
@@ -2398,7 +2406,7 @@ type OSS {
   seedingUsers(input: ConnectionArgs!): UserConnection!
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
-  reports(input: ConnectionArgs!): ReportConnection!
+  reports(input: OSSReportsInput!): ReportConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
 }
@@ -2485,6 +2493,16 @@ type Report implements Node {
   reporter: User!
   target: Node!
   reason: ReportReason!
+
+  """
+  Whether this record originates from a direct in-site report or a community watch action.
+  """
+  source: ReportSource!
+
+  """
+  The audit record when this report originates from a community watch action.
+  """
+  communityWatchAction: CommunityWatchAction
   createdAt: DateTime!
 }
 
@@ -2497,6 +2515,16 @@ type ReportConnection implements Connection {
 type ReportEdge {
   cursor: String!
   node: Report!
+}
+
+input OSSReportsInput {
+  after: String
+  first: Int
+  filter: OSSReportsFilter
+}
+
+input OSSReportsFilter {
+  source: ReportSource
 }
 
 input NodeInput {
@@ -2826,6 +2854,20 @@ enum ReportReason {
   discrimination_insult_hatred
   pornography_involving_minors
   other
+
+  """Pornographic/adult advertising flagged by a community watch member."""
+  community_watch_porn_ad
+
+  """Spam advertising flagged by a community watch member."""
+  community_watch_spam_ad
+}
+
+enum ReportSource {
+  """Submitted directly via the in-site report form."""
+  direct
+
+  """Created automatically when a community watch member removes a comment."""
+  community_watch
 }
 
 type IcymiTopic implements Node {
@@ -3531,6 +3573,21 @@ input UpdateUserStateInput {
   state: UserState!
   banDays: Int
   password: String
+}
+
+input ArchiveUsersInput {
+  ids: [ID!]!
+  password: String!
+}
+
+type ArchiveUsersResult {
+  archived: [User!]!
+  skipped: [ArchiveUserFailure!]!
+}
+
+type ArchiveUserFailure {
+  id: ID!
+  message: String!
 }
 
 input UpdateUserRoleInput {
