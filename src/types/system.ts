@@ -152,7 +152,7 @@ export default /* GraphQL */ `
     seedingUsers(input: ConnectionArgs!): UserConnection!
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
-    reports(input: ConnectionArgs!): ReportConnection!
+    reports(input: OSSReportsInput!): ReportConnection!
     icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
     topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   }
@@ -259,6 +259,16 @@ export default /* GraphQL */ `
   type ReportEdge {
     cursor: String!
     node: Report!
+  }
+
+  input OSSReportsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    filter: OSSReportsFilter
+  }
+
+  input OSSReportsFilter {
+    source: ReportSource
   }
 
   input NodeInput {

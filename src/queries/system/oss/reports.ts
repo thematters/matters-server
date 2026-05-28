@@ -34,56 +34,67 @@ export const reports: GQLOssResolvers['reports'] = async (
   }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
+  const source = input.filter?.source
 
-  // Direct reports: select native columns; tag with source='direct'.
-  const directQuery = knex
-    .select(
-      knex.raw(`'direct' as source`),
-      knex.raw(`id::text as id`),
-      'reporter_id',
-      'article_id',
-      'comment_id',
-      'moment_id',
-      'reason',
-      'created_at'
-    )
-    .from('report')
+  const buildDirectQuery = () =>
+    // Direct reports: select native columns; tag with source='direct'.
+    knex
+      .select(
+        knex.raw(`'direct' as source`),
+        knex.raw(`id::text as id`),
+        'reporter_id',
+        'article_id',
+        'comment_id',
+        'moment_id',
+        'reason',
+        'created_at'
+      )
+      .from('report')
 
-  // Community-watch derived rows:
-  //   - id is synthesised as 'cw:{id}' so it can't collide with real report.id
-  //   - reporter_id maps to actor_id (the watcher)
-  //   - target is always a comment; article_id/moment_id are null
-  //   - reason is namespaced to make it visually distinct in OSS UI
-  const communityWatchQuery = knex
-    .select(
-      knex.raw(`'community_watch' as source`),
-      knex.raw(`'cw:' || id::text as id`),
-      knex.raw(`actor_id as reporter_id`),
-      knex.raw(`null::bigint as article_id`),
-      'comment_id',
-      knex.raw(`null::bigint as moment_id`),
-      knex.raw(
-        `case reason
-           when 'porn_ad' then 'community_watch_porn_ad'
-           when 'spam_ad' then 'community_watch_spam_ad'
-         end as reason`
-      ),
-      'created_at'
-    )
-    .from('community_watch_action')
-    .where('action_state', 'active')
+  const buildCommunityWatchQuery = () =>
+    // Community-watch derived rows:
+    //   - id is synthesised as 'cw:{id}' so it can't collide with real report.id
+    //   - reporter_id maps to actor_id (the watcher)
+    //   - target is always a comment; article_id/moment_id are null
+    //   - reason is namespaced to make it visually distinct in OSS UI
+    knex
+      .select(
+        knex.raw(`'community_watch' as source`),
+        knex.raw(`'cw:' || id::text as id`),
+        knex.raw(`actor_id as reporter_id`),
+        knex.raw(`null::bigint as article_id`),
+        'comment_id',
+        knex.raw(`null::bigint as moment_id`),
+        knex.raw(
+          `case reason
+             when 'porn_ad' then 'community_watch_porn_ad'
+             when 'spam_ad' then 'community_watch_spam_ad'
+           end as reason`
+        ),
+        'created_at'
+      )
+      .from('community_watch_action')
+      .where('action_state', 'active')
 
-  // Wrap the UNION in a subquery so we can ORDER BY / LIMIT / OFFSET across
-  // both halves without affecting either half's selection.
-  const unioned = knex
-    .select('*')
-    .from(directQuery.unionAll(communityWatchQuery).as('reports_union'))
+  const buildUnionQuery = () => {
+    const queries = []
+    if (!source || source === 'direct') {
+      queries.push(buildDirectQuery())
+    }
+    if (!source || source === 'community_watch') {
+      queries.push(buildCommunityWatchQuery())
+    }
+
+    return queries.length === 1 ? queries[0] : queries[0].unionAll(queries[1])
+  }
+
+  const itemsUnion = buildUnionQuery()
+  const countUnion = buildUnionQuery()
+
+  const unioned = knex.select('*').from(itemsUnion.as('reports_union'))
 
   const [countResult, items] = await Promise.all([
-    knex
-      .count('* as count')
-      .from(directQuery.unionAll(communityWatchQuery).as('reports_union_count'))
-      .first(),
+    knex.count('* as count').from(countUnion.as('reports_union_count')).first(),
     unioned.orderBy('created_at', 'desc').limit(take).offset(skip),
   ])
 

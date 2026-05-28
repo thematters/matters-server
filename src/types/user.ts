@@ -104,6 +104,9 @@ export default /* GraphQL */ `
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): [User!] @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Archive multiple users from OSS with per-user results."
+    archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -795,6 +798,21 @@ export default /* GraphQL */ `
     state: UserState!
     banDays: Int @constraint(exclusiveMin: 0)
     password: String
+  }
+
+  input ArchiveUsersInput {
+    ids: [ID!]!
+    password: String!
+  }
+
+  type ArchiveUsersResult {
+    archived: [User!]!
+    skipped: [ArchiveUserFailure!]!
+  }
+
+  type ArchiveUserFailure {
+    id: ID!
+    message: String!
   }
 
   input UpdateUserRoleInput {

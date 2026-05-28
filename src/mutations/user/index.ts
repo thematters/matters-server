@@ -1,4 +1,5 @@
 import addCredit from './addCredit.js'
+import archiveUsers from './archiveUsers.js'
 import claimLogbooks from './claimLogbooks.js'
 import clearReadHistory from './clearReadHistory.js'
 import clearSearchHistory from './clearSearchHistory.js'
@@ -64,6 +65,7 @@ export default {
     toggleFollowUser,
     clearReadHistory,
     clearSearchHistory,
+    archiveUsers,
     updateUserState,
     updateUserRole,
     updateUserExtra,

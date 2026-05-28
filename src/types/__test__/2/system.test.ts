@@ -1387,7 +1387,7 @@ describe('submitReport', () => {
     }
   `
   const GET_REPORTS = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
+    query ($input: OSSReportsInput!) {
       oss {
         reports(input: $input) {
           totalCount
@@ -1598,6 +1598,69 @@ describe('submitReport', () => {
     })
     // The target resolves to the underlying Comment.
     expect(watchEdge?.node.target.id).toBeDefined()
+  })
+
+  test('reports query filters by source', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+
+    const comment = await connections
+      .knex('comment')
+      .select('id', 'target_id')
+      .where('type', 'article')
+      .first()
+    const contentExpiresAt = new Date()
+    contentExpiresAt.setFullYear(contentExpiresAt.getFullYear() + 1)
+
+    await connections.knex('community_watch_action').insert({
+      uuid: '33333333-3333-3333-3333-333333333333',
+      commentId: comment.id,
+      commentType: 'article',
+      targetType: 'article',
+      targetId: comment.targetId,
+      targetTitle: 'source filter seed',
+      targetShortHash: 'seed',
+      reason: 'spam_ad',
+      actorId: '1',
+      commentAuthorId: '2',
+      originalContent: '<p>same spam body</p>',
+      originalState: 'active',
+      actionState: 'active',
+      appealState: 'none',
+      reviewState: 'pending',
+      contentExpiresAt,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: {
+        input: {
+          first: null,
+          filter: { source: 'community_watch' },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.oss.reports.edges.length).toBeGreaterThanOrEqual(1)
+    expect(
+      data.oss.reports.edges.every(
+        (edge: { node: { source: string } }) =>
+          edge.node.source === 'community_watch'
+      )
+    ).toBe(true)
   })
 })
 

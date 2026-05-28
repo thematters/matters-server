@@ -265,6 +265,9 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
 
+  """Archive multiple users from OSS with per-user results."""
+  archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult!
+
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
@@ -1854,6 +1857,11 @@ type CommunityWatchAction {
   actionState: CommunityWatchActionState!
   appealState: CommunityWatchAppealState!
   reviewState: CommunityWatchReviewState!
+
+  """
+  SHA-256 hash of normalized original content for OSS clustering without re-spreading spam text.
+  """
+  contentHash: String
   originalContent: String
   contentCleared: Boolean!
   createdAt: DateTime!
@@ -2398,7 +2406,7 @@ type OSS {
   seedingUsers(input: ConnectionArgs!): UserConnection!
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
-  reports(input: ConnectionArgs!): ReportConnection!
+  reports(input: OSSReportsInput!): ReportConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
 }
@@ -2507,6 +2515,16 @@ type ReportConnection implements Connection {
 type ReportEdge {
   cursor: String!
   node: Report!
+}
+
+input OSSReportsInput {
+  after: String
+  first: Int
+  filter: OSSReportsFilter
+}
+
+input OSSReportsFilter {
+  source: ReportSource
 }
 
 input NodeInput {
@@ -3555,6 +3573,21 @@ input UpdateUserStateInput {
   state: UserState!
   banDays: Int
   password: String
+}
+
+input ArchiveUsersInput {
+  ids: [ID!]!
+  password: String!
+}
+
+type ArchiveUsersResult {
+  archived: [User!]!
+  skipped: [ArchiveUserFailure!]!
+}
+
+type ArchiveUserFailure {
+  id: ID!
+  message: String!
 }
 
 input UpdateUserRoleInput {
