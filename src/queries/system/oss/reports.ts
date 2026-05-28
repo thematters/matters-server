@@ -50,6 +50,14 @@ export const reports: GQLOssResolvers['reports'] = async (
         'created_at'
       )
       .from('report')
+      .whereNotExists(function () {
+        this.select(knex.raw('1'))
+          .from('community_watch_action')
+          .whereRaw('community_watch_action.comment_id = report.comment_id')
+          .whereRaw('community_watch_action.actor_id = report.reporter_id')
+          .whereRaw('report.reason = ?', ['illegal_advertising'])
+          .where('community_watch_action.action_state', 'active')
+      })
 
   const buildCommunityWatchQuery = () =>
     // Community-watch derived rows:
