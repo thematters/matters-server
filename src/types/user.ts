@@ -19,6 +19,12 @@ export default /* GraphQL */ `
     "Confirm verification code from email."
     confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
+    "Create a short-lived token that binds a verifier challenge to the current viewer."
+    createPersonhoodHandoff(input: CreatePersonhoodHandoffInput!): PersonhoodHandoff! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
+
+    "Claim the carbon based badge with a verified zkID personhood proof."
+    claimPersonhoodBadge(input: ClaimPersonhoodBadgeInput!): User! @purgeCache(type: "${NODE_TYPES.User}")
+
     "Reset user or payment password."
     resetPassword(input: ResetPasswordInput!): Boolean
 
@@ -865,6 +871,23 @@ export default /* GraphQL */ `
     nonce: String!
   }
 
+  input CreatePersonhoodHandoffInput {
+    challenge: String!
+    challengeExpiresAt: DateTime
+  }
+
+  type PersonhoodHandoff {
+    token: String!
+    expiresAt: DateTime!
+  }
+
+  input ClaimPersonhoodBadgeInput {
+    handoffToken: String!
+    certChainProof: String!
+    certChainType: String
+    userSigProof: String!
+  }
+
   input FeaturedTagsInput {
     " tagIds "
     ids: [ID!]! # tagIds
@@ -884,6 +907,7 @@ export default /* GraphQL */ `
     architect
     grand_slam
     community_watch
+    carbon_based
     # can only have 1 of the 4 levels of nomad badges
     nomad1
     nomad2
