@@ -2868,6 +2868,7 @@ enum ReportSource {
 
   """Created automatically when a community watch member removes a comment."""
   community_watch
+  carbon_based
 }
 
 type IcymiTopic implements Node {

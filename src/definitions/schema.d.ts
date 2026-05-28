@@ -777,6 +777,7 @@ export type GQLBadge = {
 
 export type GQLBadgeType =
   | 'architect'
+  | 'carbon_based'
   | 'community_watch'
   | 'golden_motor'
   | 'grand_slam'
