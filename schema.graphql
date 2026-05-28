@@ -184,6 +184,12 @@ type Mutation {
   """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
+  """Create a short-lived token that binds a verifier challenge to the current viewer."""
+  createPersonhoodHandoff(input: CreatePersonhoodHandoffInput!): PersonhoodHandoff!
+
+  """Claim the carbon based badge with a verified zkID personhood proof."""
+  claimPersonhoodBadge(input: ClaimPersonhoodBadgeInput!): User!
+
   """Reset user or payment password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
@@ -3646,6 +3652,23 @@ input ClaimLogbooksInput {
   nonce: String!
 }
 
+input CreatePersonhoodHandoffInput {
+  challenge: String!
+  challengeExpiresAt: DateTime
+}
+
+type PersonhoodHandoff {
+  token: String!
+  expiresAt: DateTime!
+}
+
+input ClaimPersonhoodBadgeInput {
+  handoffToken: String!
+  certChainProof: String!
+  certChainType: String
+  userSigProof: String!
+}
+
 input FeaturedTagsInput {
   """ tagIds """
   ids: [ID!]!
@@ -3662,6 +3685,7 @@ enum BadgeType {
   architect
   grand_slam
   community_watch
+  carbon_based
   nomad1
   nomad2
   nomad3

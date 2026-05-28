@@ -1,10 +1,12 @@
 import addCredit from './addCredit.js'
 import archiveUsers from './archiveUsers.js'
 import claimLogbooks from './claimLogbooks.js'
+import claimPersonhoodBadge from './claimPersonhoodBadge.js'
 import clearReadHistory from './clearReadHistory.js'
 import clearSearchHistory from './clearSearchHistory.js'
 import confirmVerificationCode from './confirmVerificationCode.js'
 import connectStripeAccount from './connectStripeAccount.js'
+import createPersonhoodHandoff from './createPersonhoodHandoff.js'
 import emailLogin from './emailLogin.js'
 import generateSigningMessage from './generateSigningMessage.js'
 import migration from './migration.js'
@@ -50,6 +52,8 @@ export default {
     resetPassword,
     emailLogin,
     userLogout,
+    createPersonhoodHandoff,
+    claimPersonhoodBadge,
     walletLogin,
     addWalletLogin,
     removeWalletLogin,

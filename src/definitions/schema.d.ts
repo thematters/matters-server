@@ -1252,6 +1252,24 @@ export type GQLClaimLogbooksResult = {
   txHash: Scalars['String']['output']
 }
 
+export type GQLClaimPersonhoodBadgeInput = {
+  certChainProof: Scalars['String']['input']
+  certChainType?: InputMaybe<Scalars['String']['input']>
+  handoffToken: Scalars['String']['input']
+  userSigProof: Scalars['String']['input']
+}
+
+export type GQLCreatePersonhoodHandoffInput = {
+  challenge: Scalars['String']['input']
+  challengeExpiresAt?: InputMaybe<Scalars['DateTime']['input']>
+}
+
+export type GQLPersonhoodHandoff = {
+  __typename?: 'PersonhoodHandoff'
+  expiresAt: Scalars['DateTime']['output']
+  token: Scalars['String']['output']
+}
+
 export type GQLClassifyArticlesChannelsInput = {
   ids: Array<Scalars['ID']['input']>
 }
@@ -2208,6 +2226,8 @@ export type GQLMutation = {
   banCampaignArticles: GQLCampaign
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
+  /** Claim the carbon based badge with a verified zkID personhood proof. */
+  claimPersonhoodBadge: GQLUser
   classifyArticlesChannels: Scalars['Boolean']['output']
   /** Clear stored original content for a Community Watch action as staff. */
   clearCommunityWatchOriginalContent: GQLCommunityWatchAction
@@ -2221,6 +2241,8 @@ export type GQLMutation = {
   confirmVerificationCode: Scalars['ID']['output']
   /** Create Stripe Connect account for Payout */
   connectStripeAccount: GQLConnectStripeAccountResult
+  /** Create a short-lived token that binds a verifier challenge to the current viewer. */
+  createPersonhoodHandoff: GQLPersonhoodHandoff
   deleteAnnouncements: Scalars['Boolean']['output']
   /** Delete blocked search keywords from search_history db */
   deleteBlockedSearchKeywords?: Maybe<Scalars['Boolean']['output']>
@@ -2446,6 +2468,10 @@ export type GQLMutationClaimLogbooksArgs = {
   input: GQLClaimLogbooksInput
 }
 
+export type GQLMutationClaimPersonhoodBadgeArgs = {
+  input: GQLClaimPersonhoodBadgeInput
+}
+
 export type GQLMutationClassifyArticlesChannelsArgs = {
   input: GQLClassifyArticlesChannelsInput
 }
@@ -2468,6 +2494,10 @@ export type GQLMutationConfirmVerificationCodeArgs = {
 
 export type GQLMutationConnectStripeAccountArgs = {
   input: GQLConnectStripeAccountInput
+}
+
+export type GQLMutationCreatePersonhoodHandoffArgs = {
+  input: GQLCreatePersonhoodHandoffInput
 }
 
 export type GQLMutationDeleteAnnouncementsArgs = {
@@ -5585,6 +5615,7 @@ export type GQLResolversTypes = ResolversObject<{
   CircleSubscriberAnalytics: ResolverTypeWrapper<CircleModel>
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: ResolverTypeWrapper<GQLClaimLogbooksResult>
+  ClaimPersonhoodBadgeInput: GQLClaimPersonhoodBadgeInput
   ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
   ClearCommunityWatchOriginalContentInput: GQLClearCommunityWatchOriginalContentInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
@@ -5646,6 +5677,7 @@ export type GQLResolversTypes = ResolversObject<{
     GQLResolversInterfaceTypes<GQLResolversTypes>['Connection']
   >
   ConnectionArgs: GQLConnectionArgs
+  CreatePersonhoodHandoffInput: GQLCreatePersonhoodHandoffInput
   CryptoWallet: ResolverTypeWrapper<ETHWalletModel>
   CryptoWalletSignaturePurpose: GQLCryptoWalletSignaturePurpose
   CurationChannel: ResolverTypeWrapper<CurationChannelModel>
@@ -5849,6 +5881,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   PayoutInput: GQLPayoutInput
   Person: ResolverTypeWrapper<GQLPerson>
+  PersonhoodHandoff: ResolverTypeWrapper<GQLPersonhoodHandoff>
   PinCommentInput: GQLPinCommentInput
   PinHistory: ResolverTypeWrapper<
     Omit<GQLPinHistory, 'feed'> & { feed: GQLResolversTypes['Node'] }
@@ -6346,6 +6379,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CircleSubscriberAnalytics: CircleModel
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: GQLClaimLogbooksResult
+  ClaimPersonhoodBadgeInput: GQLClaimPersonhoodBadgeInput
   ClassifyArticlesChannelsInput: GQLClassifyArticlesChannelsInput
   ClearCommunityWatchOriginalContentInput: GQLClearCommunityWatchOriginalContentInput
   ClearReadHistoryInput: GQLClearReadHistoryInput
@@ -6389,6 +6423,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ConnectStripeAccountResult: GQLConnectStripeAccountResult
   Connection: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Connection']
   ConnectionArgs: GQLConnectionArgs
+  CreatePersonhoodHandoffInput: GQLCreatePersonhoodHandoffInput
   CryptoWallet: ETHWalletModel
   CurationChannel: CurationChannelModel
   DateTime: Scalars['DateTime']['output']
@@ -6542,6 +6577,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   PayoutInput: GQLPayoutInput
   Person: GQLPerson
+  PersonhoodHandoff: GQLPersonhoodHandoff
   PinCommentInput: GQLPinCommentInput
   PinHistory: Omit<GQLPinHistory, 'feed'> & {
     feed: GQLResolversParentTypes['Node']
@@ -9172,6 +9208,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationClaimLogbooksArgs, 'input'>
   >
+  claimPersonhoodBadge?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationClaimPersonhoodBadgeArgs, 'input'>
+  >
   classifyArticlesChannels?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -9212,6 +9254,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationConnectStripeAccountArgs, 'input'>
+  >
+  createPersonhoodHandoff?: Resolver<
+    GQLResolversTypes['PersonhoodHandoff'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationCreatePersonhoodHandoffArgs, 'input'>
   >
   deleteAnnouncements?: Resolver<
     GQLResolversTypes['Boolean'],
@@ -9873,6 +9921,15 @@ export type GQLNftAssetResolvers<
   >
   imageUrl?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLPersonhoodHandoffResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['PersonhoodHandoff'] = GQLResolversParentTypes['PersonhoodHandoff']
+> = ResolversObject<{
+  expiresAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  token?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -11963,6 +12020,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ResponseEdge?: GQLResponseEdgeResolvers<ContextType>
   SearchResultConnection?: GQLSearchResultConnectionResolvers<ContextType>
   SearchResultEdge?: GQLSearchResultEdgeResolvers<ContextType>
+  PersonhoodHandoff?: GQLPersonhoodHandoffResolvers<ContextType>
   SigningMessageResult?: GQLSigningMessageResultResolvers<ContextType>
   SkippedListItem?: GQLSkippedListItemResolvers<ContextType>
   SkippedListItemEdge?: GQLSkippedListItemEdgeResolvers<ContextType>
