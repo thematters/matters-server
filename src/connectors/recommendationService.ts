@@ -47,6 +47,14 @@ type HottestArticle = {
   score: string
 }
 
+type HottestMoment = {
+  momentId: string
+  authorId: string
+  likers: number
+  commenters: number
+  score: string
+}
+
 export class RecommendationService {
   private connections: Connections
   private models: AtomService
@@ -118,6 +126,36 @@ export class RecommendationService {
         donationWeight,
       })
     }
+  }
+
+  public findHottestMoments = async ({
+    days = 7,
+    decayDays = 5,
+    likeWeight = 4,
+    commentWeight = 6,
+    likesThreshold = 2,
+    commentsThreshold = 1,
+    maxTake = 300,
+  }: {
+    days?: number
+    decayDays?: number
+    likeWeight?: number
+    commentWeight?: number
+    likesThreshold?: number
+    commentsThreshold?: number
+    maxTake?: number
+  } = {}): Promise<Array<{ momentId: string }>> => {
+    const { query } = await this._findHottestMoments({
+      days,
+      decayDays,
+      likeWeight,
+      commentWeight,
+      likesThreshold,
+      commentsThreshold,
+      maxTake,
+    })
+    const result = await query
+    return result.map(({ momentId }) => ({ momentId }))
   }
 
   private normalizeV4 = async ({
@@ -463,6 +501,154 @@ export class RecommendationService {
 
     return {
       query: query as Knex.QueryBuilder<HottestArticle, HottestArticle[]>,
+    }
+  }
+
+  private _findHottestMoments = async ({
+    days,
+    decayDays,
+    likeWeight,
+    commentWeight,
+    likesThreshold,
+    commentsThreshold,
+    maxTake,
+  }: {
+    days: number
+    decayDays: number
+    likeWeight: number
+    commentWeight: number
+    likesThreshold: number
+    commentsThreshold: number
+    maxTake: number
+  }): Promise<{
+    query: Knex.QueryBuilder<HottestMoment, HottestMoment[]>
+  }> => {
+    const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
+      'moment'
+    )
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    const query = this.knexRO
+      .with('hottest_source', (qb) => {
+        return qb
+          .select('moment.id as moment_id', 'moment.author_id')
+          .from('moment')
+          .innerJoin('user', 'user.id', 'moment.author_id')
+          .innerJoin(
+            'moment_feed_user',
+            'moment_feed_user.user_id',
+            'moment.author_id'
+          )
+          .where('moment.state', 'active')
+          .where('moment.created_at', '>=', startDate)
+          .whereNotIn('user.state', [USER_STATE.frozen, USER_STATE.archived])
+          .where('moment_feed_user.state', 'approved')
+          .whereNotExists((sub) => {
+            sub
+              .select(this.knexRO.raw('1'))
+              .from('community_watch_action as cwa')
+              .whereRaw('cwa.target_id = moment.id')
+              .where('cwa.target_type', 'moment')
+              .where('cwa.action_state', 'active')
+          })
+      })
+      .with('base', (qb) => {
+        const likesQuery = this.knexRO
+          .select(
+            'target_id',
+            this.knexRO.raw('count(distinct user_id)::int as likers'),
+            this.knexRO.raw('sum(score) as like_score')
+          )
+          .from(
+            this.knexRO
+              .select(
+                'target_id',
+                'user_id',
+                this.knexRO.raw(
+                  'greatest(1 - (extract(epoch from now() - created_at) / (24 * 3600)) / ?, 0) as score',
+                  [decayDays]
+                )
+              )
+              .from('action_moment')
+              .where('action', 'like')
+              .where('created_at', '>=', startDate)
+              .as('t1_source')
+          )
+          .groupBy('target_id')
+        const commentsQuery = this.knexRO
+          .select(
+            'target_id',
+            this.knexRO.raw('count(distinct author_id)::int as commenters'),
+            this.knexRO.raw('sum(score) as comment_score')
+          )
+          .from(
+            this.knexRO
+              .select(
+                'comment.target_id',
+                'comment.author_id',
+                this.knexRO.raw(
+                  'greatest(1 - (extract(epoch from now() - min(comment.created_at)) / (24 * 3600)) / ?, 0) as score',
+                  [decayDays]
+                )
+              )
+              .from('comment')
+              .innerJoin('moment', 'moment.id', 'comment.target_id')
+              .where('comment.state', 'active')
+              .where('comment.target_type_id', targetTypeId)
+              .where(
+                'comment.author_id',
+                '!=',
+                this.knexRO.ref('moment.author_id')
+              )
+              .where('comment.created_at', '>=', startDate)
+              .groupBy(['comment.target_id', 'comment.author_id'])
+              .as('t2_source')
+          )
+          .groupBy('target_id')
+
+        return qb
+          .select(
+            'hottest_source.moment_id',
+            'hottest_source.author_id',
+            this.knexRO.raw('coalesce(t1.likers, 0) as likers'),
+            this.knexRO.raw('coalesce(t1.like_score, 0) as like_score'),
+            this.knexRO.raw('coalesce(t2.commenters, 0) as commenters'),
+            this.knexRO.raw('coalesce(t2.comment_score, 0) as comment_score')
+          )
+          .from('hottest_source')
+          .leftJoin(
+            likesQuery.as('t1'),
+            'hottest_source.moment_id',
+            't1.target_id'
+          )
+          .leftJoin(
+            commentsQuery.as('t2'),
+            'hottest_source.moment_id',
+            't2.target_id'
+          )
+      })
+      .select(
+        'moment_id as momentId',
+        'author_id as authorId',
+        'likers',
+        'commenters',
+        this.knexRO.raw(
+          '(?::numeric * base.like_score + ?::numeric * base.comment_score)::numeric as score',
+          [likeWeight, commentWeight]
+        )
+      )
+      .from('base')
+      .where((w) => {
+        return w
+          .where('likers', '>=', likesThreshold)
+          .orWhere('commenters', '>=', commentsThreshold)
+      })
+      .orderBy('score', 'desc')
+      .limit(maxTake)
+
+    return {
+      query: query as Knex.QueryBuilder<HottestMoment, HottestMoment[]>,
     }
   }
 

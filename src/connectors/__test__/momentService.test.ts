@@ -5,6 +5,8 @@ import { v4 } from 'uuid'
 import {
   USER_STATE,
   MOMENT_STATE,
+  MOMENT_FEED_STATE,
+  MOMENT_FEED_REVIEWED_BY,
   MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
 } from '#common/enums/index.js'
@@ -277,5 +279,127 @@ describe('findMoments', () => {
     expect(foundMoment?.authorId).toBe(user.id)
     expect(foundMoment?.content).toBe('<p>Test moment content</p>')
     expect(foundMoment?.state).toBe(MOMENT_STATE.active)
+  })
+})
+
+describe('moment feed: applyMomentFeed', () => {
+  test('non-active user is rejected', async () => {
+    const user = await userService.create()
+    await expect(
+      momentService.applyMomentFeed({ id: user.id, state: USER_STATE.banned })
+    ).rejects.toThrowError(ForbiddenByStateError)
+  })
+
+  test('creates a pending application', async () => {
+    const user = await userService.create()
+    const record = await momentService.applyMomentFeed({
+      id: user.id,
+      state: USER_STATE.active,
+    })
+    expect(record.state).toBe(MOMENT_FEED_STATE.pending)
+    expect(record.reviewedBy).toBeNull()
+    expect(record.reviewerId).toBeNull()
+  })
+
+  test('duplicate application is rejected', async () => {
+    const user = await userService.create()
+    await momentService.applyMomentFeed({
+      id: user.id,
+      state: USER_STATE.active,
+    })
+    await expect(
+      momentService.applyMomentFeed({ id: user.id, state: USER_STATE.active })
+    ).rejects.toThrowError(UserInputError)
+  })
+})
+
+describe('moment feed: reviewMomentFeedApplication', () => {
+  const seedApplication = async (state: string) => {
+    const user = await userService.create()
+    await connections
+      .knex('moment_feed_user')
+      .insert({ userId: user.id, state })
+    return user
+  }
+
+  test('not found throws', async () => {
+    const admin = await userService.create()
+    await expect(
+      momentService.reviewMomentFeedApplication({
+        userId: '0',
+        state: MOMENT_FEED_STATE.approved,
+        reviewerId: admin.id,
+      })
+    ).rejects.toThrowError(UserInputError)
+  })
+
+  test('pending to approved sets reviewer', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.pending)
+    const record = await momentService.reviewMomentFeedApplication({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.approved,
+      reviewerId: admin.id,
+    })
+    expect(record.state).toBe(MOMENT_FEED_STATE.approved)
+    expect(record.reviewedBy).toBe(MOMENT_FEED_REVIEWED_BY.admin)
+    expect(record.reviewerId).toBe(admin.id)
+  })
+
+  test('invalid transition pending to revoked throws', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.pending)
+    await expect(
+      momentService.reviewMomentFeedApplication({
+        userId: user.id,
+        state: MOMENT_FEED_STATE.revoked,
+        reviewerId: admin.id,
+      })
+    ).rejects.toThrowError(UserInputError)
+  })
+
+  test('approved to revoked is allowed', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.approved)
+    const record = await momentService.reviewMomentFeedApplication({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.revoked,
+      reviewerId: admin.id,
+    })
+    expect(record.state).toBe(MOMENT_FEED_STATE.revoked)
+  })
+})
+
+describe('moment feed: autoApproveExpiredMomentFeedApplications', () => {
+  test('approves expired pending and skips fresh ones', async () => {
+    const oldUser = await userService.create()
+    const freshUser = await userService.create()
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    await connections.knex('moment_feed_user').insert({
+      userId: oldUser.id,
+      state: MOMENT_FEED_STATE.pending,
+      createdAt: threeDaysAgo,
+    })
+    await connections.knex('moment_feed_user').insert({
+      userId: freshUser.id,
+      state: MOMENT_FEED_STATE.pending,
+    })
+
+    await momentService.autoApproveExpiredMomentFeedApplications({
+      expireHours: 48,
+    })
+
+    const oldRow = await connections
+      .knex('moment_feed_user')
+      .where({ userId: oldUser.id })
+      .first()
+    const freshRow = await connections
+      .knex('moment_feed_user')
+      .where({ userId: freshUser.id })
+      .first()
+    expect(oldRow.state).toBe(MOMENT_FEED_STATE.approved)
+    expect(oldRow.reviewedBy).toBe(MOMENT_FEED_REVIEWED_BY.system)
+    expect(oldRow.reviewerId).toBeNull()
+    expect(freshRow.state).toBe(MOMENT_FEED_STATE.pending)
   })
 })

@@ -76,6 +76,7 @@
           "Report": "./report.js#Report",
           "IcymiTopic": "./misc.js#MattersChoiceTopic",
           "Moment": "./moment.js#Moment",
+          "MomentFeedApplication": "./moment.js#MomentFeedUser",
           "Writing": "./index.js#Writing",
           "Campaign": "./campaign.js#Campaign",
           "CampaignOSS": "./campaign.js#Campaign",

@@ -50,6 +50,10 @@ const schema: GQLResolvers = {
 
     createdAt: ({ createdAt }) => createdAt,
   },
+  MomentFeedApplication: {
+    reviewer: ({ reviewerId }, _, { dataSources: { atomService } }) =>
+      reviewerId ? atomService.userIdLoader.load(reviewerId) : null,
+  },
 }
 
 export default schema

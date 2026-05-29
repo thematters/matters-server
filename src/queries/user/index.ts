@@ -53,6 +53,7 @@ import isBlocked from './isBlocked.js'
 import isBlocking from './isBlocking.js'
 import isFollowee from './isFollowee.js'
 import isFollower from './isFollower.js'
+import isMomentFeedMember from './isMomentFeedMember.js'
 import isWalletAuth from './isWalletAuth.js'
 import latestWorks from './latestWorks.js'
 import Liker from './liker/index.js'
@@ -60,7 +61,13 @@ import likerId from './liker/likerId.js'
 import momentCount from './momentCount.js'
 import { hasNFTs, nfts } from './nfts.js'
 import notification from './notification.js'
-import { boost, featureFlags, restrictions, score } from './oss.js'
+import {
+  boost,
+  featureFlags,
+  momentFeedApplication,
+  restrictions,
+  score,
+} from './oss.js'
 import ownCircles from './ownCircles.js'
 import pinnedWorks from './pinnedWorks.js'
 import profileCover from './profileCover.js'
@@ -148,6 +155,7 @@ const user: {
     tags: tagsUsageRecommendation,
     writings,
     campaigns,
+    isMomentFeedMember,
   },
   UserInfo: {
     ipnsKey,
@@ -205,6 +213,7 @@ const user: {
     score,
     restrictions,
     featureFlags,
+    momentFeedApplication,
   },
 
   // Payment

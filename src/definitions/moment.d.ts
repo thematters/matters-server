@@ -1,4 +1,8 @@
-import type { MOMENT_STATE } from '#common/enums/index.js'
+import type {
+  MOMENT_STATE,
+  MOMENT_FEED_STATE,
+  MOMENT_FEED_REVIEWED_BY,
+} from '#common/enums/index.js'
 import type { ValueOf } from './generic.js'
 
 export interface Moment {
@@ -33,6 +37,16 @@ export interface MomentTag {
   id: string
   momentId: string
   tagId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface MomentFeedUser {
+  id: string
+  userId: string
+  state: ValueOf<typeof MOMENT_FEED_STATE>
+  reviewedBy: ValueOf<typeof MOMENT_FEED_REVIEWED_BY> | null
+  reviewerId: string | null
   createdAt: Date
   updatedAt: Date
 }

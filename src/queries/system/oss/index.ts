@@ -2,6 +2,7 @@ import { articles } from './articles.js'
 import { badgedUsers } from './badgedUsers.js'
 import { comments } from './comments.js'
 import { icymiTopics } from './icymiTopics.js'
+import { momentFeedUsers } from './momentFeedUsers.js'
 import { moments } from './moments.js'
 import { oauthClients } from './oauthClients.js'
 import { reports } from './reports.js'
@@ -17,6 +18,7 @@ export default {
   articles,
   comments,
   moments,
+  momentFeedUsers,
   tags,
   oauthClients,
   seedingUsers,

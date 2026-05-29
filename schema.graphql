@@ -307,6 +307,8 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
+  applyMomentFeed: User!
+  updateMomentFeedApplicationState(input: UpdateMomentFeedApplicationStateInput!): User!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
   putTagChannel(input: PutTagChannelInput!): Tag!
@@ -1344,6 +1346,7 @@ type User implements Node {
 
   """Status of current user."""
   status: UserStatus
+  isMomentFeedMember: Boolean!
   oss: UserOSS!
   remark: String
 
@@ -2401,6 +2404,7 @@ type OSS {
   reports(input: ConnectionArgs!): ReportConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
+  momentFeedUsers(input: MomentFeedUsersInput!): UserConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2958,6 +2962,7 @@ type Recommendation {
 
   """Global articles sort by latest activity time."""
   hottest(input: RecommendInput!): ArticleConnection!
+  hottestMoments(input: ConnectionArgs!): MomentConnection!
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
@@ -3176,6 +3181,7 @@ type UserOSS {
   score: Float!
   restrictions: [UserRestriction!]!
   featureFlags: [UserFeatureFlag!]!
+  momentFeedApplication: MomentFeedApplication
 }
 
 type UserFeatures {
@@ -4276,6 +4282,17 @@ input UnlikeMomentInput {
   id: ID!
 }
 
+input MomentFeedUsersInput {
+  after: String
+  first: Int
+  states: [MomentFeedUserState!]
+}
+
+input UpdateMomentFeedApplicationStateInput {
+  id: ID!
+  state: MomentFeedUserState!
+}
+
 type Moment implements Node {
   id: ID!
   shortHash: String!
@@ -4310,6 +4327,27 @@ type MomentConnection implements Connection {
 type MomentEdge {
   cursor: String!
   node: Moment!
+}
+
+type MomentFeedApplication {
+  state: MomentFeedUserState!
+  reviewedBy: MomentFeedUserReviewedBy
+  reviewer: User
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum MomentFeedUserState {
+  pending
+  approved
+  rejected
+  revoked
+}
+
+enum MomentFeedUserReviewedBy {
+  admin
+  system
+  seed
 }
 
 interface Channel {

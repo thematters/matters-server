@@ -1,14 +1,24 @@
-import type { User, Connections } from '#definitions/index.js'
+import type {
+  User,
+  Connections,
+  MomentFeedUser,
+  ValueOf,
+} from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   USER_STATE,
   MOMENT_STATE,
+  MOMENT_FEED_STATE,
+  MOMENT_FEED_REVIEWED_BY,
   MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
   NOTICE_TYPE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
   ARTICLE_STATE,
   NODE_TYPES,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -16,6 +26,7 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from '#common/errors.js'
+import { auditLog } from '#common/logger.js'
 import { shortHash, extractMentionIds, stripHtml } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { createRequire } from 'node:module'
@@ -42,6 +53,145 @@ export class MomentService {
 
   public findMoments = () => {
     return this.connections.knexRO('Moment').select('*')
+  }
+
+  public findMomentFeedUsersAndCount = async ({
+    states,
+    skip,
+    take,
+  }: {
+    states?: Array<MomentFeedUser['state']>
+    skip?: number
+    take?: number
+  } = {}) => {
+    const { knexRO } = this.connections
+    const users = await knexRO
+      .select('user.*', knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .from('user')
+      .join('moment_feed_user', 'user.id', 'moment_feed_user.user_id')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (states && states.length > 0) {
+          builder.whereIn('moment_feed_user.state', states)
+        }
+      })
+      .orderBy('moment_feed_user.created_at', 'desc')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    return [users, users[0]?.totalCount || 0] as [User[], number]
+  }
+
+  public applyMomentFeed = async (
+    user: Pick<User, 'id' | 'state'>
+  ): Promise<MomentFeedUser> => {
+    if (user.state !== USER_STATE.active) {
+      throw new ForbiddenByStateError(
+        `${user.state} user is not allowed to apply moment feed`
+      )
+    }
+
+    const existing = await this.models.findFirst({
+      table: 'moment_feed_user',
+      where: { userId: user.id },
+    })
+    if (existing) {
+      throw new UserInputError(
+        `moment feed application already exists with state ${existing.state}`
+      )
+    }
+
+    return this.models.create({
+      table: 'moment_feed_user',
+      data: { userId: user.id, state: MOMENT_FEED_STATE.pending },
+    })
+  }
+
+  public reviewMomentFeedApplication = async ({
+    userId,
+    state,
+    reviewerId,
+  }: {
+    userId: string
+    state: ValueOf<typeof MOMENT_FEED_STATE>
+    reviewerId: string
+  }): Promise<MomentFeedUser> => {
+    const record = await this.models.findFirst({
+      table: 'moment_feed_user',
+      where: { userId },
+    })
+    if (!record) {
+      throw new UserInputError('moment feed application not found')
+    }
+
+    const allowedTransitions: Record<
+      ValueOf<typeof MOMENT_FEED_STATE>,
+      Array<ValueOf<typeof MOMENT_FEED_STATE>>
+    > = {
+      [MOMENT_FEED_STATE.pending]: [
+        MOMENT_FEED_STATE.approved,
+        MOMENT_FEED_STATE.rejected,
+      ],
+      [MOMENT_FEED_STATE.rejected]: [MOMENT_FEED_STATE.approved],
+      [MOMENT_FEED_STATE.approved]: [
+        MOMENT_FEED_STATE.approved,
+        MOMENT_FEED_STATE.revoked,
+      ],
+      [MOMENT_FEED_STATE.revoked]: [MOMENT_FEED_STATE.approved],
+    }
+
+    if (!allowedTransitions[record.state].includes(state)) {
+      throw new UserInputError(
+        `cannot change moment feed state from ${record.state} to ${state}`
+      )
+    }
+
+    return this.models.update({
+      table: 'moment_feed_user',
+      where: { id: record.id },
+      data: {
+        state,
+        reviewedBy: MOMENT_FEED_REVIEWED_BY.admin,
+        reviewerId,
+      },
+    })
+  }
+
+  public autoApproveExpiredMomentFeedApplications = async ({
+    expireHours = 48,
+  }: { expireHours?: number } = {}): Promise<number> => {
+    const cutoff = new Date(Date.now() - expireHours * 60 * 60 * 1000)
+    const records = await this.connections
+      .knexRO('moment_feed_user')
+      .select('*')
+      .where({ state: MOMENT_FEED_STATE.pending })
+      .andWhere('created_at', '<', cutoff)
+
+    for (const record of records) {
+      await this.models.update({
+        table: 'moment_feed_user',
+        where: { id: record.id },
+        data: {
+          state: MOMENT_FEED_STATE.approved,
+          reviewedBy: MOMENT_FEED_REVIEWED_BY.system,
+          reviewerId: null,
+        },
+      })
+      auditLog({
+        actorId: null,
+        action: AUDIT_LOG_ACTION.autoApproveMomentFeedApplication,
+        entity: 'moment_feed_user',
+        entityId: record.id,
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+    }
+
+    return records.length
   }
 
   public create = async (
