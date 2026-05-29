@@ -1048,7 +1048,7 @@ describe('update user state', () => {
     })
 
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
-    expect(data).toBe(null)
+    expect(data.updateUserState).toBe(null)
   })
 
   test('archive user should provide viewer passwd', async () => {
