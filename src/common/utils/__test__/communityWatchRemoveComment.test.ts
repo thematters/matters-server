@@ -284,6 +284,15 @@ describe('communityWatchRemoveComment', () => {
     )
   })
 
+  test('rejects frozen community watch users before loading the comment', async () => {
+    const { context } = createContext({ viewerState: USER_STATE.frozen })
+
+    await expect(removeComment(context)).rejects.toHaveProperty(
+      'extensions.code',
+      'FORBIDDEN_BY_STATE'
+    )
+  })
+
   test('rejects non-comment targets', async () => {
     const { context } = createContext()
 

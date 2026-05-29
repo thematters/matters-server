@@ -1028,6 +1028,29 @@ describe('update user state', () => {
   const activeUser1Email = 'test2@matters.news'
   const activeUser2Email = 'test3@matters.news'
 
+  test('non-admin users can not update user state', async () => {
+    const UPDATE_USER_STATE = /* GraphQL */ `
+      mutation ($input: UpdateUserStateInput!) {
+        updateUserState(input: $input) {
+          id
+        }
+      }
+    `
+    const server = await testClient({ isAuth: true, connections })
+    const { errors, data } = await server.executeOperation({
+      query: UPDATE_USER_STATE,
+      variables: {
+        input: {
+          id: activeUser1Id,
+          state: USER_STATE.frozen,
+        },
+      },
+    })
+
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    expect(data).toBe(null)
+  })
+
   test('archive user should provide viewer passwd', async () => {
     const { errors } = await updateUserState(
       { id, state: USER_STATE.archived },
