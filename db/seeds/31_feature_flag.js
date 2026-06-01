@@ -41,5 +41,9 @@ export const seed = async (knex) => {
       flag: 'off',
       value: 0.5,
     },
+    {
+      name: 'hottest_moment_feed',
+      flag: 'off',
+    },
   ])
 }

@@ -1839,6 +1839,7 @@ export type GQLFeatureName =
   | 'circle_interact'
   | 'circle_management'
   | 'fingerprint'
+  | 'hottest_moment_feed'
   | 'payment'
   | 'payout'
   | 'spam_detection'
@@ -2105,6 +2106,7 @@ export type GQLMigrationType = 'medium'
 
 export type GQLMoment = GQLNode & {
   __typename?: 'Moment'
+  adStatus: GQLAdStatus
   articles: Array<GQLArticle>
   assets: Array<GQLAsset>
   author: GQLUser
@@ -2329,6 +2331,7 @@ export type GQLMutation = {
   setUserName: GQLUser
   /** Set current viewer's Fediverse federation preference. */
   setViewerFederationSetting: GQLUserFederationSetting
+  setWritingAdStatus: GQLWriting
   /** Upload a single file. */
   singleFileUpload: GQLAsset
   /** Login/Signup via social accounts. */
@@ -2728,6 +2731,10 @@ export type GQLMutationSetUserNameArgs = {
 
 export type GQLMutationSetViewerFederationSettingArgs = {
   input: GQLSetViewerFederationSettingInput
+}
+
+export type GQLMutationSetWritingAdStatusArgs = {
+  input: GQLSetAdStatusInput
 }
 
 export type GQLMutationSingleFileUploadArgs = {
@@ -3623,7 +3630,7 @@ export type GQLRecommendationHottestArgs = {
 }
 
 export type GQLRecommendationHottestMomentsArgs = {
-  input: GQLConnectionArgs
+  input: GQLRecommendInput
 }
 
 export type GQLRecommendationIcymiArgs = {
@@ -4582,7 +4589,7 @@ export type GQLUser = GQLNode & {
   isFollowee: Scalars['Boolean']['output']
   /** Whether current user is following viewer. */
   isFollower: Scalars['Boolean']['output']
-  isMomentFeedMember: Scalars['Boolean']['output']
+  isMomentFeedApplied: Scalars['Boolean']['output']
   /** user latest articles or collections */
   latestWorks: Array<GQLPinnableWork>
   /** Liker info of current user */
@@ -4862,7 +4869,7 @@ export type GQLUserNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export type GQLUserNoticeType = 'UserNewFollower'
+export type GQLUserNoticeType = 'MomentFeedApproved' | 'UserNewFollower'
 
 export type GQLUserOss = {
   __typename?: 'UserOSS'
@@ -8970,6 +8977,7 @@ export type GQLMomentResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Moment'] = GQLResolversParentTypes['Moment']
 > = ResolversObject<{
+  adStatus?: Resolver<GQLResolversTypes['AdStatus'], ParentType, ContextType>
   articles?: Resolver<
     Array<GQLResolversTypes['Article']>,
     ParentType,
@@ -9591,6 +9599,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetViewerFederationSettingArgs, 'input'>
+  >
+  setWritingAdStatus?: Resolver<
+    GQLResolversTypes['Writing'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetWritingAdStatusArgs, 'input'>
   >
   singleFileUpload?: Resolver<
     GQLResolversTypes['Asset'],
@@ -11188,7 +11202,7 @@ export type GQLUserResolvers<
   isBlocking?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollowee?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollower?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  isMomentFeedMember?: Resolver<
+  isMomentFeedApplied?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
     ContextType

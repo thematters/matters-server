@@ -73,10 +73,10 @@ const HOTTEST_MOMENTS = /* GraphQL */ `
   }
 `
 
-const IS_MOMENT_FEED_MEMBER = /* GraphQL */ `
+const IS_MOMENT_FEED_APPLIED = /* GraphQL */ `
   query {
     viewer {
-      isMomentFeedMember
+      isMomentFeedApplied
     }
   }
 `
@@ -205,8 +205,8 @@ describe('query oss.momentFeedUsers', () => {
   })
 })
 
-describe('query viewer.isMomentFeedMember', () => {
-  test('returns true for an approved member', async () => {
+describe('query viewer.isMomentFeedApplied', () => {
+  test('returns true when an approved application exists', async () => {
     const user = await seedApplication(MOMENT_FEED_STATE.approved)
     const server = await testClient({
       connections,
@@ -214,13 +214,27 @@ describe('query viewer.isMomentFeedMember', () => {
       isAuth: true,
     })
     const { errors, data } = await server.executeOperation({
-      query: IS_MOMENT_FEED_MEMBER,
+      query: IS_MOMENT_FEED_APPLIED,
     })
     expect(errors).toBeUndefined()
-    expect(data?.viewer?.isMomentFeedMember).toBe(true)
+    expect(data?.viewer?.isMomentFeedApplied).toBe(true)
   })
 
-  test('returns false for a non-member', async () => {
+  test('returns true when a pending application exists', async () => {
+    const user = await seedApplication(MOMENT_FEED_STATE.pending)
+    const server = await testClient({
+      connections,
+      context: { viewer: user },
+      isAuth: true,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: IS_MOMENT_FEED_APPLIED,
+    })
+    expect(errors).toBeUndefined()
+    expect(data?.viewer?.isMomentFeedApplied).toBe(true)
+  })
+
+  test('returns false when no application exists', async () => {
     const user = await userService.create()
     const server = await testClient({
       connections,
@@ -228,9 +242,9 @@ describe('query viewer.isMomentFeedMember', () => {
       isAuth: true,
     })
     const { errors, data } = await server.executeOperation({
-      query: IS_MOMENT_FEED_MEMBER,
+      query: IS_MOMENT_FEED_APPLIED,
     })
     expect(errors).toBeUndefined()
-    expect(data?.viewer?.isMomentFeedMember).toBe(false)
+    expect(data?.viewer?.isMomentFeedApplied).toBe(false)
   })
 })

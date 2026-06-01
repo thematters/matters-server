@@ -1,6 +1,6 @@
 import type { GQLUserResolvers } from '#definitions/index.js'
 
-const resolver: GQLUserResolvers['isMomentFeedMember'] = async (
+const resolver: GQLUserResolvers['isMomentFeedApplied'] = async (
   { id },
   _,
   { dataSources: { atomService } }
@@ -12,7 +12,7 @@ const resolver: GQLUserResolvers['isMomentFeedMember'] = async (
     table: 'moment_feed_user',
     where: { userId: id },
   })
-  return record?.state === 'approved'
+  return !!record
 }
 
 export default resolver

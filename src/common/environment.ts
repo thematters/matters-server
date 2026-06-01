@@ -269,6 +269,10 @@ export const environment = {
     process.env.MATTERS_HOTTEST_MOMENTS_MAX_TAKE || '300',
     10
   ),
+  momentFeedAutoApproveHours: parseInt(
+    process.env.MATTERS_MOMENT_FEED_AUTO_APPROVE_HOURS || '48',
+    10
+  ),
   channelFloodDetectWindowInSeconds: parseInt(
     process.env.MATTERS_CHANNEL_FLOOD_DETECT_WINDOW_IN_SECONDS || '86400',
     10

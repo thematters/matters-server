@@ -45,10 +45,12 @@ const {
 export class MomentService {
   private connections: Connections
   private models: AtomService
+  public notificationService: NotificationService
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.models = new AtomService(connections)
+    this.notificationService = new NotificationService(connections)
   }
 
   public findMoments = () => {
@@ -151,7 +153,7 @@ export class MomentService {
       )
     }
 
-    return this.models.update({
+    const updated = await this.models.update({
       table: 'moment_feed_user',
       where: { id: record.id },
       data: {
@@ -160,6 +162,18 @@ export class MomentService {
         reviewerId,
       },
     })
+
+    if (
+      state === MOMENT_FEED_STATE.approved &&
+      record.state !== MOMENT_FEED_STATE.approved
+    ) {
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.moment_feed_approved,
+        recipientId: userId,
+      })
+    }
+
+    return updated
   }
 
   public autoApproveExpiredMomentFeedApplications = async ({
@@ -188,6 +202,10 @@ export class MomentService {
         entity: 'moment_feed_user',
         entityId: record.id,
         status: AUDIT_LOG_STATUS.succeeded,
+      })
+      this.notificationService.trigger({
+        event: NOTICE_TYPE.moment_feed_approved,
+        recipientId: record.userId,
       })
     }
 

@@ -1,5 +1,6 @@
 import type { Connections } from '#definitions/index.js'
 
+import { jest } from '@jest/globals'
 import { v4 } from 'uuid'
 
 import {
@@ -9,6 +10,7 @@ import {
   MOMENT_FEED_REVIEWED_BY,
   MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
+  NOTICE_TYPE,
 } from '#common/enums/index.js'
 import {
   ForbiddenError,
@@ -401,5 +403,84 @@ describe('moment feed: autoApproveExpiredMomentFeedApplications', () => {
     expect(oldRow.reviewedBy).toBe(MOMENT_FEED_REVIEWED_BY.system)
     expect(oldRow.reviewerId).toBeNull()
     expect(freshRow.state).toBe(MOMENT_FEED_STATE.pending)
+  })
+})
+
+describe('moment feed: approval notification', () => {
+  const seedApplication = async (state: string) => {
+    const user = await userService.create()
+    await connections
+      .knex('moment_feed_user')
+      .insert({ userId: user.id, state })
+    return user
+  }
+
+  test('admin approve (into approved) triggers notification', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.pending)
+    const triggerSpy = jest.spyOn(momentService.notificationService, 'trigger')
+
+    await momentService.reviewMomentFeedApplication({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.approved,
+      reviewerId: admin.id,
+    })
+
+    expect(triggerSpy).toHaveBeenCalledWith({
+      event: NOTICE_TYPE.moment_feed_approved,
+      recipientId: user.id,
+    })
+    triggerSpy.mockRestore()
+  })
+
+  test('admin re-approve (approved to approved) does not trigger', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.approved)
+    const triggerSpy = jest.spyOn(momentService.notificationService, 'trigger')
+
+    await momentService.reviewMomentFeedApplication({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.approved,
+      reviewerId: admin.id,
+    })
+
+    expect(triggerSpy).not.toHaveBeenCalled()
+    triggerSpy.mockRestore()
+  })
+
+  test('admin reject does not trigger', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.pending)
+    const triggerSpy = jest.spyOn(momentService.notificationService, 'trigger')
+
+    await momentService.reviewMomentFeedApplication({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.rejected,
+      reviewerId: admin.id,
+    })
+
+    expect(triggerSpy).not.toHaveBeenCalled()
+    triggerSpy.mockRestore()
+  })
+
+  test('auto approve triggers notification for the approved user', async () => {
+    const user = await userService.create()
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    await connections.knex('moment_feed_user').insert({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.pending,
+      createdAt: threeDaysAgo,
+    })
+    const triggerSpy = jest.spyOn(momentService.notificationService, 'trigger')
+
+    await momentService.autoApproveExpiredMomentFeedApplications({
+      expireHours: 48,
+    })
+
+    expect(triggerSpy).toHaveBeenCalledWith({
+      event: NOTICE_TYPE.moment_feed_approved,
+      recipientId: user.id,
+    })
+    triggerSpy.mockRestore()
   })
 })

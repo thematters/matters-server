@@ -1,12 +1,11 @@
 import type { APIGatewayProxyResult } from 'aws-lambda'
 
 import { FEATURE_FLAG } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { MomentService } from '#connectors/momentService.js'
 import { SystemService } from '#connectors/systemService.js'
 
 import { connections } from '../connections.js'
-
-const MOMENT_FEED_AUTO_APPROVE_EXPIRE_HOURS = 48
 
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   await connections.ensureConnected()
@@ -24,7 +23,7 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
 
   const momentService = new MomentService(connections)
   const count = await momentService.autoApproveExpiredMomentFeedApplications({
-    expireHours: MOMENT_FEED_AUTO_APPROVE_EXPIRE_HOURS,
+    expireHours: environment.momentFeedAutoApproveHours,
   })
 
   return {

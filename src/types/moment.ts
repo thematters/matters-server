@@ -73,6 +73,7 @@ export default /* GraphQL */ `
     liked: Boolean! @privateCache
 
     spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+    adStatus: AdStatus! @auth(mode: "${AUTH_MODE.admin}")
 
     createdAt: DateTime!
   }

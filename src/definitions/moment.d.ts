@@ -13,6 +13,7 @@ export interface Moment {
   state: ValueOf<typeof MOMENT_STATE>
   spamScore: number | null
   isSpam: boolean | null
+  isAd: boolean | null
   createdAt: Date
   updatedAt: Date
 }

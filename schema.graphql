@@ -176,6 +176,7 @@ type Mutation {
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Writing!
   setAdStatus(input: SetAdStatusInput!): Article!
+  setWritingAdStatus(input: SetAdStatusInput!): Writing!
   reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback!
 
   """Send verification code for email."""
@@ -1346,7 +1347,7 @@ type User implements Node {
 
   """Status of current user."""
   status: UserStatus
-  isMomentFeedMember: Boolean!
+  isMomentFeedApplied: Boolean!
   oss: UserOSS!
   remark: String
 
@@ -2085,6 +2086,7 @@ type UserNotice implements Notice {
 
 enum UserNoticeType {
   UserNewFollower
+  MomentFeedApproved
 }
 
 type ArticleNotice implements Notice {
@@ -2756,6 +2758,7 @@ enum FeatureName {
   circle_interact
   spam_detection
   article_channel
+  hottest_moment_feed
 }
 
 enum FeatureFlag {
@@ -2962,7 +2965,7 @@ type Recommendation {
 
   """Global articles sort by latest activity time."""
   hottest(input: RecommendInput!): ArticleConnection!
-  hottestMoments(input: ConnectionArgs!): MomentConnection!
+  hottestMoments(input: RecommendInput!): MomentConnection!
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
@@ -4310,6 +4313,7 @@ type Moment implements Node {
   """whether current user has liked it"""
   liked: Boolean!
   spamStatus: SpamStatus!
+  adStatus: AdStatus!
   createdAt: DateTime!
 }
 

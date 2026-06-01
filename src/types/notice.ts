@@ -66,6 +66,7 @@ export default /* GraphQL */ `
 
   enum UserNoticeType {
     UserNewFollower
+    MomentFeedApproved
   }
 
 

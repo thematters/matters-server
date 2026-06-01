@@ -212,7 +212,7 @@ export default /* GraphQL */ `
     "Status of current user."
     status: UserStatus
 
-    isMomentFeedMember: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
+    isMomentFeedApplied: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
 
     ##############
     #     OSS    #
@@ -231,7 +231,7 @@ export default /* GraphQL */ `
     "Global articles sort by latest activity time."
     hottest(input: RecommendInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
-    hottestMoments(input: ConnectionArgs!): MomentConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_MOMENT})
+    hottestMoments(input: RecommendInput!): MomentConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_MOMENT})
 
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})

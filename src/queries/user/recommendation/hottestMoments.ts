@@ -2,6 +2,7 @@ import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
 import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
+import { ForbiddenError } from '#common/errors.js'
 import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 import { Cache } from '#connectors/index.js'
 
@@ -19,11 +20,19 @@ export const hottestMoments: GQLRecommendationResolvers['hottestMoments'] =
       },
     }
   ) => {
-    const feature = await systemService.getFeatureFlag('hottest_moment_feed')
-    const enabled =
-      feature && (await systemService.isFeatureEnabled(feature.flag, viewer))
-    if (!enabled) {
-      return connectionFromArray([], input, 0)
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    } else {
+      const feature = await systemService.getFeatureFlag('hottest_moment_feed')
+      const enabled =
+        feature && (await systemService.isFeatureEnabled(feature.flag, viewer))
+      if (!enabled) {
+        return connectionFromArray([], input, 0)
+      }
     }
 
     const { take, skip } = fromConnectionArgs(input)

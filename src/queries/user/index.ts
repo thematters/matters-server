@@ -53,7 +53,7 @@ import isBlocked from './isBlocked.js'
 import isBlocking from './isBlocking.js'
 import isFollowee from './isFollowee.js'
 import isFollower from './isFollower.js'
-import isMomentFeedMember from './isMomentFeedMember.js'
+import isMomentFeedApplied from './isMomentFeedApplied.js'
 import isWalletAuth from './isWalletAuth.js'
 import latestWorks from './latestWorks.js'
 import Liker from './liker/index.js'
@@ -155,7 +155,7 @@ const user: {
     tags: tagsUsageRecommendation,
     writings,
     campaigns,
-    isMomentFeedMember,
+    isMomentFeedApplied,
   },
   UserInfo: {
     ipnsKey,

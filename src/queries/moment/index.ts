@@ -3,6 +3,7 @@ import type { GQLResolvers } from '#definitions/index.js'
 import { NODE_TYPES, COMMENT_TYPE } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 
+import { adStatus } from './adStatus.js'
 import articles from './articles.js'
 import assets from './assets.js'
 import comments from './comments.js'
@@ -47,6 +48,7 @@ const schema: GQLResolvers = {
       viewer.id ? momentService.isLiked(id, viewer.id) : false,
 
     spamStatus,
+    adStatus,
 
     createdAt: ({ createdAt }) => createdAt,
   },

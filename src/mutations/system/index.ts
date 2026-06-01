@@ -16,6 +16,7 @@ import setAdStatus from './setAdStatus.js'
 import setBoost from './setBoost.js'
 import setFeature from './setFeature.js'
 import setSpamStatus from './setSpamStatus.js'
+import setWritingAdStatus from './setWritingAdStatus.js'
 import singleFileUpload from './singleFileUpload.js'
 import submitReport from './submitReport.js'
 import toggleSeedingUsers from './toggleSeedingUsers.js'
@@ -42,6 +43,7 @@ export default {
     putIcymiTopic,
     setSpamStatus,
     setAdStatus,
+    setWritingAdStatus,
     reviewTopicChannelFeedback,
   },
 }
