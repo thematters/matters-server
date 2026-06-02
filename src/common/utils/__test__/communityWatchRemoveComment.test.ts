@@ -50,16 +50,19 @@ const createContext = ({
   comment = baseComment,
   lockedComment = comment,
   activeAction,
+  existingReport,
   featureFlags = [{ type: USER_FEATURE_FLAG_TYPE.communityWatch }],
   viewerState = USER_STATE.active,
 }: {
   comment?: Comment
   lockedComment?: Comment | null
   activeAction?: { id: string }
+  existingReport?: { id: string }
   featureFlags?: Array<{ type: string }>
   viewerState?: string
 } = {}) => {
   const insertedActions: any[] = []
+  const insertedReports: any[] = []
   const commentUpdates: any[] = []
   const updatedComment = { ...lockedComment, state: COMMENT_STATE.banned }
 
@@ -75,10 +78,18 @@ const createContext = ({
         if (table === 'comment') {
           return lockedComment
         }
+        if (table === 'report') {
+          return existingReport
+        }
         return undefined
       },
       insert: async (data: any) => {
-        insertedActions.push(data)
+        if (table === 'community_watch_action') {
+          insertedActions.push(data)
+        }
+        if (table === 'report') {
+          insertedReports.push(data)
+        }
       },
       update: (data: any) => {
         commentUpdates.push(data)
@@ -132,7 +143,7 @@ const createContext = ({
     },
   } as any
 
-  return { context, insertedActions, commentUpdates }
+  return { context, insertedActions, insertedReports, commentUpdates }
 }
 
 const removeComment = (
@@ -154,7 +165,8 @@ const removeComment = (
 
 describe('communityWatchRemoveComment', () => {
   test('removes an article comment and writes an audit action', async () => {
-    const { context, insertedActions, commentUpdates } = createContext()
+    const { context, insertedActions, insertedReports, commentUpdates } =
+      createContext()
 
     const result = await mutation(
       {},
@@ -171,6 +183,13 @@ describe('communityWatchRemoveComment', () => {
     expect(result.state).toBe(COMMENT_STATE.banned)
     expect(commentUpdates).toEqual([
       expect.objectContaining({ state: COMMENT_STATE.banned }),
+    ])
+    expect(insertedReports).toEqual([
+      {
+        commentId: baseComment.id,
+        reporterId: '2',
+        reason: 'illegal_advertising',
+      },
     ])
     expect(insertedActions[0]).toEqual(
       expect.objectContaining({
@@ -203,7 +222,9 @@ describe('communityWatchRemoveComment', () => {
       type: COMMENT_TYPE.moment,
       targetId: '12',
     }
-    const { context, insertedActions } = createContext({ comment })
+    const { context, insertedActions, insertedReports } = createContext({
+      comment,
+    })
 
     await mutation(
       {},
@@ -226,6 +247,23 @@ describe('communityWatchRemoveComment', () => {
         reason: 'spam_ad',
       })
     )
+    expect(insertedReports).toEqual([
+      {
+        commentId: comment.id,
+        reporterId: '2',
+        reason: 'illegal_advertising',
+      },
+    ])
+  })
+
+  test('does not duplicate an existing synced report', async () => {
+    const { context, insertedReports } = createContext({
+      existingReport: { id: 'report-1' },
+    })
+
+    await removeComment(context)
+
+    expect(insertedReports).toHaveLength(0)
   })
 
   test('rejects users without the communityWatch feature flag', async () => {

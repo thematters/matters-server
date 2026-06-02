@@ -193,6 +193,7 @@ export const environment = {
     process.env.MATTERS_MOTOR_BADGE_THRESHOLD || '100',
     10
   ),
+  personhoodVerifierUrl: process.env.MATTERS_PERSONHOOD_VERIFIER_URL || '',
   ga4PropertyId: process.env.MATTERS_GA4_PROPERTY_ID || '',
   ga4ProjectId: process.env.MATTERS_GA4_PROJECT_ID || '',
   ga4ClientEmail: process.env.MATTERS_GA4_CLIENT_EMAIL || '',

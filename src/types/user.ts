@@ -19,6 +19,12 @@ export default /* GraphQL */ `
     "Confirm verification code from email."
     confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
+    "Create a short-lived token that binds a verifier challenge to the current viewer."
+    createPersonhoodHandoff(input: CreatePersonhoodHandoffInput!): PersonhoodHandoff! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
+
+    "Claim the carbon based badge with a verified zkID personhood proof."
+    claimPersonhoodBadge(input: ClaimPersonhoodBadgeInput!): User! @purgeCache(type: "${NODE_TYPES.User}")
+
     "Reset user or payment password."
     resetPassword(input: ResetPasswordInput!): Boolean
 
@@ -103,6 +109,9 @@ export default /* GraphQL */ `
     ##############
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): [User!] @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
+    "Archive multiple users from OSS with per-user results."
+    archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -797,6 +806,21 @@ export default /* GraphQL */ `
     password: String
   }
 
+  input ArchiveUsersInput {
+    ids: [ID!]!
+    password: String!
+  }
+
+  type ArchiveUsersResult {
+    archived: [User!]!
+    skipped: [ArchiveUserFailure!]!
+  }
+
+  type ArchiveUserFailure {
+    id: ID!
+    message: String!
+  }
+
   input UpdateUserRoleInput {
     id: ID!
     role: UserRole!
@@ -847,6 +871,23 @@ export default /* GraphQL */ `
     nonce: String!
   }
 
+  input CreatePersonhoodHandoffInput {
+    challenge: String!
+    challengeExpiresAt: DateTime
+  }
+
+  type PersonhoodHandoff {
+    token: String!
+    expiresAt: DateTime!
+  }
+
+  input ClaimPersonhoodBadgeInput {
+    handoffToken: String!
+    certChainProof: String!
+    certChainType: String
+    userSigProof: String!
+  }
+
   input FeaturedTagsInput {
     " tagIds "
     ids: [ID!]! # tagIds
@@ -866,6 +907,7 @@ export default /* GraphQL */ `
     architect
     grand_slam
     community_watch
+    carbon_based
     # can only have 1 of the 4 levels of nomad badges
     nomad1
     nomad2

@@ -7,6 +7,9 @@ import type {
 import { COMMENT_TYPE, NODE_TYPES } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
+import crypto from 'node:crypto'
+
+const syncedReportReason = 'illegal_advertising'
 
 const getSourceNodeType = ({ targetType }: CommunityWatchAction) =>
   targetType === COMMENT_TYPE.article ? NODE_TYPES.Article : NODE_TYPES.Moment
@@ -40,8 +43,30 @@ const communityWatchActionPublic: GQLCommunityWatchActionResolvers = {
     const actor = await atomService.userIdLoader.load(actorId)
     return actor.displayName || actor.userName || actor.id
   },
+  contentHash: ({ originalContent }: CommunityWatchAction) => {
+    if (originalContent == null) {
+      return null
+    }
+    const normalized = originalContent.replace(/\s+/g, ' ').trim()
+    return crypto.createHash('sha256').update(normalized).digest('hex')
+  },
   contentCleared: ({ originalContent }: CommunityWatchAction) =>
     originalContent === null,
+  reportSynced: async (
+    { actorId, commentId }: CommunityWatchAction,
+    _: unknown,
+    { dataSources: { connections } }: Context
+  ) => {
+    const report = await connections.knex('report')
+      .select('id')
+      .where({
+        commentId,
+        reporterId: actorId,
+        reason: syncedReportReason,
+      })
+      .first()
+    return Boolean(report)
+  },
 }
 
 export default communityWatchActionPublic

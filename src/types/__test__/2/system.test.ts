@@ -1362,6 +1362,11 @@ describe('federation settings', () => {
 })
 
 describe('submitReport', () => {
+  beforeEach(async () => {
+    await connections.knex('report').delete()
+    await connections.knex('community_watch_action').delete()
+  })
+
   const SUBMIT_REPORT = /* GraphQL */ `
     mutation ($input: SubmitReportInput!) {
       submitReport(input: $input) {
@@ -1382,18 +1387,28 @@ describe('submitReport', () => {
     }
   `
   const GET_REPORTS = /* GraphQL */ `
-    query ($input: ConnectionArgs!) {
+    query ($input: OSSReportsInput!) {
       oss {
         reports(input: $input) {
           totalCount
           edges {
             node {
               id
+              source
+              reason
+              communityWatchAction {
+                uuid
+                actionState
+                reviewState
+              }
               reporter {
                 id
               }
               target {
                 ... on Article {
+                  id
+                }
+                ... on Comment {
                   id
                 }
                 ... on Moment {
@@ -1460,6 +1475,192 @@ describe('submitReport', () => {
     expect(dataQuery.oss.reports.totalCount).toBe(2)
     expect(dataQuery.oss.reports.edges[0].node.reporter.id).toBeDefined()
     expect(dataQuery.oss.reports.edges[0].node.target.id).toBeDefined()
+    // Reports created via submitReport originate from the legacy `report`
+    // table and must be reported as `direct`.
+    expect(dataQuery.oss.reports.edges[0].node.source).toBe('direct')
+    expect(dataQuery.oss.reports.edges[1].node.source).toBe('direct')
+    expect(dataQuery.oss.reports.edges[0].node.communityWatchAction).toBeNull()
+    expect(dataQuery.oss.reports.edges[1].node.communityWatchAction).toBeNull()
+  })
+
+  test('reports query unions community_watch_action rows', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+
+    // Seed: insert community_watch_action rows on an existing comment so the
+    // OSS reports list can surface active rows alongside direct reports.
+    const comment = await connections
+      .knex('comment')
+      .select('id', 'target_id')
+      .where('type', 'article')
+      .first()
+    const contentExpiresAt = new Date()
+    contentExpiresAt.setFullYear(contentExpiresAt.getFullYear() + 1)
+
+    await connections.knex('community_watch_action').insert([
+      {
+        uuid: '11111111-1111-1111-1111-111111111111',
+        commentId: comment.id,
+        commentType: 'article',
+        targetType: 'article',
+        targetId: comment.targetId,
+        targetTitle: 'seed',
+        targetShortHash: 'seed',
+        reason: 'porn_ad',
+        actorId: '1',
+        commentAuthorId: '2',
+        originalContent: '<p>banned</p>',
+        originalState: 'active',
+        actionState: 'active',
+        appealState: 'none',
+        reviewState: 'pending',
+        contentExpiresAt,
+      },
+      {
+        uuid: '22222222-2222-2222-2222-222222222222',
+        commentId: comment.id,
+        commentType: 'article',
+        targetType: 'article',
+        targetId: comment.targetId,
+        targetTitle: 'restored seed',
+        targetShortHash: 'seed',
+        reason: 'spam_ad',
+        actorId: '1',
+        commentAuthorId: '2',
+        originalContent: '<p>restored</p>',
+        originalState: 'active',
+        actionState: 'restored',
+        appealState: 'resolved',
+        reviewState: 'reversed',
+        contentExpiresAt,
+      },
+    ])
+
+    const { data, errors } = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: { input: { first: null } },
+    })
+    expect(errors).toBeUndefined()
+
+    // At least one direct report plus the active community_watch row seeded
+    // here. Other test files may create direct reports in parallel against the
+    // same CI database, so avoid asserting an exact global count.
+    expect(data.oss.reports.totalCount).toBeGreaterThanOrEqual(2)
+
+    const sources = data.oss.reports.edges.map(
+      (e: { node: { source: string } }) => e.node.source
+    )
+    expect(sources).toContain('community_watch')
+    expect(sources).toContain('direct')
+
+    const seededWatchUuids = [
+      ...new Set(
+        data.oss.reports.edges
+          .map(
+            (e: {
+              node: { communityWatchAction?: { uuid?: string } | null }
+            }) => e.node.communityWatchAction?.uuid
+          )
+          .filter((uuid?: string) =>
+            [
+              '11111111-1111-1111-1111-111111111111',
+              '22222222-2222-2222-2222-222222222222',
+            ].includes(uuid ?? '')
+          )
+      ),
+    ]
+    // Restored community_watch rows are excluded so OSS staff don't act on
+    // reversed removals when triaging accounts.
+    expect(seededWatchUuids).toEqual(['11111111-1111-1111-1111-111111111111'])
+    const watchEdge = data.oss.reports.edges.find(
+      (e: { node: { communityWatchAction?: { uuid?: string } | null } }) =>
+        e.node.communityWatchAction?.uuid === seededWatchUuids[0]
+    )
+    expect(watchEdge).toBeDefined()
+    // Reason is namespaced for community-watch rows.
+    expect(watchEdge?.node.reason).toBe('community_watch_porn_ad')
+    expect(watchEdge?.node.communityWatchAction).toMatchObject({
+      uuid: '11111111-1111-1111-1111-111111111111',
+      actionState: 'active',
+      reviewState: 'pending',
+    })
+    // The target resolves to the underlying Comment.
+    expect(watchEdge?.node.target.id).toBeDefined()
+  })
+
+  test('reports query filters by source', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+
+    await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+
+    const comment = await connections
+      .knex('comment')
+      .select('id', 'target_id')
+      .where('type', 'article')
+      .first()
+    const contentExpiresAt = new Date()
+    contentExpiresAt.setFullYear(contentExpiresAt.getFullYear() + 1)
+
+    await connections.knex('community_watch_action').insert({
+      uuid: '33333333-3333-3333-3333-333333333333',
+      commentId: comment.id,
+      commentType: 'article',
+      targetType: 'article',
+      targetId: comment.targetId,
+      targetTitle: 'source filter seed',
+      targetShortHash: 'seed',
+      reason: 'spam_ad',
+      actorId: '1',
+      commentAuthorId: '2',
+      originalContent: '<p>same spam body</p>',
+      originalState: 'active',
+      actionState: 'active',
+      appealState: 'none',
+      reviewState: 'pending',
+      contentExpiresAt,
+    })
+
+    const { data, errors } = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: {
+        input: {
+          first: null,
+          filter: { source: 'community_watch' },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.oss.reports.edges.length).toBeGreaterThanOrEqual(1)
+    expect(
+      data.oss.reports.edges.every(
+        (edge: { node: { source: string } }) =>
+          edge.node.source === 'community_watch'
+      )
+    ).toBe(true)
   })
 })
 

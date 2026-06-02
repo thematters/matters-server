@@ -1083,6 +1083,59 @@ describe('update user state', () => {
     )
     expect(data.updateUserState[0].status.state).toBe('banned')
   })
+
+  test('archive users in batch with per-user skipped results', async () => {
+    const batchUser1 = await userService.create({
+      email: 'batch-archive-1@matters.news',
+    })
+    const batchUser2 = await userService.create({
+      email: 'batch-archive-2@matters.news',
+    })
+    await userService.archive(batchUser2.id)
+
+    const ARCHIVE_USERS = /* GraphQL */ `
+      mutation ($input: ArchiveUsersInput!) {
+        archiveUsers(input: $input) {
+          archived {
+            id
+            status {
+              state
+            }
+          }
+          skipped {
+            id
+            message
+          }
+        }
+      }
+    `
+
+    const server = await testClient({
+      isAdmin: true,
+      isAuth: true,
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: ARCHIVE_USERS,
+      variables: {
+        input: {
+          ids: [
+            toGlobalId({ type: NODE_TYPES.User, id: batchUser1.id }),
+            toGlobalId({ type: NODE_TYPES.User, id: batchUser2.id }),
+          ],
+          password: '12345678',
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.archiveUsers.archived).toHaveLength(1)
+    expect(data.archiveUsers.archived[0].status.state).toBe('archived')
+    expect(data.archiveUsers.skipped).toHaveLength(1)
+    expect(data.archiveUsers.skipped[0].message).toBe(
+      'user has already been archived'
+    )
+  })
 })
 
 describe('query social accounts', () => {

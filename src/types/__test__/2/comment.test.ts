@@ -77,6 +77,7 @@ const COMMUNITY_WATCH_REMOVE_COMMENT = /* GraphQL */ `
       communityWatchAction {
         uuid
         reason
+        reportSynced
         createdAt
       }
     }
@@ -103,6 +104,7 @@ const COMMUNITY_WATCH_ACTIONS = /* GraphQL */ `
           reviewState
           originalContent
           contentCleared
+          reportSynced
           createdAt
         }
       }
@@ -626,6 +628,7 @@ describe('community watch remove comment', () => {
     expect(data.communityWatchRemoveComment.communityWatchAction).toEqual({
       uuid: expect.any(String),
       reason: 'spam_ad',
+      reportSynced: true,
       createdAt: expect.anything(),
     })
 
@@ -652,6 +655,15 @@ describe('community watch remove comment', () => {
       reviewState: 'pending',
     })
     expect(auditAction.contentExpiresAt).toBeNull()
+    const syncedReport = await atomService.findFirst({
+      table: 'report',
+      where: {
+        commentId: comment.id,
+        reporterId: watcher.id,
+        reason: 'illegal_advertising',
+      },
+    })
+    expect(syncedReport).toBeDefined()
     expect(mockTrigger).toHaveBeenCalledWith(
       expect.objectContaining({
         event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
@@ -744,6 +756,7 @@ describe('community watch public audit queries', () => {
       reviewState: 'upheld',
       originalContent: '<p>spam ad</p>',
       contentCleared: false,
+      reportSynced: false,
       createdAt: expect.anything(),
     })
     expect(fromGlobalId(node.commentId)).toEqual({

@@ -11,6 +11,10 @@ export type ReportReason =
   | 'discrimination_insult_hatred'
   | 'pornography_involving_minors'
   | 'other'
+  | 'community_watch_porn_ad'
+  | 'community_watch_spam_ad'
+
+export type ReportSource = 'direct' | 'community_watch'
 
 export interface Report {
   id: string
@@ -20,4 +24,9 @@ export interface Report {
   momentId?: string
   reason: ReportReason
   createdAt: Date
+  /**
+   * Whether this Report row came from the `report` table or was synthesised
+   * from a `community_watch_action` row. Set by resolvers, not stored in DB.
+   */
+  source?: ReportSource
 }
