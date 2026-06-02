@@ -433,6 +433,24 @@ describe('moment feed: approval notification', () => {
     triggerSpy.mockRestore()
   })
 
+  test('admin re-approve (revoked to approved) triggers notification', async () => {
+    const admin = await userService.create()
+    const user = await seedApplication(MOMENT_FEED_STATE.revoked)
+    const triggerSpy = jest.spyOn(momentService.notificationService, 'trigger')
+
+    await momentService.reviewMomentFeedApplication({
+      userId: user.id,
+      state: MOMENT_FEED_STATE.approved,
+      reviewerId: admin.id,
+    })
+
+    expect(triggerSpy).toHaveBeenCalledWith({
+      event: NOTICE_TYPE.moment_feed_approved,
+      recipientId: user.id,
+    })
+    triggerSpy.mockRestore()
+  })
+
   test('admin re-approve (approved to approved) does not trigger', async () => {
     const admin = await userService.create()
     const user = await seedApplication(MOMENT_FEED_STATE.approved)

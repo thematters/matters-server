@@ -73,6 +73,18 @@ const HOTTEST_MOMENTS = /* GraphQL */ `
   }
 `
 
+const HOTTEST_MOMENTS_OSS = /* GraphQL */ `
+  query {
+    viewer {
+      recommendation {
+        hottestMoments(input: { first: 10, oss: true }) {
+          totalCount
+        }
+      }
+    }
+  }
+`
+
 const IS_MOMENT_FEED_APPLIED = /* GraphQL */ `
   query {
     viewer {
@@ -135,6 +147,28 @@ describe('query recommendation.hottestMoments', () => {
     })
     expect(errors).toBeUndefined()
     expect(data?.viewer?.recommendation?.hottestMoments?.totalCount).toBe(0)
+  })
+
+  test('admin bypasses the flag with oss input', async () => {
+    await setFeatureFlag('off')
+    const server = await testClient({
+      isAdmin: true,
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: HOTTEST_MOMENTS_OSS,
+    })
+    expect(errors).toBeUndefined()
+  })
+
+  test('rejects oss input from a non-admin viewer', async () => {
+    await setFeatureFlag('off')
+    const server = await testClient({ isAuth: true, connections })
+    const { errors } = await server.executeOperation({
+      query: HOTTEST_MOMENTS_OSS,
+    })
+    expect(errors).toBeDefined()
   })
 })
 
