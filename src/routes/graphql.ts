@@ -34,6 +34,7 @@ import {
   LikeCoin,
   ExchangeRate,
   FederationExportService,
+  TelegramService,
 } from '#connectors/index.js'
 import {
   RevisionQueue,
@@ -165,6 +166,7 @@ export const graphql = async (app: Express) => {
       notificationService: new NotificationService(connections),
       searchService: new SearchService(connections),
       federationExportService: new FederationExportService(connections),
+      telegramService: new TelegramService(connections),
       connections,
       queues,
     }

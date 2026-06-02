@@ -15,6 +15,7 @@ import type {
   RecommendationService,
   SystemService,
   TagService,
+  TelegramService,
   UserService,
   UserWorkService,
   TranslationService,
@@ -216,6 +217,7 @@ export interface DataSources {
   channelService: ChannelService
   searchService: SearchService
   federationExportService: FederationExportService
+  telegramService: TelegramService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections

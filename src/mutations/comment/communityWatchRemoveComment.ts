@@ -14,6 +14,7 @@ import {
   USER_FEATURE_FLAG_TYPE,
   USER_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   CommentNotFoundError,
   ForbiddenByStateError,
@@ -44,6 +45,7 @@ const resolver = async (
       articleService,
       userService,
       notificationService,
+      telegramService,
       connections,
     },
   }: Context
@@ -171,6 +173,34 @@ const resolver = async (
     ],
     recipientId: updatedComment.authorId,
   })
+
+  // 新增：fire-and-forget Telegram alert. Aggregated by the reported user
+  // (not by comment) — if the same user spams multiple comments we want
+  // them surfaced under one alert. authorId is non-null at this point
+  // because the comment had to belong to someone to be removable.
+  if (updatedComment.authorId) {
+    const authorId = updatedComment.authorId
+    void (async () => {
+      try {
+        const author = await atomService.userIdLoader.load(authorId)
+        const handle = author?.userName
+          ? `@${author.userName}`
+          : `(id=${authorId})`
+        const subject = author?.displayName
+          ? `${author.displayName} ${handle}`
+          : handle
+        await telegramService.notifyReport({
+          source: 'community_watch',
+          dedupeKey: `cw:author:${authorId}`,
+          subject,
+          reason,
+          ossUrl: `${environment.ossSiteDomain}/reports`,
+        })
+      } catch {
+        // swallowed; TelegramService internally logs + reports to Sentry
+      }
+    })()
+  }
 
   await invalidateFQC({
     node: {

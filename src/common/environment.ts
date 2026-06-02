@@ -139,6 +139,11 @@ export const environment = {
   slackCurationVaultChannel:
     process.env.MATTERS_SLACK_CURATION_VAULT_CHANNEL || '',
   slackExchangeAPIChannel: process.env.MATTERS_SLACK_EXCHANGE_API_CHANNEL || '',
+  telegramBotToken: process.env.MATTERS_TELEGRAM_BOT_TOKEN || '',
+  telegramAlertChatId: process.env.MATTERS_TELEGRAM_ALERT_CHAT_ID || '',
+  telegramAlertThreadId: process.env.MATTERS_TELEGRAM_ALERT_THREAD_ID || '',
+  ossSiteDomain:
+    process.env.MATTERS_OSS_SITE_DOMAIN || 'https://oss.matters.town',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
