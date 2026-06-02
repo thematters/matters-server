@@ -34,7 +34,10 @@ import { NoticeItem as NoticeItemModel } from './notification.js'
 import { Appreciation as AppreciationModel } from './appreciation.js'
 import { Report as ReportModel } from './report.js'
 import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc.js'
-import { Moment as MomentModel } from './moment.js'
+import {
+  Moment as MomentModel,
+  MomentFeedUser as MomentFeedUserModel,
+} from './moment.js'
 import {
   Campaign as CampaignModel,
   CampaignStage as CampaignStageModel,
@@ -1870,6 +1873,7 @@ export type GQLFeatureName =
   | 'circle_interact'
   | 'circle_management'
   | 'fingerprint'
+  | 'hottest_moment_feed'
   | 'payment'
   | 'payout'
   | 'spam_detection'
@@ -2136,6 +2140,7 @@ export type GQLMigrationType = 'medium'
 
 export type GQLMoment = GQLNode & {
   __typename?: 'Moment'
+  adStatus: GQLAdStatus
   articles: Array<GQLArticle>
   assets: Array<GQLAsset>
   author: GQLUser
@@ -2169,6 +2174,29 @@ export type GQLMomentEdge = {
   __typename?: 'MomentEdge'
   cursor: Scalars['String']['output']
   node: GQLMoment
+}
+
+export type GQLMomentFeedApplication = {
+  __typename?: 'MomentFeedApplication'
+  createdAt: Scalars['DateTime']['output']
+  reviewedBy?: Maybe<GQLMomentFeedUserReviewedBy>
+  reviewer?: Maybe<GQLUser>
+  state: GQLMomentFeedUserState
+  updatedAt: Scalars['DateTime']['output']
+}
+
+export type GQLMomentFeedUserReviewedBy = 'admin' | 'seed' | 'system'
+
+export type GQLMomentFeedUserState =
+  | 'approved'
+  | 'pending'
+  | 'rejected'
+  | 'revoked'
+
+export type GQLMomentFeedUsersInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
+  states?: InputMaybe<Array<GQLMomentFeedUserState>>
 }
 
 export type GQLMomentInput = {
@@ -2213,6 +2241,7 @@ export type GQLMutation = {
   /** Add a wallet login to current user. */
   addWalletLogin: GQLUser
   applyCampaign: GQLCampaign
+  applyMomentFeed: GQLUser
   /** Appreciate an article. */
   appreciateArticle: GQLArticle
   /** Archive multiple users from OSS with per-user results. */
@@ -2342,6 +2371,7 @@ export type GQLMutation = {
   setUserName: GQLUser
   /** Set current viewer's Fediverse federation preference. */
   setViewerFederationSetting: GQLUserFederationSetting
+  setWritingAdStatus: GQLWriting
   /** Upload a single file. */
   singleFileUpload: GQLAsset
   /** Login/Signup via social accounts. */
@@ -2396,6 +2426,7 @@ export type GQLMutation = {
   updateCommentsState: Array<GQLComment>
   /** Update Community Watch appeal, review, or reason as staff. */
   updateCommunityWatchActionState: GQLCommunityWatchAction
+  updateMomentFeedApplicationState: GQLUser
   /** Update user notification settings. */
   updateNotificationSetting: GQLUser
   /** Update referralCode of a user, used in OSS. */
@@ -2754,6 +2785,10 @@ export type GQLMutationSetViewerFederationSettingArgs = {
   input: GQLSetViewerFederationSettingInput
 }
 
+export type GQLMutationSetWritingAdStatusArgs = {
+  input: GQLSetAdStatusInput
+}
+
 export type GQLMutationSingleFileUploadArgs = {
   input: GQLSingleFileUploadInput
 }
@@ -2868,6 +2903,10 @@ export type GQLMutationUpdateCommentsStateArgs = {
 
 export type GQLMutationUpdateCommunityWatchActionStateArgs = {
   input: GQLUpdateCommunityWatchActionStateInput
+}
+
+export type GQLMutationUpdateMomentFeedApplicationStateArgs = {
+  input: GQLUpdateMomentFeedApplicationStateInput
 }
 
 export type GQLMutationUpdateNotificationSettingArgs = {
@@ -3051,6 +3090,7 @@ export type GQLOss = {
   badgedUsers: GQLUserConnection
   comments: GQLCommentConnection
   icymiTopics: GQLIcymiTopicConnection
+  momentFeedUsers: GQLUserConnection
   moments: GQLMomentConnection
   oauthClients: GQLOAuthClientConnection
   reports: GQLReportConnection
@@ -3076,6 +3116,10 @@ export type GQLOssCommentsArgs = {
 
 export type GQLOssIcymiTopicsArgs = {
   input: GQLConnectionArgs
+}
+
+export type GQLOssMomentFeedUsersArgs = {
+  input: GQLMomentFeedUsersInput
 }
 
 export type GQLOssMomentsArgs = {
@@ -3630,6 +3674,7 @@ export type GQLRecommendation = {
   following: GQLFollowingActivityConnection
   /** Global articles sort by latest activity time. */
   hottest: GQLArticleConnection
+  hottestMoments: GQLMomentConnection
   /** 'In case you missed it' recommendation. */
   icymi: GQLArticleConnection
   /** 'In case you missed it' topic. */
@@ -3649,6 +3694,10 @@ export type GQLRecommendationFollowingArgs = {
 }
 
 export type GQLRecommendationHottestArgs = {
+  input: GQLRecommendInput
+}
+
+export type GQLRecommendationHottestMomentsArgs = {
   input: GQLRecommendInput
 }
 
@@ -4536,6 +4585,11 @@ export type GQLUpdateCommunityWatchActionStateInput = {
   uuid: Scalars['ID']['input']
 }
 
+export type GQLUpdateMomentFeedApplicationStateInput = {
+  id: Scalars['ID']['input']
+  state: GQLMomentFeedUserState
+}
+
 export type GQLUpdateNotificationSettingInput = {
   enabled: Scalars['Boolean']['input']
   type: GQLNotificationSettingType
@@ -4617,6 +4671,7 @@ export type GQLUser = GQLNode & {
   isFollowee: Scalars['Boolean']['output']
   /** Whether current user is following viewer. */
   isFollower: Scalars['Boolean']['output']
+  isMomentFeedApplied: Scalars['Boolean']['output']
   /** user latest articles or collections */
   latestWorks: Array<GQLPinnableWork>
   /** Liker info of current user */
@@ -4896,12 +4951,13 @@ export type GQLUserNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export type GQLUserNoticeType = 'UserNewFollower'
+export type GQLUserNoticeType = 'MomentFeedApproved' | 'UserNewFollower'
 
 export type GQLUserOss = {
   __typename?: 'UserOSS'
   boost: Scalars['Float']['output']
   featureFlags: Array<GQLUserFeatureFlag>
+  momentFeedApplication?: Maybe<GQLMomentFeedApplication>
   restrictions: Array<GQLUserRestriction>
   score: Scalars['Float']['output']
 }
@@ -5796,6 +5852,10 @@ export type GQLResolversTypes = ResolversObject<{
   MomentEdge: ResolverTypeWrapper<
     Omit<GQLMomentEdge, 'node'> & { node: GQLResolversTypes['Moment'] }
   >
+  MomentFeedApplication: ResolverTypeWrapper<MomentFeedUserModel>
+  MomentFeedUserReviewedBy: GQLMomentFeedUserReviewedBy
+  MomentFeedUserState: GQLMomentFeedUserState
+  MomentFeedUsersInput: GQLMomentFeedUsersInput
   MomentInput: GQLMomentInput
   MomentNotice: ResolverTypeWrapper<NoticeItemModel>
   MomentNoticeType: GQLMomentNoticeType
@@ -5838,6 +5898,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'badgedUsers'
       | 'comments'
       | 'icymiTopics'
+      | 'momentFeedUsers'
       | 'moments'
       | 'oauthClients'
       | 'reports'
@@ -5851,6 +5912,7 @@ export type GQLResolversTypes = ResolversObject<{
       badgedUsers: GQLResolversTypes['UserConnection']
       comments: GQLResolversTypes['CommentConnection']
       icymiTopics: GQLResolversTypes['IcymiTopicConnection']
+      momentFeedUsers: GQLResolversTypes['UserConnection']
       moments: GQLResolversTypes['MomentConnection']
       oauthClients: GQLResolversTypes['OAuthClientConnection']
       reports: GQLResolversTypes['ReportConnection']
@@ -6120,6 +6182,7 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
   UpdateCommunityWatchActionStateInput: GQLUpdateCommunityWatchActionStateInput
+  UpdateMomentFeedApplicationStateInput: GQLUpdateMomentFeedApplicationStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
@@ -6509,6 +6572,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   MomentEdge: Omit<GQLMomentEdge, 'node'> & {
     node: GQLResolversParentTypes['Moment']
   }
+  MomentFeedApplication: MomentFeedUserModel
+  MomentFeedUsersInput: GQLMomentFeedUsersInput
   MomentInput: GQLMomentInput
   MomentNotice: NoticeItemModel
   MonthlyDatum: GQLMonthlyDatum
@@ -6539,6 +6604,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'badgedUsers'
     | 'comments'
     | 'icymiTopics'
+    | 'momentFeedUsers'
     | 'moments'
     | 'oauthClients'
     | 'reports'
@@ -6552,6 +6618,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     badgedUsers: GQLResolversParentTypes['UserConnection']
     comments: GQLResolversParentTypes['CommentConnection']
     icymiTopics: GQLResolversParentTypes['IcymiTopicConnection']
+    momentFeedUsers: GQLResolversParentTypes['UserConnection']
     moments: GQLResolversParentTypes['MomentConnection']
     oauthClients: GQLResolversParentTypes['OAuthClientConnection']
     reports: GQLResolversParentTypes['ReportConnection']
@@ -6754,6 +6821,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
   UpdateCommunityWatchActionStateInput: GQLUpdateCommunityWatchActionStateInput
+  UpdateMomentFeedApplicationStateInput: GQLUpdateMomentFeedApplicationStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
@@ -9042,6 +9110,7 @@ export type GQLMomentResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Moment'] = GQLResolversParentTypes['Moment']
 > = ResolversObject<{
+  adStatus?: Resolver<GQLResolversTypes['AdStatus'], ParentType, ContextType>
   articles?: Resolver<
     Array<GQLResolversTypes['Article']>,
     ParentType,
@@ -9105,6 +9174,26 @@ export type GQLMomentEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Moment'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLMomentFeedApplicationResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['MomentFeedApplication'] = GQLResolversParentTypes['MomentFeedApplication']
+> = ResolversObject<{
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  reviewedBy?: Resolver<
+    Maybe<GQLResolversTypes['MomentFeedUserReviewedBy']>,
+    ParentType,
+    ContextType
+  >
+  reviewer?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
+  state?: Resolver<
+    GQLResolversTypes['MomentFeedUserState'],
+    ParentType,
+    ContextType
+  >
+  updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9184,6 +9273,7 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationApplyCampaignArgs, 'input'>
   >
+  applyMomentFeed?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   appreciateArticle?: Resolver<
     GQLResolversTypes['Article'],
     ParentType,
@@ -9661,6 +9751,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSetViewerFederationSettingArgs, 'input'>
   >
+  setWritingAdStatus?: Resolver<
+    GQLResolversTypes['Writing'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetWritingAdStatusArgs, 'input'>
+  >
   singleFileUpload?: Resolver<
     GQLResolversTypes['Asset'],
     ParentType,
@@ -9837,6 +9933,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUpdateCommunityWatchActionStateArgs, 'input'>
+  >
+  updateMomentFeedApplicationState?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUpdateMomentFeedApplicationStateArgs, 'input'>
   >
   updateNotificationSetting?: Resolver<
     GQLResolversTypes['User'],
@@ -10171,6 +10273,12 @@ export type GQLOssResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLOssIcymiTopicsArgs, 'input'>
+  >
+  momentFeedUsers?: Resolver<
+    GQLResolversTypes['UserConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssMomentFeedUsersArgs, 'input'>
   >
   moments?: Resolver<
     GQLResolversTypes['MomentConnection'],
@@ -10546,6 +10654,12 @@ export type GQLRecommendationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLRecommendationHottestArgs, 'input'>
+  >
+  hottestMoments?: Resolver<
+    GQLResolversTypes['MomentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLRecommendationHottestMomentsArgs, 'input'>
   >
   icymi?: Resolver<
     GQLResolversTypes['ArticleConnection'],
@@ -11254,6 +11368,11 @@ export type GQLUserResolvers<
   isBlocking?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollowee?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollower?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  isMomentFeedApplied?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   latestWorks?: Resolver<
     Array<GQLResolversTypes['PinnableWork']>,
     ParentType,
@@ -11577,6 +11696,11 @@ export type GQLUserOssResolvers<
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   featureFlags?: Resolver<
     Array<GQLResolversTypes['UserFeatureFlag']>,
+    ParentType,
+    ContextType
+  >
+  momentFeedApplication?: Resolver<
+    Maybe<GQLResolversTypes['MomentFeedApplication']>,
     ParentType,
     ContextType
   >
@@ -11984,6 +12108,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Moment?: GQLMomentResolvers<ContextType>
   MomentConnection?: GQLMomentConnectionResolvers<ContextType>
   MomentEdge?: GQLMomentEdgeResolvers<ContextType>
+  MomentFeedApplication?: GQLMomentFeedApplicationResolvers<ContextType>
   MomentNotice?: GQLMomentNoticeResolvers<ContextType>
   MonthlyDatum?: GQLMonthlyDatumResolvers<ContextType>
   Mutation?: GQLMutationResolvers<ContextType>

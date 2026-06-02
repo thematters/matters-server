@@ -1814,11 +1814,9 @@ describe('setAdStatus', () => {
     mutation ($input: SetAdStatusInput!) {
       setAdStatus(input: $input) {
         id
-        ... on Article {
-          oss {
-            adStatus {
-              isAd
-            }
+        oss {
+          adStatus {
+            isAd
           }
         }
       }
@@ -1841,6 +1839,69 @@ describe('setAdStatus', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.setAdStatus.oss.adStatus.isAd).toBe(true)
+  })
+})
+
+describe('setWritingAdStatus', () => {
+  const SET_WRITING_AD_STATUS = /* GraphQL */ `
+    mutation ($input: SetAdStatusInput!) {
+      setWritingAdStatus(input: $input) {
+        ... on Article {
+          oss {
+            adStatus {
+              isAd
+            }
+          }
+        }
+        ... on Moment {
+          adStatus {
+            isAd
+          }
+        }
+      }
+    }
+  `
+  test('set ad status on article successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_WRITING_AD_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          isAd: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setWritingAdStatus.oss.adStatus.isAd).toBe(true)
+  })
+
+  test('set ad status on moment successfully', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
+      { content: 'test' },
+      { id: '4', state: USER_STATE.active, userName: 'test' }
+    )
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_WRITING_AD_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Moment, id: moment.id }),
+          isAd: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setWritingAdStatus.adStatus.isAd).toBe(true)
   })
 })
 

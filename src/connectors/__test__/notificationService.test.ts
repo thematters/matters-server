@@ -55,6 +55,7 @@ describe('user notify setting', () => {
     // moment
     moment_liked: true,
     moment_mentioned_you: true,
+    moment_feed_approved: true,
 
     // article-article
     article_new_collected: false,

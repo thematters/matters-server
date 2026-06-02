@@ -3,5 +3,18 @@ export const MOMENT_STATE = {
   archived: 'archived',
 } as const
 
+export const MOMENT_FEED_STATE = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  revoked: 'revoked',
+} as const
+
+export const MOMENT_FEED_REVIEWED_BY = {
+  admin: 'admin',
+  system: 'system',
+  seed: 'seed',
+} as const
+
 export const MAX_MOMENT_LENGTH = 240
 export const MAX_MOMENT_COMMENT_LENGTH = 240

@@ -50,6 +50,11 @@ export const AUDIT_LOG_ACTION = {
   setFeatureFlag: 'set_feature_flag',
   pinArticle: 'pin_article',
   unpinArticle: 'unpin_article',
+  applyMomentFeed: 'apply_moment_feed',
+  approveMomentFeedApplication: 'approve_moment_feed_application',
+  rejectMomentFeedApplication: 'reject_moment_feed_application',
+  revokeMomentFeedApplication: 'revoke_moment_feed_application',
+  autoApproveMomentFeedApplication: 'auto_approve_moment_feed_application',
 } as const
 
 export const AUDIT_LOG_STATUS = {

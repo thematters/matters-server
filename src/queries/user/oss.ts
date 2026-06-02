@@ -23,3 +23,10 @@ export const featureFlags: GQLUserOssResolvers['featureFlags'] = (
   _,
   { dataSources: { userService } }
 ) => userService.findFeatureFlags(id)
+
+export const momentFeedApplication: GQLUserOssResolvers['momentFeedApplication'] =
+  ({ id }, _, { dataSources: { atomService } }) =>
+    atomService.findFirst({
+      table: 'moment_feed_user',
+      where: { userId: id },
+    })

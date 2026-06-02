@@ -51,6 +51,7 @@ export default /* GraphQL */ `
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
     setSpamStatus(input: SetSpamStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
     setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    setWritingAdStatus(input: SetAdStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
     reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback! @auth(mode: "${AUTH_MODE.admin}")
   }
 
@@ -527,6 +528,7 @@ export default /* GraphQL */ `
     circle_interact
     spam_detection
     article_channel
+    hottest_moment_feed
   }
 
   enum FeatureFlag {

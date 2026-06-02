@@ -2,6 +2,7 @@
 export const CACHE_TTL = {
   PUBLIC_QUERY: 60 * 60 * 24, // 1 day
   PUBLIC_FEED_ARTICLE: 60 * 3, // 3 mins
+  PUBLIC_FEED_MOMENT: 60 * 3, // 3 mins
   PUBLIC_FEED_TAG: 60 * 3, // 3 mins
   PUBLIC_FEED_USER: 60 * 30, // 30 mins
   PUBLIC_SEARCH: 60 * 60 * 3, // 3 hours
@@ -37,6 +38,7 @@ export const CACHE_PREFIX = {
   RECOMMENDATION_TAGS: 'cache-recommendation-tags',
   RECOMMENDATION_AUTHORS: 'cache-recommendation-authors',
   RECOMMENDATION_HOTTEST: 'cache-recommendation-hottest',
+  RECOMMENDATION_HOTTEST_MOMENTS: 'cache-recommendation-hottest-moments',
   CHANNEL_FLOOD: 'cache-channel-flood',
 }
 

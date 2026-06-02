@@ -176,6 +176,7 @@ type Mutation {
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   setSpamStatus(input: SetSpamStatusInput!): Writing!
   setAdStatus(input: SetAdStatusInput!): Article!
+  setWritingAdStatus(input: SetAdStatusInput!): Writing!
   reviewTopicChannelFeedback(input: ReviewTopicChannelFeedbackInput!): TopicChannelFeedback!
 
   """Send verification code for email."""
@@ -318,6 +319,8 @@ type Mutation {
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
+  applyMomentFeed: User!
+  updateMomentFeedApplicationState(input: UpdateMomentFeedApplicationStateInput!): User!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
   putTagChannel(input: PutTagChannelInput!): Tag!
@@ -1355,6 +1358,7 @@ type User implements Node {
 
   """Status of current user."""
   status: UserStatus
+  isMomentFeedApplied: Boolean!
   oss: UserOSS!
   remark: String
 
@@ -2103,6 +2107,7 @@ type UserNotice implements Notice {
 
 enum UserNoticeType {
   UserNewFollower
+  MomentFeedApproved
 }
 
 type ArticleNotice implements Notice {
@@ -2422,6 +2427,7 @@ type OSS {
   reports(input: OSSReportsInput!): ReportConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
+  momentFeedUsers(input: MomentFeedUsersInput!): UserConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2793,6 +2799,7 @@ enum FeatureName {
   circle_interact
   spam_detection
   article_channel
+  hottest_moment_feed
 }
 
 enum FeatureFlag {
@@ -3013,6 +3020,7 @@ type Recommendation {
 
   """Global articles sort by latest activity time."""
   hottest(input: RecommendInput!): ArticleConnection!
+  hottestMoments(input: RecommendInput!): MomentConnection!
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
@@ -3231,6 +3239,7 @@ type UserOSS {
   score: Float!
   restrictions: [UserRestriction!]!
   featureFlags: [UserFeatureFlag!]!
+  momentFeedApplication: MomentFeedApplication
 }
 
 type UserFeatures {
@@ -4364,6 +4373,17 @@ input UnlikeMomentInput {
   id: ID!
 }
 
+input MomentFeedUsersInput {
+  after: String
+  first: Int
+  states: [MomentFeedUserState!]
+}
+
+input UpdateMomentFeedApplicationStateInput {
+  id: ID!
+  state: MomentFeedUserState!
+}
+
 type Moment implements Node {
   id: ID!
   shortHash: String!
@@ -4381,6 +4401,7 @@ type Moment implements Node {
   """whether current user has liked it"""
   liked: Boolean!
   spamStatus: SpamStatus!
+  adStatus: AdStatus!
   createdAt: DateTime!
 }
 
@@ -4398,6 +4419,27 @@ type MomentConnection implements Connection {
 type MomentEdge {
   cursor: String!
   node: Moment!
+}
+
+type MomentFeedApplication {
+  state: MomentFeedUserState!
+  reviewedBy: MomentFeedUserReviewedBy
+  reviewer: User
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum MomentFeedUserState {
+  pending
+  approved
+  rejected
+  revoked
+}
+
+enum MomentFeedUserReviewedBy {
+  admin
+  system
+  seed
 }
 
 interface Channel {
