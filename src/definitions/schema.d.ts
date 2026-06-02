@@ -1259,17 +1259,6 @@ export type GQLClaimPersonhoodBadgeInput = {
   userSigProof: Scalars['String']['input']
 }
 
-export type GQLCreatePersonhoodHandoffInput = {
-  challenge: Scalars['String']['input']
-  challengeExpiresAt?: InputMaybe<Scalars['DateTime']['input']>
-}
-
-export type GQLPersonhoodHandoff = {
-  __typename?: 'PersonhoodHandoff'
-  expiresAt: Scalars['DateTime']['output']
-  token: Scalars['String']['output']
-}
-
 export type GQLClassifyArticlesChannelsInput = {
   ids: Array<Scalars['ID']['input']>
 }
@@ -1594,6 +1583,11 @@ export type GQLConnectionArgs = {
   filter?: InputMaybe<GQLFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
   oss?: InputMaybe<Scalars['Boolean']['input']>
+}
+
+export type GQLCreatePersonhoodHandoffInput = {
+  challenge: Scalars['String']['input']
+  challengeExpiresAt?: InputMaybe<Scalars['DateTime']['input']>
 }
 
 export type GQLCryptoWallet = {
@@ -3214,6 +3208,12 @@ export type GQLPayoutInput = {
 export type GQLPerson = {
   __typename?: 'Person'
   email: Scalars['String']['output']
+}
+
+export type GQLPersonhoodHandoff = {
+  __typename?: 'PersonhoodHandoff'
+  expiresAt: Scalars['DateTime']['output']
+  token: Scalars['String']['output']
 }
 
 export type GQLPinCommentInput = {
@@ -9924,15 +9924,6 @@ export type GQLNftAssetResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLPersonhoodHandoffResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['PersonhoodHandoff'] = GQLResolversParentTypes['PersonhoodHandoff']
-> = ResolversObject<{
-  expiresAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
-  token?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
 export type GQLNodeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Node'] = GQLResolversParentTypes['Node']
@@ -10313,6 +10304,15 @@ export type GQLPersonResolvers<
   ParentType extends GQLResolversParentTypes['Person'] = GQLResolversParentTypes['Person']
 > = ResolversObject<{
   email?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLPersonhoodHandoffResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['PersonhoodHandoff'] = GQLResolversParentTypes['PersonhoodHandoff']
+> = ResolversObject<{
+  expiresAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  token?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -12002,6 +12002,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   PageInfo?: GQLPageInfoResolvers<ContextType>
   PayToResult?: GQLPayToResultResolvers<ContextType>
   Person?: GQLPersonResolvers<ContextType>
+  PersonhoodHandoff?: GQLPersonhoodHandoffResolvers<ContextType>
   PinHistory?: GQLPinHistoryResolvers<ContextType>
   PinnableWork?: GQLPinnableWorkResolvers<ContextType>
   Price?: GQLPriceResolvers<ContextType>
@@ -12020,7 +12021,6 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ResponseEdge?: GQLResponseEdgeResolvers<ContextType>
   SearchResultConnection?: GQLSearchResultConnectionResolvers<ContextType>
   SearchResultEdge?: GQLSearchResultEdgeResolvers<ContextType>
-  PersonhoodHandoff?: GQLPersonhoodHandoffResolvers<ContextType>
   SigningMessageResult?: GQLSigningMessageResultResolvers<ContextType>
   SkippedListItem?: GQLSkippedListItemResolvers<ContextType>
   SkippedListItemEdge?: GQLSkippedListItemEdgeResolvers<ContextType>

@@ -184,7 +184,9 @@ type Mutation {
   """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-  """Create a short-lived token that binds a verifier challenge to the current viewer."""
+  """
+  Create a short-lived token that binds a verifier challenge to the current viewer.
+  """
   createPersonhoodHandoff(input: CreatePersonhoodHandoffInput!): PersonhoodHandoff!
 
   """Claim the carbon based badge with a verified zkID personhood proof."""
@@ -2879,7 +2881,6 @@ enum ReportSource {
 
   """Created automatically when a community watch member removes a comment."""
   community_watch
-  carbon_based
 }
 
 type IcymiTopic implements Node {
