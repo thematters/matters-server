@@ -161,6 +161,107 @@ avoiding a fragile external reconstruction path.
   - handler per-record failure response
 - Manual dev smoke test with real Telegram bot config.
 
+## Acceptance Criteria
+
+This work is accepted only when all of the following are true:
+
+- The GraphQL API no longer imports or instantiates Telegram delivery code.
+- `MATTERS_TELEGRAM_BOT_TOKEN`, `MATTERS_TELEGRAM_ALERT_CHAT_ID`, and
+  `MATTERS_TELEGRAM_ALERT_THREAD_ID` are needed only by the worker runtime, not
+  by the API runtime.
+- `submitReport` still persists and returns the report when the report-alert
+  queue is unavailable.
+- `communityWatchRemoveComment` still completes the comment removal flow when
+  the report-alert queue is unavailable.
+- Both producer locations enqueue a payload with stable `source`, `dedupeKey`,
+  `subject`, `reason`, `ossUrl`, and `occurredAt` fields.
+- The worker sends one Telegram message for the first event with a given
+  `dedupeKey`.
+- The worker edits the existing Telegram message and increments the count for
+  subsequent events with the same `dedupeKey` inside the 24-hour dedupe window.
+- The worker posts a new message when the cached Telegram message can no longer
+  be edited.
+- The worker returns SQS partial batch failures so one bad record does not hide
+  unrelated failed records or force successful records to be retried.
+- Unit tests cover both producer payloads, first-message send, duplicate-message
+  edit, malformed payload handling, and per-record failure reporting.
+- CI/build validation passes before the PR is marked ready for review.
+- A develop-environment smoke test verifies one direct report alert and one
+  community-watch alert using real Telegram bot config.
+
+## Agent Handoff Instructions
+
+You are taking over PR #4830:
+
+- Base PR: <https://github.com/thematters/matters-server/pull/4830>
+- Head branch: `yingshinlee:feat/report-telegram-alert`
+- Local working copy used for this plan:
+  `/Users/mashbean/Documents/AI-Agent/external/release/matters-server`
+- Current plan document:
+  `docs/Report-Telegram-Alert-Plan.md`
+
+Your task is to convert the current PR from "API runtime sends Telegram
+directly" to "API runtime emits an SQS event, Lambda worker sends Telegram".
+
+Do this in this order:
+
+1. Inspect the current PR diff and keep the two business trigger points:
+   `src/mutations/system/submitReport.ts` and
+   `src/mutations/comment/communityWatchRemoveComment.ts`.
+2. Remove Telegram delivery from the GraphQL request path:
+   - remove `TelegramService` from GraphQL data sources
+   - remove Telegram bot/chat env vars from API runtime usage
+   - remove direct Telegram API calls from mutation code
+3. Add a small report-alert event producer:
+   - prefer existing AWS/SQS helpers in `src/connectors/aws/index.ts`
+   - add a queue URL env var for the report-alert queue
+   - keep enqueue best-effort and non-blocking for user-facing mutations
+4. Add a dedicated SQS Lambda handler:
+   - suggested file: `src/handlers/reportTelegramAlert.ts`
+   - use the same SQS partial batch failure style as `src/handlers/notify.ts`
+   - move Telegram formatting, HTML escaping, dedupe, send, and edit logic into
+     this handler or a worker-only helper module
+5. Wire deployment:
+   - reuse `deployment/lambda/queuejob.yml`
+   - add a `reportTelegramAlert.handler` deploy entry in
+     `.github/workflows/lambda-deploy.yml`
+   - keep Telegram secrets in worker SSM/runtime config only
+6. Add tests before asking for review:
+   - producer payload generation for direct reports
+   - producer payload generation for community-watch removals
+   - worker sends first Telegram message
+   - worker edits duplicate Telegram message
+   - worker handles malformed records and returns partial batch failures
+7. Run validation:
+   - `npm run lint`
+   - `npm run build`
+   - targeted tests added above
+8. Update the PR description/comment with:
+   - architecture change summary
+   - validation output
+   - deployment config needed
+   - any manual smoke test result or blocker
+
+Important constraints:
+
+- Do not change report/community-watch product behavior beyond alert delivery.
+- Do not add an inbound Telegram webhook, bot commands, or moderation actions
+  inside Telegram.
+- Do not put report body/comment text into Telegram messages unless product
+  explicitly approves it.
+- Do not make Telegram or SQS failure fail a user-facing report/removal
+  mutation.
+- Do not merge or deploy this PR just because CI passes; keep review, CI,
+  deploy, production config, and smoke test as separate gates.
+- Do not stage unrelated generated files. Check `.gitignore` and `git status`
+  before commit.
+
+Suggested commit messages:
+
+- `refactor(report): emit report alert events`
+- `feat(report): handle telegram alerts in queue worker`
+- `test(report): cover report alert worker flow`
+
 ## Rollback
 
 If Telegram delivery misbehaves, disable the worker by removing bot/chat config
