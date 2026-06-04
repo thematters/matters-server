@@ -6,6 +6,9 @@ export const QUEUE_URL = {
   // notification
   notification: environment?.awsNotificationQueueUrl,
 
+  // report alert (Telegram side-channel)
+  reportAlert: environment?.awsReportAlertQueueUrl,
+
   // likecoin
   likecoinLike: environment?.awsLikecoinLikeUrl,
   likecoinSendPV: environment?.awsLikecoinSendPVUrl,

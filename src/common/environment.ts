@@ -52,6 +52,8 @@ export const environment = {
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
+  awsReportAlertQueueUrl:
+    process.env.MATTERS_AWS_REPORT_ALERT_QUEUE_URL || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
   awsLikecoinSendPVUrl:
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
@@ -139,6 +141,11 @@ export const environment = {
   slackCurationVaultChannel:
     process.env.MATTERS_SLACK_CURATION_VAULT_CHANNEL || '',
   slackExchangeAPIChannel: process.env.MATTERS_SLACK_EXCHANGE_API_CHANNEL || '',
+  telegramBotToken: process.env.MATTERS_TELEGRAM_BOT_TOKEN || '',
+  telegramAlertChatId: process.env.MATTERS_TELEGRAM_ALERT_CHAT_ID || '',
+  telegramAlertThreadId: process.env.MATTERS_TELEGRAM_ALERT_THREAD_ID || '',
+  ossSiteDomain:
+    process.env.MATTERS_OSS_SITE_DOMAIN || 'https://oss.matters.town',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
