@@ -136,6 +136,8 @@ export class RecommendationService {
     likesThreshold = 0,
     commentsThreshold = 0,
     maxTake = 300,
+    windowHours = 48,
+    limitPerWindow = 3,
   }: {
     days?: number
     decayDays?: number
@@ -144,6 +146,8 @@ export class RecommendationService {
     likesThreshold?: number
     commentsThreshold?: number
     maxTake?: number
+    windowHours?: number
+    limitPerWindow?: number
   } = {}): Promise<Array<{ momentId: string }>> => {
     const { query } = await this._findHottestMoments({
       days,
@@ -153,6 +157,8 @@ export class RecommendationService {
       likesThreshold,
       commentsThreshold,
       maxTake,
+      windowHours,
+      limitPerWindow,
     })
     const result = await query
     return result.map(({ momentId }) => ({ momentId }))
@@ -512,6 +518,8 @@ export class RecommendationService {
     likesThreshold,
     commentsThreshold,
     maxTake,
+    windowHours,
+    limitPerWindow,
   }: {
     days: number
     decayDays: number
@@ -520,6 +528,8 @@ export class RecommendationService {
     likesThreshold: number
     commentsThreshold: number
     maxTake: number
+    windowHours: number
+    limitPerWindow: number
   }): Promise<{
     query: Knex.QueryBuilder<HottestMoment, HottestMoment[]>
   }> => {
@@ -532,7 +542,11 @@ export class RecommendationService {
     const query = this.knexRO
       .with('hottest_source', (qb) => {
         return qb
-          .select('moment.id as moment_id', 'moment.author_id')
+          .select(
+            'moment.id as moment_id',
+            'moment.author_id',
+            'moment.created_at'
+          )
           .from('moment')
           .innerJoin('user', 'user.id', 'moment.author_id')
           .innerJoin(
@@ -611,6 +625,7 @@ export class RecommendationService {
           .select(
             'hottest_source.moment_id',
             'hottest_source.author_id',
+            'hottest_source.created_at',
             this.knexRO.raw('coalesce(t1.likers, 0) as likers'),
             this.knexRO.raw('coalesce(t1.like_score, 0) as like_score'),
             this.knexRO.raw('coalesce(t2.commenters, 0) as commenters'),
@@ -628,23 +643,60 @@ export class RecommendationService {
             't2.target_id'
           )
       })
-      .select(
-        'moment_id as momentId',
-        'author_id as authorId',
-        'likers',
-        'commenters',
+      .with('scored', (qb) => {
+        return qb
+          .select(
+            'moment_id as momentId',
+            'author_id as authorId',
+            'created_at',
+            'likers',
+            'commenters',
+            this.knexRO.raw(
+              '(?::numeric * base.like_score + ?::numeric * base.comment_score)::numeric as score',
+              [likeWeight, commentWeight]
+            ),
+            this.knexRO.raw(
+              '(?::numeric * base.likers + ?::numeric * base.commenters)::numeric as raw_score',
+              [likeWeight, commentWeight]
+            )
+          )
+          .from('base')
+          .where((w) => {
+            return w
+              .where('likers', '>=', likesThreshold)
+              .orWhere('commenters', '>=', commentsThreshold)
+          })
+      })
+      .with(
+        'time_grouped',
         this.knexRO.raw(
-          '(?::numeric * base.like_score + ?::numeric * base.comment_score)::numeric as score',
-          [likeWeight, commentWeight]
+          `select *,
+            ((extract(epoch from
+                max(created_at) over (partition by author_id) - created_at
+              ) / 3600)::int) / ${windowHours} as time_group
+          from scored`
         )
       )
-      .from('base')
-      .where((w) => {
-        return w
-          .where('likers', '>=', likesThreshold)
-          .orWhere('commenters', '>=', commentsThreshold)
-      })
-      .orderBy('score', 'desc')
+      .with(
+        'ranked',
+        this.knexRO.raw(
+          `select *,
+            row_number() over (
+              partition by author_id, time_group
+              order by score desc, raw_score desc,
+                       created_at desc, moment_id desc
+            ) as rank
+          from time_grouped`
+        )
+      )
+      .select('*')
+      .from('ranked')
+      .where('rank', '<=', limitPerWindow)
+      .orderBy([
+        { column: 'score', order: 'desc' },
+        { column: 'created_at', order: 'desc' },
+        { column: 'momentId', order: 'desc' },
+      ])
       .limit(maxTake)
 
     return {

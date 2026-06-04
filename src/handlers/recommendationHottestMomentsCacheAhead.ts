@@ -35,6 +35,8 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
     likesThreshold: environment.hottestMomentsLikesThreshold,
     commentsThreshold: environment.hottestMomentsCommentsThreshold,
     maxTake: environment.hottestMomentsMaxTake,
+    windowHours: environment.hottestMomentsAntifloodWindow,
+    limitPerWindow: environment.hottestMomentsAntifloodLimit,
   })
 
   await cache.storeObject({
