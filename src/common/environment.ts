@@ -175,6 +175,8 @@ export const environment = {
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
   shortContentSpamDetectionApiUrl:
     process.env.MATTERS_SHORT_CONTENT_SPAM_DETECTION_API_URL || '',
+  commentSpamDetectionApiUrl:
+    process.env.MATTERS_COMMENT_SPAM_DETECTION_API_URL || '',
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
   languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
