@@ -60,6 +60,7 @@ const notice: {
       const noticeTypeMap = {
         // user
         user_new_follower: NOTICE_TYPE.UserNotice,
+        moment_feed_approved: NOTICE_TYPE.UserNotice,
 
         // article
         article_published: NOTICE_TYPE.ArticleNotice,
@@ -123,11 +124,16 @@ const notice: {
       switch (type) {
         case INNER_NOTICE_TYPE.user_new_follower:
           return 'UserNewFollower'
+        case INNER_NOTICE_TYPE.moment_feed_approved:
+          return 'MomentFeedApproved'
       }
       throw new ServerError(`Unknown UserNotice type: ${type}`)
     },
     target: ({ type }, _, { viewer }) => {
-      if (type === INNER_NOTICE_TYPE.user_new_follower) {
+      if (
+        type === INNER_NOTICE_TYPE.user_new_follower ||
+        type === INNER_NOTICE_TYPE.moment_feed_approved
+      ) {
         return viewer
       }
       return null

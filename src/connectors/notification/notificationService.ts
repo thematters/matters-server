@@ -665,6 +665,7 @@ export class NotificationService {
       // moment
       moment_liked: setting.newLike,
       moment_mentioned_you: setting.mention,
+      moment_feed_approved: true,
 
       // comment
       article_comment_liked: setting.newLike,
@@ -749,6 +750,11 @@ export class NotificationService {
           type: params.event,
           recipientIds: [recipient.id],
           actorId: params.actorId,
+        }
+      case NOTICE_TYPE.moment_feed_approved:
+        return {
+          type: params.event,
+          recipientIds: [recipient.id],
         }
       // system as the actor
       case NOTICE_TYPE.article_published:

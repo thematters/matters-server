@@ -105,7 +105,13 @@ import type {
   PunishRecord,
   SearchHistory,
 } from './misc.js'
-import type { Moment, MomentAsset, MomentArticle, MomentTag } from './moment.js'
+import type {
+  Moment,
+  MomentAsset,
+  MomentArticle,
+  MomentTag,
+  MomentFeedUser,
+} from './moment.js'
 import type {
   Notice,
   NoticeDetail,
@@ -284,6 +290,7 @@ export interface TableTypeMap {
   moment_asset: MomentAsset
   moment_article: MomentArticle
   moment_tag: MomentTag
+  moment_feed_user: MomentFeedUser
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
   notice: Notice

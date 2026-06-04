@@ -9,6 +9,7 @@ export const FEATURE_NAME = {
   circle_interact: 'circle_interact',
   spam_detection: 'spam_detection',
   article_channel: 'article_channel',
+  hottest_moment_feed: 'hottest_moment_feed',
 } as const
 
 export const FEATURE_FLAG = {

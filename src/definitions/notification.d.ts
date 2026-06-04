@@ -159,6 +159,11 @@ interface NoticeMomentMentionedYouParams extends NotificationRequiredParams {
   tag: string
 }
 
+interface NoticeMomentFeedApprovedParams extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_feed_approved
+  recipientId: string
+}
+
 // Campaign-Article
 interface NoticeCampaignArticleFeaturedParams
   extends NotificationRequiredParams {
@@ -458,6 +463,7 @@ export type NotificationParams =
   // Moment
   | NoticeMomentLikedParams
   | NoticeMomentMentionedYouParams
+  | NoticeMomentFeedApprovedParams
   // Comment
   | NoticeArticleCommentMentionedYouParams
   | NoticeArticleCommentLikedParams

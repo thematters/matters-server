@@ -22,6 +22,7 @@ export enum NOTICE_TYPE {
   // moment
   moment_liked = 'moment_liked',
   moment_mentioned_you = 'moment_mentioned_you',
+  moment_feed_approved = 'moment_feed_approved',
 
   // comment
   article_comment_liked = 'article_comment_liked',
