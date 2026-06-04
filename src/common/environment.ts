@@ -270,6 +270,14 @@ export const environment = {
     process.env.MATTERS_HOTTEST_MOMENTS_MAX_TAKE || '300',
     10
   ),
+  hottestMomentsAntifloodWindow: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_ANTIFLOOD_WINDOW || '48',
+    10
+  ),
+  hottestMomentsAntifloodLimit: parseInt(
+    process.env.MATTERS_HOTTEST_MOMENTS_ANTIFLOOD_LIMIT || '3',
+    10
+  ),
   momentFeedAutoApproveHours: parseInt(
     process.env.MATTERS_MOMENT_FEED_AUTO_APPROVE_HOURS || '48',
     10
