@@ -2197,6 +2197,7 @@ export type GQLMomentFeedUsersInput = {
   after?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   states?: InputMaybe<Array<GQLMomentFeedUserState>>
+  userName?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLMomentInput = {

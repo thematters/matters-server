@@ -59,10 +59,12 @@ export class MomentService {
 
   public findMomentFeedUsersAndCount = async ({
     states,
+    userName,
     skip,
     take,
   }: {
     states?: Array<MomentFeedUser['state']>
+    userName?: string
     skip?: number
     take?: number
   } = {}) => {
@@ -74,6 +76,9 @@ export class MomentService {
       .modify((builder: Knex.QueryBuilder) => {
         if (states && states.length > 0) {
           builder.whereIn('moment_feed_user.state', states)
+        }
+        if (userName) {
+          builder.whereILike('user.user_name', `%${userName}%`)
         }
       })
       .orderBy('moment_feed_user.created_at', 'desc')

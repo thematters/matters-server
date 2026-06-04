@@ -245,7 +245,7 @@ export const environment = {
     10
   ),
   hottestMomentsDays: parseInt(
-    process.env.MATTERS_HOTTEST_MOMENTS_DAYS || '7',
+    process.env.MATTERS_HOTTEST_MOMENTS_DAYS || '21',
     10
   ),
   hottestMomentsDecayDays: parseInt(
@@ -259,11 +259,11 @@ export const environment = {
     process.env.MATTERS_HOTTEST_MOMENTS_COMMENT_WEIGHT || '6'
   ),
   hottestMomentsLikesThreshold: parseInt(
-    process.env.MATTERS_HOTTEST_MOMENTS_LIKES_THRESHOLD || '2',
+    process.env.MATTERS_HOTTEST_MOMENTS_LIKES_THRESHOLD || '0',
     10
   ),
   hottestMomentsCommentsThreshold: parseInt(
-    process.env.MATTERS_HOTTEST_MOMENTS_COMMENTS_THRESHOLD || '1',
+    process.env.MATTERS_HOTTEST_MOMENTS_COMMENTS_THRESHOLD || '0',
     10
   ),
   hottestMomentsMaxTake: parseInt(

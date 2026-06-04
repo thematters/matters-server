@@ -30,8 +30,11 @@ const setFeatureFlag = async (flag: 'on' | 'off') => {
   await systemService.setFeatureFlag({ name: 'hottest_moment_feed', flag })
 }
 
-const seedApplication = async (state: ValueOf<typeof MOMENT_FEED_STATE>) => {
-  const user = await userService.create()
+const seedApplication = async (
+  state: ValueOf<typeof MOMENT_FEED_STATE>,
+  userName?: string
+) => {
+  const user = await userService.create({ userName })
   await atomService.create({
     table: 'moment_feed_user',
     data: { userId: user.id, state },
@@ -236,6 +239,40 @@ describe('query oss.momentFeedUsers', () => {
       (edge: { node: { id: string } }) => edge.node.id
     )
     expect(ids).toContain(toGlobalId({ type: NODE_TYPES.User, id: user.id }))
+  })
+
+  test('admin filters applications by userName', async () => {
+    const matched = await seedApplication(
+      MOMENT_FEED_STATE.pending,
+      'momentfeedmatcheduser'
+    )
+    const other = await seedApplication(
+      MOMENT_FEED_STATE.pending,
+      'momentfeedotheruser'
+    )
+    const server = await testClient({
+      isAdmin: true,
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: OSS_MOMENT_FEED_USERS,
+      variables: {
+        input: {
+          first: 50,
+          states: [MOMENT_FEED_STATE.pending],
+          userName: 'matcheduser',
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    const ids = data?.oss?.momentFeedUsers?.edges?.map(
+      (edge: { node: { id: string } }) => edge.node.id
+    )
+    expect(ids).toContain(toGlobalId({ type: NODE_TYPES.User, id: matched.id }))
+    expect(ids).not.toContain(
+      toGlobalId({ type: NODE_TYPES.User, id: other.id })
+    )
   })
 })
 

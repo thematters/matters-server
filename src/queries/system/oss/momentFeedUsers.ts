@@ -10,6 +10,7 @@ export const momentFeedUsers: GQLOssResolvers['momentFeedUsers'] = async (
   const { take, skip } = fromConnectionArgs(input)
   const [users, totalCount] = await momentService.findMomentFeedUsersAndCount({
     states: input.states ?? undefined,
+    userName: input.userName ?? undefined,
     take,
     skip,
   })

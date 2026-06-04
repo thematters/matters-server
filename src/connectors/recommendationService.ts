@@ -129,12 +129,12 @@ export class RecommendationService {
   }
 
   public findHottestMoments = async ({
-    days = 7,
+    days = 21,
     decayDays = 5,
     likeWeight = 4,
     commentWeight = 6,
-    likesThreshold = 2,
-    commentsThreshold = 1,
+    likesThreshold = 0,
+    commentsThreshold = 0,
     maxTake = 300,
   }: {
     days?: number
