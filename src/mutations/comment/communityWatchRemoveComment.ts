@@ -14,12 +14,14 @@ import {
   USER_FEATURE_FLAG_TYPE,
   USER_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   CommentNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
+import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
@@ -171,6 +173,36 @@ const resolver = async (
     ],
     recipientId: updatedComment.authorId,
   })
+
+  // Emit a report-alert event for the admin Telegram side-channel.
+  // Aggregated by the reported user (not by comment) — if the same user
+  // spams multiple comments we want them surfaced under one alert.
+  // authorId is non-null at this point because the comment had to belong
+  // to someone to be removable. The actual Telegram delivery happens in
+  // the reportTelegramAlert Lambda worker; this file just enqueues an
+  // event. enqueueReportAlert is best-effort and swallows errors so a
+  // queue outage cannot fail the comment removal.
+  if (updatedComment.authorId) {
+    const authorId = updatedComment.authorId
+    try {
+      const author = await atomService.userIdLoader.load(authorId)
+      const handle = author?.userName
+        ? `@${author.userName}`
+        : `(id=${authorId})`
+      const subject = author?.displayName
+        ? `${author.displayName} ${handle}`
+        : handle
+      await enqueueReportAlert({
+        source: 'community_watch',
+        dedupeKey: `cw:author:${authorId}`,
+        subject,
+        reason,
+        ossUrl: `${environment.ossSiteDomain}/reports`,
+      })
+    } catch {
+      // swallowed; report-alert is a notification side channel
+    }
+  }
 
   await invalidateFQC({
     node: {

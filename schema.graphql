@@ -4377,6 +4377,7 @@ input MomentFeedUsersInput {
   after: String
   first: Int
   states: [MomentFeedUserState!]
+  userName: String
 }
 
 input UpdateMomentFeedApplicationStateInput {

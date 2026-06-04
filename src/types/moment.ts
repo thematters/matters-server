@@ -46,6 +46,7 @@ export default /* GraphQL */ `
     after: String
     first: Int @constraint(min: 0)
     states: [MomentFeedUserState!]
+    userName: String
   }
 
   input UpdateMomentFeedApplicationStateInput {

@@ -52,6 +52,8 @@ export const hottestMoments: GQLRecommendationResolvers['hottestMoments'] =
           likesThreshold: environment.hottestMomentsLikesThreshold,
           commentsThreshold: environment.hottestMomentsCommentsThreshold,
           maxTake: environment.hottestMomentsMaxTake,
+          windowHours: environment.hottestMomentsAntifloodWindow,
+          limitPerWindow: environment.hottestMomentsAntifloodLimit,
         }),
       expire: CACHE_TTL.LONG,
     })
