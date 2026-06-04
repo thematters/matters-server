@@ -468,6 +468,32 @@ jobs:
             sqsBatchSize=2,
             sqsMaxBatchingWindowInSeconds=2
 
+  deploy-report-telegram-alert:
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: report-telegram-alert-${{ inputs.environment }}
+          template: ./deployment/lambda/queuejob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=reportTelegramAlert.handler,
+            lambdaTimeout=10,
+            lambdaMemorySize=256,
+            sqsArn=arn:aws:sqs:${{ secrets.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:report-alert-${{ env.SQS_ENV }},
+            sqsBatchSize=2,
+            sqsMaxBatchingWindowInSeconds=2
+
   deploy-blockchain-payment:
     needs: build-lambda-image
     runs-on: ubuntu-latest

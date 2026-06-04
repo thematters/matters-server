@@ -21,6 +21,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
+import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
@@ -45,7 +46,6 @@ const resolver = async (
       articleService,
       userService,
       notificationService,
-      telegramService,
       connections,
     },
   }: Context
@@ -174,10 +174,14 @@ const resolver = async (
     recipientId: updatedComment.authorId,
   })
 
-  // 新增：fire-and-forget Telegram alert. Aggregated by the reported user
-  // (not by comment) — if the same user spams multiple comments we want
-  // them surfaced under one alert. authorId is non-null at this point
-  // because the comment had to belong to someone to be removable.
+  // Emit a report-alert event for the admin Telegram side-channel.
+  // Aggregated by the reported user (not by comment) — if the same user
+  // spams multiple comments we want them surfaced under one alert.
+  // authorId is non-null at this point because the comment had to belong
+  // to someone to be removable. The actual Telegram delivery happens in
+  // the reportTelegramAlert Lambda worker; this file just enqueues an
+  // event. enqueueReportAlert is best-effort and swallows errors so a
+  // queue outage cannot fail the comment removal.
   if (updatedComment.authorId) {
     const authorId = updatedComment.authorId
     void (async () => {
@@ -189,7 +193,7 @@ const resolver = async (
         const subject = author?.displayName
           ? `${author.displayName} ${handle}`
           : handle
-        await telegramService.notifyReport({
+        await enqueueReportAlert({
           source: 'community_watch',
           dedupeKey: `cw:author:${authorId}`,
           subject,
@@ -197,7 +201,7 @@ const resolver = async (
           ossUrl: `${environment.ossSiteDomain}/reports`,
         })
       } catch {
-        // swallowed; TelegramService internally logs + reports to Sentry
+        // swallowed; producer internally logs + reports to Sentry
       }
     })()
   }
