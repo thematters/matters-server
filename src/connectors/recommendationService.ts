@@ -672,7 +672,7 @@ export class RecommendationService {
         this.knexRO.raw(
           `select *,
             ((extract(epoch from
-                max(created_at) over (partition by "authorId") - created_at
+                max(created_at) over (partition by author_id) - created_at
               ) / 3600)::int) / ${windowHours} as time_group
           from scored`
         )
@@ -682,9 +682,9 @@ export class RecommendationService {
         this.knexRO.raw(
           `select *,
             row_number() over (
-              partition by "authorId", time_group
+              partition by author_id, time_group
               order by score desc, raw_score desc,
-                       created_at desc, "momentId" desc
+                       created_at desc, moment_id desc
             ) as rank
           from time_grouped`
         )
