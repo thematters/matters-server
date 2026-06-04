@@ -935,8 +935,12 @@ export class CommentService extends BaseService<Comment> {
     id: string
     content: string
   }) => {
+    // Comments use their own model (separate from short-content/moments). Until
+    // MATTERS_COMMENT_SPAM_DETECTION_API_URL is configured, fall back to the
+    // short-content model so behaviour is unchanged.
     const detector = new SpamDetector(
-      environment.shortContentSpamDetectionApiUrl
+      environment.commentSpamDetectionApiUrl ||
+        environment.shortContentSpamDetectionApiUrl
     )
     const score = await detector.detect(content)
 
