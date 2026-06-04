@@ -64,8 +64,5 @@ export const down = async (knex) => {
     return
   }
 
-  await knex(table)
-    .where('reviewed_by', 'seed')
-    .whereIn('user_id', ids)
-    .del()
+  await knex(table).where('reviewed_by', 'seed').whereIn('user_id', ids).del()
 }
