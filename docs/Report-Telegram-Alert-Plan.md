@@ -89,12 +89,19 @@ Responsibilities:
 - Log and return per-record batch failures using the same SQS partial failure
   shape as existing handlers such as `src/handlers/notify.ts`.
 
-Runtime config should live only in the worker deployment:
+Runtime config should be consumed only by the worker code path:
 
 - `MATTERS_TELEGRAM_BOT_TOKEN`
 - `MATTERS_TELEGRAM_ALERT_CHAT_ID`
 - `MATTERS_TELEGRAM_ALERT_THREAD_ID` optional
 - `MATTERS_OSS_SITE_DOMAIN`
+
+The current Lambda bootstrap loads the shared `/dev/matters-server/` or
+`/prod/matters-server/` SSM path for every Lambda. If strict secret isolation is
+required, add a worker-specific SSM path before provisioning Telegram secrets.
+Until then, do not claim that the API Lambda cannot read those parameters; the
+important boundary in this PR is that the API code path does not use Telegram
+credentials or call Telegram APIs.
 
 ## Deployment Changes
 
@@ -114,6 +121,10 @@ Add a new deployment entry for the report alert worker:
 
 The API/server runtime needs permission to send to the queue. The worker needs
 permission to receive/delete from the queue and read its SSM config.
+
+If the shared queue Lambda template only accepts an existing queue ARN, create
+`report-alert-dev` and `report-alert-prod` before deploying this worker, or add
+queue creation to CloudFormation as part of the same PR.
 
 ## Why Not Fully External Polling
 

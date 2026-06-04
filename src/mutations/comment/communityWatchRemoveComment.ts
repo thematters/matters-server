@@ -184,26 +184,24 @@ const resolver = async (
   // queue outage cannot fail the comment removal.
   if (updatedComment.authorId) {
     const authorId = updatedComment.authorId
-    void (async () => {
-      try {
-        const author = await atomService.userIdLoader.load(authorId)
-        const handle = author?.userName
-          ? `@${author.userName}`
-          : `(id=${authorId})`
-        const subject = author?.displayName
-          ? `${author.displayName} ${handle}`
-          : handle
-        await enqueueReportAlert({
-          source: 'community_watch',
-          dedupeKey: `cw:author:${authorId}`,
-          subject,
-          reason,
-          ossUrl: `${environment.ossSiteDomain}/reports`,
-        })
-      } catch {
-        // swallowed; producer internally logs + reports to Sentry
-      }
-    })()
+    try {
+      const author = await atomService.userIdLoader.load(authorId)
+      const handle = author?.userName
+        ? `@${author.userName}`
+        : `(id=${authorId})`
+      const subject = author?.displayName
+        ? `${author.displayName} ${handle}`
+        : handle
+      await enqueueReportAlert({
+        source: 'community_watch',
+        dedupeKey: `cw:author:${authorId}`,
+        subject,
+        reason,
+        ossUrl: `${environment.ossSiteDomain}/reports`,
+      })
+    } catch {
+      // swallowed; report-alert is a notification side channel
+    }
   }
 
   await invalidateFQC({

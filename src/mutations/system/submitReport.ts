@@ -25,13 +25,10 @@ const resolver: GQLMutationResolvers['submitReport'] = async (
   })
 
   // Emit a report-alert event to SQS. A separate Lambda worker delivers it
-  // to the admin Telegram chat — Telegram credentials and API calls live
-  // only in that worker, not in the API runtime. enqueueReportAlert is
-  // best-effort and swallows errors internally, so a queue outage cannot
-  // fail this mutation. We still `void` and `.catch` belt-and-suspenders
-  // in case the helper itself ever throws synchronously.
+  // to the admin Telegram chat. enqueueReportAlert is best-effort and
+  // swallows errors internally, so a queue outage cannot fail this mutation.
   const targetGlobalId = toGlobalId({ type, id: targetId })
-  void enqueueReportAlert({
+  await enqueueReportAlert({
     source: 'direct',
     dedupeKey: `direct:${type}:${targetId}`,
     subject: `${type} (${targetGlobalId})`,
@@ -39,8 +36,6 @@ const resolver: GQLMutationResolvers['submitReport'] = async (
     ossUrl: `${environment.ossSiteDomain}/reports?targetId=${encodeURIComponent(
       targetGlobalId
     )}`,
-  }).catch(() => {
-    // swallowed; producer logs + reports to Sentry
   })
 
   return report

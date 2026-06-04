@@ -199,14 +199,18 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
   const chatId = environment.telegramAlertChatId
   const threadId = environment.telegramAlertThreadId
 
-  // No-op when this Lambda is deployed without bot/chat config (e.g. early
-  // bring-up before SSM is populated). Logged so it's obvious in CloudWatch.
+  // Treat missing bot/chat config as retryable. Returning success here would
+  // delete SQS records during early bring-up or a bad secret rollout.
   if (!botToken || !chatId) {
     logger.warn(
-      'report-telegram-alert: missing telegram config; skipping %d records',
+      'report-telegram-alert: missing telegram config; retrying %d records',
       event.Records.length
     )
-    return { batchItemFailures: [] }
+    return {
+      batchItemFailures: event.Records.map(({ messageId }) => ({
+        itemIdentifier: messageId,
+      })),
+    }
   }
 
   const redis = connections.redis

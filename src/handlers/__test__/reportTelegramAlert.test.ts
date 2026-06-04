@@ -3,6 +3,17 @@ import type { SQSEvent, SQSRecord } from 'aws-lambda'
 
 import { jest } from '@jest/globals'
 
+const handlerRedis = {
+  get: jest.fn(async () => null),
+  set: jest.fn(async () => 'OK'),
+}
+
+jest.unstable_mockModule('../../connections.js', () => ({
+  connections: {
+    redis: handlerRedis,
+  },
+}))
+
 // Mock axios BEFORE importing the SUT (ESM rule). The handler imports
 // `axios from 'axios'` and uses axios.post, so the mock shape must
 // expose `default.post` as a jest mock.
@@ -10,6 +21,7 @@ jest.unstable_mockModule('axios', () => ({
   default: { post: jest.fn() },
 }))
 
+const { environment } = await import('#common/environment.js')
 const axios = (await import('axios')).default as unknown as {
   // Loose typing so mockResolvedValue / mockRejectedValue accept any value
   // — the strict generic on jest.Mock would otherwise infer `never`.
@@ -181,6 +193,10 @@ describe('processRecord', () => {
 })
 
 describe('handler', () => {
+  const originalTelegramBotToken = environment.telegramBotToken
+  const originalTelegramAlertChatId = environment.telegramAlertChatId
+  const originalTelegramAlertThreadId = environment.telegramAlertThreadId
+
   const makeRecord = (body: string, messageId: string): SQSRecord =>
     ({
       messageId,
@@ -194,12 +210,89 @@ describe('handler', () => {
       awsRegion: '',
     } as SQSRecord)
 
-  it('returns empty batchItemFailures when telegram config is missing', async () => {
-    // env.telegramBotToken / chatId are '' by default in CI → handler bails
+  beforeEach(() => {
+    axios.post.mockReset()
+    handlerRedis.get.mockReset()
+    handlerRedis.set.mockReset()
+    handlerRedis.get.mockResolvedValue(null)
+    handlerRedis.set.mockResolvedValue('OK')
+    ;(environment as { telegramBotToken: string }).telegramBotToken = 'tkn'
+    ;(environment as { telegramAlertChatId: string }).telegramAlertChatId =
+      '-100'
+    ;(environment as { telegramAlertThreadId: string }).telegramAlertThreadId =
+      ''
+  })
+
+  afterEach(() => {
+    ;(environment as { telegramBotToken: string }).telegramBotToken =
+      originalTelegramBotToken
+    ;(environment as { telegramAlertChatId: string }).telegramAlertChatId =
+      originalTelegramAlertChatId
+    ;(environment as { telegramAlertThreadId: string }).telegramAlertThreadId =
+      originalTelegramAlertThreadId
+  })
+
+  it('returns all records as failures when telegram config is missing', async () => {
+    ;(environment as { telegramBotToken: string }).telegramBotToken = ''
     const event: SQSEvent = {
-      Records: [makeRecord(JSON.stringify(makePayload()), 'm1')],
+      Records: [
+        makeRecord(JSON.stringify(makePayload()), 'm1'),
+        makeRecord(
+          JSON.stringify(makePayload({ dedupeKey: 'direct:Article:2' })),
+          'm2'
+        ),
+      ],
     }
     const res = await handler(event)
+    expect(res).toEqual({
+      batchItemFailures: [
+        { itemIdentifier: 'm1' },
+        { itemIdentifier: 'm2' },
+      ],
+    })
+    expect(axios.post).not.toHaveBeenCalled()
+  })
+
+  it('drops malformed records without retrying forever', async () => {
+    axios.post.mockResolvedValueOnce({
+      data: { ok: true, result: { message_id: 11 } },
+    } as never)
+    const event: SQSEvent = {
+      Records: [
+        makeRecord('not-json', 'bad-json'),
+        makeRecord(JSON.stringify({ source: 'direct' }), 'bad-schema'),
+        makeRecord(JSON.stringify(makePayload()), 'good'),
+      ],
+    }
+
+    const res = await handler(event)
+
     expect(res).toEqual({ batchItemFailures: [] })
+    expect(axios.post).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns partial batch failures when telegram delivery fails', async () => {
+    axios.post
+      .mockResolvedValueOnce({
+        data: { ok: true, result: { message_id: 11 } },
+      } as never)
+      .mockRejectedValueOnce(new Error('telegram unavailable') as never)
+
+    const event: SQSEvent = {
+      Records: [
+        makeRecord(JSON.stringify(makePayload()), 'ok'),
+        makeRecord(
+          JSON.stringify(makePayload({ dedupeKey: 'direct:Article:2' })),
+          'retry'
+        ),
+      ],
+    }
+
+    const res = await handler(event)
+
+    expect(res).toEqual({
+      batchItemFailures: [{ itemIdentifier: 'retry' }],
+    })
+    expect(axios.post).toHaveBeenCalledTimes(2)
   })
 })
