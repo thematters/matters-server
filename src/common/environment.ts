@@ -299,6 +299,14 @@ export const environment = {
     process.env.MATTERS_COMPLAINT_AREA_ARTICLE_ID || '8079',
   federationExportTriggerMode:
     process.env.MATTERS_FEDERATION_EXPORT_TRIGGER_MODE || 'off',
+  federationExportLambdaFunctionName:
+    process.env.MATTERS_FEDERATION_EXPORT_LAMBDA_FUNCTION_NAME || '',
+  federationExportS3Bucket:
+    process.env.MATTERS_FEDERATION_EXPORT_S3_BUCKET || '',
+  federationExportS3Prefix:
+    process.env.MATTERS_FEDERATION_EXPORT_S3_PREFIX || '',
+  federationExportWebfDomain:
+    process.env.MATTERS_FEDERATION_WEBF_DOMAIN || '',
 }
 
 export const contract = {

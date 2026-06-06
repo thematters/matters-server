@@ -48,6 +48,7 @@
     "@apollo/utils.keyvadapter": "^3.0.0",
     "@apollo/utils.keyvaluecache": "^3.0.0",
     "@aws-sdk/client-cloudwatch": "^3.758.0",
+    "@aws-sdk/client-lambda": "3.758.0",
     "@aws-sdk/client-s3": "^3.758.0",
     "@aws-sdk/client-sqs": "^3.758.0",
     "@aws-sdk/client-ssm": "^3.812.0",

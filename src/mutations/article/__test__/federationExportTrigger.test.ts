@@ -92,6 +92,7 @@ describe('article federation export trigger scaffold', () => {
       articleId: '101',
       actorId: viewer.id,
       trigger: 'publish_article',
+      mode: FEDERATION_EXPORT_TRIGGER_MODE.recordOnly,
     })
   })
 
@@ -185,6 +186,7 @@ describe('article federation export trigger scaffold', () => {
       articleId: article.id,
       actorId: viewer.id,
       trigger: 'revise_article',
+      mode: FEDERATION_EXPORT_TRIGGER_MODE.recordOnly,
     })
   })
 })

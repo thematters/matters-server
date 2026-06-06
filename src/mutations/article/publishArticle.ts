@@ -21,6 +21,7 @@ import { fromGlobalId } from '#common/utils/index.js'
 import {
   FEDERATION_EXPORT_TRIGGER,
   FEDERATION_EXPORT_TRIGGER_MODE,
+  FederationExportTriggerMode,
 } from '#connectors/article/federationExportService.js'
 import { AtomService } from '#connectors/index.js'
 import { createRequire } from 'node:module'
@@ -151,8 +152,8 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     })
 
     if (
-      environment.federationExportTriggerMode ===
-        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly &&
+      environment.federationExportTriggerMode !==
+        FEDERATION_EXPORT_TRIGGER_MODE.off &&
       publishedDraft.articleId
     ) {
       try {
@@ -160,6 +161,8 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
           articleId: publishedDraft.articleId,
           actorId: viewer.id,
           trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+          mode:
+            environment.federationExportTriggerMode as FederationExportTriggerMode,
         })
       } catch (error) {
         logger.error('Failed to record federation export trigger decision', {
