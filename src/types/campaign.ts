@@ -130,6 +130,12 @@ export default /* GraphQL */ `
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!
 
+    "Comments made by campaign participants (public to read)."
+    discussion(input: CommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Discussion (include replies) count of this campaign."
+    discussionCount: Int!
+
     application: CampaignApplication @privateCache
 
     featuredDescription(input: TranslationArgs): String!

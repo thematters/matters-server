@@ -226,6 +226,12 @@ export class CampaignService {
       where: { userId, campaignId },
     })
 
+  // whether the user has successfully applied to (i.e. participates in) the campaign
+  public isParticipant = async (campaignId: string, userId: string) => {
+    const application = await this.getApplication(campaignId, userId)
+    return application?.state === CAMPAIGN_USER_STATE.succeeded
+  }
+
   public findAndCountAll = async (
     { skip, take }: { skip: number; take: number },
     {

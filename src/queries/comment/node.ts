@@ -18,6 +18,9 @@ const resolver: GQLCommentResolvers['node'] = async (
   } else if (type === COMMENT_TYPE.moment) {
     const moment = await atomService.momentIdLoader.load(targetId)
     return { ...moment, __type: 'Moment' }
+  } else if (type === COMMENT_TYPE.campaignDiscussion) {
+    const campaign = await atomService.campaignIdLoader.load(targetId)
+    return { ...campaign, __type: 'WritingChallenge' }
   } else {
     const circle = await atomService.findFirst({
       table: 'circle',

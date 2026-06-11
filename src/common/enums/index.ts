@@ -60,6 +60,7 @@ export const COMMENT_TYPE = {
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
   moment: 'moment',
+  campaignDiscussion: 'campaign_discussion',
 } as const
 
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
@@ -250,6 +251,9 @@ export const MAX_ARTICLES_PER_CONNECTION_LIMIT = 3
 export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
 
 export const MAX_ARTICLE_COMMENT_LENGTH = 1200
+
+// campaign discussion comment length cap (matches moment / 短動態 = 240)
+export const MAX_CAMPAIGN_COMMENT_LENGTH = 240
 
 export const MAX_PINNED_WORKS_LIMIT = 3
 
