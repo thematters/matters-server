@@ -8,6 +8,7 @@ import comment from './comment/index.js'
 import draft from './draft/index.js'
 import exchangeRates from './exchangeRates.js'
 import moment from './moment/index.js'
+import quote from './quote/index.js'
 import notice from './notice/index.js'
 import oauthClient from './oauthClient/index.js'
 import oauthRequestToken from './oauthRequestToken.js'
@@ -32,6 +33,7 @@ export default merge(
   exchangeRates,
   recommendation,
   moment,
+  quote,
   campaign,
   channel
 )

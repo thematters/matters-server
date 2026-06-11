@@ -29,6 +29,7 @@ export * from './appreciation.js'
 export * from './metrics.js'
 export * from './badges.js'
 export * from './moment.js'
+export * from './quote.js'
 export * from './campaign.js'
 export * from './channel.js'
 export * from './feedback.js'
@@ -169,6 +170,7 @@ export enum NODE_TYPES {
   Collection = 'Collection',
   Report = 'Report',
   Moment = 'Moment',
+  Quote = 'Quote',
   Campaign = 'Campaign',
   CampaignStage = 'CampaignStage',
   TopicChannel = 'TopicChannel',

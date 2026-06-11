@@ -6,6 +6,7 @@ import collection from './collection.js'
 import comment from './comment.js'
 import draft from './draft.js'
 import moment from './moment.js'
+import quote from './quote.js'
 import notice from './notice.js'
 import oauthClient from './oauthClient.js'
 import payment from './payment.js'
@@ -40,5 +41,6 @@ export default [
   oauthClient,
   collection,
   moment,
+  quote,
   channel,
 ]
