@@ -112,7 +112,6 @@ import type {
   MomentTag,
   MomentFeedUser,
 } from './moment.js'
-import type { Quote } from './quote.js'
 import type {
   Notice,
   NoticeDetail,
@@ -127,6 +126,7 @@ import type {
   PayoutAccount,
   Transaction,
 } from './payment.js'
+import type { Quote } from './quote.js'
 import type { Report } from './report.js'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag.js'
 import type { Translation } from './translation.js'

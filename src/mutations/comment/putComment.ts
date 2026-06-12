@@ -425,7 +425,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         (targetAuthor !== parentCommentAuthor &&
           targetAuthor !== replyToCommentAuthor))
 
-    if (isArticleType && shouldNotifyArticleAuthor) {
+    if (isArticleType && targetAuthor && shouldNotifyArticleAuthor) {
       const isMentioned = !!data.mentionedUserIds?.includes(targetAuthor)
 
       if (!isMentioned) {
@@ -559,7 +559,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     }
   }
 
-  if (isMoment) {
+  if (isMoment && targetAuthor) {
     const isMentioned = !!data.mentionedUserIds?.includes(targetAuthor)
     if (!isMentioned) {
       notificationService.trigger({

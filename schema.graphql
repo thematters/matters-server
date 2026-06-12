@@ -321,6 +321,14 @@ type Mutation {
   unlikeMoment(input: UnlikeMomentInput!): Moment!
   applyMomentFeed: User!
   updateMomentFeedApplicationState(input: UpdateMomentFeedApplicationStateInput!): User!
+
+  """Post a quote (selected from an article) onto the campaign quote wall."""
+  putQuote(input: PutQuoteInput!): Quote!
+
+  """
+  Retract a quote from the wall (poster, source article author, or admin).
+  """
+  deleteQuote(input: DeleteQuoteInput!): Boolean!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
   putTagChannel(input: PutTagChannelInput!): Tag!
@@ -1073,6 +1081,12 @@ type WritingChallenge implements Node & Campaign & Channel {
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
+
+  """Comments made by campaign participants (public to read)."""
+  discussion(input: CommentsInput!): CommentConnection!
+
+  """Discussion (include replies) count of this campaign."""
+  discussionCount: Int!
   application: CampaignApplication
   featuredDescription(input: TranslationArgs): String!
   organizers: [User!]!
@@ -1080,6 +1094,12 @@ type WritingChallenge implements Node & Campaign & Channel {
   showOther: Boolean!
   showAd: Boolean!
   oss: CampaignOSS!
+
+  """Quotes on this campaign's quote wall (public)."""
+  quotes(input: QuotesInput!): QuoteConnection!
+
+  """Quote count of this campaign's quote wall."""
+  quoteCount: Int!
 }
 
 type CampaignOSS {
@@ -1724,6 +1744,7 @@ input CommentInput {
   articleId: ID
   circleId: ID
   momentId: ID
+  campaignId: ID
 }
 
 input CommentCommentsInput {
@@ -1914,6 +1935,7 @@ enum CommentType {
   circleDiscussion
   circleBroadcast
   moment
+  campaignDiscussion
 }
 
 """
@@ -4441,6 +4463,43 @@ enum MomentFeedUserReviewedBy {
   admin
   system
   seed
+}
+
+input PutQuoteInput {
+  articleId: ID!
+  content: String!
+}
+
+input DeleteQuoteInput {
+  id: ID!
+}
+
+input QuotesInput {
+  first: Int
+
+  """random sampling for wall display; refetch to shuffle"""
+  random: Boolean
+}
+
+type Quote {
+  id: ID!
+  content: String!
+  article: Article!
+
+  """the user who posted this quote onto the wall"""
+  poster: User!
+  createdAt: DateTime!
+}
+
+type QuoteConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [QuoteEdge!]
+}
+
+type QuoteEdge {
+  cursor: String!
+  node: Quote!
 }
 
 interface Channel {

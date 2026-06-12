@@ -38,6 +38,7 @@ import {
   Moment as MomentModel,
   MomentFeedUser as MomentFeedUserModel,
 } from './moment.js'
+import { Quote as QuoteModel } from './quote.js'
 import {
   Campaign as CampaignModel,
   CampaignStage as CampaignStageModel,
@@ -1432,6 +1433,7 @@ export type GQLCommentEdge = {
 
 export type GQLCommentInput = {
   articleId?: InputMaybe<Scalars['ID']['input']>
+  campaignId?: InputMaybe<Scalars['ID']['input']>
   circleId?: InputMaybe<Scalars['ID']['input']>
   content: Scalars['String']['input']
   mentions?: InputMaybe<Array<Scalars['ID']['input']>>
@@ -1472,6 +1474,7 @@ export type GQLCommentState = 'active' | 'archived' | 'banned' | 'collapsed'
 
 export type GQLCommentType =
   | 'article'
+  | 'campaignDiscussion'
   | 'circleBroadcast'
   | 'circleDiscussion'
   | 'moment'
@@ -1682,6 +1685,10 @@ export type GQLDeleteDraftInput = {
 }
 
 export type GQLDeleteMomentInput = {
+  id: Scalars['ID']['input']
+}
+
+export type GQLDeleteQuoteInput = {
   id: Scalars['ID']['input']
 }
 
@@ -2279,6 +2286,8 @@ export type GQLMutation = {
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
   deleteMoment: GQLMoment
+  /** Retract a quote from the wall (poster, source article author, or admin). */
+  deleteQuote: Scalars['Boolean']['output']
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   directImageUpload: GQLAsset
   /** Edit an article. */
@@ -2327,6 +2336,8 @@ export type GQLMutation = {
   putMoment: GQLMoment
   /** Create or Update an OAuth Client, used in OSS. */
   putOAuthClient?: Maybe<GQLOAuthClient>
+  /** Post a quote (selected from an article) onto the campaign quote wall. */
+  putQuote: GQLQuote
   putRemark?: Maybe<Scalars['String']['output']>
   putRestrictedUsers: Array<GQLUser>
   putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
@@ -2558,6 +2569,10 @@ export type GQLMutationDeleteMomentArgs = {
   input: GQLDeleteMomentInput
 }
 
+export type GQLMutationDeleteQuoteArgs = {
+  input: GQLDeleteQuoteInput
+}
+
 export type GQLMutationDeleteTagsArgs = {
   input: GQLDeleteTagsInput
 }
@@ -2664,6 +2679,10 @@ export type GQLMutationPutMomentArgs = {
 
 export type GQLMutationPutOAuthClientArgs = {
   input: GQLPutOAuthClientInput
+}
+
+export type GQLMutationPutQuoteArgs = {
+  input: GQLPutQuoteInput
 }
 
 export type GQLMutationPutRemarkArgs = {
@@ -3448,6 +3467,11 @@ export type GQLPutOAuthClientInput = {
   website?: InputMaybe<Scalars['String']['input']>
 }
 
+export type GQLPutQuoteInput = {
+  articleId: Scalars['ID']['input']
+  content: Scalars['String']['input']
+}
+
 export type GQLPutRemarkInput = {
   id: Scalars['ID']['input']
   remark: Scalars['String']['input']
@@ -3610,7 +3634,36 @@ export type GQLQueryUserArgs = {
   input: GQLUserInput
 }
 
+export type GQLQuote = {
+  __typename?: 'Quote'
+  article: GQLArticle
+  content: Scalars['String']['output']
+  createdAt: Scalars['DateTime']['output']
+  id: Scalars['ID']['output']
+  /** the user who posted this quote onto the wall */
+  poster: GQLUser
+}
+
+export type GQLQuoteConnection = GQLConnection & {
+  __typename?: 'QuoteConnection'
+  edges?: Maybe<Array<GQLQuoteEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
 export type GQLQuoteCurrency = 'HKD' | 'TWD' | 'USD'
+
+export type GQLQuoteEdge = {
+  __typename?: 'QuoteEdge'
+  cursor: Scalars['String']['output']
+  node: GQLQuote
+}
+
+export type GQLQuotesInput = {
+  first?: InputMaybe<Scalars['Int']['input']>
+  /** random sampling for wall display; refetch to shuffle */
+  random?: InputMaybe<Scalars['Boolean']['input']>
+}
 
 export type GQLReadArticleInput = {
   id: Scalars['ID']['input']
@@ -5111,6 +5164,10 @@ export type GQLWritingChallenge = GQLCampaign &
     channelEnabled: Scalars['Boolean']['output']
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
+    /** Comments made by campaign participants (public to read). */
+    discussion: GQLCommentConnection
+    /** Discussion (include replies) count of this campaign. */
+    discussionCount: Scalars['Int']['output']
     featuredDescription: Scalars['String']['output']
     id: Scalars['ID']['output']
     isManager: Scalars['Boolean']['output']
@@ -5120,6 +5177,10 @@ export type GQLWritingChallenge = GQLCampaign &
     organizers: Array<GQLUser>
     oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
+    /** Quote count of this campaign's quote wall. */
+    quoteCount: Scalars['Int']['output']
+    /** Quotes on this campaign's quote wall (public). */
+    quotes: GQLQuoteConnection
     shortHash: Scalars['String']['output']
     showAd: Scalars['Boolean']['output']
     showOther: Scalars['Boolean']['output']
@@ -5136,6 +5197,10 @@ export type GQLWritingChallengeDescriptionArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
 
+export type GQLWritingChallengeDiscussionArgs = {
+  input: GQLCommentsInput
+}
+
 export type GQLWritingChallengeFeaturedDescriptionArgs = {
   input?: InputMaybe<GQLTranslationArgs>
 }
@@ -5150,6 +5215,10 @@ export type GQLWritingChallengeNavbarTitleArgs = {
 
 export type GQLWritingChallengeParticipantsArgs = {
   input: GQLCampaignParticipantsInput
+}
+
+export type GQLWritingChallengeQuotesArgs = {
+  input: GQLQuotesInput
 }
 
 export type GQLWritingConnection = GQLConnection & {
@@ -5384,6 +5453,9 @@ export type GQLResolversInterfaceTypes<
       })
     | (Omit<GQLOAuthClientConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['OAuthClientEdge']>>
+      })
+    | (Omit<GQLQuoteConnection, 'edges'> & {
+        edges?: Maybe<Array<_RefType['QuoteEdge']>>
       })
     | (Omit<GQLReadHistoryConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['ReadHistoryEdge']>>
@@ -5749,6 +5821,7 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteCurationChannelArticlesInput: GQLDeleteCurationChannelArticlesInput
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteMomentInput: GQLDeleteMomentInput
+  DeleteQuoteInput: GQLDeleteQuoteInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Donator: ResolverTypeWrapper<
@@ -5968,6 +6041,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutIcymiTopicInput: GQLPutIcymiTopicInput
   PutMomentInput: GQLPutMomentInput
   PutOAuthClientInput: GQLPutOAuthClientInput
+  PutQuoteInput: GQLPutQuoteInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
@@ -5977,7 +6051,17 @@ export type GQLResolversTypes = ResolversObject<{
   PutUserFederationSettingInput: GQLPutUserFederationSettingInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: ResolverTypeWrapper<{}>
+  Quote: ResolverTypeWrapper<QuoteModel>
+  QuoteConnection: ResolverTypeWrapper<
+    Omit<GQLQuoteConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['QuoteEdge']>>
+    }
+  >
   QuoteCurrency: GQLQuoteCurrency
+  QuoteEdge: ResolverTypeWrapper<
+    Omit<GQLQuoteEdge, 'node'> & { node: GQLResolversTypes['Quote'] }
+  >
+  QuotesInput: GQLQuotesInput
   ReadArticleInput: GQLReadArticleInput
   ReadHistory: ResolverTypeWrapper<
     Omit<GQLReadHistory, 'article'> & { article: GQLResolversTypes['Article'] }
@@ -6500,6 +6584,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteCurationChannelArticlesInput: GQLDeleteCurationChannelArticlesInput
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteMomentInput: GQLDeleteMomentInput
+  DeleteQuoteInput: GQLDeleteQuoteInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Donator: GQLResolversUnionTypes<GQLResolversParentTypes>['Donator']
@@ -6664,6 +6749,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutIcymiTopicInput: GQLPutIcymiTopicInput
   PutMomentInput: GQLPutMomentInput
   PutOAuthClientInput: GQLPutOAuthClientInput
+  PutQuoteInput: GQLPutQuoteInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
@@ -6673,6 +6759,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutUserFederationSettingInput: GQLPutUserFederationSettingInput
   PutWritingChallengeInput: GQLPutWritingChallengeInput
   Query: {}
+  Quote: QuoteModel
+  QuoteConnection: Omit<GQLQuoteConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['QuoteEdge']>>
+  }
+  QuoteEdge: Omit<GQLQuoteEdge, 'node'> & {
+    node: GQLResolversParentTypes['Quote']
+  }
+  QuotesInput: GQLQuotesInput
   ReadArticleInput: GQLReadArticleInput
   ReadHistory: Omit<GQLReadHistory, 'article'> & {
     article: GQLResolversParentTypes['Article']
@@ -8585,6 +8679,7 @@ export type GQLConnectionResolvers<
     | 'MomentConnection'
     | 'NoticeConnection'
     | 'OAuthClientConnection'
+    | 'QuoteConnection'
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
     | 'ReportConnection'
@@ -9400,6 +9495,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationDeleteMomentArgs, 'input'>
   >
+  deleteQuote?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationDeleteQuoteArgs, 'input'>
+  >
   deleteTags?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
@@ -9566,6 +9667,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutOAuthClientArgs, 'input'>
+  >
+  putQuote?: Resolver<
+    GQLResolversTypes['Quote'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutQuoteArgs, 'input'>
   >
   putRemark?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -10577,6 +10684,41 @@ export type GQLQueryResolvers<
     RequireFields<GQLQueryUserArgs, 'input'>
   >
   viewer?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
+}>
+
+export type GQLQuoteResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Quote'] = GQLResolversParentTypes['Quote']
+> = ResolversObject<{
+  article?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
+  content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  poster?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLQuoteConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['QuoteConnection'] = GQLResolversParentTypes['QuoteConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['QuoteEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLQuoteEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['QuoteEdge'] = GQLResolversParentTypes['QuoteEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Quote'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
 export type GQLReadHistoryResolvers<
@@ -11929,6 +12071,13 @@ export type GQLWritingChallengeResolvers<
     ContextType,
     Partial<GQLWritingChallengeDescriptionArgs>
   >
+  discussion?: Resolver<
+    GQLResolversTypes['CommentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLWritingChallengeDiscussionArgs, 'input'>
+  >
+  discussionCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   featuredDescription?: Resolver<
     GQLResolversTypes['String'],
     ParentType,
@@ -11961,6 +12110,13 @@ export type GQLWritingChallengeResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLWritingChallengeParticipantsArgs, 'input'>
+  >
+  quoteCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  quotes?: Resolver<
+    GQLResolversTypes['QuoteConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLWritingChallengeQuotesArgs, 'input'>
   >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   showAd?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
@@ -12133,6 +12289,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   PinnableWork?: GQLPinnableWorkResolvers<ContextType>
   Price?: GQLPriceResolvers<ContextType>
   Query?: GQLQueryResolvers<ContextType>
+  Quote?: GQLQuoteResolvers<ContextType>
+  QuoteConnection?: GQLQuoteConnectionResolvers<ContextType>
+  QuoteEdge?: GQLQuoteEdgeResolvers<ContextType>
   ReadHistory?: GQLReadHistoryResolvers<ContextType>
   ReadHistoryConnection?: GQLReadHistoryConnectionResolvers<ContextType>
   ReadHistoryEdge?: GQLReadHistoryEdgeResolvers<ContextType>
