@@ -1432,6 +1432,7 @@ export type GQLCommentEdge = {
 
 export type GQLCommentInput = {
   articleId?: InputMaybe<Scalars['ID']['input']>
+  campaignId?: InputMaybe<Scalars['ID']['input']>
   circleId?: InputMaybe<Scalars['ID']['input']>
   content: Scalars['String']['input']
   mentions?: InputMaybe<Array<Scalars['ID']['input']>>
@@ -1472,6 +1473,7 @@ export type GQLCommentState = 'active' | 'archived' | 'banned' | 'collapsed'
 
 export type GQLCommentType =
   | 'article'
+  | 'campaignDiscussion'
   | 'circleBroadcast'
   | 'circleDiscussion'
   | 'moment'
@@ -5111,6 +5113,10 @@ export type GQLWritingChallenge = GQLCampaign &
     channelEnabled: Scalars['Boolean']['output']
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
+    /** Comments made by campaign participants (public to read). */
+    discussion: GQLCommentConnection
+    /** Discussion (include replies) count of this campaign. */
+    discussionCount: Scalars['Int']['output']
     featuredDescription: Scalars['String']['output']
     id: Scalars['ID']['output']
     isManager: Scalars['Boolean']['output']
@@ -5134,6 +5140,10 @@ export type GQLWritingChallengeArticlesArgs = {
 
 export type GQLWritingChallengeDescriptionArgs = {
   input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLWritingChallengeDiscussionArgs = {
+  input: GQLCommentsInput
 }
 
 export type GQLWritingChallengeFeaturedDescriptionArgs = {
@@ -11929,6 +11939,13 @@ export type GQLWritingChallengeResolvers<
     ContextType,
     Partial<GQLWritingChallengeDescriptionArgs>
   >
+  discussion?: Resolver<
+    GQLResolversTypes['CommentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLWritingChallengeDiscussionArgs, 'input'>
+  >
+  discussionCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   featuredDescription?: Resolver<
     GQLResolversTypes['String'],
     ParentType,
