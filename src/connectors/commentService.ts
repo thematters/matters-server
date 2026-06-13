@@ -20,6 +20,7 @@ import {
   COMMENT_TYPE,
   USER_STATE,
   USER_ACTION,
+  USER_FEATURE_FLAG_TYPE,
   NOTICE_TYPE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
@@ -35,6 +36,7 @@ import { BaseService } from './baseService.js'
 import { NotificationService } from './notification/notificationService.js'
 import { PaymentService } from './paymentService.js'
 import { SpamDetector } from './spamDetector.js'
+import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'
 
 export interface CommentFilter {
@@ -950,7 +952,47 @@ export class CommentService extends BaseService<Comment> {
         where: { id },
         data: { spamScore: score },
       })
+      if (environment.commentSpamAutoCollapse) {
+        await this._autoCollapseIfSpam(id, score)
+      }
     }
     return score
+  }
+
+  /**
+   * Collapse an active comment whose spam score reaches the system spam
+   * threshold. Collapse (not deletion) keeps the comment foldable in-thread —
+   * "不刪除，只是不再被看見". Mirrors article demotion: respects the
+   * `bypassSpamDetection` whitelist and the tunable system threshold. Gated by
+   * `commentSpamAutoCollapse`; a no-op when the env flag is off.
+   */
+  private _autoCollapseIfSpam = async (id: string, score: number) => {
+    const systemService = new SystemService(this.connections)
+    const spamThreshold = await systemService.getSpamThreshold()
+    if (!spamThreshold || score < spamThreshold) {
+      return
+    }
+
+    const comment = await this.models.commentIdLoader.load(id)
+    if (!comment || comment.state !== COMMENT_STATE.active) {
+      return
+    }
+
+    const whitelisted = await this.models.findFirst({
+      table: 'user_feature_flag',
+      where: {
+        userId: comment.authorId,
+        type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+      },
+    })
+    if (whitelisted) {
+      return
+    }
+
+    await this.models.update({
+      table: 'comment',
+      where: { id },
+      data: { state: COMMENT_STATE.collapsed },
+    })
   }
 }
