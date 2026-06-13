@@ -1,7 +1,11 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import { NODE_TYPES, QUOTE_STATE } from '#common/enums/index.js'
-import { EntityNotFoundError, ForbiddenError } from '#common/errors.js'
+import {
+  EntityNotFoundError,
+  ForbiddenError,
+  UserInputError,
+} from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -16,7 +20,10 @@ const resolver: GQLMutationResolvers['deleteQuote'] = async (
     },
   }
 ) => {
-  const { id: quoteDbId } = fromGlobalId(id)
+  const { id: quoteDbId, type } = fromGlobalId(id)
+  if (type !== 'Quote') {
+    throw new UserInputError('invalid id')
+  }
   const quote = await atomService.findFirst({
     table: 'quote',
     where: { id: quoteDbId, state: QUOTE_STATE.active },

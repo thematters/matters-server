@@ -59,7 +59,10 @@ const resolver: GQLMutationResolvers['putQuote'] = async (
   }
 
   // target article
-  const { id: articleDbId } = fromGlobalId(articleId)
+  const { id: articleDbId, type } = fromGlobalId(articleId)
+  if (type !== 'Article') {
+    throw new UserInputError('invalid id')
+  }
   const article = await atomService.findFirst({
     table: 'article',
     where: { id: articleDbId, state: ARTICLE_STATE.active },
@@ -92,6 +95,7 @@ const resolver: GQLMutationResolvers['putQuote'] = async (
   const campaignArticle = await atomService.findFirst({
     table: 'campaign_article',
     where: { articleId: article.id, deleted: false },
+    orderBy: [{ column: 'createdAt', order: 'desc' }],
   })
   if (!campaignArticle) {
     throw new UserInputError('only campaign articles can be quoted onto wall')
@@ -141,16 +145,29 @@ const resolver: GQLMutationResolvers['putQuote'] = async (
     )
   }
 
-  const quote = await atomService.create({
-    table: 'quote',
-    data: {
-      content: quoteText,
-      articleId: article.id,
-      campaignId,
-      userId: viewer.id,
-      state: QUOTE_STATE.active,
-    },
-  })
+  let quote
+  try {
+    quote = await atomService.create({
+      table: 'quote',
+      data: {
+        content: quoteText,
+        articleId: article.id,
+        campaignId,
+        userId: viewer.id,
+        state: QUOTE_STATE.active,
+      },
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    // duplicate key error
+    if (
+      err.code === '23505' &&
+      err.constraint === 'quote_user_id_article_id_content_unique'
+    ) {
+      throw new UserInputError('this quote is already on the wall')
+    }
+    throw err
+  }
 
   invalidateFQC({
     node: { id: campaignId, type: NODE_TYPES.Campaign },
