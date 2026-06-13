@@ -13,6 +13,7 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   BUNDLED_NOTICE_TYPE,
+  CAMPAIGN_STATE,
   COMMENT_TYPE,
   COMMENT_STATE,
   NOTICE_TYPE,
@@ -31,6 +32,7 @@ import {
   CommentNotFoundError,
   MomentNotFoundError,
   ForbiddenByStateError,
+  ForbiddenByTargetStateError,
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
@@ -216,6 +218,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       throw new CampaignNotFoundError('target campaign does not exists')
     }
 
+    if (campaign.state === CAMPAIGN_STATE.archived) {
+      throw new ForbiddenByTargetStateError('campaign is archived')
+    }
+
     const { id: typeId } = await atomService.findFirst({
       table: 'entity_type',
       where: { table: 'campaign' },
@@ -316,9 +322,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       (campaign.managerIds ?? []).includes(viewer.id)
 
     if (!isParticipant && !isOrganizer) {
-      throw new ForbiddenError(
-        'only campaign participants have the permission'
-      )
+      throw new ForbiddenError('only campaign participants have the permission')
     }
   }
 

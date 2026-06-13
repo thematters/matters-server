@@ -1,5 +1,6 @@
 import type {
   Article,
+  Campaign,
   Circle,
   Comment,
   CommunityWatchAction,
@@ -32,6 +33,7 @@ import {
 import { v4 } from 'uuid'
 
 import { BaseService } from './baseService.js'
+import { CampaignService } from './campaignService.js'
 import { NotificationService } from './notification/notificationService.js'
 import { PaymentService } from './paymentService.js'
 import { SpamDetector } from './spamDetector.js'
@@ -644,25 +646,31 @@ export class CommentService extends BaseService<Comment> {
     // check target
     let article: Article
     let circle: Circle | undefined = undefined
-    let targetAuthorId: string
+    let campaign: Campaign | undefined = undefined
+    let targetAuthorId: string | undefined
     if (comment.type === COMMENT_TYPE.article) {
       article = await this.models.articleIdLoader.load(comment.targetId)
       targetAuthorId = article.authorId
     } else if (comment.type === COMMENT_TYPE.moment) {
       const moment = await this.models.momentIdLoader.load(comment.targetId)
       targetAuthorId = moment.authorId
+    } else if (comment.type === COMMENT_TYPE.campaignDiscussion) {
+      // campaign discussion has no single target author
+      campaign = await this.models.campaignIdLoader.load(comment.targetId)
     } else {
       circle = await this.models.circleIdLoader.load(comment.targetId)
       targetAuthorId = circle.owner
     }
 
-    const userService = new UserService(this.connections)
-    const isBlocked = await userService.blocked({
-      userId: targetAuthorId,
-      targetId: user.id,
-    })
-    if (isBlocked) {
-      throw new ForbiddenError('blocked user has no permission')
+    if (targetAuthorId) {
+      const userService = new UserService(this.connections)
+      const isBlocked = await userService.blocked({
+        userId: targetAuthorId,
+        targetId: user.id,
+      })
+      if (isBlocked) {
+        throw new ForbiddenError('blocked user has no permission')
+      }
     }
 
     // check permission
@@ -677,6 +685,24 @@ export class CommentService extends BaseService<Comment> {
 
       if (!isCircleMember) {
         throw new ForbiddenError('only circle members have the permission')
+      }
+    }
+
+    if (campaign) {
+      const campaignService = new CampaignService(this.connections)
+      const isParticipant = await campaignService.isParticipant(
+        campaign.id,
+        user.id
+      )
+      const isOrganizer =
+        campaign.creatorId === user.id ||
+        (campaign.organizerIds ?? []).includes(user.id) ||
+        (campaign.managerIds ?? []).includes(user.id)
+
+      if (!isParticipant && !isOrganizer) {
+        throw new ForbiddenError(
+          'only campaign participants have the permission'
+        )
       }
     }
 

@@ -3,6 +3,7 @@ import type {
   Article,
   Circle,
   Moment,
+  Campaign,
 } from '#definitions/index.js'
 
 import { COMMENT_TYPE, USER_STATE, NOTICE_TYPE } from '#common/enums/index.js'
@@ -17,6 +18,7 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
     dataSources: {
       atomService,
       paymentService,
+      campaignService,
       commentService,
       notificationService,
     },
@@ -33,13 +35,17 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
   let article: Article
   let circle: Circle | undefined = undefined
   let moment: Moment
-  let targetAuthor: string
+  let campaign: Campaign | undefined = undefined
+  let targetAuthor: string | undefined
   if (comment.type === COMMENT_TYPE.article) {
     article = await atomService.articleIdLoader.load(comment.targetId)
     targetAuthor = article.authorId
   } else if (comment.type === COMMENT_TYPE.moment) {
     moment = await atomService.momentIdLoader.load(comment.targetId)
     targetAuthor = moment.authorId
+  } else if (comment.type === COMMENT_TYPE.campaignDiscussion) {
+    // campaign discussion has no single target author
+    campaign = await atomService.campaignIdLoader.load(comment.targetId)
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
     targetAuthor = circle.owner
@@ -65,6 +71,21 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
 
     if (!isCircleMember) {
       throw new ForbiddenError('only circle members have the permission')
+    }
+  }
+
+  if (campaign) {
+    const isParticipant = await campaignService.isParticipant(
+      campaign.id,
+      viewer.id
+    )
+    const isOrganizer =
+      campaign.creatorId === viewer.id ||
+      (campaign.organizerIds ?? []).includes(viewer.id) ||
+      (campaign.managerIds ?? []).includes(viewer.id)
+
+    if (!isParticipant && !isOrganizer) {
+      throw new ForbiddenError('only campaign participants have the permission')
     }
   }
 
