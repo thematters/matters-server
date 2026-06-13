@@ -42,6 +42,14 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
       ? [(await atomService.momentIdLoader.load(comment.targetId)).authorId]
       : []),
   ]
+  if (comment.type === COMMENT_TYPE.campaignDiscussion) {
+    const campaign = await atomService.campaignIdLoader.load(comment.targetId)
+    authorized.push(
+      campaign.creatorId,
+      ...(campaign.organizerIds ?? []),
+      ...(campaign.managerIds ?? [])
+    )
+  }
   if (!authorized.includes(viewer.id)) {
     throw new ForbiddenError('viewer has no permission')
   }
@@ -65,6 +73,8 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
           ? NODE_TYPES.Article
           : comment.type === COMMENT_TYPE.moment
           ? NODE_TYPES.Moment
+          : comment.type === COMMENT_TYPE.campaignDiscussion
+          ? NODE_TYPES.Campaign
           : NODE_TYPES.Circle,
     },
     redis: connections.redis,

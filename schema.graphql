@@ -1073,6 +1073,12 @@ type WritingChallenge implements Node & Campaign & Channel {
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
+
+  """Comments made by campaign participants (public to read)."""
+  discussion(input: CommentsInput!): CommentConnection!
+
+  """Discussion (include replies) count of this campaign."""
+  discussionCount: Int!
   application: CampaignApplication
   featuredDescription(input: TranslationArgs): String!
   organizers: [User!]!
@@ -1724,6 +1730,7 @@ input CommentInput {
   articleId: ID
   circleId: ID
   momentId: ID
+  campaignId: ID
 }
 
 input CommentCommentsInput {
@@ -1914,6 +1921,7 @@ enum CommentType {
   circleDiscussion
   circleBroadcast
   moment
+  campaignDiscussion
 }
 
 """

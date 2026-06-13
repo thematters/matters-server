@@ -6,16 +6,19 @@ import type {
   Circle,
   Comment,
   Moment,
+  Campaign,
 } from '#definitions/index.js'
 
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   BUNDLED_NOTICE_TYPE,
+  CAMPAIGN_STATE,
   COMMENT_TYPE,
   COMMENT_STATE,
   NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
+  MAX_CAMPAIGN_COMMENT_LENGTH,
   MAX_MOMENT_COMMENT_LENGTH,
   MAX_CONTENT_LINK_TEXT_LENGTH,
   NODE_TYPES,
@@ -24,10 +27,12 @@ import {
 } from '#common/enums/index.js'
 import {
   ArticleNotFoundError,
+  CampaignNotFoundError,
   CircleNotFoundError,
   CommentNotFoundError,
   MomentNotFoundError,
   ForbiddenByStateError,
+  ForbiddenByTargetStateError,
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
@@ -60,6 +65,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         articleId,
         circleId,
         momentId,
+        campaignId,
       },
       id,
     },
@@ -71,6 +77,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       commentService,
       paymentService,
       articleService,
+      campaignService,
       notificationService,
       userService,
       connections,
@@ -104,6 +111,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   const isCircleDiscussion = type === 'circleDiscussion'
   const isCircleBroadcast = type === 'circleBroadcast'
   const isMoment = type === 'moment'
+  const isCampaignDiscussion = type === 'campaignDiscussion'
   if (isArticleType && !articleId) {
     throw new UserInputError('`articleId` is required if `type` is `article`')
   } else if ((isCircleDiscussion || isCircleBroadcast) && !circleId) {
@@ -112,6 +120,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     )
   } else if (isMoment && !momentId) {
     throw new UserInputError('`momentId` is required if `type` is `moment`')
+  } else if (isCampaignDiscussion && !campaignId) {
+    throw new UserInputError(
+      '`campaignId` is required if `type` is `campaignDiscussion`'
+    )
   } else {
     data.type = COMMENT_TYPE[type]
   }
@@ -130,6 +142,12 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   if (isMoment && stripHtml(content).length > MAX_MOMENT_COMMENT_LENGTH) {
     throw new UserInputError('content reach length limit')
   }
+  if (
+    isCampaignDiscussion &&
+    stripHtml(content).length > MAX_CAMPAIGN_COMMENT_LENGTH
+  ) {
+    throw new UserInputError('content reach length limit')
+  }
 
   /**
    * check target
@@ -137,6 +155,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   let article: Article | undefined
   let circle: Circle | undefined
   let moment: Moment | undefined
+  let campaign: Campaign | undefined
   let targetAuthor: string | undefined
   if (articleId) {
     const { id: articleDbId } = fromGlobalId(articleId)
@@ -191,9 +210,30 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     data.targetId = moment.id
 
     targetAuthor = moment.authorId
+  } else if (campaignId) {
+    const { id: campaignDbId } = fromGlobalId(campaignId)
+    campaign = await atomService.campaignIdLoader.load(campaignDbId)
+
+    if (!campaign) {
+      throw new CampaignNotFoundError('target campaign does not exists')
+    }
+
+    if (campaign.state === CAMPAIGN_STATE.archived) {
+      throw new ForbiddenByTargetStateError('campaign is archived')
+    }
+
+    const { id: typeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'campaign' },
+    })
+    data.targetTypeId = typeId
+    data.targetId = campaign.id
+
+    // campaign discussion has no single "author" to notify / block against
+    targetAuthor = undefined
   } else {
     throw new UserInputError(
-      '`articleId` or `circleId` or `momentId` is required'
+      '`articleId` or `circleId` or `momentId` or `campaignId` is required'
     )
   }
 
@@ -269,13 +309,33 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     }
   }
 
-  // check whether viewer is blocked by target author
-  const isBlocked = await userService.blocked({
-    userId: targetAuthor,
-    targetId: viewer.id,
-  })
-  if (isBlocked) {
-    throw new ForbiddenError('viewer is blocked by target author')
+  // campaign discussion is public to read, but only succeeded participants
+  // (or the campaign organizers/managers) may comment
+  if (campaign) {
+    const isParticipant = await campaignService.isParticipant(
+      campaign.id,
+      viewer.id
+    )
+    const isOrganizer =
+      campaign.creatorId === viewer.id ||
+      (campaign.organizerIds ?? []).includes(viewer.id) ||
+      (campaign.managerIds ?? []).includes(viewer.id)
+
+    if (!isParticipant && !isOrganizer) {
+      throw new ForbiddenError('only campaign participants have the permission')
+    }
+  }
+
+  // check whether viewer is blocked by target author (skip when no single author,
+  // e.g. campaign discussion)
+  if (targetAuthor) {
+    const isBlocked = await userService.blocked({
+      userId: targetAuthor,
+      targetId: viewer.id,
+    })
+    if (isBlocked) {
+      throw new ForbiddenError('viewer is blocked by target author')
+    }
   }
 
   data.mentionedUserIds =
@@ -369,7 +429,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         (targetAuthor !== parentCommentAuthor &&
           targetAuthor !== replyToCommentAuthor))
 
-    if (isArticleType && shouldNotifyArticleAuthor) {
+    if (isArticleType && targetAuthor && shouldNotifyArticleAuthor) {
       const isMentioned = !!data.mentionedUserIds?.includes(targetAuthor)
 
       if (!isMentioned) {
@@ -503,7 +563,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     }
   }
 
-  if (isMoment) {
+  if (isMoment && targetAuthor) {
     const isMentioned = !!data.mentionedUserIds?.includes(targetAuthor)
     if (!isMentioned) {
       notificationService.trigger({
@@ -534,7 +594,11 @@ const resolver: GQLMutationResolvers['putComment'] = async (
           ],
           tag: `put-comment:${newComment.id}`,
         })
-      } else if (!(isCircleBroadcast && isLevel1Comment)) {
+      } else if (
+        (isCircleDiscussion || isCircleBroadcast) &&
+        !(isCircleBroadcast && isLevel1Comment)
+      ) {
+        // NOTE: campaignDiscussion mentions intentionally send no notice in MVP
         const noticeType = isCircleBroadcast
           ? NOTICE_TYPE.circle_new_broadcast_comments
           : NOTICE_TYPE.circle_new_discussion_comments
@@ -586,6 +650,11 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     ? {
         id: moment?.id as string,
         type: NODE_TYPES.Moment,
+      }
+    : isCampaignDiscussion
+    ? {
+        id: campaign?.id as string,
+        type: NODE_TYPES.Campaign,
       }
     : {
         id: circle?.id as string,
