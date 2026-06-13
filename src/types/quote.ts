@@ -31,8 +31,9 @@ export default /* GraphQL */ `
 
   input QuotesInput {
     first: Int @constraint(min: 0, max: 50)
+    after: String
 
-    "random sampling for wall display; refetch to shuffle"
+    "random sampling for wall display; refetch to shuffle. when true, after is ignored"
     random: Boolean
   }
 

@@ -26,19 +26,25 @@ const resolver: GQLMutationResolvers['deleteQuote'] = async (
   }
   const quote = await atomService.findFirst({
     table: 'quote',
-    where: { id: quoteDbId, state: QUOTE_STATE.active },
+    where: { id: quoteDbId },
   })
   if (!quote) {
     throw new EntityNotFoundError('quote does not exists')
   }
 
   // retraction is allowed for: the poster, the source article's author
-  // (the quoted words are theirs), or admin
+  // (the quoted words are theirs), or admin. checked before any idempotent
+  // shortcut so an unauthorized viewer can never probe a quote's existence
   const article = await atomService.articleIdLoader.load(quote.articleId)
   const isPoster = viewer.id === quote.userId
   const isArticleAuthor = viewer.id === article?.authorId
   if (!isPoster && !isArticleAuthor && !viewer.hasRole('admin')) {
     throw new ForbiddenError('viewer has no permission')
+  }
+
+  // idempotent: already retracted, nothing to do
+  if (quote.state !== QUOTE_STATE.active) {
+    return true
   }
 
   // soft delete: hidden, not erased

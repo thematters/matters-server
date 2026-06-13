@@ -1,18 +1,26 @@
 import type { GQLWritingChallengeResolvers } from '#definitions/index.js'
 
 import { QUOTE_STATE } from '#common/enums/index.js'
-import { connectionFromArray } from '#common/utils/index.js'
+import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
 const DEFAULT_TAKE = 12
 
 // public quote wall of a campaign; `random: true` returns a random sample
-// (the "shuffle" button simply refetches)
+// (the "shuffle" button simply refetches), in which case `after` is ignored
 const resolver: GQLWritingChallengeResolvers['quotes'] = async (
   { id },
-  { input: { first, random } },
-  { dataSources: { atomService, connections: { knexRO } } }
+  { input },
+  {
+    dataSources: {
+      atomService,
+      connections: { knexRO },
+    },
+  }
 ) => {
-  const take = first ?? DEFAULT_TAKE
+  const { random } = input
+  const { take, skip } = fromConnectionArgs(input, {
+    defaultTake: DEFAULT_TAKE,
+  })
 
   const [quotes, totalCount] = await Promise.all([
     knexRO('quote')
@@ -22,7 +30,7 @@ const resolver: GQLWritingChallengeResolvers['quotes'] = async (
         if (random) {
           builder.orderByRaw('random()')
         } else {
-          builder.orderBy('id', 'desc')
+          builder.orderBy('id', 'desc').offset(skip)
         }
       })
       .limit(take),
@@ -32,7 +40,11 @@ const resolver: GQLWritingChallengeResolvers['quotes'] = async (
     }),
   ])
 
-  return connectionFromArray(quotes, { first: take }, totalCount)
+  return connectionFromArray(
+    quotes,
+    random ? { first: take } : input,
+    totalCount
+  )
 }
 
 export default resolver

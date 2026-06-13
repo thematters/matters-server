@@ -3660,8 +3660,9 @@ export type GQLQuoteEdge = {
 }
 
 export type GQLQuotesInput = {
+  after?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
-  /** random sampling for wall display; refetch to shuffle */
+  /** random sampling for wall display; refetch to shuffle. when true, after is ignored */
   random?: InputMaybe<Scalars['Boolean']['input']>
 }
 
