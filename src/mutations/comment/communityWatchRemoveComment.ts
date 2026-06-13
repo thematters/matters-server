@@ -22,6 +22,7 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
+import { enqueueSpamSample } from '#common/notifications/spamSample.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
@@ -203,6 +204,19 @@ const resolver = async (
       // swallowed; report-alert is a notification side channel
     }
   }
+
+  // Capture the removed comment as a confirmed-spam training sample (axis-2 L2).
+  // Done at removal time so it survives a later
+  // clearCommunityWatchOriginalContent / account purge. De-identified and
+  // best-effort inside enqueueSpamSample; never fails the removal.
+  await enqueueSpamSample({
+    label: 1,
+    text: updatedComment.content ?? '',
+    labelSource: `community_watch_remove:${reason}`,
+    commentId: updatedComment.id,
+    authorId: updatedComment.authorId,
+    score: updatedComment.spamScore ?? null,
+  })
 
   await invalidateFQC({
     node: {
