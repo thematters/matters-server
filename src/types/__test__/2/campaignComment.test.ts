@@ -7,6 +7,7 @@ import {
   CAMPAIGN_USER_STATE,
   COMMENT_STATE,
   COMMENT_TYPE,
+  MAX_CAMPAIGN_COMMENT_LENGTH,
   NODE_TYPES,
 } from '#common/enums/index.js'
 import {
@@ -274,11 +275,61 @@ describe('put campaignDiscussion comment', () => {
       expect(data.putComment.id).toBeDefined()
     }
   })
+
+  test('campaignId is required for campaignDiscussion type', async () => {
+    const server = await testClient({
+      userId: participantId,
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test campaign discussion comment',
+            type: 'campaignDiscussion',
+          },
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+
+  test('can not comment on non-existing campaign', async () => {
+    const { errors } = await putCampaignComment(
+      participantId,
+      toGlobalId({ type: NODE_TYPES.Campaign, id: '99999999' })
+    )
+    expect(errors?.[0].extensions.code).toBe('CAMPAIGN_NOT_FOUND')
+  })
+
+  test('content exceeding length limit is rejected', async () => {
+    const server = await testClient({
+      userId: participantId,
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'x'.repeat(MAX_CAMPAIGN_COMMENT_LENGTH + 1),
+            campaignId: campaignGlobalId,
+            type: 'campaignDiscussion',
+          },
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
 })
 
 describe('vote/unvote campaignDiscussion comment', () => {
   const participantId = '2'
   const nonParticipantId = '3'
+  const organizerId = '6'
   let campaign: Campaign
   let comment: { id: string }
 
@@ -287,6 +338,7 @@ describe('vote/unvote campaignDiscussion comment', () => {
       ...baseCampaignData,
       creatorId: '1',
       state: CAMPAIGN_STATE.active,
+      organizerIds: [organizerId],
     })
     await setApplicationState(
       campaign.id,
@@ -352,6 +404,42 @@ describe('vote/unvote campaignDiscussion comment', () => {
         input: {
           id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
           vote: 'up',
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+
+  test('organizer (non-participant) can upvote a campaign discussion comment', async () => {
+    const server = await testClient({
+      userId: organizerId,
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: VOTE_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
+          vote: 'up',
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.voteComment.upvotes).toBe(1)
+  })
+
+  test('non-participant can not unvote a campaign discussion comment', async () => {
+    const server = await testClient({
+      userId: nonParticipantId,
+      isAuth: true,
+      connections,
+    })
+    const { errors } = await server.executeOperation({
+      query: UNVOTE_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
         },
       },
     })
