@@ -126,6 +126,7 @@ import type {
   PayoutAccount,
   Transaction,
 } from './payment.js'
+import type { Quote } from './quote.js'
 import type { Report } from './report.js'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag.js'
 import type { Translation } from './translation.js'
@@ -172,6 +173,7 @@ export * from './wallet.js'
 export * from './misc.js'
 export * from './schema.js'
 export * from './moment.js'
+export * from './quote.js'
 export * from './campaign.js'
 export * from './translation.js'
 export * from './channel.js'
@@ -287,6 +289,7 @@ export interface TableTypeMap {
   featured_comment_materialized: FeaturedCommentMaterialized
   feature_flag: FeatureFlag
   moment: Moment
+  quote: Quote
   moment_asset: MomentAsset
   moment_article: MomentArticle
   moment_tag: MomentTag

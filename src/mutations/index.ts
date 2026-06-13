@@ -10,6 +10,7 @@ import draft from './draft/index.js'
 import moment from './moment/index.js'
 import notice from './notice/index.js'
 import oauthClient from './oauthClient/index.js'
+import quote from './quote/index.js'
 import system from './system/index.js'
 import user from './user/index.js'
 
@@ -25,5 +26,6 @@ export default merge(
   oauthClient,
   collection,
   moment,
+  quote,
   channel
 )

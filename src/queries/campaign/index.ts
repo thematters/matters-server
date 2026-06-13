@@ -21,6 +21,8 @@ import name from './name.js'
 import navbarTitle from './navbarTitle.js'
 import organizers from './organizers.js'
 import participants from './participants.js'
+import quoteCount from './quoteCount.js'
+import quotes from './quotes.js'
 import stageDescription from './stage/description.js'
 import stageName from './stage/name.js'
 import stages from './stages.js'
@@ -60,6 +62,8 @@ const schema: GQLResolvers = {
     articles,
     discussion: campaignDiscussion,
     discussionCount: campaignDiscussionCount,
+    quotes,
+    quoteCount,
     channelEnabled,
     showOther: ({ showOther }) => showOther,
     showAd: ({ showAd }) => showAd,
