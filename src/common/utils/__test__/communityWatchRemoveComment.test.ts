@@ -260,6 +260,31 @@ describe('communityWatchRemoveComment', () => {
     expect(sentSpamSamples[0].messageBody.commentHash).toMatch(/^[0-9a-f]{64}$/)
   })
 
+  test('still removes the comment when spam-sample enqueue throws', async () => {
+    const { context } = createContext()
+    const prev = aws.sqsSendMessage
+    ;(aws as { sqsSendMessage: typeof aws.sqsSendMessage }).sqsSendMessage =
+      (async () => {
+        throw new Error('SQS down')
+      }) as typeof aws.sqsSendMessage
+    try {
+      const result = await removeComment(context)
+      expect(result.state).toBe(COMMENT_STATE.banned)
+    } finally {
+      ;(aws as { sqsSendMessage: typeof aws.sqsSendMessage }).sqsSendMessage =
+        prev
+    }
+  })
+
+  test('skips the spam sample when the removed comment has no text', async () => {
+    const { context } = createContext({
+      comment: { ...baseComment, content: '   ' },
+    })
+    const result = await removeComment(context)
+    expect(result.state).toBe(COMMENT_STATE.banned)
+    expect(sentSpamSamples).toHaveLength(0)
+  })
+
   test('removes a moment comment without an article title', async () => {
     const comment = {
       ...baseComment,
