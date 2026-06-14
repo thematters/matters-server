@@ -189,6 +189,11 @@ export const environment = {
     process.env.MATTERS_SHORT_CONTENT_SPAM_DETECTION_API_URL || '',
   commentSpamDetectionApiUrl:
     process.env.MATTERS_COMMENT_SPAM_DETECTION_API_URL || '',
+  // When true, a comment whose spam score reaches the system spam threshold is
+  // auto-collapsed (folded but still expandable in-thread — "不刪除，只是不再被
+  // 看見"). Default off so scoring stays observe-only until ops opts in.
+  commentSpamAutoCollapse:
+    process.env.MATTERS_COMMENT_SPAM_AUTO_COLLAPSE === 'true',
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
   languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
