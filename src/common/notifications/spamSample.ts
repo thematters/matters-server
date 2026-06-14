@@ -1,10 +1,9 @@
-import { createHmac } from 'node:crypto'
-
-import { environment } from '#common/environment.js'
 import { QUEUE_URL } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { aws } from '#connectors/aws/index.js'
 import * as Sentry from '@sentry/node'
+import { createHmac } from 'node:crypto'
 
 const logger = getLogger('spam-sample')
 
