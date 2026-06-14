@@ -11,10 +11,13 @@ import {
   COMMENT_TYPE,
   NODE_TYPES,
   OFFICIAL_NOTICE_EXTEND_TYPE,
+  QUEUE_URL,
   USER_FEATURE_FLAG_TYPE,
   USER_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
+import { aws } from '#connectors/aws/index.js'
 import communityWatchRemoveComment from '#mutations/comment/communityWatchRemoveComment.js'
 
 const mutation = communityWatchRemoveComment as NonNullable<
@@ -163,6 +166,39 @@ const removeComment = (
     {} as any
   )
 
+// Exercise the spam-training-sample capture (axis-2 L2) so spamSample.ts's
+// enqueue body runs under coverage. The notifications dir has no CI test script,
+// so this — the mutation path that calls enqueueSpamSample — is its coverage.
+const originalSpamQueue = QUEUE_URL.spamSample
+const originalSpamSalt = environment.spamSampleHashSalt
+const originalSqsSend = aws.sqsSendMessage
+let sentSpamSamples: Array<{ messageBody: Record<string, unknown> }>
+
+beforeAll(() => {
+  ;(aws as { sqsSendMessage: typeof aws.sqsSendMessage }).sqsSendMessage =
+    (async (params) => {
+      sentSpamSamples.push({
+        messageBody: params.messageBody as Record<string, unknown>,
+      })
+    }) as typeof aws.sqsSendMessage
+  ;(QUEUE_URL as { spamSample: string }).spamSample = 'https://sqs.test/spam'
+  ;(environment as { spamSampleHashSalt: string }).spamSampleHashSalt =
+    'test-salt'
+})
+
+afterAll(() => {
+  ;(aws as { sqsSendMessage: typeof aws.sqsSendMessage }).sqsSendMessage =
+    originalSqsSend
+  ;(QUEUE_URL as { spamSample: string }).spamSample =
+    originalSpamQueue as string
+  ;(environment as { spamSampleHashSalt: string }).spamSampleHashSalt =
+    originalSpamSalt
+})
+
+beforeEach(() => {
+  sentSpamSamples = []
+})
+
 describe('communityWatchRemoveComment', () => {
   test('removes an article comment and writes an audit action', async () => {
     const { context, insertedActions, insertedReports, commentUpdates } =
@@ -214,6 +250,14 @@ describe('communityWatchRemoveComment', () => {
         recipientId: baseComment.authorId,
       })
     )
+
+    // a de-identified spam training sample is captured (axis-2 L2)
+    expect(sentSpamSamples).toHaveLength(1)
+    expect(sentSpamSamples[0].messageBody).toMatchObject({
+      label: 1,
+      labelSource: 'community_watch_remove:porn_ad',
+    })
+    expect(sentSpamSamples[0].messageBody.commentHash).toMatch(/^[0-9a-f]{64}$/)
   })
 
   test('removes a moment comment without an article title', async () => {
