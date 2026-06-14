@@ -1,0 +1,19 @@
+# Codecov configuration.
+#
+# patch: strict — every PR's changed lines must stay covered vs base (this is
+#   the real "test your new code" gate; default target auto, no slack).
+# project: tolerate a 1% drop in total repo coverage. Total coverage on this
+#   repo fluctuates run-to-run because the suite is sharded across heavy
+#   integration tests, and codecov compares against the nearest ancestor that
+#   has a coverage upload (develop merge commits don't publish one), so a PR can
+#   show a small spurious project drop even when its own diff is fully covered.
+#   The 1% threshold absorbs that noise without weakening the patch gate.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
