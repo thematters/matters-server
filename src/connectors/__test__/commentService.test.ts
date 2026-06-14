@@ -1,12 +1,21 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { Connections } from '#definitions/index.js'
 
-import { COMMENT_STATE, COMMENT_TYPE, USER_STATE } from '#common/enums/index.js'
+import {
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  FEATURE_FLAG,
+  FEATURE_NAME,
+  USER_FEATURE_FLAG_TYPE,
+  USER_STATE,
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 
 import { PublicationService } from '../article/publicationService.js'
 import { AtomService } from '../atomService.js'
 import { CommentService } from '../commentService.js'
 import { MomentService } from '../momentService.js'
+import { SystemService } from '../systemService.js'
 import { UserService } from '../userService.js'
 
 import { genConnections, closeConnections } from './utils.js'
@@ -16,6 +25,7 @@ let atomService: AtomService
 let publicationService: PublicationService
 let commentService: CommentService
 let momentService: MomentService
+let systemService: SystemService
 let userService: UserService
 
 beforeAll(async () => {
@@ -24,6 +34,7 @@ beforeAll(async () => {
   publicationService = new PublicationService(connections)
   commentService = new CommentService(connections)
   momentService = new MomentService(connections)
+  systemService = new SystemService(connections)
   userService = new UserService(connections)
 }, 50000)
 
@@ -755,5 +766,102 @@ describe('addNotAuthorCommentCountColumn', () => {
 
     expect(results).toHaveLength(1)
     expect(results[0].notAuthorCommentCount).toBe('1')
+  })
+})
+
+describe('auto-collapse spam comments', () => {
+  let targetTypeId: string
+
+  beforeAll(async () => {
+    const entityType = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    targetTypeId = entityType.id
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.8,
+    })
+  })
+
+  const createActiveComment = async (authorId = '1') =>
+    atomService.create({
+      table: 'comment',
+      data: {
+        type: COMMENT_TYPE.article,
+        targetId: '1',
+        targetTypeId,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId,
+        content: '<p>外送茶 加賴</p>',
+      },
+    })
+
+  const reload = async (id: string) =>
+    atomService.findFirst({ table: 'comment', where: { id } })
+
+  // _autoCollapseIfSpam is private; reach it directly for a focused unit test.
+  const autoCollapse = (id: string, score: number) =>
+    (
+      commentService as unknown as {
+        _autoCollapseIfSpam: (id: string, score: number) => Promise<void>
+      }
+    )._autoCollapseIfSpam(id, score)
+
+  const withFlag = async (fn: () => Promise<void>) => {
+    const original = environment.commentSpamAutoCollapse
+    ;(
+      environment as { commentSpamAutoCollapse: boolean }
+    ).commentSpamAutoCollapse = true
+    try {
+      await fn()
+    } finally {
+      ;(
+        environment as { commentSpamAutoCollapse: boolean }
+      ).commentSpamAutoCollapse = original
+    }
+  }
+
+  test('collapses an active comment whose score reaches the threshold', async () => {
+    await withFlag(async () => {
+      const comment = await createActiveComment()
+      await autoCollapse(comment.id, 0.95)
+      const after = await reload(comment.id)
+      expect(after.state).toBe(COMMENT_STATE.collapsed)
+    })
+  })
+
+  test('leaves the comment active when the score is below the threshold', async () => {
+    await withFlag(async () => {
+      const comment = await createActiveComment()
+      await autoCollapse(comment.id, 0.5)
+      const after = await reload(comment.id)
+      expect(after.state).toBe(COMMENT_STATE.active)
+    })
+  })
+
+  test('skips authors on the bypassSpamDetection whitelist', async () => {
+    await withFlag(async () => {
+      await connections.knex('user_feature_flag').insert({
+        userId: '1',
+        type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+      })
+      try {
+        const comment = await createActiveComment('1')
+        await autoCollapse(comment.id, 0.95)
+        const after = await reload(comment.id)
+        expect(after.state).toBe(COMMENT_STATE.active)
+      } finally {
+        await connections
+          .knex('user_feature_flag')
+          .where({
+            userId: '1',
+            type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+          })
+          .del()
+      }
+    })
   })
 })
