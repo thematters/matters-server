@@ -54,6 +54,11 @@ export const environment = {
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
   awsReportAlertQueueUrl:
     process.env.MATTERS_AWS_REPORT_ALERT_QUEUE_URL || '',
+  // Spam training-sample capture (axis-2 L2): de-identified moderation events
+  // for the spam-model training corpus. Best-effort; off when unset.
+  awsSpamSampleQueueUrl:
+    process.env.MATTERS_AWS_SPAM_SAMPLE_QUEUE_URL || '',
+  spamSampleHashSalt: process.env.MATTERS_SPAM_SAMPLE_HASH_SALT || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
   awsLikecoinSendPVUrl:
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
@@ -182,6 +187,13 @@ export const environment = {
   spamDetectionApiUrl: process.env.MATTERS_SPAM_DETECTION_API_URL || '',
   shortContentSpamDetectionApiUrl:
     process.env.MATTERS_SHORT_CONTENT_SPAM_DETECTION_API_URL || '',
+  commentSpamDetectionApiUrl:
+    process.env.MATTERS_COMMENT_SPAM_DETECTION_API_URL || '',
+  // When true, a comment whose spam score reaches the system spam threshold is
+  // auto-collapsed (folded but still expandable in-thread — "不刪除，只是不再被
+  // 看見"). Default off so scoring stays observe-only until ops opts in.
+  commentSpamAutoCollapse:
+    process.env.MATTERS_COMMENT_SPAM_AUTO_COLLAPSE === 'true',
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
   languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
