@@ -457,6 +457,12 @@ describe('community watch staff review mutations', () => {
       .mockResolvedValue({ ...baseAction, originalContent: null })
     const context = createMutationContext({
       commentService: {
+        // the clear mutation snapshots the action for the spam-training
+        // capture (axis-2 L2) before clearing; enqueueSpamSample itself
+        // no-ops without the queue/salt env, so nothing is actually sent.
+        findCommunityWatchActionByUUID: jest
+          .fn<any>()
+          .mockResolvedValue(baseAction),
         clearCommunityWatchOriginalContent:
           clearCommunityWatchOriginalContentService,
       },
