@@ -31,10 +31,20 @@ import {
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
+import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
 import { v4 } from 'uuid'
 
 import { BaseService } from './baseService.js'
 import { CampaignService } from './campaignService.js'
+import {
+  classifyContentTier,
+  nearDuplicate,
+  normalizeForDup,
+  stripHtml,
+  RING_MIN_FAMILY,
+  TIER_REASON,
+  type CommentSpamTier,
+} from './commentSpamSignals.js'
 import { NotificationService } from './notification/notificationService.js'
 import { PaymentService } from './paymentService.js'
 import { SpamDetector } from './spamDetector.js'
@@ -978,11 +988,97 @@ export class CommentService extends BaseService<Comment> {
         where: { id },
         data: { spamScore: score },
       })
+      if (environment.commentSpamAlert) {
+        await this._alertSpamIfHighScore(id, score, content)
+      }
       if (environment.commentSpamAutoCollapse) {
         await this._autoCollapseIfSpam(id, score)
       }
     }
     return score
+  }
+
+  /**
+   * Classify a high-scoring comment into a moderation tier and surface it to the
+   * admin Telegram chat. NOTIFY-ONLY — this never hides a comment (auto-action
+   * lives in `_autoCollapseIfSpam`, gated separately). Gated by
+   * `commentSpamAlert`; a no-op when the env flag is off.
+   *
+   *   Tier A (auto):   contact + solicitation  → blatant porn/escort/commercial.
+   *   Tier B (ring):   author repeats near-identical content >= RING_MIN_FAMILY.
+   *   Tier C (review): high score but neither   → human confirms (likely benign).
+   *
+   * See commentSpamSignals.ts for why score alone is insufficient.
+   */
+  private _alertSpamIfHighScore = async (
+    id: string,
+    score: number,
+    content: string
+  ) => {
+    const systemService = new SystemService(this.connections)
+    const threshold = await systemService.getSpamThreshold()
+    const contentTier = classifyContentTier({ score, content, threshold })
+    if (!contentTier) {
+      return
+    }
+
+    const comment = await this.models.commentIdLoader.load(id)
+    if (!comment) {
+      return
+    }
+
+    // Tier B takes precedence: a confirmed ring is acted on regardless of the
+    // content-only tier (rings are what per-comment content scoring misses).
+    const isRing = await this._isAuthorRepeating(comment.authorId, content, id)
+    const tier: CommentSpamTier = isRing ? 'ring' : contentTier
+
+    const author = await this.models.userIdLoader.load(comment.authorId)
+    const snippet = stripHtml(content).slice(0, 80)
+    await enqueueReportAlert({
+      source: 'spam_detection',
+      dedupeKey: `comment:${id}`,
+      subject: `留言 @${author?.userName ?? comment.authorId}（${score.toFixed(
+        2
+      )}）：${snippet}`,
+      reason: TIER_REASON[tier],
+    })
+  }
+
+  /**
+   * Tier B signal: does this author have >= RING_MIN_FAMILY other recent
+   * comments whose content is near-identical to this one? Bounded to the
+   * author's last 100 comments in 30 days so the per-comment cost stays small
+   * (only runs for the rare high-score comments).
+   */
+  private _isAuthorRepeating = async (
+    authorId: string,
+    content: string,
+    excludeId: string
+  ): Promise<boolean> => {
+    if (normalizeForDup(content).length < 8) {
+      return false
+    }
+    const rows = await this.knexRO('comment')
+      .select('content')
+      .where('author_id', authorId)
+      .whereNot('id', excludeId)
+      .andWhere(
+        'created_at',
+        '>',
+        this.knexRO.raw("now() - interval '30 days'")
+      )
+      .orderBy('id', 'desc')
+      .limit(100)
+    let similar = 0
+    for (const row of rows) {
+      if (nearDuplicate(content, row.content || '')) {
+        similar++
+        if (similar >= RING_MIN_FAMILY) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   /**

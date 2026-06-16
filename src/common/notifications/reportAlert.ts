@@ -14,7 +14,7 @@ const logger = getLogger('report-alert')
  * is the integration boundary between the two.
  */
 export type ReportAlertRequested = {
-  source: 'direct' | 'community_watch'
+  source: 'direct' | 'community_watch' | 'spam_detection'
   /** Aggregation key — same key within 24h edits the same Telegram message. */
   dedupeKey: string
   /** Human-readable description of what was reported. */

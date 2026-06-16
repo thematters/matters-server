@@ -22,6 +22,7 @@ const TELEGRAM_API_TIMEOUT_MS = 5000
 const SOURCE_LABELS: Record<ReportAlertRequested['source'], string> = {
   direct: '🚨 站內檢舉',
   community_watch: '🛡️ 守望相助',
+  spam_detection: '🤖 留言垃圾偵測',
 }
 
 /**
@@ -37,6 +38,10 @@ const REASON_LABELS: Record<string, string> = {
   other: '其他',
   porn_ad: '色情/成人廣告',
   spam_ad: '濫發廣告',
+  // comment-spam detection tiers (source: spam_detection)
+  spam_auto: '高信度垃圾(色情/招攬/博弈)— 建議處置',
+  spam_ring: '重複貼文 ring — 建議處置',
+  spam_review: '高分待人工確認',
 }
 
 type DedupRecord = {
@@ -79,7 +84,9 @@ const isValidPayload = (raw: unknown): raw is ReportAlertRequested => {
   if (!raw || typeof raw !== 'object') return false
   const v = raw as Record<string, unknown>
   return (
-    (v.source === 'direct' || v.source === 'community_watch') &&
+    (v.source === 'direct' ||
+      v.source === 'community_watch' ||
+      v.source === 'spam_detection') &&
     typeof v.dedupeKey === 'string' &&
     v.dedupeKey.length > 0 &&
     typeof v.subject === 'string' &&
