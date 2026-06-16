@@ -100,7 +100,11 @@ export const normalizeForDup = (content: string): string =>
     .toLowerCase()
     .replace(/https?:\/\/\S+|www\.\S+/g, ' ')
     .replace(/@[a-z0-9_]+/g, ' ')
-    .replace(/\d+/g, ' ')
+    // drop whole alphanumeric tokens that contain a digit — these are the
+    // contact IDs / phone numbers a spammer rotates between otherwise-identical
+    // posts (sk3826, vip888, 0912-345...). Pure-letter words are kept so English
+    // templates still ring-match.
+    .replace(/[a-z0-9]*\d[a-z0-9]*/gi, ' ')
     .replace(/[^\p{Letter}\p{Number}]+/gu, '')
 
 /** Set of character n-grams (default trigrams) of a normalized string. */
