@@ -6,10 +6,12 @@ import {
   COMMENT_TYPE,
   FEATURE_FLAG,
   FEATURE_NAME,
+  QUEUE_URL,
   USER_FEATURE_FLAG_TYPE,
   USER_STATE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
+import { aws } from '#connectors/aws/index.js'
 
 import { PublicationService } from '../article/publicationService.js'
 import { AtomService } from '../atomService.js'
@@ -863,5 +865,108 @@ describe('auto-collapse spam comments', () => {
           .del()
       }
     })
+  })
+})
+
+describe('spam telegram alert (notify-only tiering)', () => {
+  let targetTypeId: string
+  const originalQueue = QUEUE_URL.reportAlert
+  const originalSqsSend = aws.sqsSendMessage
+  let sent: Array<Record<string, unknown>>
+
+  beforeAll(async () => {
+    const entityType = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    targetTypeId = entityType.id
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.8,
+    })
+    ;(QUEUE_URL as { reportAlert: string }).reportAlert =
+      'https://sqs.test/report-alert'
+    ;(aws as { sqsSendMessage: typeof aws.sqsSendMessage }).sqsSendMessage =
+      (async (params) => {
+        sent.push(params.messageBody as Record<string, unknown>)
+      }) as typeof aws.sqsSendMessage
+  })
+
+  afterAll(() => {
+    ;(QUEUE_URL as { reportAlert: string }).reportAlert =
+      originalQueue as string
+    ;(aws as { sqsSendMessage: typeof aws.sqsSendMessage }).sqsSendMessage =
+      originalSqsSend
+  })
+
+  beforeEach(() => {
+    sent = []
+  })
+
+  const createComment = async (content: string, authorId = '1') =>
+    atomService.create({
+      table: 'comment',
+      data: {
+        type: COMMENT_TYPE.article,
+        targetId: '1',
+        targetTypeId,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId,
+        content,
+      },
+    })
+
+  // _alertSpamIfHighScore is private; reach it directly for a focused unit test.
+  const alert = (id: string, score: number, content: string) =>
+    (
+      commentService as unknown as {
+        _alertSpamIfHighScore: (
+          id: string,
+          score: number,
+          content: string
+        ) => Promise<void>
+      }
+    )._alertSpamIfHighScore(id, score, content)
+
+  test('emits Tier A (spam_auto) for contact + solicitation', async () => {
+    const content = '<p>賴 sk3826 台灣外送茶 約妹服務 官網 www.ppp8669.com</p>'
+    const comment = await createComment(content)
+    await alert(comment.id, 0.98, content)
+    expect(sent).toHaveLength(1)
+    expect(sent[0]).toMatchObject({
+      source: 'spam_detection',
+      reason: 'spam_auto',
+      dedupeKey: `comment:${comment.id}`,
+    })
+  })
+
+  test('emits Tier C (spam_review) for high-score benign-looking content', async () => {
+    const content = '<p>紀子璇作為楊羽棠管家的最後一天定在夏天的尾聲。</p>'
+    const comment = await createComment(content)
+    await alert(comment.id, 0.99, content)
+    expect(sent).toHaveLength(1)
+    expect(sent[0]).toMatchObject({ reason: 'spam_review' })
+  })
+
+  test('emits Tier B (spam_ring) when the author repeats near-identical content', async () => {
+    const ringAuthor = '2'
+    const tmpl = (tag: string) =>
+      `<p>加賴 ${tag} 全套服務到府 官網 www.x${tag}.com 約妹首選快來</p>`
+    await createComment(tmpl('aaa'), ringAuthor)
+    await createComment(tmpl('bbb'), ringAuthor)
+    await createComment(tmpl('ccc'), ringAuthor)
+    const latest = await createComment(tmpl('ddd'), ringAuthor)
+    await alert(latest.id, 0.99, tmpl('ddd'))
+    expect(sent).toHaveLength(1)
+    expect(sent[0]).toMatchObject({ reason: 'spam_ring' })
+  })
+
+  test('stays silent when the score is below the system threshold', async () => {
+    const content = '<p>賴 台灣外送茶 約妹 www.ppp8669.com</p>'
+    const comment = await createComment(content)
+    await alert(comment.id, 0.5, content)
+    expect(sent).toHaveLength(0)
   })
 })
