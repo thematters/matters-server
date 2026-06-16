@@ -273,7 +273,7 @@ export const environment = {
     10
   ),
   hottestMomentsDecayDays: parseInt(
-    process.env.MATTERS_HOTTEST_MOMENTS_DECAY_DAYS || '5',
+    process.env.MATTERS_HOTTEST_MOMENTS_DECAY_DAYS || '1',
     10
   ),
   hottestMomentsLikeWeight: parseFloat(
