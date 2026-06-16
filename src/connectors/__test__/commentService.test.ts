@@ -952,13 +952,14 @@ describe('spam telegram alert (notify-only tiering)', () => {
 
   test('emits Tier B (spam_ring) when the author repeats near-identical content', async () => {
     const ringAuthor = '2'
-    const tmpl = (tag: string) =>
-      `<p>加賴 ${tag} 全套服務到府 官網 www.x${tag}.com 約妹首選快來</p>`
-    await createComment(tmpl('aaa'), ringAuthor)
-    await createComment(tmpl('bbb'), ringAuthor)
-    await createComment(tmpl('ccc'), ringAuthor)
-    const latest = await createComment(tmpl('ddd'), ringAuthor)
-    await alert(latest.id, 0.99, tmpl('ddd'))
+    // rotating contact IDs (with digits) between an otherwise-identical template
+    const tmpl = (n: number) =>
+      `<p>加賴 vip${n}888 全套服務到府 官網 www.x${n}.com 約妹首選快來</p>`
+    await createComment(tmpl(1), ringAuthor)
+    await createComment(tmpl(2), ringAuthor)
+    await createComment(tmpl(3), ringAuthor)
+    const latest = await createComment(tmpl(4), ringAuthor)
+    await alert(latest.id, 0.99, tmpl(4))
     expect(sent).toHaveLength(1)
     expect(sent[0]).toMatchObject({ reason: 'spam_ring' })
   })
