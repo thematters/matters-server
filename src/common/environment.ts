@@ -194,6 +194,11 @@ export const environment = {
   // 看見"). Default off so scoring stays observe-only until ops opts in.
   commentSpamAutoCollapse:
     process.env.MATTERS_COMMENT_SPAM_AUTO_COLLAPSE === 'true',
+  // When true, a comment whose spam score reaches the system spam threshold is
+  // classified (Tier A auto / B ring / C review) and surfaced to the admin
+  // Telegram chat for moderation. Notify-only: this flag NEVER hides a comment
+  // (auto-action stays behind commentSpamAutoCollapse). Default off.
+  commentSpamAlert: process.env.MATTERS_COMMENT_SPAM_ALERT === 'true',
   channelClassificationApiUrl:
     process.env.MATTERS_CHANNEL_CLASSIFICATION_API_URL || '',
   languageDetectionApiUrl: process.env.MATTERS_LANGUAGE_DETECTION_API_URL || '',
