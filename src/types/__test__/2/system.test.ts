@@ -1907,7 +1907,7 @@ describe('setWritingAdStatus', () => {
 
 describe('query OSS moments', () => {
   const QUERY_MOMENTS = `
-    query($input: ConnectionArgs!) {
+    query($input: OSSMomentsInput!) {
       oss {
         moments(input: $input) {
           totalCount
