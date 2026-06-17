@@ -1975,4 +1975,90 @@ describe('query OSS moments', () => {
 
     expect(errors).toBeDefined()
   })
+
+  test('query moments by spam score within a datetime range', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_MOMENTS,
+      variables: {
+        input: {
+          first: 10,
+          sort: 'mostSpam',
+          filter: { datetimeRange: { start: '2020-01-01T00:00:00.000Z' } },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(_get(data, 'oss.moments.edges')).toBeDefined()
+  })
+})
+
+describe('query OSS comments', () => {
+  const QUERY_COMMENTS = `
+    query ($input: OSSCommentsInput!) {
+      oss {
+        comments(input: $input) {
+          totalCount
+          edges {
+            node {
+              id
+              content
+              createdAt
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('query comments successfully (newest)', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_COMMENTS,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeUndefined()
+    expect(_get(data, 'oss.comments.edges')).toBeDefined()
+  })
+
+  test('query comments by spam score within a datetime range', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_COMMENTS,
+      variables: {
+        input: {
+          first: 10,
+          sort: 'mostSpam',
+          filter: { datetimeRange: { start: '2020-01-01T00:00:00.000Z' } },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(_get(data, 'oss.comments.edges')).toBeDefined()
+  })
+
+  test('non-admin user cannot query comments', async () => {
+    const serverUser = await testClient({
+      isAuth: true,
+      isAdmin: false,
+      connections,
+    })
+    const { errors } = await serverUser.executeOperation({
+      query: QUERY_COMMENTS,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeDefined()
+  })
 })
