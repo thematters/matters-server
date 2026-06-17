@@ -91,6 +91,9 @@ export class CommentService extends BaseService<Comment> {
     super('comment', connections)
   }
 
+  // Query builder for the OSS comment list (sortable / filterable).
+  public findComments = () => this.knexRO(this.table).select('*')
+
   public findActiveCommunityWatchAction = async (
     commentId: string
   ): Promise<CommunityWatchAction | null> => {

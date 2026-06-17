@@ -729,6 +729,7 @@ export type GQLArticlesSort =
   | 'mostComments'
   | 'mostDonations'
   | 'mostReadTime'
+  | 'mostSpam'
   | 'newest'
 
 /** This type contains type, link and related data of an asset. */
@@ -3131,7 +3132,7 @@ export type GQLOssBadgedUsersArgs = {
 }
 
 export type GQLOssCommentsArgs = {
-  input: GQLConnectionArgs
+  input: GQLOssCommentsInput
 }
 
 export type GQLOssIcymiTopicsArgs = {
@@ -3143,7 +3144,7 @@ export type GQLOssMomentFeedUsersArgs = {
 }
 
 export type GQLOssMomentsArgs = {
-  input: GQLConnectionArgs
+  input: GQLOssMomentsInput
 }
 
 export type GQLOssOauthClientsArgs = {
@@ -3189,6 +3190,27 @@ export type GQLOssArticlesInput = {
   filter?: InputMaybe<GQLOssArticlesFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
   sort?: InputMaybe<GQLArticlesSort>
+}
+
+export type GQLOssCommentsInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLOssSpamDatetimeFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
+  sort?: InputMaybe<GQLOssContentSpamSort>
+}
+
+/** Sort options shared by OSS comment/moment lists for spam triage. */
+export type GQLOssContentSpamSort = 'mostSpam' | 'newest'
+
+export type GQLOssMomentsInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLOssSpamDatetimeFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
+  sort?: InputMaybe<GQLOssContentSpamSort>
+}
+
+export type GQLOssSpamDatetimeFilterInput = {
+  datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
 }
 
 export type GQLOssReportsFilter = {
@@ -6006,6 +6028,10 @@ export type GQLResolversTypes = ResolversObject<{
   >
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
+  OSSCommentsInput: GQLOssCommentsInput
+  OSSContentSpamSort: GQLOssContentSpamSort
+  OSSMomentsInput: GQLOssMomentsInput
+  OSSSpamDatetimeFilterInput: GQLOssSpamDatetimeFilterInput
   OSSReportsFilter: GQLOssReportsFilter
   OSSReportsInput: GQLOssReportsInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
@@ -6723,6 +6749,9 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
+  OSSCommentsInput: GQLOssCommentsInput
+  OSSMomentsInput: GQLOssMomentsInput
+  OSSSpamDatetimeFilterInput: GQLOssSpamDatetimeFilterInput
   OSSReportsFilter: GQLOssReportsFilter
   OSSReportsInput: GQLOssReportsInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
