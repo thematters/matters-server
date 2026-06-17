@@ -36,6 +36,8 @@ const campaignData = {
   writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
   creatorId: '1',
   state: CAMPAIGN_STATE.active,
+  // the quote wall is opt-in per campaign; the seed campaign has it enabled
+  enableQuoteWall: true,
 }
 
 let campaign: Campaign
@@ -148,6 +150,37 @@ describe('putQuote', () => {
     expect(row.campaignId).toBe(campaign.id)
     expect(row.userId).toBe(posterUser.id)
     expect(row.state).toBe(QUOTE_STATE.active)
+  })
+
+  test('rejects posting when the campaign has no quote wall', async () => {
+    // temporarily disable the wall on the seed campaign
+    await atomService.update({
+      table: 'campaign',
+      where: { id: campaign.id },
+      data: { enableQuoteWall: false },
+    })
+    try {
+      const server = await testClient({
+        connections,
+        context: { viewer: posterUser },
+        isAuth: true,
+      })
+      const { errors } = await server.executeOperation({
+        query: PUT_QUOTE,
+        variables: {
+          input: { articleId: articleGlobalId, content: 'some html string' },
+        },
+      })
+      expect(errors).toBeDefined()
+      expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    } finally {
+      // restore so the rest of the suite is unaffected
+      await atomService.update({
+        table: 'campaign',
+        where: { id: campaign.id },
+        data: { enableQuoteWall: true },
+      })
+    }
   })
 
   test('visitors are blocked by the auth directive', async () => {
