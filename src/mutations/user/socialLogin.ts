@@ -1,7 +1,12 @@
 import type { GQLMutationResolvers, AuthMode } from '#definitions/index.js'
 
-import { AUTH_RESULT_TYPE, SOCIAL_LOGIN_TYPE } from '#common/enums/index.js'
-import { UserInputError } from '#common/errors.js'
+import {
+  AUTH_RESULT_TYPE,
+  SOCIAL_LOGIN_TYPE,
+  USER_ROLE,
+} from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { ForbiddenError, UserInputError } from '#common/errors.js'
 import { checkIfE2ETest, throwOrReturnUserInfo } from '#common/utils/e2e.js'
 import { setCookie, getViewerFromUser } from '#common/utils/index.js'
 
@@ -16,6 +21,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       oauth1Credential,
       language,
       referralCode,
+      redirectUri,
     },
   },
   context
@@ -112,6 +118,17 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
     if (nonce === undefined || authorizationCode === undefined) {
       throw new UserInputError('nonce and authorizationCode is required')
     }
+    // OSS SSO: when a redirectUri is supplied it must be allowlisted. This both
+    // (a) lets the token exchange use the OSS callback — Google requires the
+    // token-exchange redirect_uri to match the authorization request — and
+    // (b) flags this as an OSS admin login (existing admins only, no creation).
+    const isOSSLogin = !!redirectUri
+    if (
+      isOSSLogin &&
+      !environment.ossGoogleRedirectUris.includes(redirectUri)
+    ) {
+      throw new UserInputError('redirectUri is not allowed')
+    }
     let userInfo: {
       id: string
       email: string
@@ -120,16 +137,34 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
     if (isE2ETest) {
       userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
     } else {
-      userInfo = await userService.fetchGoogleUserInfo(authorizationCode, nonce)
+      userInfo = await userService.fetchGoogleUserInfo(
+        authorizationCode,
+        nonce,
+        isOSSLogin ? redirectUri : undefined
+      )
     }
-    user = await userService.getOrCreateUserBySocialAccount({
-      providerAccountId: userInfo.id,
-      type: SOCIAL_LOGIN_TYPE.Google,
-      email: userInfo.email,
-      emailVerified: userInfo.emailVerified,
-      language: language || viewer.language,
-      referralCode,
-    })
+    if (isOSSLogin) {
+      // Restrict OSS login to existing admin accounts; never auto-create one.
+      if (!userInfo.emailVerified) {
+        throw new ForbiddenError('Google email is not verified')
+      }
+      const existingUser = await userService.findByEmail(userInfo.email)
+      if (!existingUser || existingUser.role !== USER_ROLE.admin) {
+        throw new ForbiddenError(
+          'OSS login is restricted to existing admin accounts'
+        )
+      }
+      user = existingUser
+    } else {
+      user = await userService.getOrCreateUserBySocialAccount({
+        providerAccountId: userInfo.id,
+        type: SOCIAL_LOGIN_TYPE.Google,
+        email: userInfo.email,
+        emailVerified: userInfo.emailVerified,
+        language: language || viewer.language,
+        referralCode,
+      })
+    }
   }
   const sessionToken = await userService.genSessionToken(user.id)
   setCookie({ req, res, token: sessionToken, user })

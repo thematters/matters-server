@@ -4120,6 +4120,8 @@ export type GQLSocialLoginInput = {
   nonce?: InputMaybe<Scalars['String']['input']>
   /** oauth token/verifier in OAuth1.0a for Twitter */
   oauth1Credential?: InputMaybe<GQLOauth1CredentialInput>
+  /** Google OIDC redirect_uri for OSS SSO. When set, must be allowlisted; login is restricted to existing admin accounts and no new account is created. */
+  redirectUri?: InputMaybe<Scalars['String']['input']>
   referralCode?: InputMaybe<Scalars['String']['input']>
   type: GQLSocialAccountType
 }

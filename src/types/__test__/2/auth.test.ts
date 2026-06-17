@@ -1161,6 +1161,36 @@ describe('socialLogin with Threads', () => {
   })
 })
 
+describe('socialLogin with Google (OSS SSO)', () => {
+  const SOCIAL_LOGIN = /* GraphQL */ `
+    mutation ($input: SocialLoginInput!) {
+      socialLogin(input: $input) {
+        auth
+        token
+      }
+    }
+  `
+  // With no MATTERS_OSS_GOOGLE_REDIRECT_URIS configured the allowlist is empty,
+  // so any supplied redirectUri must be rejected before token exchange. This
+  // guards against using an attacker-controlled redirect_uri for OSS login.
+  test('rejects a non-allowlisted redirectUri', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: 'e2etest-oss-google',
+          nonce: 'e2etest-nonce',
+          redirectUri: 'https://attacker.example/callback/google',
+        },
+      },
+    })
+    expect(errors && errors.length).toBeGreaterThanOrEqual(1)
+    expect(errors?.[0]?.message).toContain('redirectUri')
+  })
+})
+
 describe('add social accounts', () => {
   const ADD_SOCIAL_LOGIN = /* GraphQL */ `
     mutation ($input: SocialLoginInput!) {
