@@ -219,22 +219,33 @@ describe('put campaignDiscussion comment', () => {
     }
   })
 
-  test('non-participant can not comment', async () => {
-    const { errors } = await putCampaignComment(
+  // the discussion is open to every logged-in user (the participant-only
+  // restriction was relaxed), so non-participant / pending / rejected may comment
+  test('non-participant can comment', async () => {
+    const { errors, data } = await putCampaignComment(
       nonParticipantId,
       campaignGlobalId
     )
-    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    expect(errors).toBeUndefined()
+    expect(data.putComment.id).toBeDefined()
   })
 
-  test('pending applicant can not comment', async () => {
-    const { errors } = await putCampaignComment(pendingId, campaignGlobalId)
-    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  test('pending applicant can comment', async () => {
+    const { errors, data } = await putCampaignComment(
+      pendingId,
+      campaignGlobalId
+    )
+    expect(errors).toBeUndefined()
+    expect(data.putComment.id).toBeDefined()
   })
 
-  test('rejected applicant can not comment', async () => {
-    const { errors } = await putCampaignComment(rejectedId, campaignGlobalId)
-    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  test('rejected applicant can comment', async () => {
+    const { errors, data } = await putCampaignComment(
+      rejectedId,
+      campaignGlobalId
+    )
+    expect(errors).toBeUndefined()
+    expect(data.putComment.id).toBeDefined()
   })
 
   test('can not comment on archived campaign', async () => {
