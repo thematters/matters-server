@@ -2682,9 +2682,13 @@ export class UserService extends BaseService<User> {
    */
   public fetchGoogleUserInfo = async (
     authorizationCode: string,
-    nonce: string
+    nonce: string,
+    redirectUri?: string
   ) => {
-    const { id_token } = await this.exchangeGoogleToken(authorizationCode)
+    const { id_token } = await this.exchangeGoogleToken(
+      authorizationCode,
+      redirectUri
+    )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = jwt.decode(id_token) as any
     if (data.aud !== environment.googleClientId) {
@@ -2701,14 +2705,18 @@ export class UserService extends BaseService<User> {
   }
 
   private exchangeGoogleToken = async (
-    authorizationCode: string
+    authorizationCode: string,
+    redirectUri?: string
   ): Promise<{ access_token: string; id_token: string }> => {
     const url = 'https://oauth2.googleapis.com/token'
     const data = {
       code: authorizationCode,
       client_id: environment.googleClientId,
       client_secret: environment.googleClientSecret,
-      redirect_uri: environment.googleRedirectUri,
+      // For OSS SSO the redirect_uri must match the one used in the authorization
+      // request; callers pass an allowlisted OSS callback. Falls back to the
+      // default (matters-web) redirect_uri otherwise.
+      redirect_uri: redirectUri || environment.googleRedirectUri,
       grant_type: 'authorization_code',
     }
     const headers = {

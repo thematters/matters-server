@@ -1068,6 +1068,8 @@ export default /* GraphQL */ `
     "used in register"
     language: UserLanguage
     referralCode: String
+    "Google OIDC redirect_uri for OSS SSO. When set, must be allowlisted; login is restricted to existing admin accounts and no new account is created."
+    redirectUri: String
   }
 
   input Oauth1CredentialInput {

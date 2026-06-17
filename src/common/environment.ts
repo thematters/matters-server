@@ -177,6 +177,14 @@ export const environment = {
   googleClientId: process.env.MATTERS_GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.MATTERS_GOOGLE_CLIENT_SECRET || '',
   googleRedirectUri: process.env.MATTERS_GOOGLE_REDIRECT_URI || '',
+  // Allowlisted redirect_uri values for OSS Google SSO (comma-separated), e.g.
+  // "https://oss.matters.icu/callback/google,https://oss.matters.town/callback/google".
+  // Reuses the same Google OAuth client; the OSS callback URIs must also be
+  // registered on that client in Google Cloud Console.
+  ossGoogleRedirectUris: (process.env.MATTERS_OSS_GOOGLE_REDIRECT_URIS || '')
+    .split(',')
+    .map((uri) => uri.trim())
+    .filter(Boolean),
   threadsClientId: process.env.MATTERS_THREADS_CLIENT_ID || '',
   threadsClientSecret: process.env.MATTERS_THREADS_CLIENT_SECRET || '',
   threadsRedirectUri: process.env.MATTERS_THREADS_REDIRECT_URI || '',
