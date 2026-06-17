@@ -144,8 +144,8 @@ export default /* GraphQL */ `
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
-    comments(input: ConnectionArgs!): CommentConnection!
-    moments(input: ConnectionArgs!): MomentConnection!
+    comments(input: OSSCommentsInput!): CommentConnection!
+    moments(input: OSSMomentsInput!): MomentConnection!
     articles(input: OSSArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
@@ -729,6 +729,31 @@ export default /* GraphQL */ `
     isSpam: Boolean
     datetimeRange: DatetimeRangeInput
     searchKey: String
+  }
+
+  "Sort options shared by OSS comment/moment lists for spam triage."
+  enum OSSContentSpamSort {
+    newest
+    "Order by spam score from high to low (only scored items)"
+    mostSpam
+  }
+
+  input OSSSpamDatetimeFilterInput {
+    datetimeRange: DatetimeRangeInput
+  }
+
+  input OSSCommentsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    sort: OSSContentSpamSort = newest
+    filter: OSSSpamDatetimeFilterInput
+  }
+
+  input OSSMomentsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    sort: OSSContentSpamSort = newest
+    filter: OSSSpamDatetimeFilterInput
   }
 
   ####################

@@ -93,6 +93,12 @@ export const articles: GQLOssResolvers['articles'] = async (
       orderBy = { column, order: 'desc' }
       break
     }
+    case 'mostSpam': {
+      // rank scored articles by spam score, high to low
+      query = query.whereNotNull('spam_score')
+      orderBy = { column: 'spamScore', order: 'desc' }
+      break
+    }
     default:
       break
   }

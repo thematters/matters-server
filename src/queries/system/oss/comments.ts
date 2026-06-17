@@ -1,26 +1,31 @@
 import type { GQLOssResolvers } from '#definitions/index.js'
 
-import {
-  connectionFromPromisedArray,
-  fromConnectionArgs,
-} from '#common/utils/index.js'
+import { connectionFromQuery } from '#common/utils/index.js'
 
 export const comments: GQLOssResolvers['comments'] = async (
   _,
   { input },
   { dataSources: { commentService } }
 ) => {
-  const { take, skip } = fromConnectionArgs(input)
+  let query = commentService.findComments()
 
-  const totalCount = await commentService.baseCount()
+  const range = input?.filter?.datetimeRange
+  if (range?.start) {
+    query = query.where('created_at', '>=', range.start)
+  }
+  if (range?.end) {
+    query = query.where('created_at', '<=', range.end)
+  }
 
-  return connectionFromPromisedArray(
-    commentService.baseFind({
-      skip,
-      take,
-      orderBy: [{ column: 'id', order: 'desc' }],
-    }),
-    input,
-    totalCount
-  )
+  let orderBy: { column: string; order: 'asc' | 'desc' } = {
+    column: 'id',
+    order: 'desc',
+  }
+  if (input?.sort === 'mostSpam') {
+    // rank scored comments by spam score, high to low
+    query = query.whereNotNull('spam_score')
+    orderBy = { column: 'spamScore', order: 'desc' }
+  }
+
+  return connectionFromQuery({ query, args: input, orderBy })
 }
