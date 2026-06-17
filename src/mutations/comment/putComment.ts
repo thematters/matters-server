@@ -77,7 +77,6 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       commentService,
       paymentService,
       articleService,
-      campaignService,
       notificationService,
       userService,
       connections,
@@ -309,22 +308,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     }
   }
 
-  // campaign discussion is public to read, but only succeeded participants
-  // (or the campaign organizers/managers) may comment
-  if (campaign) {
-    const isParticipant = await campaignService.isParticipant(
-      campaign.id,
-      viewer.id
-    )
-    const isOrganizer =
-      campaign.creatorId === viewer.id ||
-      (campaign.organizerIds ?? []).includes(viewer.id) ||
-      (campaign.managerIds ?? []).includes(viewer.id)
-
-    if (!isParticipant && !isOrganizer) {
-      throw new ForbiddenError('only campaign participants have the permission')
-    }
-  }
+  // campaign discussion is public to read; any logged-in user may comment.
+  // (relaxed from the previous participant-only restriction — basic user-state
+  // and campaign-state guards are still enforced above.)
 
   // check whether viewer is blocked by target author (skip when no single author,
   // e.g. campaign discussion)
