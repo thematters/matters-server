@@ -70,6 +70,7 @@ export class CampaignService {
     exclusive,
     showOther,
     showAd,
+    enableQuoteWall,
   }: {
     name: string
     description?: string
@@ -85,6 +86,7 @@ export class CampaignService {
     exclusive?: boolean
     showOther?: boolean
     showAd?: boolean
+    enableQuoteWall?: boolean
   }) =>
     this.models.create({
       table: 'campaign',
@@ -109,6 +111,7 @@ export class CampaignService {
         exclusive: exclusive ?? false,
         showOther,
         showAd,
+        enableQuoteWall,
       },
     })
 

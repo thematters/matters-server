@@ -3522,6 +3522,8 @@ export type GQLPutWritingChallengeInput = {
   channelEnabled?: InputMaybe<Scalars['Boolean']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Array<GQLTranslationInput>>
+  /** enable the quote wall (post-to-wall) for this campaign */
+  enableQuoteWall?: InputMaybe<Scalars['Boolean']['input']>
   /** exclude articles of this campaign in topic channels and newest */
   exclusive?: InputMaybe<Scalars['Boolean']['input']>
   featuredDescription?: InputMaybe<Array<GQLTranslationInput>>
@@ -5169,6 +5171,8 @@ export type GQLWritingChallenge = GQLCampaign &
     discussion: GQLCommentConnection
     /** Discussion (include replies) count of this campaign. */
     discussionCount: Scalars['Int']['output']
+    /** whether this campaign exposes a quote wall (post-to-wall affordance) */
+    enableQuoteWall: Scalars['Boolean']['output']
     featuredDescription: Scalars['String']['output']
     id: Scalars['ID']['output']
     isManager: Scalars['Boolean']['output']
@@ -12079,6 +12083,11 @@ export type GQLWritingChallengeResolvers<
     RequireFields<GQLWritingChallengeDiscussionArgs, 'input'>
   >
   discussionCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  enableQuoteWall?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   featuredDescription?: Resolver<
     GQLResolversTypes['String'],
     ParentType,
