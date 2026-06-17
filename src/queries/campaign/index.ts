@@ -67,6 +67,7 @@ const schema: GQLResolvers = {
     channelEnabled,
     showOther: ({ showOther }) => showOther,
     showAd: ({ showAd }) => showAd,
+    enableQuoteWall: ({ enableQuoteWall }) => enableQuoteWall,
     organizers,
     oss: (root) => root,
   },

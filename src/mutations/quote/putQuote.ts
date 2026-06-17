@@ -102,6 +102,17 @@ const resolver: GQLMutationResolvers['putQuote'] = async (
   }
   const campaignId = campaignArticle.campaignId
 
+  // the quote wall is opt-in per campaign (e.g. 七日書): the campaign must have
+  // it enabled. this is the authoritative gate — the client also hides the
+  // post-to-wall affordance, but the server is the source of truth.
+  const campaign = await atomService.findUnique({
+    table: 'campaign',
+    where: { id: campaignId },
+  })
+  if (!campaign?.enableQuoteWall) {
+    throw new UserInputError('this campaign does not have a quote wall')
+  }
+
   // dedupe: same user + same article + identical content
   const duplicated = await atomService.findFirst({
     table: 'quote',

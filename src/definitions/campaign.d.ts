@@ -25,6 +25,7 @@ export interface Campaign {
   updatedAt: Date
   showOther: boolean
   showAd: boolean
+  enableQuoteWall: boolean
 }
 
 export interface CampaignStage {

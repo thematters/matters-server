@@ -49,6 +49,8 @@ export default /* GraphQL */ `
     managers: [ID!]
     showOther: Boolean
     showAd: Boolean
+    "enable the quote wall (post-to-wall) for this campaign"
+    enableQuoteWall: Boolean
   }
 
   input ApplyCampaignInput {
@@ -145,6 +147,8 @@ export default /* GraphQL */ `
     isManager: Boolean! @privateCache
     showOther: Boolean!
     showAd: Boolean!
+    "whether this campaign exposes a quote wall (post-to-wall affordance)"
+    enableQuoteWall: Boolean!
 
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }
