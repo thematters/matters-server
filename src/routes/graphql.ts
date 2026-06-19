@@ -34,6 +34,7 @@ import {
   LikeCoin,
   ExchangeRate,
   FederationExportService,
+  SpamRingService,
 } from '#connectors/index.js'
 import {
   RevisionQueue,
@@ -165,6 +166,7 @@ export const graphql = async (app: Express) => {
       notificationService: new NotificationService(connections),
       searchService: new SearchService(connections),
       federationExportService: new FederationExportService(connections),
+      spamRingService: new SpamRingService(connections),
       connections,
       queues,
     }

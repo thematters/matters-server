@@ -14,6 +14,11 @@ import { announcements, features, translations } from './official/index.js'
 import OSS from './oss/index.js'
 import report from './report.js'
 import search from './search.js'
+import {
+  SpamRing,
+  SpamRingMember,
+  SpamRingEvent,
+} from './spamRing/index.js'
 
 const system: GQLResolvers = {
   Query: {
@@ -50,6 +55,9 @@ const system: GQLResolvers = {
   },
   OSS,
   Report: report,
+  SpamRing,
+  SpamRingMember,
+  SpamRingEvent,
 }
 
 export default system

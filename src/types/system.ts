@@ -154,6 +154,7 @@ export default /* GraphQL */ `
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
     reports(input: OSSReportsInput!): ReportConnection!
+    spamRings(input: OSSSpamRingsInput!): SpamRingConnection!
     icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
     topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   }
@@ -270,6 +271,133 @@ export default /* GraphQL */ `
 
   input OSSReportsFilter {
     source: ReportSource
+  }
+
+  """
+  A spam ring: a cluster of accounts posting the same templated abuse,
+  surfaced by the account-layer ring detector (軸一 D).
+  """
+  type SpamRing implements Node {
+    id: ID!
+    "模板/家族指紋（偵測 job 的歸群 key）"
+    fingerprint: String!
+    status: SpamRingStatus!
+    signals: SpamRingSignals!
+    nArticles: Int!
+    nAuthors: Int!
+    newAccountRatio: Float
+    score: Float
+    severity: SpamRingSeverity
+    detectedAt: DateTime!
+    firstSeenAt: DateTime
+    lastSeenAt: DateTime
+    frozenAt: DateTime
+    frozenBy: User
+    note: String
+    "群內成員帳號（可分頁）"
+    members(input: ConnectionArgs!): SpamRingMemberConnection!
+    "列表渲染用的少量樣本，免分頁"
+    memberSample(limit: Int): [User!]!
+    events: [SpamRingEvent!]!
+  }
+
+  type SpamRingSignals {
+    nearDupRingSize: Int
+    entityRingSize: Int
+    botUsernameRatio: Float
+    topEntity: String
+    sampleCodes: [String!]
+    sampleBrands: [String!]
+    contentModelMax: Float
+  }
+
+  type SpamRingMember {
+    id: ID!
+    user: User!
+    status: SpamRingMemberStatus!
+    "是否由本 ring 的凍結造成封禁（解凍時只還原此類）"
+    bannedByThisRing: Boolean!
+    skipReason: String
+    createdAt: DateTime!
+  }
+
+  type SpamRingEvent {
+    id: ID!
+    action: SpamRingEventAction!
+    actor: User
+    "JSON 字串"
+    detail: String
+    createdAt: DateTime!
+  }
+
+  enum SpamRingStatus {
+    pending
+    frozen
+    dismissed
+    restored
+  }
+
+  enum SpamRingMemberStatus {
+    pending
+    frozen
+    skipped
+    restored
+  }
+
+  enum SpamRingSeverity {
+    low
+    medium
+    high
+    critical
+  }
+
+  enum SpamRingEventAction {
+    detected
+    frozen
+    unfrozen
+    dismissed
+    member_banned
+    member_skipped
+    member_restored
+  }
+
+  type SpamRingConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [SpamRingEdge!]
+  }
+
+  type SpamRingEdge {
+    cursor: String!
+    node: SpamRing!
+  }
+
+  type SpamRingMemberConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [SpamRingMemberEdge!]
+  }
+
+  type SpamRingMemberEdge {
+    cursor: String!
+    node: SpamRingMember!
+  }
+
+  enum SpamRingsSort {
+    score
+    detectedAt
+    nAuthors
+  }
+
+  input OSSSpamRingsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    sort: SpamRingsSort = score
+    filter: OSSSpamRingsFilter
+  }
+
+  input OSSSpamRingsFilter {
+    status: SpamRingStatus
   }
 
   input NodeInput {

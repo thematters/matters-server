@@ -277,6 +277,24 @@ type Mutation {
   """Archive multiple users from OSS with per-user results."""
   archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult!
 
+  """
+  Freeze a spam ring: permanently (but reversibly) ban all member accounts. OSS.
+  """
+  freezeSpamRing(input: FreezeSpamRingInput!): FreezeSpamRingResult!
+
+  """
+  Reverse a spam ring freeze: unban only the members this ring banned. OSS.
+  """
+  unfreezeSpamRing(input: UnfreezeSpamRingInput!): UnfreezeSpamRingResult!
+
+  """Mark a spam ring as a false positive (feeds training as ham). OSS."""
+  dismissSpamRing(input: DismissSpamRingInput!): SpamRing!
+
+  """
+  Upsert spam ring candidates from the detection job (admin service principal). OSS.
+  """
+  upsertSpamRingCandidates(input: UpsertSpamRingCandidatesInput!): UpsertSpamRingCandidatesResult!
+
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
@@ -2456,6 +2474,7 @@ type OSS {
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
   reports(input: OSSReportsInput!): ReportConnection!
+  spamRings(input: OSSSpamRingsInput!): SpamRingConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   momentFeedUsers(input: MomentFeedUsersInput!): UserConnection!
@@ -2575,6 +2594,138 @@ input OSSReportsInput {
 
 input OSSReportsFilter {
   source: ReportSource
+}
+
+"""
+A spam ring: a cluster of accounts posting the same templated abuse,
+surfaced by the account-layer ring detector (軸一 D).
+"""
+type SpamRing implements Node {
+  id: ID!
+
+  """模板/家族指紋（偵測 job 的歸群 key）"""
+  fingerprint: String!
+  status: SpamRingStatus!
+  signals: SpamRingSignals!
+  nArticles: Int!
+  nAuthors: Int!
+  newAccountRatio: Float
+  score: Float
+  severity: SpamRingSeverity
+  detectedAt: DateTime!
+  firstSeenAt: DateTime
+  lastSeenAt: DateTime
+  frozenAt: DateTime
+  frozenBy: User
+  note: String
+
+  """群內成員帳號（可分頁）"""
+  members(input: ConnectionArgs!): SpamRingMemberConnection!
+
+  """列表渲染用的少量樣本，免分頁"""
+  memberSample(limit: Int): [User!]!
+  events: [SpamRingEvent!]!
+}
+
+type SpamRingSignals {
+  nearDupRingSize: Int
+  entityRingSize: Int
+  botUsernameRatio: Float
+  topEntity: String
+  sampleCodes: [String!]
+  sampleBrands: [String!]
+  contentModelMax: Float
+}
+
+type SpamRingMember {
+  id: ID!
+  user: User!
+  status: SpamRingMemberStatus!
+
+  """是否由本 ring 的凍結造成封禁（解凍時只還原此類）"""
+  bannedByThisRing: Boolean!
+  skipReason: String
+  createdAt: DateTime!
+}
+
+type SpamRingEvent {
+  id: ID!
+  action: SpamRingEventAction!
+  actor: User
+
+  """JSON 字串"""
+  detail: String
+  createdAt: DateTime!
+}
+
+enum SpamRingStatus {
+  pending
+  frozen
+  dismissed
+  restored
+}
+
+enum SpamRingMemberStatus {
+  pending
+  frozen
+  skipped
+  restored
+}
+
+enum SpamRingSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum SpamRingEventAction {
+  detected
+  frozen
+  unfrozen
+  dismissed
+  member_banned
+  member_skipped
+  member_restored
+}
+
+type SpamRingConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SpamRingEdge!]
+}
+
+type SpamRingEdge {
+  cursor: String!
+  node: SpamRing!
+}
+
+type SpamRingMemberConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SpamRingMemberEdge!]
+}
+
+type SpamRingMemberEdge {
+  cursor: String!
+  node: SpamRingMember!
+}
+
+enum SpamRingsSort {
+  score
+  detectedAt
+  nAuthors
+}
+
+input OSSSpamRingsInput {
+  after: String
+  first: Int
+  sort: SpamRingsSort = score
+  filter: OSSSpamRingsFilter
+}
+
+input OSSSpamRingsFilter {
+  status: SpamRingStatus
 }
 
 input NodeInput {
@@ -3667,6 +3818,81 @@ type ArchiveUsersResult {
 type ArchiveUserFailure {
   id: ID!
   message: String!
+}
+
+input FreezeSpamRingInput {
+  id: ID!
+  remark: String
+}
+
+type FreezeSpamRingResult {
+  ring: SpamRing!
+  frozen: [User!]!
+
+  """
+  Members not banned (old account, high karma, already banned, archived…) — for manual review.
+  """
+  skipped: [SpamRingSkip!]!
+}
+
+input UnfreezeSpamRingInput {
+  id: ID!
+}
+
+type UnfreezeSpamRingResult {
+  ring: SpamRing!
+  unbanned: [User!]!
+  skipped: [SpamRingSkip!]!
+}
+
+type SpamRingSkip {
+  user: User!
+  reason: String!
+}
+
+input DismissSpamRingInput {
+  id: ID!
+  note: String
+}
+
+input UpsertSpamRingCandidatesInput {
+  candidates: [SpamRingCandidateInput!]!
+}
+
+input SpamRingCandidateInput {
+  fingerprint: String!
+
+  """Raw DB user ids (the detection job reads them from the replica)."""
+  memberUserIds: [String!]
+  memberUserNames: [String!]
+  signals: SpamRingSignalsInput!
+  nArticles: Int!
+  nAuthors: Int!
+  newAccountRatio: Float
+  score: Float
+  severity: SpamRingSeverity
+  firstSeenAt: DateTime
+  lastSeenAt: DateTime
+
+  """JSON string: map of user id -> evidence."""
+  memberEvidence: String
+}
+
+input SpamRingSignalsInput {
+  nearDupRingSize: Int
+  entityRingSize: Int
+  botUsernameRatio: Float
+  topEntity: String
+  sampleCodes: [String!]
+  sampleBrands: [String!]
+  contentModelMax: Float
+}
+
+type UpsertSpamRingCandidatesResult {
+  created: Int!
+  updated: Int!
+  skipped: Int!
+  rings: [SpamRing!]!
 }
 
 input UpdateUserRoleInput {
