@@ -11,12 +11,13 @@ import type {
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
+import type { UserService } from './userService.js'
+
 import { USER_STATE, USER_BAN_REMARK } from '#common/enums/index.js'
 import { UserInputError } from '#common/errors.js'
 import { v4 } from 'uuid'
 
 import { BaseService } from './baseService.js'
-import { UserService } from './userService.js'
 
 // 老帳號豁免護欄（roadmap 軸一 D 硬性）：超過任一門檻的帳號不自動凍結，改列人工複查。
 // 模組級常數，便於與信任安全負責人統一調參。
@@ -201,10 +202,12 @@ export class SpamRingService extends BaseService<SpamRing> {
     ringId,
     actorId,
     remark,
+    userService,
   }: {
     ringId: string
     actorId: string
     remark?: string | null
+    userService: UserService
   }): Promise<{
     ring: SpamRing
     frozen: User[]
@@ -218,7 +221,6 @@ export class SpamRingService extends BaseService<SpamRing> {
       throw new UserInputError('cannot freeze a dismissed ring')
     }
 
-    const userService = new UserService(this.connections)
     const members = await this.findMembers(ringId)
     const frozen: User[] = []
     const skipped: Array<{ user: User; reason: string }> = []
@@ -315,9 +317,11 @@ export class SpamRingService extends BaseService<SpamRing> {
   public unfreezeRing = async ({
     ringId,
     actorId,
+    userService,
   }: {
     ringId: string
     actorId: string
+    userService: UserService
   }): Promise<{
     ring: SpamRing
     unbanned: User[]
@@ -331,7 +335,6 @@ export class SpamRingService extends BaseService<SpamRing> {
       throw new UserInputError('spam ring is not frozen')
     }
 
-    const userService = new UserService(this.connections)
     const members = await this.findMembers(ringId)
     const unbanned: User[] = []
     const skipped: Array<{ user: User; reason: string }> = []
