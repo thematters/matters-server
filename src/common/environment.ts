@@ -197,6 +197,11 @@ export const environment = {
     process.env.MATTERS_SHORT_CONTENT_SPAM_DETECTION_API_URL || '',
   commentSpamDetectionApiUrl:
     process.env.MATTERS_COMMENT_SPAM_DETECTION_API_URL || '',
+  // Dedicated moment spam model (label-fix retrain; fixes the shared short-content
+  // model's ~90% false-kill on Chinese moments). Falls back to the short-content
+  // model when unset, so this is a zero-downtime opt-in via env.
+  momentSpamDetectionApiUrl:
+    process.env.MATTERS_MOMENT_SPAM_DETECTION_API_URL || '',
   // When true, a comment whose spam score reaches the system spam threshold is
   // auto-collapsed (folded but still expandable in-thread — "不刪除，只是不再被
   // 看見"). Default off so scoring stays observe-only until ops opts in.

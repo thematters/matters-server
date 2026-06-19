@@ -461,8 +461,11 @@ export class MomentService {
     id: string
     content: string
   }) => {
+    // Prefer the dedicated moment model; fall back to the shared short-content
+    // model when MATTERS_MOMENT_SPAM_DETECTION_API_URL is unset (zero-downtime).
     const detector = new SpamDetector(
-      environment.shortContentSpamDetectionApiUrl
+      environment.momentSpamDetectionApiUrl ||
+        environment.shortContentSpamDetectionApiUrl
     )
     const score = await detector.detect(content)
 
