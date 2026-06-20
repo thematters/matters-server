@@ -113,6 +113,18 @@ export default /* GraphQL */ `
     "Archive multiple users from OSS with per-user results."
     archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Freeze a spam ring: permanently (but reversibly) ban all member accounts. OSS."
+    freezeSpamRing(input: FreezeSpamRingInput!): FreezeSpamRingResult! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
+    "Reverse a spam ring freeze: unban only the members this ring banned. OSS."
+    unfreezeSpamRing(input: UnfreezeSpamRingInput!): UnfreezeSpamRingResult! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
+    "Mark a spam ring as a false positive (feeds training as ham). OSS."
+    dismissSpamRing(input: DismissSpamRingInput!): SpamRing! @auth(mode: "${AUTH_MODE.admin}")
+
+    "Upsert spam ring candidates from the detection job (admin service principal). OSS."
+    upsertSpamRingCandidates(input: UpsertSpamRingCandidatesInput!): UpsertSpamRingCandidatesResult! @auth(mode: "${AUTH_MODE.admin}")
+
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -826,6 +838,76 @@ export default /* GraphQL */ `
     message: String!
   }
 
+  input FreezeSpamRingInput {
+    id: ID!
+    remark: String
+  }
+
+  type FreezeSpamRingResult {
+    ring: SpamRing!
+    frozen: [User!]!
+    "Members not banned (old account, high karma, already banned, archived…) — for manual review."
+    skipped: [SpamRingSkip!]!
+  }
+
+  input UnfreezeSpamRingInput {
+    id: ID!
+  }
+
+  type UnfreezeSpamRingResult {
+    ring: SpamRing!
+    unbanned: [User!]!
+    skipped: [SpamRingSkip!]!
+  }
+
+  type SpamRingSkip {
+    user: User!
+    reason: String!
+  }
+
+  input DismissSpamRingInput {
+    id: ID!
+    note: String
+  }
+
+  input UpsertSpamRingCandidatesInput {
+    candidates: [SpamRingCandidateInput!]!
+  }
+
+  input SpamRingCandidateInput {
+    fingerprint: String!
+    "Raw DB user ids (the detection job reads them from the replica)."
+    memberUserIds: [String!]
+    memberUserNames: [String!]
+    signals: SpamRingSignalsInput!
+    nArticles: Int!
+    nAuthors: Int!
+    newAccountRatio: Float
+    score: Float
+    severity: SpamRingSeverity
+    firstSeenAt: DateTime
+    lastSeenAt: DateTime
+    "JSON string: map of user id -> evidence."
+    memberEvidence: String
+  }
+
+  input SpamRingSignalsInput {
+    nearDupRingSize: Int
+    entityRingSize: Int
+    botUsernameRatio: Float
+    topEntity: String
+    sampleCodes: [String!]
+    sampleBrands: [String!]
+    contentModelMax: Float
+  }
+
+  type UpsertSpamRingCandidatesResult {
+    created: Int!
+    updated: Int!
+    skipped: Int!
+    rings: [SpamRing!]!
+  }
+
   input UpdateUserRoleInput {
     id: ID!
     role: UserRole!
@@ -1068,6 +1150,8 @@ export default /* GraphQL */ `
     "used in register"
     language: UserLanguage
     referralCode: String
+    "Google OIDC redirect_uri for OSS SSO. When set, must be allowlisted; login is restricted to existing admin accounts and no new account is created."
+    redirectUri: String
   }
 
   input Oauth1CredentialInput {

@@ -9,6 +9,7 @@ import moment from './moment.js'
 import notice from './notice.js'
 import oauthClient from './oauthClient.js'
 import payment from './payment.js'
+import quote from './quote.js'
 import response from './response.js'
 import scalars from './scalars.js'
 import system from './system.js'
@@ -40,5 +41,6 @@ export default [
   oauthClient,
   collection,
   moment,
+  quote,
   channel,
 ]

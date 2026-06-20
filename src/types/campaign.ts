@@ -49,6 +49,8 @@ export default /* GraphQL */ `
     managers: [ID!]
     showOther: Boolean
     showAd: Boolean
+    "enable the quote wall (post-to-wall) for this campaign"
+    enableQuoteWall: Boolean
   }
 
   input ApplyCampaignInput {
@@ -130,6 +132,12 @@ export default /* GraphQL */ `
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): CampaignArticleConnection!
 
+    "Comments made by campaign participants (public to read)."
+    discussion(input: CommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Discussion (include replies) count of this campaign."
+    discussionCount: Int!
+
     application: CampaignApplication @privateCache
 
     featuredDescription(input: TranslationArgs): String!
@@ -139,6 +147,8 @@ export default /* GraphQL */ `
     isManager: Boolean! @privateCache
     showOther: Boolean!
     showAd: Boolean!
+    "whether this campaign exposes a quote wall (post-to-wall affordance)"
+    enableQuoteWall: Boolean!
 
     oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
   }

@@ -1,5 +1,6 @@
 import type {
   Article,
+  Campaign,
   Circle,
   Comment,
   CommunityWatchAction,
@@ -22,6 +23,7 @@ import {
   USER_ACTION,
   USER_FEATURE_FLAG_TYPE,
   NOTICE_TYPE,
+  NODE_TYPES,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -31,9 +33,11 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
+import { toGlobalId } from '#common/utils/index.js'
 import { v4 } from 'uuid'
 
 import { BaseService } from './baseService.js'
+import { CampaignService } from './campaignService.js'
 import {
   classifyContentTier,
   nearDuplicate,
@@ -88,6 +92,9 @@ export class CommentService extends BaseService<Comment> {
   public constructor(connections: Connections) {
     super('comment', connections)
   }
+
+  // Query builder for the OSS comment list (sortable / filterable).
+  public findComments = () => this.knexRO(this.table).select('*')
 
   public findActiveCommunityWatchAction = async (
     commentId: string
@@ -656,25 +663,31 @@ export class CommentService extends BaseService<Comment> {
     // check target
     let article: Article
     let circle: Circle | undefined = undefined
-    let targetAuthorId: string
+    let campaign: Campaign | undefined = undefined
+    let targetAuthorId: string | undefined
     if (comment.type === COMMENT_TYPE.article) {
       article = await this.models.articleIdLoader.load(comment.targetId)
       targetAuthorId = article.authorId
     } else if (comment.type === COMMENT_TYPE.moment) {
       const moment = await this.models.momentIdLoader.load(comment.targetId)
       targetAuthorId = moment.authorId
+    } else if (comment.type === COMMENT_TYPE.campaignDiscussion) {
+      // campaign discussion has no single target author
+      campaign = await this.models.campaignIdLoader.load(comment.targetId)
     } else {
       circle = await this.models.circleIdLoader.load(comment.targetId)
       targetAuthorId = circle.owner
     }
 
-    const userService = new UserService(this.connections)
-    const isBlocked = await userService.blocked({
-      userId: targetAuthorId,
-      targetId: user.id,
-    })
-    if (isBlocked) {
-      throw new ForbiddenError('blocked user has no permission')
+    if (targetAuthorId) {
+      const userService = new UserService(this.connections)
+      const isBlocked = await userService.blocked({
+        userId: targetAuthorId,
+        targetId: user.id,
+      })
+      if (isBlocked) {
+        throw new ForbiddenError('blocked user has no permission')
+      }
     }
 
     // check permission
@@ -689,6 +702,24 @@ export class CommentService extends BaseService<Comment> {
 
       if (!isCircleMember) {
         throw new ForbiddenError('only circle members have the permission')
+      }
+    }
+
+    if (campaign) {
+      const campaignService = new CampaignService(this.connections)
+      const isParticipant = await campaignService.isParticipant(
+        campaign.id,
+        user.id
+      )
+      const isOrganizer =
+        campaign.creatorId === user.id ||
+        (campaign.organizerIds ?? []).includes(user.id) ||
+        (campaign.managerIds ?? []).includes(user.id)
+
+      if (!isParticipant && !isOrganizer) {
+        throw new ForbiddenError(
+          'only campaign participants have the permission'
+        )
       }
     }
 
@@ -1008,6 +1039,7 @@ export class CommentService extends BaseService<Comment> {
 
     const author = await this.models.userIdLoader.load(comment.authorId)
     const snippet = stripHtml(content).slice(0, 80)
+    const globalId = toGlobalId({ type: NODE_TYPES.Comment, id })
     await enqueueReportAlert({
       source: 'spam_detection',
       dedupeKey: `comment:${id}`,
@@ -1015,6 +1047,9 @@ export class CommentService extends BaseService<Comment> {
         2
       )}）：${snippet}`,
       reason: TIER_REASON[tier],
+      ossUrl: `${environment.ossSiteDomain}/comments?id=${encodeURIComponent(
+        globalId
+      )}`,
     })
   }
 

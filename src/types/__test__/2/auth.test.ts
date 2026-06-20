@@ -7,8 +7,10 @@ import {
   AUTH_MODE,
   NODE_TYPES,
   SCOPE_PREFIX,
+  USER_ROLE,
   VERIFICATION_CODE_STATUS,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { UserService, SystemService } from '#connectors/index.js'
 
@@ -1158,6 +1160,89 @@ describe('socialLogin with Threads', () => {
       },
     })
     expect(errors && errors.length).toBeGreaterThanOrEqual(1)
+  })
+})
+
+describe('socialLogin with Google (OSS SSO)', () => {
+  const SOCIAL_LOGIN = /* GraphQL */ `
+    mutation ($input: SocialLoginInput!) {
+      socialLogin(input: $input) {
+        auth
+        token
+      }
+    }
+  `
+  const OSS_REDIRECT_URI = 'https://oss.matters.icu/callback/google'
+
+  beforeAll(() => {
+    // simulate MATTERS_OSS_GOOGLE_REDIRECT_URIS being configured
+    if (!environment.ossGoogleRedirectUris.includes(OSS_REDIRECT_URI)) {
+      environment.ossGoogleRedirectUris.push(OSS_REDIRECT_URI)
+    }
+  })
+
+  // A redirectUri that is not in the allowlist must be rejected before token
+  // exchange, guarding against an attacker-controlled redirect_uri.
+  test('rejects a non-allowlisted redirectUri', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: 'e2etest-oss-google',
+          nonce: 'e2etest-nonce',
+          redirectUri: 'https://attacker.example/callback/google',
+        },
+      },
+    })
+    expect(errors && errors.length).toBeGreaterThanOrEqual(1)
+    expect(errors?.[0]?.message).toContain('redirectUri')
+  })
+
+  // OSS login must be restricted to existing admin accounts; an unknown or
+  // non-admin Google account is rejected and never auto-created.
+  test('rejects a non-admin account', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: 'e2etest-oss-nonadmin',
+          nonce: 'e2etest-nonce',
+          redirectUri: OSS_REDIRECT_URI,
+        },
+      },
+    })
+    expect(errors && errors.length).toBeGreaterThanOrEqual(1)
+    expect(errors?.[0]?.message).toContain('admin')
+  })
+
+  // An existing admin account whose verified Google email matches logs in.
+  test('logs in an existing admin account', async () => {
+    const code = 'e2etest-oss-admin'
+    const email = `${code}@gmail.com`
+    const created = await userService.create({ email, emailVerified: true })
+    await userService.baseUpdate(created.id, {
+      role: USER_ROLE.admin as 'admin',
+    })
+
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: code,
+          nonce: 'e2etest-nonce',
+          redirectUri: OSS_REDIRECT_URI,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data?.socialLogin.auth).toBe(true)
+    expect(data?.socialLogin.token).toBeTruthy()
   })
 })
 

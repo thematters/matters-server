@@ -1,5 +1,10 @@
 import type { Connections } from '#definitions/index.js'
 
+import { jest } from '@jest/globals'
+import axios from 'axios'
+import jwt from 'jsonwebtoken'
+
+import { environment } from '#common/environment.js'
 import {
   CACHE_PREFIX,
   APPRECIATION_PURPOSE,
@@ -1223,5 +1228,42 @@ describe('addBookmarkCountColumn', () => {
     // Article 3 should have 0 bookmarks
     const article3Result = results[2]
     expect(article3Result.bookmarkCount).toBe('0')
+  })
+})
+
+describe('fetchGoogleUserInfo', () => {
+  test('exchanges the code with the given redirectUri (OSS SSO)', async () => {
+    const nonce = 'test-nonce'
+    const redirectUri = 'https://oss.matters.icu/callback/google'
+    const idToken = jwt.sign(
+      {
+        aud: environment.googleClientId,
+        nonce,
+        sub: 'google-sub-1',
+        email: 'oss-sso@gmail.com',
+        email_verified: true,
+      },
+      'test-secret'
+    )
+    const spy = jest
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .spyOn(axios as any, 'post')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .mockResolvedValueOnce({ data: { id_token: idToken } } as any)
+
+    const info = await userService.fetchGoogleUserInfo(
+      'auth-code',
+      nonce,
+      redirectUri
+    )
+
+    expect(info.email).toBe('oss-sso@gmail.com')
+    expect(info.emailVerified).toBe(true)
+    expect(spy).toHaveBeenCalledWith(
+      'https://oauth2.googleapis.com/token',
+      expect.objectContaining({ redirect_uri: redirectUri }),
+      expect.anything()
+    )
+    spy.mockRestore()
   })
 })

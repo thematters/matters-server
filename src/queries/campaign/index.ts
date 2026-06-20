@@ -3,6 +3,9 @@ import type { GQLResolvers } from '#definitions/index.js'
 import { NODE_TYPES } from '#common/enums/index.js'
 import { toGlobalId, fromDatetimeRangeString } from '#common/utils/index.js'
 
+import campaignDiscussion from '../comment/campaign/discussion.js'
+import campaignDiscussionCount from '../comment/campaign/discussionCount.js'
+
 import announcements from './announcements.js'
 import application from './application.js'
 import articles from './articles.js'
@@ -18,6 +21,8 @@ import name from './name.js'
 import navbarTitle from './navbarTitle.js'
 import organizers from './organizers.js'
 import participants from './participants.js'
+import quoteCount from './quoteCount.js'
+import quotes from './quotes.js'
 import stageDescription from './stage/description.js'
 import stageName from './stage/name.js'
 import stages from './stages.js'
@@ -55,9 +60,14 @@ const schema: GQLResolvers = {
       managerIds?.includes(viewer.id) ?? false,
     participants,
     articles,
+    discussion: campaignDiscussion,
+    discussionCount: campaignDiscussionCount,
+    quotes,
+    quoteCount,
     channelEnabled,
     showOther: ({ showOther }) => showOther,
     showAd: ({ showAd }) => showAd,
+    enableQuoteWall: ({ enableQuoteWall }) => enableQuoteWall,
     organizers,
     oss: (root) => root,
   },

@@ -661,5 +661,7 @@ export default /* GraphQL */ `
     mostComments
     mostDonations
     mostReadTime
+    "Order by spam score from high to low (only scored articles)"
+    mostSpam
   }
 `

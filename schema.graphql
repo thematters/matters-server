@@ -277,6 +277,24 @@ type Mutation {
   """Archive multiple users from OSS with per-user results."""
   archiveUsers(input: ArchiveUsersInput!): ArchiveUsersResult!
 
+  """
+  Freeze a spam ring: permanently (but reversibly) ban all member accounts. OSS.
+  """
+  freezeSpamRing(input: FreezeSpamRingInput!): FreezeSpamRingResult!
+
+  """
+  Reverse a spam ring freeze: unban only the members this ring banned. OSS.
+  """
+  unfreezeSpamRing(input: UnfreezeSpamRingInput!): UnfreezeSpamRingResult!
+
+  """Mark a spam ring as a false positive (feeds training as ham). OSS."""
+  dismissSpamRing(input: DismissSpamRingInput!): SpamRing!
+
+  """
+  Upsert spam ring candidates from the detection job (admin service principal). OSS.
+  """
+  upsertSpamRingCandidates(input: UpsertSpamRingCandidatesInput!): UpsertSpamRingCandidatesResult!
+
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
@@ -321,6 +339,14 @@ type Mutation {
   unlikeMoment(input: UnlikeMomentInput!): Moment!
   applyMomentFeed: User!
   updateMomentFeedApplicationState(input: UpdateMomentFeedApplicationStateInput!): User!
+
+  """Post a quote (selected from an article) onto the campaign quote wall."""
+  putQuote(input: PutQuoteInput!): Quote!
+
+  """
+  Retract a quote from the wall (poster, source article author, or admin).
+  """
+  deleteQuote(input: DeleteQuoteInput!): Boolean!
   putTopicChannel(input: PutTopicChannelInput!): TopicChannel!
   putCurationChannel(input: PutCurationChannelInput!): CurationChannel!
   putTagChannel(input: PutTagChannelInput!): Tag!
@@ -960,6 +986,9 @@ enum ArticlesSort {
   mostComments
   mostDonations
   mostReadTime
+
+  """Order by spam score from high to low (only scored articles)"""
+  mostSpam
 }
 
 input CampaignInput {
@@ -997,6 +1026,9 @@ input PutWritingChallengeInput {
   managers: [ID!]
   showOther: Boolean
   showAd: Boolean
+
+  """enable the quote wall (post-to-wall) for this campaign"""
+  enableQuoteWall: Boolean
 }
 
 input ApplyCampaignInput {
@@ -1073,13 +1105,28 @@ type WritingChallenge implements Node & Campaign & Channel {
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): CampaignArticleConnection!
+
+  """Comments made by campaign participants (public to read)."""
+  discussion(input: CommentsInput!): CommentConnection!
+
+  """Discussion (include replies) count of this campaign."""
+  discussionCount: Int!
   application: CampaignApplication
   featuredDescription(input: TranslationArgs): String!
   organizers: [User!]!
   isManager: Boolean!
   showOther: Boolean!
   showAd: Boolean!
+
+  """whether this campaign exposes a quote wall (post-to-wall affordance)"""
+  enableQuoteWall: Boolean!
   oss: CampaignOSS!
+
+  """Quotes on this campaign's quote wall (public)."""
+  quotes(input: QuotesInput!): QuoteConnection!
+
+  """Quote count of this campaign's quote wall."""
+  quoteCount: Int!
 }
 
 type CampaignOSS {
@@ -1724,6 +1771,7 @@ input CommentInput {
   articleId: ID
   circleId: ID
   momentId: ID
+  campaignId: ID
 }
 
 input CommentCommentsInput {
@@ -1914,6 +1962,7 @@ enum CommentType {
   circleDiscussion
   circleBroadcast
   moment
+  campaignDiscussion
 }
 
 """
@@ -2415,8 +2464,8 @@ type TranslatedAnnouncement {
 
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
-  comments(input: ConnectionArgs!): CommentConnection!
-  moments(input: ConnectionArgs!): MomentConnection!
+  comments(input: OSSCommentsInput!): CommentConnection!
+  moments(input: OSSMomentsInput!): MomentConnection!
   articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
@@ -2425,6 +2474,7 @@ type OSS {
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
   reports(input: OSSReportsInput!): ReportConnection!
+  spamRings(input: OSSSpamRingsInput!): SpamRingConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   momentFeedUsers(input: MomentFeedUsersInput!): UserConnection!
@@ -2544,6 +2594,138 @@ input OSSReportsInput {
 
 input OSSReportsFilter {
   source: ReportSource
+}
+
+"""
+A spam ring: a cluster of accounts posting the same templated abuse,
+surfaced by the account-layer ring detector (軸一 D).
+"""
+type SpamRing implements Node {
+  id: ID!
+
+  """模板/家族指紋（偵測 job 的歸群 key）"""
+  fingerprint: String!
+  status: SpamRingStatus!
+  signals: SpamRingSignals!
+  nArticles: Int!
+  nAuthors: Int!
+  newAccountRatio: Float
+  score: Float
+  severity: SpamRingSeverity
+  detectedAt: DateTime!
+  firstSeenAt: DateTime
+  lastSeenAt: DateTime
+  frozenAt: DateTime
+  frozenBy: User
+  note: String
+
+  """群內成員帳號（可分頁）"""
+  members(input: ConnectionArgs!): SpamRingMemberConnection!
+
+  """列表渲染用的少量樣本，免分頁"""
+  memberSample(limit: Int): [User!]!
+  events: [SpamRingEvent!]!
+}
+
+type SpamRingSignals {
+  nearDupRingSize: Int
+  entityRingSize: Int
+  botUsernameRatio: Float
+  topEntity: String
+  sampleCodes: [String!]
+  sampleBrands: [String!]
+  contentModelMax: Float
+}
+
+type SpamRingMember {
+  id: ID!
+  user: User!
+  status: SpamRingMemberStatus!
+
+  """是否由本 ring 的凍結造成封禁（解凍時只還原此類）"""
+  bannedByThisRing: Boolean!
+  skipReason: String
+  createdAt: DateTime!
+}
+
+type SpamRingEvent {
+  id: ID!
+  action: SpamRingEventAction!
+  actor: User
+
+  """JSON 字串"""
+  detail: String
+  createdAt: DateTime!
+}
+
+enum SpamRingStatus {
+  pending
+  frozen
+  dismissed
+  restored
+}
+
+enum SpamRingMemberStatus {
+  pending
+  frozen
+  skipped
+  restored
+}
+
+enum SpamRingSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum SpamRingEventAction {
+  detected
+  frozen
+  unfrozen
+  dismissed
+  member_banned
+  member_skipped
+  member_restored
+}
+
+type SpamRingConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SpamRingEdge!]
+}
+
+type SpamRingEdge {
+  cursor: String!
+  node: SpamRing!
+}
+
+type SpamRingMemberConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SpamRingMemberEdge!]
+}
+
+type SpamRingMemberEdge {
+  cursor: String!
+  node: SpamRingMember!
+}
+
+enum SpamRingsSort {
+  score
+  detectedAt
+  nAuthors
+}
+
+input OSSSpamRingsInput {
+  after: String
+  first: Int
+  sort: SpamRingsSort = score
+  filter: OSSSpamRingsFilter
+}
+
+input OSSSpamRingsFilter {
+  status: SpamRingStatus
 }
 
 input NodeInput {
@@ -3004,6 +3186,32 @@ input OSSArticlesFilterInput {
   isSpam: Boolean
   datetimeRange: DatetimeRangeInput
   searchKey: String
+}
+
+"""Sort options shared by OSS comment/moment lists for spam triage."""
+enum OSSContentSpamSort {
+  newest
+
+  """Order by spam score from high to low (only scored items)"""
+  mostSpam
+}
+
+input OSSSpamDatetimeFilterInput {
+  datetimeRange: DatetimeRangeInput
+}
+
+input OSSCommentsInput {
+  after: String
+  first: Int
+  sort: OSSContentSpamSort = newest
+  filter: OSSSpamDatetimeFilterInput
+}
+
+input OSSMomentsInput {
+  after: String
+  first: Int
+  sort: OSSContentSpamSort = newest
+  filter: OSSSpamDatetimeFilterInput
 }
 
 enum CacheControlScope {
@@ -3612,6 +3820,81 @@ type ArchiveUserFailure {
   message: String!
 }
 
+input FreezeSpamRingInput {
+  id: ID!
+  remark: String
+}
+
+type FreezeSpamRingResult {
+  ring: SpamRing!
+  frozen: [User!]!
+
+  """
+  Members not banned (old account, high karma, already banned, archived…) — for manual review.
+  """
+  skipped: [SpamRingSkip!]!
+}
+
+input UnfreezeSpamRingInput {
+  id: ID!
+}
+
+type UnfreezeSpamRingResult {
+  ring: SpamRing!
+  unbanned: [User!]!
+  skipped: [SpamRingSkip!]!
+}
+
+type SpamRingSkip {
+  user: User!
+  reason: String!
+}
+
+input DismissSpamRingInput {
+  id: ID!
+  note: String
+}
+
+input UpsertSpamRingCandidatesInput {
+  candidates: [SpamRingCandidateInput!]!
+}
+
+input SpamRingCandidateInput {
+  fingerprint: String!
+
+  """Raw DB user ids (the detection job reads them from the replica)."""
+  memberUserIds: [String!]
+  memberUserNames: [String!]
+  signals: SpamRingSignalsInput!
+  nArticles: Int!
+  nAuthors: Int!
+  newAccountRatio: Float
+  score: Float
+  severity: SpamRingSeverity
+  firstSeenAt: DateTime
+  lastSeenAt: DateTime
+
+  """JSON string: map of user id -> evidence."""
+  memberEvidence: String
+}
+
+input SpamRingSignalsInput {
+  nearDupRingSize: Int
+  entityRingSize: Int
+  botUsernameRatio: Float
+  topEntity: String
+  sampleCodes: [String!]
+  sampleBrands: [String!]
+  contentModelMax: Float
+}
+
+type UpsertSpamRingCandidatesResult {
+  created: Int!
+  updated: Int!
+  skipped: Int!
+  rings: [SpamRing!]!
+}
+
 input UpdateUserRoleInput {
   id: ID!
   role: UserRole!
@@ -3855,6 +4138,11 @@ input SocialLoginInput {
   """used in register"""
   language: UserLanguage
   referralCode: String
+
+  """
+  Google OIDC redirect_uri for OSS SSO. When set, must be allowlisted; login is restricted to existing admin accounts and no new account is created.
+  """
+  redirectUri: String
 }
 
 input Oauth1CredentialInput {
@@ -4441,6 +4729,46 @@ enum MomentFeedUserReviewedBy {
   admin
   system
   seed
+}
+
+input PutQuoteInput {
+  articleId: ID!
+  content: String!
+}
+
+input DeleteQuoteInput {
+  id: ID!
+}
+
+input QuotesInput {
+  first: Int
+  after: String
+
+  """
+  random sampling for wall display; refetch to shuffle. when true, after is ignored
+  """
+  random: Boolean
+}
+
+type Quote {
+  id: ID!
+  content: String!
+  article: Article!
+
+  """the user who posted this quote onto the wall"""
+  poster: User!
+  createdAt: DateTime!
+}
+
+type QuoteConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [QuoteEdge!]
+}
+
+type QuoteEdge {
+  cursor: String!
+  node: Quote!
 }
 
 interface Channel {

@@ -180,6 +180,7 @@ export default /* GraphQL */ `
     articleId: ID
     circleId: ID
     momentId: ID
+    campaignId: ID
   }
 
   input CommentCommentsInput {
@@ -361,5 +362,6 @@ export default /* GraphQL */ `
     circleDiscussion
     circleBroadcast
     moment
+    campaignDiscussion
   }
 `

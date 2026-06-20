@@ -29,6 +29,7 @@ export * from './appreciation.js'
 export * from './metrics.js'
 export * from './badges.js'
 export * from './moment.js'
+export * from './quote.js'
 export * from './campaign.js'
 export * from './channel.js'
 export * from './feedback.js'
@@ -60,6 +61,7 @@ export const COMMENT_TYPE = {
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
   moment: 'moment',
+  campaignDiscussion: 'campaign_discussion',
 } as const
 
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
@@ -168,6 +170,7 @@ export enum NODE_TYPES {
   Collection = 'Collection',
   Report = 'Report',
   Moment = 'Moment',
+  Quote = 'Quote',
   Campaign = 'Campaign',
   CampaignStage = 'CampaignStage',
   TopicChannel = 'TopicChannel',
@@ -181,6 +184,9 @@ export enum NODE_TYPES {
   Announcement = 'Announcement',
   CryptoWallet = 'CryptoWallet',
   CryptoWalletNFTAsset = 'NFTAsset',
+  SpamRing = 'SpamRing',
+  SpamRingMember = 'SpamRingMember',
+  SpamRingEvent = 'SpamRingEvent',
 
   // Unions & Interfaces
   Node = 'Node',
@@ -250,6 +256,9 @@ export const MAX_ARTICLES_PER_CONNECTION_LIMIT = 3
 export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
 
 export const MAX_ARTICLE_COMMENT_LENGTH = 1200
+
+// campaign discussion comment length cap (matches moment / 短動態 = 240)
+export const MAX_CAMPAIGN_COMMENT_LENGTH = 240
 
 export const MAX_PINNED_WORKS_LIMIT = 3
 

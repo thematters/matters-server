@@ -11,6 +11,7 @@ import moment from './moment/index.js'
 import notice from './notice/index.js'
 import oauthClient from './oauthClient/index.js'
 import oauthRequestToken from './oauthRequestToken.js'
+import quote from './quote/index.js'
 import recommendation from './recommendation.js'
 import response from './response/index.js'
 import scalars from './scalars.js'
@@ -32,6 +33,7 @@ export default merge(
   exchangeRates,
   recommendation,
   moment,
+  quote,
   campaign,
   channel
 )

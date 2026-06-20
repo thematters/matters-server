@@ -9,6 +9,7 @@ import { reports } from './reports.js'
 import { restrictedUsers } from './restrictedUsers.js'
 import { seedingUsers } from './seedingUsers.js'
 import { skippedListItems } from './skippedListItems.js'
+import { spamRings } from './spamRings.js'
 import { tags } from './tags.js'
 import { topicChannelFeedbacks } from './topicChannelFeedbacks.js'
 import { users } from './users.js'
@@ -26,6 +27,7 @@ export default {
   skippedListItems,
   restrictedUsers,
   reports,
+  spamRings,
   icymiTopics,
   topicChannelFeedbacks,
 }

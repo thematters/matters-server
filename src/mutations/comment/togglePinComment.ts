@@ -38,6 +38,8 @@ const resolver: Exclude<
     if (article.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
+  } else if (comment.type === COMMENT_TYPE.campaignDiscussion) {
+    throw new ForbiddenError('cannot pin campaign discussion comment')
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
     const targetAuthor = circle.owner
