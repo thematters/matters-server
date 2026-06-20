@@ -940,6 +940,8 @@ describe('spam telegram alert (notify-only tiering)', () => {
       reason: 'spam_auto',
       dedupeKey: `comment:${comment.id}`,
     })
+    // carries an OSS deep-link for one-click moderation
+    expect(sent[0].ossUrl).toContain('/comments?id=')
   })
 
   test('emits Tier C (spam_review) for high-score benign-looking content', async () => {

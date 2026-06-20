@@ -23,6 +23,7 @@ import {
   USER_ACTION,
   USER_FEATURE_FLAG_TYPE,
   NOTICE_TYPE,
+  NODE_TYPES,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -32,6 +33,7 @@ import {
   UserInputError,
 } from '#common/errors.js'
 import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
+import { toGlobalId } from '#common/utils/index.js'
 import { v4 } from 'uuid'
 
 import { BaseService } from './baseService.js'
@@ -1037,6 +1039,7 @@ export class CommentService extends BaseService<Comment> {
 
     const author = await this.models.userIdLoader.load(comment.authorId)
     const snippet = stripHtml(content).slice(0, 80)
+    const globalId = toGlobalId({ type: NODE_TYPES.Comment, id })
     await enqueueReportAlert({
       source: 'spam_detection',
       dedupeKey: `comment:${id}`,
@@ -1044,6 +1047,9 @@ export class CommentService extends BaseService<Comment> {
         2
       )}）：${snippet}`,
       reason: TIER_REASON[tier],
+      ossUrl: `${environment.ossSiteDomain}/comments?id=${encodeURIComponent(
+        globalId
+      )}`,
     })
   }
 
