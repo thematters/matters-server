@@ -184,6 +184,9 @@ export enum NODE_TYPES {
   Announcement = 'Announcement',
   CryptoWallet = 'CryptoWallet',
   CryptoWalletNFTAsset = 'NFTAsset',
+  SpamRing = 'SpamRing',
+  SpamRingMember = 'SpamRingMember',
+  SpamRingEvent = 'SpamRingEvent',
 
   // Unions & Interfaces
   Node = 'Node',

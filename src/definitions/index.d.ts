@@ -22,6 +22,7 @@ import type {
   SearchService,
   PublicationService,
   FederationExportService,
+  SpamRingService,
 } from '#connectors/index.js'
 import type {
   RevisionQueue,
@@ -128,6 +129,11 @@ import type {
 } from './payment.js'
 import type { Quote } from './quote.js'
 import type { Report } from './report.js'
+import type {
+  SpamRing,
+  SpamRingMember,
+  SpamRingEvent,
+} from './spamRing.js'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag.js'
 import type { Translation } from './translation.js'
 import type {
@@ -169,6 +175,7 @@ export * from './payment.js'
 export * from './appreciation.js'
 export * from './asset.js'
 export * from './report.js'
+export * from './spamRing.js'
 export * from './wallet.js'
 export * from './misc.js'
 export * from './schema.js'
@@ -218,6 +225,7 @@ export interface DataSources {
   channelService: ChannelService
   searchService: SearchService
   federationExportService: FederationExportService
+  spamRingService: SpamRingService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -281,6 +289,9 @@ export interface TableTypeMap {
   comment: Comment
   community_watch_action: CommunityWatchAction
   community_watch_review_event: CommunityWatchReviewEvent
+  spam_ring: SpamRing
+  spam_ring_member: SpamRingMember
+  spam_ring_event: SpamRingEvent
   crypto_wallet: CryptoWallet
   crypto_wallet_signature: CryptoWalletSignature
   customer: Customer

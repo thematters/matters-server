@@ -7,7 +7,9 @@ import clearSearchHistory from './clearSearchHistory.js'
 import confirmVerificationCode from './confirmVerificationCode.js'
 import connectStripeAccount from './connectStripeAccount.js'
 import createPersonhoodHandoff from './createPersonhoodHandoff.js'
+import dismissSpamRing from './dismissSpamRing.js'
 import emailLogin from './emailLogin.js'
+import freezeSpamRing from './freezeSpamRing.js'
 import generateSigningMessage from './generateSigningMessage.js'
 import migration from './migration.js'
 import payout from './payout.js'
@@ -31,11 +33,13 @@ import toggleBookmarkTag from './toggleBookmarkTag.js'
 import toggleFollowUser from './toggleFollowUser.js'
 import toggleUsersBadge from './toggleUsersBadge.js'
 import unbindLikerId from './unbindLikerId.js'
+import unfreezeSpamRing from './unfreezeSpamRing.js'
 import updateNotificationSetting from './updateNotificationSetting.js'
 import updateUserExtra from './updateUserExtra.js'
 import updateUserInfo from './updateUserInfo.js'
 import updateUserRole from './updateUserRole.js'
 import updateUserState from './updateUserState.js'
+import upsertSpamRingCandidates from './upsertSpamRingCandidates.js'
 import userLogout from './userLogout.js'
 import verifyEmail from './verifyEmail.js'
 import {
@@ -70,6 +74,10 @@ export default {
     clearReadHistory,
     clearSearchHistory,
     archiveUsers,
+    freezeSpamRing,
+    unfreezeSpamRing,
+    dismissSpamRing,
+    upsertSpamRingCandidates,
     updateUserState,
     updateUserRole,
     updateUserExtra,

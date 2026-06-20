@@ -8,6 +8,7 @@ export const USER_STATE = {
 export const USER_BAN_REMARK = {
   payoutReversedByAdmin: 'payout reversed by admin',
   paymentHighRisk: 'payment high risk',
+  spamRing: 'spam ring',
 } as const
 
 export const AUTHOR_TYPE = {
