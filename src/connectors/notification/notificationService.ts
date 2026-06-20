@@ -879,6 +879,7 @@ export class NotificationService {
             }),
           ],
           entities: params.entities,
+          data: params.data,
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored:
         return {

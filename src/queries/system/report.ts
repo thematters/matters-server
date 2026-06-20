@@ -8,7 +8,52 @@ import { NODE_TYPES } from '#common/enums/index.js'
 import { ServerError } from '#common/errors.js'
 import { toGlobalId } from '#common/utils/index.js'
 
-const report: GQLReportResolvers = {
+type ReportParent = {
+  id: string
+  source?: ReportSource
+  reason?: string
+  articleId?: string | null
+  commentId?: string | null
+  momentId?: string | null
+}
+
+const getModerationTarget = ({
+  articleId,
+  commentId,
+  momentId,
+}: ReportParent) => {
+  if (articleId) {
+    return { targetType: 'article', targetId: articleId }
+  }
+  if (commentId) {
+    return { targetType: 'comment', targetId: commentId }
+  }
+  if (momentId) {
+    return { targetType: 'moment', targetId: momentId }
+  }
+  return null
+}
+
+const getModerationCaseReasonCandidates = ({
+  source,
+  reason,
+}: ReportParent) => {
+  if (!reason) {
+    return []
+  }
+  if (source !== 'community_watch') {
+    return [reason]
+  }
+  if (reason === 'community_watch_porn_ad') {
+    return [reason, 'porn_ad']
+  }
+  if (reason === 'community_watch_spam_ad') {
+    return [reason, 'spam_ad']
+  }
+  return [reason]
+}
+
+const report = {
   id: ({ id, source }) => {
     // For rows derived from `community_watch_action` the union resolver
     // synthesises an id like `cw:42`. Keep the prefix in the inner id so the
@@ -66,6 +111,40 @@ const report: GQLReportResolvers = {
       : parent.id
     return commentService.findCommunityWatchActionById(id)
   },
+  moderationCase: async (
+    parent: ReportParent,
+    _: unknown,
+    {
+      dataSources: {
+        connections: { knex },
+      },
+    }: Context
+  ) => {
+    const target = getModerationTarget(parent)
+    const reasonCandidates = getModerationCaseReasonCandidates(parent)
+    if (!target || reasonCandidates.length <= 0) {
+      return null
+    }
+
+    return knex('moderation_case')
+      .where({
+        source:
+          parent.source === 'community_watch'
+            ? 'community_watch'
+            : 'direct_report',
+        targetType: target.targetType,
+        targetId: target.targetId,
+      })
+      .whereIn('reason', reasonCandidates)
+      .orderBy('id', 'desc')
+      .first()
+  },
+} as GQLReportResolvers & {
+  moderationCase: (
+    parent: ReportParent,
+    _: unknown,
+    context: Context
+  ) => Promise<unknown>
 }
 
 export default report

@@ -45,6 +45,7 @@ const resolver = async (
     dataSources: {
       atomService,
       articleService,
+      commentService,
       userService,
       notificationService,
       connections,
@@ -167,13 +168,36 @@ const resolver = async (
     }
   )
 
-  notificationService.trigger({
+  const auditAction = await commentService.findActiveCommunityWatchAction(
+    updatedComment.id
+  )
+  if (auditAction) {
+    await commentService.syncCommunityWatchModerationCaseCreated({
+      action: auditAction,
+    })
+  }
+
+  const appealLink = `https://${environment.siteDomain}/appeals`
+  const moderationNoticeData = {
+    link: appealLink,
+    moderationSource: 'community_watch',
+    publicReason: auditAction?.reason || reason,
+    appealLink,
+  }
+
+  await notificationService.trigger({
     event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
     entities: [
       { type: 'target', entityTable: 'comment', entity: updatedComment },
     ],
     recipientId: updatedComment.authorId,
+    data: moderationNoticeData,
   })
+  if (auditAction) {
+    await commentService.syncCommunityWatchModerationCaseNoticeSent({
+      action: auditAction,
+    })
+  }
 
   // Emit a report-alert event for the admin Telegram side-channel.
   // Aggregated by the reported user (not by comment) — if the same user

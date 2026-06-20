@@ -6,6 +6,15 @@ import type {
   ReportType,
   ReportReason,
   Report,
+  ModerationActorType,
+  ModerationAutomationRole,
+  ModerationCase,
+  ModerationCaseOutcome,
+  ModerationCaseSource,
+  ModerationCaseStatus,
+  ModerationEventType,
+  ModerationNoticeState,
+  ModerationTargetType,
   Asset,
   BaseDBSchema,
   LogRecord,
@@ -30,7 +39,7 @@ import {
   AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
 import { isTest } from '#common/environment.js'
-import { AssetNotFoundError } from '#common/errors.js'
+import { AssetNotFoundError, UserInputError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
@@ -550,6 +559,9 @@ export class SystemService extends BaseService<BaseDBSchema> {
     reporterId: string
     reason: ReportReason
   }): Promise<Report> => {
+    let report: Report
+    let collapsed = false
+
     if (targetType === NODE_TYPES.Article) {
       const ret = await this.knex('report')
         .insert({
@@ -558,7 +570,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
           reason,
         })
         .returning('*')
-      return ret[0]
+      report = ret[0]
     } else if (targetType === NODE_TYPES.Moment) {
       const ret = await this.knex('report')
         .insert({
@@ -567,7 +579,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
           reason,
         })
         .returning('*')
-      return ret[0]
+      report = ret[0]
     } else {
       const ret = await this.knex('report')
         .insert({
@@ -577,10 +589,358 @@ export class SystemService extends BaseService<BaseDBSchema> {
         })
         .returning('*')
 
-      await this.tryCollapseComment(targetId)
+      collapsed = await this.tryCollapseComment(targetId)
 
-      return ret[0]
+      report = ret[0]
     }
+
+    let moderationCase: ModerationCase | null = null
+    try {
+      moderationCase = await this.syncDirectReportModerationCase({
+        targetType,
+        targetId,
+        reporterId,
+        reason,
+        reportId: report.id,
+        outcome: collapsed ? 'content_collapsed' : null,
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+
+    return {
+      ...report,
+      moderationCaseId: moderationCase?.id ?? null,
+      moderationOutcome: collapsed ? 'content_collapsed' : null,
+    }
+  }
+
+  public markModerationCaseNoticeSent = async ({
+    id,
+    actorType = 'system',
+    actorId,
+    publicReason,
+    metadata,
+  }: {
+    id: string
+    actorType?: ModerationActorType
+    actorId?: string | null
+    publicReason?: string | null
+    metadata?: Record<string, unknown>
+  }): Promise<ModerationCase | null> =>
+    this.knex.transaction(async (trx) => {
+      const moderationCase = await trx<ModerationCase>('moderation_case')
+        .where({ id })
+        .forUpdate()
+        .first()
+
+      if (!moderationCase) {
+        return null
+      }
+
+      const [updatedCase] = await trx<ModerationCase>('moderation_case')
+        .where({ id })
+        .update({
+          noticeState: 'sent',
+          publicReason:
+            publicReason !== undefined
+              ? publicReason
+              : moderationCase.publicReason,
+          updatedAt: trx.fn.now(),
+        })
+        .returning('*')
+
+      await trx('moderation_event').insert({
+        caseId: moderationCase.id,
+        eventType: 'notified',
+        actorType,
+        actorId,
+        publicReason: updatedCase.publicReason,
+        fromStatus: moderationCase.status,
+        toStatus: updatedCase.status,
+        fromOutcome: moderationCase.outcome,
+        toOutcome: updatedCase.outcome,
+        metadata: {
+          noticeState: updatedCase.noticeState,
+          ...(metadata ?? {}),
+        },
+      })
+
+      return updatedCase
+    })
+
+  public updateModerationCase = async ({
+    id,
+    actorId,
+    status,
+    outcome,
+    noticeState,
+    publicReason,
+    internalNote,
+  }: {
+    id: string
+    actorId: string
+    status?: ModerationCaseStatus | null
+    outcome?: ModerationCaseOutcome | null
+    noticeState?: ModerationNoticeState | null
+    publicReason?: string | null
+    internalNote?: string | null
+  }): Promise<ModerationCase> => {
+    const hasCasePatch =
+      !!status ||
+      outcome !== undefined ||
+      !!noticeState ||
+      publicReason !== undefined
+    const hasEventOnlyPatch = !!internalNote
+
+    if (!hasCasePatch && !hasEventOnlyPatch) {
+      throw new UserInputError('no moderation case update provided')
+    }
+
+    return this.knex.transaction(async (trx) => {
+      const moderationCase = await trx<ModerationCase>('moderation_case')
+        .where({ id })
+        .forUpdate()
+        .first()
+
+      if (!moderationCase) {
+        throw new UserInputError('moderation case not found')
+      }
+
+      const patch: Record<string, unknown> = {
+        updatedAt: trx.fn.now(),
+      }
+      if (status) {
+        patch.status = status
+        if (status === 'resolved' && !moderationCase.resolvedAt) {
+          patch.resolvedAt = trx.fn.now()
+        }
+        if (status === 'closed' && !moderationCase.closedAt) {
+          patch.closedAt = trx.fn.now()
+        }
+      }
+      if (outcome !== undefined) {
+        patch.outcome = outcome
+      }
+      if (noticeState) {
+        patch.noticeState = noticeState
+      }
+      if (publicReason !== undefined) {
+        patch.publicReason = publicReason
+      }
+
+      const [updatedCase] = await trx<ModerationCase>('moderation_case')
+        .where({ id: moderationCase.id })
+        .update(patch)
+        .returning('*')
+
+      const eventType: ModerationEventType =
+        updatedCase.status === 'closed'
+          ? 'closed'
+          : updatedCase.status === 'appealed'
+          ? 'appealed'
+          : updatedCase.outcome === 'restored'
+          ? 'restored'
+          : updatedCase.status === 'action_taken'
+          ? 'actioned'
+          : 'reviewed'
+
+      await trx('moderation_event').insert({
+        caseId: moderationCase.id,
+        eventType,
+        actorType: 'admin',
+        actorId,
+        publicReason: updatedCase.publicReason,
+        internalNote: internalNote || null,
+        fromStatus: moderationCase.status,
+        toStatus: updatedCase.status,
+        fromOutcome: moderationCase.outcome,
+        toOutcome: updatedCase.outcome,
+        metadata: {
+          noticeState: updatedCase.noticeState,
+          source: updatedCase.source,
+          targetType: updatedCase.targetType,
+        },
+      })
+
+      return updatedCase
+    })
+  }
+
+  private toModerationTargetType = (
+    targetType: ReportType
+  ): ModerationTargetType => {
+    if (targetType === NODE_TYPES.Article) {
+      return 'article'
+    }
+    if (targetType === NODE_TYPES.Moment) {
+      return 'moment'
+    }
+    return 'comment'
+  }
+
+  private createModerationEvent = async ({
+    caseId,
+    eventType,
+    actorType,
+    actorId,
+    publicReason,
+    internalNote,
+    fromStatus,
+    toStatus,
+    fromOutcome,
+    toOutcome,
+    metadata,
+  }: {
+    caseId: string
+    eventType: ModerationEventType
+    actorType: ModerationActorType
+    actorId?: string | null
+    publicReason?: string | null
+    internalNote?: string | null
+    fromStatus?: ModerationCaseStatus | null
+    toStatus?: ModerationCaseStatus | null
+    fromOutcome?: ModerationCaseOutcome | null
+    toOutcome?: ModerationCaseOutcome | null
+    metadata?: Record<string, unknown> | null
+  }) =>
+    this.knex('moderation_event').insert({
+      caseId,
+      eventType,
+      actorType,
+      actorId,
+      publicReason,
+      internalNote,
+      fromStatus,
+      toStatus,
+      fromOutcome,
+      toOutcome,
+      metadata,
+    })
+
+  private findOrCreateModerationCase = async ({
+    source,
+    targetType,
+    targetId,
+    reporterId,
+    reason,
+    automationRole = 'none',
+  }: {
+    source: ModerationCaseSource
+    targetType: ModerationTargetType
+    targetId: string
+    reporterId?: string | null
+    reason: string
+    automationRole?: ModerationAutomationRole
+  }): Promise<{ moderationCase: ModerationCase; created: boolean }> => {
+    const base = {
+      source,
+      targetType,
+      targetId,
+      reason,
+    }
+    const [inserted] = await this.knex('moderation_case')
+      .insert({
+        ...base,
+        primaryReporterId: reporterId,
+        automationRole,
+      })
+      .onConflict(['source', 'targetType', 'targetId', 'reason'])
+      .ignore()
+      .returning('*')
+
+    if (inserted) {
+      return { moderationCase: inserted, created: true }
+    }
+
+    const moderationCase = await this.knex<ModerationCase>('moderation_case')
+      .where(base)
+      .first()
+
+    if (!moderationCase) {
+      throw new Error('failed to create or load moderation case')
+    }
+
+    await this.knex('moderation_case')
+      .where({ id: moderationCase.id })
+      .update({ updatedAt: this.knex.fn.now() })
+
+    return { moderationCase, created: false }
+  }
+
+  private syncDirectReportModerationCase = async ({
+    targetType,
+    targetId,
+    reporterId,
+    reason,
+    reportId,
+    outcome,
+  }: {
+    targetType: ReportType
+    targetId: string
+    reporterId: string
+    reason: ReportReason
+    reportId: string
+    outcome: ModerationCaseOutcome | null
+  }): Promise<ModerationCase> => {
+    const { moderationCase, created } = await this.findOrCreateModerationCase({
+      source: 'direct_report',
+      targetType: this.toModerationTargetType(targetType),
+      targetId,
+      reporterId,
+      reason,
+    })
+
+    await this.knex('moderation_case_reporter')
+      .insert({
+        caseId: moderationCase.id,
+        reporterId,
+        reportId,
+      })
+      .onConflict(['caseId', 'reporterId'])
+      .ignore()
+
+    if (created) {
+      await this.createModerationEvent({
+        caseId: moderationCase.id,
+        eventType: 'created',
+        actorType: 'user',
+        actorId: reporterId,
+        toStatus: 'received',
+        metadata: {
+          reportId,
+          targetType: this.toModerationTargetType(targetType),
+        },
+      })
+    }
+
+    if (outcome) {
+      const [updatedCase] = await this.knex<ModerationCase>('moderation_case')
+        .where({ id: moderationCase.id })
+        .update({
+          status: 'action_taken',
+          outcome,
+          resolvedAt: this.knex.fn.now(),
+          updatedAt: this.knex.fn.now(),
+        })
+        .returning('*')
+
+      await this.createModerationEvent({
+        caseId: moderationCase.id,
+        eventType: 'actioned',
+        actorType: 'system',
+        fromStatus: moderationCase.status,
+        toStatus: 'action_taken',
+        fromOutcome: moderationCase.outcome,
+        toOutcome: outcome,
+        publicReason: reason,
+        metadata: { reportId },
+      })
+
+      return updatedCase
+    }
+
+    return moderationCase
   }
 
   /**
