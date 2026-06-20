@@ -1,8 +1,10 @@
 import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 
+import { FEATURE_FLAG, FEATURE_NAME } from '#common/enums/index.js'
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
 import { ChannelService } from '../../channel/channelService.js'
+import { SystemService } from '../../systemService.js'
 import { genConnections, closeConnections, createCampaign } from '../utils.js'
 
 let connections: Connections
@@ -11,12 +13,14 @@ let atomService: AtomService
 let channel: TopicChannel
 let articles: Article[]
 let campaignService: CampaignService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
   campaignService = new CampaignService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -40,6 +44,20 @@ beforeEach(async () => {
     take: 6,
   })
   expect(articles).toHaveLength(6)
+  await Promise.all(
+    articles.map((article) =>
+      atomService.update({
+        table: 'article',
+        where: { id: article.id },
+        data: { isSpam: null, spamScore: null },
+      })
+    )
+  )
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.spam_detection,
+    flag: FEATURE_FLAG.on,
+    value: 0.5,
+  })
 
   // Add articles to channel
   await channelService.setArticleTopicChannels({
@@ -178,6 +196,33 @@ describe('findTopicChannelArticles', () => {
     for (const id of [articles[0].id, articles[2].id, articles[3].id]) {
       expect(resultIds).toContain(id)
     }
+  })
+
+  test('excludes unpinned articles with spam score above threshold', async () => {
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: null, spamScore: 0.6 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: false, spamScore: 0.9 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: { isSpam: true, spamScore: 0.1 },
+    })
+
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    const resultIds = results.map((a) => a.id)
+
+    expect(resultIds).not.toContain(articles[0].id)
+    expect(resultIds).toContain(articles[1].id)
+    expect(resultIds).not.toContain(articles[2].id)
+    expect(resultIds).toContain(articles[3].id)
   })
 
   describe('datetimeRange filtering', () => {

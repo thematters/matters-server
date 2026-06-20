@@ -45,6 +45,7 @@ import { ArticleService } from '../article/articleService.js'
 import { AtomService } from '../atomService.js'
 import { Cache } from '../cache/index.js'
 import { NotificationService } from '../notification/notificationService.js'
+import { SystemService } from '../systemService.js'
 
 import { ChannelClassifier } from './channelClassifier.js'
 
@@ -321,11 +322,6 @@ export class ChannelService {
 
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
-      await this.models.update({
-        table: 'article',
-        where: { id: articleId },
-        data: { isSpam: false },
-      })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
         create: toAdd.map((channelId) =>
@@ -397,6 +393,9 @@ export class ChannelService {
     }
 
     const pinnedArticleIds = channel.pinnedArticles || []
+    const spamThreshold = await new SystemService(
+      this.connections
+    ).getSpamThreshold()
 
     const pinnedQuery = knexRO
       .select(
@@ -426,11 +425,7 @@ export class ChannelService {
         'article.channel_enabled': true,
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
-      .where((qb) => {
-        qb.where('article.is_spam', false).orWhere((b) => {
-          b.whereNull('article.is_spam')
-        })
-      })
+      .modify(excludeSpamModifier, spamThreshold)
       .modify(excludeRestrictedModifier)
       .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {
