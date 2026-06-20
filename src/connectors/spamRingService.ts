@@ -9,9 +9,8 @@ import type {
   SpamRingEventAction,
   User,
 } from '#definitions/index.js'
-import type { Knex } from 'knex'
-
 import type { UserService } from './userService.js'
+import type { Knex } from 'knex'
 
 import { USER_STATE, USER_BAN_REMARK } from '#common/enums/index.js'
 import { UserInputError } from '#common/errors.js'
