@@ -1,3 +1,5 @@
+import type { ModerationCaseOutcome } from './moderation.js'
+
 import { NODE_TYPES } from '#common/enums/index.js'
 
 export type ReportType =
@@ -29,4 +31,9 @@ export interface Report {
    * from a `community_watch_action` row. Set by resolvers, not stored in DB.
    */
   source?: ReportSource
+  /**
+   * Runtime context set by moderation sync paths, not stored in `report`.
+   */
+  moderationCaseId?: string | null
+  moderationOutcome?: ModerationCaseOutcome | null
 }

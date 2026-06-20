@@ -9,6 +9,11 @@ import type {
   Connections,
   GQLCommentCommentsInput,
   GQLCommentsInput,
+  ModerationActorType,
+  ModerationCase,
+  ModerationCaseOutcome,
+  ModerationCaseStatus,
+  ModerationEventType,
   CommunityWatchReviewState,
   User,
   ValueOf,
@@ -32,6 +37,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
 import { enqueueReportAlert } from '#common/notifications/reportAlert.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { v4 } from 'uuid'
@@ -52,6 +58,8 @@ import { PaymentService } from './paymentService.js'
 import { SpamDetector } from './spamDetector.js'
 import { SystemService } from './systemService.js'
 import { UserService } from './userService.js'
+
+const logger = getLogger('comment-service')
 
 export interface CommentFilter {
   type: ValueOf<typeof COMMENT_TYPE>
@@ -181,7 +189,21 @@ export class CommentService extends BaseService<Comment> {
       )
     }
 
-    return this.knex.transaction(async (trx) => {
+    let moderationSync:
+      | {
+          previousAction: CommunityWatchAction
+          action: CommunityWatchAction
+          actorId: string
+          note?: string | null
+          events: Array<{
+            eventType: CommunityWatchReviewEventType
+            oldValue: string | null
+            newValue: string | null
+          }>
+        }
+      | undefined
+
+    const updatedAction = await this.knex.transaction(async (trx) => {
       const action = await trx<CommunityWatchAction>('community_watch_action')
         .select()
         .where({ uuid })
@@ -248,7 +270,7 @@ export class CommentService extends BaseService<Comment> {
         })
       }
 
-      const [updatedAction] = await trx<CommunityWatchAction>(
+      const [updatedCommunityWatchAction] = await trx<CommunityWatchAction>(
         'community_watch_action'
       )
         .where({ id: action.id })
@@ -262,8 +284,22 @@ export class CommentService extends BaseService<Comment> {
         events,
       })
 
-      return updatedAction
+      moderationSync = {
+        previousAction: action,
+        action: updatedCommunityWatchAction,
+        actorId,
+        note,
+        events,
+      }
+
+      return updatedCommunityWatchAction
     })
+
+    if (moderationSync) {
+      await this.syncCommunityWatchModerationCaseTransition(moderationSync)
+    }
+
+    return updatedAction
   }
 
   public restoreCommunityWatchComment = async ({
@@ -274,8 +310,17 @@ export class CommentService extends BaseService<Comment> {
     uuid: string
     actorId: string
     note?: string | null
-  }): Promise<{ action: CommunityWatchAction; comment: Comment }> =>
-    this.knex.transaction(async (trx) => {
+  }): Promise<{ action: CommunityWatchAction; comment: Comment }> => {
+    let moderationSync:
+      | {
+          previousAction: CommunityWatchAction
+          action: CommunityWatchAction
+          actorId: string
+          note?: string | null
+        }
+      | undefined
+
+    const result = await this.knex.transaction(async (trx) => {
       const action = await trx<CommunityWatchAction>('community_watch_action')
         .select()
         .where({ uuid })
@@ -358,8 +403,22 @@ export class CommentService extends BaseService<Comment> {
         events,
       })
 
+      moderationSync = {
+        previousAction: action,
+        action: updatedAction,
+        actorId,
+        note,
+      }
+
       return { action: updatedAction, comment: updatedComment }
     })
+
+    if (moderationSync) {
+      await this.syncCommunityWatchModerationCaseRestored(moderationSync)
+    }
+
+    return result
+  }
 
   public clearCommunityWatchOriginalContent = async ({
     uuid,
@@ -442,6 +501,380 @@ export class CommentService extends BaseService<Comment> {
       }))
     )
   }
+
+  public syncCommunityWatchModerationCaseCreated = async ({
+    action,
+  }: {
+    action: CommunityWatchAction
+  }) => {
+    try {
+      await this.knex.transaction(async (trx) => {
+        const { moderationCase, created } =
+          await this.findOrCreateCommunityWatchModerationCase(trx, action)
+
+        if (created) {
+          await this.createCommunityWatchModerationEvent(trx, {
+            moderationCase,
+            eventType: 'created',
+            actorType: 'community_watcher',
+            actorId: action.actorId,
+            toStatus: 'received',
+            publicReason: action.reason,
+            metadata: this.toCommunityWatchModerationMetadata(action),
+          })
+        }
+
+        if (
+          moderationCase.status !== 'action_taken' ||
+          moderationCase.outcome !== 'content_hidden'
+        ) {
+          await trx('moderation_case').where({ id: moderationCase.id }).update({
+            status: 'action_taken',
+            outcome: 'content_hidden',
+            noticeState: 'pending',
+            updatedAt: trx.fn.now(),
+          })
+
+          await this.createCommunityWatchModerationEvent(trx, {
+            moderationCase,
+            eventType: 'actioned',
+            actorType: 'community_watcher',
+            actorId: action.actorId,
+            fromStatus: moderationCase.status,
+            toStatus: 'action_taken',
+            fromOutcome: moderationCase.outcome,
+            toOutcome: 'content_hidden',
+            publicReason: action.reason,
+            metadata: this.toCommunityWatchModerationMetadata(action),
+          })
+        }
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  private syncCommunityWatchModerationCaseTransition = async ({
+    previousAction,
+    action,
+    actorId,
+    note,
+    events,
+  }: {
+    previousAction: CommunityWatchAction
+    action: CommunityWatchAction
+    actorId: string
+    note?: string | null
+    events: Array<{
+      eventType: CommunityWatchReviewEventType
+      oldValue: string | null
+      newValue: string | null
+    }>
+  }) => {
+    const relevantEvents = events.filter(({ eventType }) =>
+      [
+        'appeal_received',
+        'appeal_resolved',
+        'review_upheld',
+        'reason_changed',
+      ].includes(eventType)
+    )
+    if (relevantEvents.length <= 0) {
+      return
+    }
+
+    try {
+      await this.knex.transaction(async (trx) => {
+        let moderationCase =
+          await this.resolveCommunityWatchModerationCaseForAction(trx, {
+            previousAction,
+            action,
+          })
+
+        for (const event of relevantEvents) {
+          if (event.eventType === 'reason_changed') {
+            await this.createCommunityWatchModerationEvent(trx, {
+              moderationCase,
+              eventType: 'reviewed',
+              actorType: 'admin',
+              actorId,
+              publicReason: action.reason,
+              internalNote: note,
+              metadata: {
+                ...this.toCommunityWatchModerationMetadata(action),
+                communityWatchEvent: event.eventType,
+                oldReason: event.oldValue,
+                newReason: event.newValue,
+              },
+            })
+            continue
+          }
+
+          const next =
+            event.eventType === 'appeal_received'
+              ? { status: 'appealed' as const }
+              : event.eventType === 'appeal_resolved'
+              ? { status: 'resolved' as const, resolvedAt: trx.fn.now() }
+              : {
+                  status: 'resolved' as const,
+                  outcome: 'upheld' as const,
+                  resolvedAt: trx.fn.now(),
+                }
+
+          const [updatedCase] = await trx<ModerationCase>('moderation_case')
+            .where({ id: moderationCase.id })
+            .update({
+              ...next,
+              updatedAt: trx.fn.now(),
+            })
+            .returning('*')
+
+          await this.createCommunityWatchModerationEvent(trx, {
+            moderationCase,
+            eventType:
+              event.eventType === 'appeal_received' ? 'appealed' : 'reviewed',
+            actorType: 'admin',
+            actorId,
+            fromStatus: moderationCase.status,
+            toStatus: next.status,
+            fromOutcome: moderationCase.outcome,
+            toOutcome:
+              'outcome' in next
+                ? (next.outcome as ModerationCaseOutcome)
+                : moderationCase.outcome,
+            publicReason: action.reason,
+            internalNote: note,
+            metadata: {
+              ...this.toCommunityWatchModerationMetadata(action),
+              communityWatchEvent: event.eventType,
+              oldValue: event.oldValue,
+              newValue: event.newValue,
+            },
+          })
+
+          moderationCase = updatedCase
+        }
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  private syncCommunityWatchModerationCaseRestored = async ({
+    previousAction,
+    action,
+    actorId,
+    note,
+  }: {
+    previousAction: CommunityWatchAction
+    action: CommunityWatchAction
+    actorId: string
+    note?: string | null
+  }) => {
+    try {
+      await this.knex.transaction(async (trx) => {
+        const moderationCase =
+          await this.resolveCommunityWatchModerationCaseForAction(trx, {
+            previousAction,
+            action,
+          })
+
+        await trx('moderation_case').where({ id: moderationCase.id }).update({
+          status: 'resolved',
+          outcome: 'restored',
+          resolvedAt: trx.fn.now(),
+          updatedAt: trx.fn.now(),
+        })
+
+        await this.createCommunityWatchModerationEvent(trx, {
+          moderationCase,
+          eventType: 'restored',
+          actorType: 'admin',
+          actorId,
+          fromStatus: moderationCase.status,
+          toStatus: 'resolved',
+          fromOutcome: moderationCase.outcome,
+          toOutcome: 'restored',
+          publicReason: action.reason,
+          internalNote: note,
+          metadata: this.toCommunityWatchModerationMetadata(action),
+        })
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  public syncCommunityWatchModerationCaseNoticeSent = async ({
+    action,
+  }: {
+    action: CommunityWatchAction
+  }) => {
+    try {
+      await this.knex.transaction(async (trx) => {
+        const moderationCase =
+          await this.resolveCommunityWatchModerationCaseForAction(trx, {
+            previousAction: action,
+            action,
+          })
+
+        await trx('moderation_case').where({ id: moderationCase.id }).update({
+          noticeState: 'sent',
+          updatedAt: trx.fn.now(),
+        })
+
+        await this.createCommunityWatchModerationEvent(trx, {
+          moderationCase,
+          eventType: 'notified',
+          actorType: 'system',
+          publicReason: action.reason,
+          metadata: this.toCommunityWatchModerationMetadata(action),
+        })
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  private resolveCommunityWatchModerationCaseForAction = async (
+    trx: Knex.Transaction,
+    {
+      previousAction,
+      action,
+    }: {
+      previousAction: CommunityWatchAction
+      action: CommunityWatchAction
+    }
+  ): Promise<ModerationCase> => {
+    const previousBase =
+      this.toCommunityWatchModerationCaseBase(previousAction)
+    const currentBase = this.toCommunityWatchModerationCaseBase(action)
+
+    const previousCase = await trx<ModerationCase>('moderation_case')
+      .where(previousBase)
+      .first()
+
+    if (previousCase && previousAction.reason !== action.reason) {
+      const existingCurrentCase = await trx<ModerationCase>('moderation_case')
+        .where(currentBase)
+        .first()
+
+      if (existingCurrentCase) {
+        return existingCurrentCase
+      }
+
+      const [updatedCase] = await trx<ModerationCase>('moderation_case')
+        .where({ id: previousCase.id })
+        .update({
+          reason: action.reason,
+          publicReason: action.reason,
+          updatedAt: trx.fn.now(),
+        })
+        .returning('*')
+      return updatedCase
+    }
+
+    if (previousCase) {
+      return previousCase
+    }
+
+    const { moderationCase } =
+      await this.findOrCreateCommunityWatchModerationCase(trx, action)
+    return moderationCase
+  }
+
+  private findOrCreateCommunityWatchModerationCase = async (
+    trx: Knex.Transaction,
+    action: CommunityWatchAction
+  ): Promise<{ moderationCase: ModerationCase; created: boolean }> => {
+    const base = this.toCommunityWatchModerationCaseBase(action)
+    const [inserted] = await trx<ModerationCase>('moderation_case')
+      .insert({
+        ...base,
+        primaryReporterId: action.actorId,
+        publicReason: action.reason,
+        status: 'received',
+        automationRole: 'none',
+        noticeState: 'pending',
+      })
+      .onConflict(['source', 'targetType', 'targetId', 'reason'])
+      .ignore()
+      .returning('*')
+
+    if (inserted) {
+      return { moderationCase: inserted, created: true }
+    }
+
+    const moderationCase = await trx<ModerationCase>('moderation_case')
+      .where(base)
+      .first()
+    if (!moderationCase) {
+      throw new Error('failed to create or load Community Watch moderation case')
+    }
+
+    return { moderationCase, created: false }
+  }
+
+  private toCommunityWatchModerationCaseBase = (
+    action: CommunityWatchAction
+  ) => ({
+    source: 'community_watch' as const,
+    targetType: 'comment' as const,
+    targetId: action.commentId,
+    reason: action.reason,
+  })
+
+  private toCommunityWatchModerationMetadata = (
+    action: CommunityWatchAction
+  ) => ({
+    communityWatchActionId: action.id,
+    communityWatchActionUuid: action.uuid,
+    actionState: action.actionState,
+    appealState: action.appealState,
+    reviewState: action.reviewState,
+  })
+
+  private createCommunityWatchModerationEvent = async (
+    trx: Knex.Transaction,
+    {
+      moderationCase,
+      eventType,
+      actorType,
+      actorId,
+      publicReason,
+      internalNote,
+      fromStatus,
+      toStatus,
+      fromOutcome,
+      toOutcome,
+      metadata,
+    }: {
+      moderationCase: ModerationCase
+      eventType: ModerationEventType
+      actorType: ModerationActorType
+      actorId?: string | null
+      publicReason?: string | null
+      internalNote?: string | null
+      fromStatus?: ModerationCaseStatus | null
+      toStatus?: ModerationCaseStatus | null
+      fromOutcome?: ModerationCaseOutcome | null
+      toOutcome?: ModerationCaseOutcome | null
+      metadata?: Record<string, unknown> | null
+    }
+  ) =>
+    trx('moderation_event').insert({
+      caseId: moderationCase.id,
+      eventType,
+      actorType,
+      actorId,
+      publicReason,
+      internalNote,
+      fromStatus,
+      toStatus,
+      fromOutcome,
+      toOutcome,
+      metadata,
+    })
 
   /**
    * Count comments by a given id and comment type.

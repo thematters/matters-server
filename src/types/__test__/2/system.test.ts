@@ -6,8 +6,13 @@ import type {
 } from '#definitions/index.js'
 
 import _get from 'lodash/get.js'
+import { jest } from '@jest/globals'
 
-import { NODE_TYPES, USER_STATE } from '#common/enums/index.js'
+import {
+  NODE_TYPES,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+  USER_STATE,
+} from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
 import { MomentService, CampaignService } from '#connectors/index.js'
 
@@ -1363,6 +1368,9 @@ describe('federation settings', () => {
 
 describe('submitReport', () => {
   beforeEach(async () => {
+    await connections.knex('moderation_event').delete()
+    await connections.knex('moderation_case_reporter').delete()
+    await connections.knex('moderation_case').delete()
     await connections.knex('report').delete()
     await connections.knex('community_watch_action').delete()
   })
@@ -1380,6 +1388,9 @@ describe('submitReport', () => {
             state
           }
           ... on Moment {
+            id
+          }
+          ... on Comment {
             id
           }
         }
@@ -1401,6 +1412,17 @@ describe('submitReport', () => {
                 actionState
                 reviewState
               }
+              moderationCase {
+                id
+                source
+                targetType
+                reason
+                status
+                outcome
+                automationRole
+                noticeState
+                publicReason
+              }
               reporter {
                 id
               }
@@ -1418,6 +1440,20 @@ describe('submitReport', () => {
             }
           }
         }
+      }
+    }
+  `
+  const UPDATE_MODERATION_CASE = /* GraphQL */ `
+    mutation ($input: UpdateModerationCaseInput!) {
+      updateModerationCase(input: $input) {
+        id
+        source
+        targetType
+        reason
+        publicReason
+        status
+        outcome
+        noticeState
       }
     }
   `
@@ -1481,6 +1517,183 @@ describe('submitReport', () => {
     expect(dataQuery.oss.reports.edges[1].node.source).toBe('direct')
     expect(dataQuery.oss.reports.edges[0].node.communityWatchAction).toBeNull()
     expect(dataQuery.oss.reports.edges[1].node.communityWatchAction).toBeNull()
+    expect(dataQuery.oss.reports.edges[0].node.moderationCase).toMatchObject({
+      source: 'direct_report',
+      reason: 'other',
+      status: 'received',
+      outcome: null,
+      automationRole: 'none',
+      noticeState: 'not_required',
+      publicReason: null,
+    })
+    expect(dataQuery.oss.reports.edges[1].node.moderationCase).toMatchObject({
+      source: 'direct_report',
+      reason: 'other',
+      status: 'received',
+      outcome: null,
+      automationRole: 'none',
+      noticeState: 'not_required',
+      publicReason: null,
+    })
+  })
+
+  test('notifies comment author when direct reports collapse a comment', async () => {
+    const commentId = '1'
+    await connections
+      .knex('comment')
+      .where({ id: commentId })
+      .update({ state: 'active' })
+
+    const comment = await connections
+      .knex('comment')
+      .where({ id: commentId })
+      .first()
+    const notificationService = { trigger: jest.fn() }
+
+    for (const userId of ['2', '3', '4']) {
+      const server = await testClient({
+        connections,
+        userId,
+        dataSources: { notificationService },
+      })
+      const { errors } = await server.executeOperation({
+        query: SUBMIT_REPORT,
+        variables: {
+          input: {
+            targetId: toGlobalId({ type: NODE_TYPES.Comment, id: commentId }),
+            reason: 'other',
+          },
+        },
+      })
+      expect(errors).toBeUndefined()
+    }
+
+    expect(notificationService.trigger).toHaveBeenCalledTimes(1)
+    expect(notificationService.trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
+        recipientId: comment.authorId,
+        data: expect.objectContaining({
+          moderationSource: 'direct_report',
+          publicReason: 'other',
+          appealLink: expect.stringContaining('/appeals'),
+        }),
+      })
+    )
+
+    const moderationCase = await connections
+      .knex('moderation_case')
+      .where({
+        source: 'direct_report',
+        targetType: 'comment',
+        targetId: commentId,
+        reason: 'other',
+      })
+      .first()
+
+    expect(moderationCase).toMatchObject({
+      status: 'action_taken',
+      outcome: 'content_collapsed',
+      noticeState: 'sent',
+      publicReason: 'other',
+    })
+
+    const events = await connections
+      .knex('moderation_event')
+      .where({ caseId: moderationCase.id })
+      .orderBy('id')
+
+    expect(events.map((event) => event.eventType)).toEqual([
+      'created',
+      'actioned',
+      'notified',
+    ])
+    expect(events[2]).toEqual(
+      expect.objectContaining({
+        eventType: 'notified',
+        actorType: 'system',
+        publicReason: 'other',
+        fromStatus: 'action_taken',
+        toStatus: 'action_taken',
+        fromOutcome: 'content_collapsed',
+        toOutcome: 'content_collapsed',
+      })
+    )
+    expect(events[2].metadata).toEqual(
+      expect.objectContaining({
+        source: 'direct_report',
+        targetType: 'comment',
+        notificationType: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
+        noticeState: 'sent',
+      })
+    )
+  })
+
+  test('admin can update moderation case review summary', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+
+    const reportResult = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: { input: { first: 1 } },
+    })
+    const moderationCase =
+      reportResult.data.oss.reports.edges[0].node.moderationCase
+
+    const { data, errors } = await server.executeOperation({
+      query: UPDATE_MODERATION_CASE,
+      variables: {
+        input: {
+          id: moderationCase.id,
+          status: 'rejected',
+          outcome: 'no_action',
+          noticeState: 'sent',
+          publicReason: '未違反站規',
+          internalNote: 'reviewed by NCC P1 test',
+        },
+      },
+    })
+
+    expect(errors).toBeUndefined()
+    expect(data.updateModerationCase).toMatchObject({
+      id: moderationCase.id,
+      source: 'direct_report',
+      status: 'rejected',
+      outcome: 'no_action',
+      noticeState: 'sent',
+      publicReason: '未違反站規',
+    })
+    expect(JSON.stringify(data.updateModerationCase)).not.toContain(
+      'reviewed by NCC P1 test'
+    )
+
+    const event = await connections
+      .knex('moderation_event')
+      .where({ caseId: moderationCase.id })
+      .orderBy('id', 'desc')
+      .first()
+    expect(event).toMatchObject({
+      eventType: 'reviewed',
+      actorType: 'admin',
+      fromStatus: 'received',
+      toStatus: 'rejected',
+      fromOutcome: null,
+      toOutcome: 'no_action',
+      publicReason: '未違反站規',
+      internalNote: 'reviewed by NCC P1 test',
+    })
   })
 
   test('reports query unions community_watch_action rows', async () => {
@@ -1596,6 +1809,7 @@ describe('submitReport', () => {
       actionState: 'active',
       reviewState: 'pending',
     })
+    expect(watchEdge?.node.moderationCase).toBeNull()
     // The target resolves to the underlying Comment.
     expect(watchEdge?.node.target.id).toBeDefined()
   })
