@@ -76,6 +76,160 @@ jobs:
 
       - name: Query federation export event rows
         run: |
+          if [ "${{ inputs.article_id }}" = "0" ]; then
+            psql \
+              --host "$MATTERS_PG_HOST" \
+              --username "$MATTERS_PG_USER" \
+              --dbname "$MATTERS_PG_DATABASE" \
+              --no-password \
+              --set ON_ERROR_STOP=1 \
+              --command "
+                with spam_threshold as (
+                  select coalesce(
+                    (
+                      select value::numeric
+                      from feature_flag
+                      where name = 'spam_detection'
+                        and flag = 'on'
+                      order by updated_at desc
+                      limit 1
+                    ),
+                    1
+                  ) as threshold
+                ),
+                target_channels(name) as (
+                  values ('生活'), ('書影音'), ('時事'), ('還有')
+                ),
+                channel_rows as (
+                  select
+                    tc.name as channel_name,
+                    tca.article_id,
+                    tca.enabled as channel_row_enabled,
+                    tca.pinned,
+                    tca.is_labeled,
+                    tca.created_at as channel_created_at,
+                    tca.updated_at as channel_updated_at,
+                    a.short_hash,
+                    a.title,
+                    a.author_id,
+                    a.is_spam,
+                    a.spam_score,
+                    a.state,
+                    a.channel_enabled,
+                    a.created_at as article_created_at,
+                    st.threshold
+                  from topic_channel_article tca
+                  join topic_channel tc on tc.id = tca.channel_id
+                  join article a on a.id = tca.article_id
+                  cross join spam_threshold st
+                  join target_channels target on target.name = tc.name
+                  where tca.enabled = true
+                    and a.state = 'active'
+                    and a.channel_enabled = true
+                ),
+                metrics as (
+                  select
+                    channel_name,
+                    count(*) as enabled_active_rows,
+                    count(distinct article_id) as distinct_articles,
+                    count(*) filter (
+                      where is_spam is null
+                        and spam_score >= threshold
+                    ) as null_high_score_rows,
+                    count(*) filter (
+                      where is_spam is null
+                        and spam_score >= threshold
+                        and pinned = false
+                    ) as null_high_score_unpinned_rows,
+                    count(*) filter (
+                      where is_spam is null
+                        and spam_score >= threshold
+                        and pinned = true
+                    ) as null_high_score_pinned_rows,
+                    count(*) filter (where is_spam = true) as is_spam_true_rows,
+                    count(*) filter (
+                      where is_spam = false
+                        and spam_score >= threshold
+                    ) as false_high_score_rows,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '7 days'
+                        and is_spam is null
+                        and spam_score >= threshold
+                    ) as null_high_score_rows_7d,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '30 days'
+                        and is_spam is null
+                        and spam_score >= threshold
+                    ) as null_high_score_rows_30d
+                  from channel_rows
+                  group by channel_name
+                ),
+                sample_null_high_score as (
+                  select
+                    'null_high_score' as sample_type,
+                    channel_name,
+                    article_id,
+                    short_hash,
+                    left(title, 80) as title_preview,
+                    author_id,
+                    is_spam,
+                    spam_score,
+                    threshold,
+                    pinned,
+                    is_labeled,
+                    article_created_at,
+                    channel_created_at,
+                    channel_updated_at
+                  from channel_rows
+                  where is_spam is null
+                    and spam_score >= threshold
+                  order by article_created_at desc
+                  limit 20
+                ),
+                sample_false_high_score as (
+                  select
+                    'false_high_score' as sample_type,
+                    channel_name,
+                    article_id,
+                    short_hash,
+                    left(title, 80) as title_preview,
+                    author_id,
+                    is_spam,
+                    spam_score,
+                    threshold,
+                    pinned,
+                    is_labeled,
+                    article_created_at,
+                    channel_created_at,
+                    channel_updated_at
+                  from channel_rows
+                  where is_spam = false
+                    and spam_score >= threshold
+                  order by article_created_at desc
+                  limit 20
+                ),
+                samples as (
+                  select * from sample_null_high_score
+                  union all
+                  select * from sample_false_high_score
+                )
+                select jsonb_pretty(
+                  jsonb_build_object(
+                    'threshold', (select threshold from spam_threshold),
+                    'metrics', coalesce(
+                      (select jsonb_agg(to_jsonb(metrics) order by channel_name) from metrics),
+                      '[]'::jsonb
+                    ),
+                    'samples', coalesce(
+                      (select jsonb_agg(to_jsonb(samples) order by sample_type, article_created_at desc) from samples),
+                      '[]'::jsonb
+                    )
+                  )
+                ) as topic_channel_spam_audit;
+              "
+            exit 0
+          fi
+
           if [ "${{ inputs.include_decision_report }}" = "true" ]; then
             DECISION_REPORT_SQL='decision_report'
           else
