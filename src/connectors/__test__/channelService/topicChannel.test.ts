@@ -186,6 +186,11 @@ describe('setArticleChannels', () => {
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'topic_channel_article' })
     await atomService.deleteMany({ table: 'topic_channel' })
+    await atomService.update({
+      table: 'article',
+      where: { id: articleId },
+      data: { isSpam: null, spamScore: null },
+    })
   })
 
   test('sets article channels', async () => {
@@ -215,8 +220,7 @@ describe('setArticleChannels', () => {
     expect(articleChannels[1].isLabeled).toBe(true)
   })
 
-  test('sets isSpam to false when adding articles to channels', async () => {
-    // First set article as spam
+  test('does not clear isSpam when adding articles to channels', async () => {
     await atomService.update({
       table: 'article',
       where: { id: articleId },
@@ -229,15 +233,14 @@ describe('setArticleChannels', () => {
       channelIds: [channel.id],
     })
 
-    // Verify article is no longer marked as spam
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: articleId },
     })
-    expect(article.isSpam).toBe(false)
+    expect(article.isSpam).toBe(true)
   })
 
-  test('sets isSpam to false when re-adding articles to channels', async () => {
+  test('does not clear isSpam when re-adding articles to channels', async () => {
     const channel = await channelService.createTopicChannel(channelData)
 
     // First add article to channel
@@ -265,12 +268,11 @@ describe('setArticleChannels', () => {
       channelIds: [channel.id],
     })
 
-    // Verify article is no longer marked as spam
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: articleId },
     })
-    expect(article.isSpam).toBe(false)
+    expect(article.isSpam).toBe(true)
   })
 
   test('removes existing channels when setting empty array', async () => {
