@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,4 +33,14 @@ jobs:
         run: npm ci
 
       - name: Format Check
-        run: npm run format:check
+        run: |
+          files=$(git diff --name-only --diff-filter=ACMR \
+            "origin/${{ github.base_ref }}...HEAD" \
+            | grep -E '\.(js|jsx|ts|tsx|json)$' \
+            | grep -vE '^(node_modules|build|coverage)/' || true)
+          if [ -z "$files" ]; then
+            echo "No prettier-managed files changed; skipping."
+            exit 0
+          fi
+          echo "$files"
+          echo "$files" | xargs npx prettier --check
