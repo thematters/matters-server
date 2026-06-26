@@ -21,6 +21,7 @@ import type {
   ChannelAnnouncement,
   CurationChannel,
   TopicChannel,
+  TagChannel,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -203,6 +204,7 @@ export class AtomService {
   public channelAnnouncementLoader: AtomDataLoader<string, ChannelAnnouncement>
   public curationChannelIdLoader: AtomDataLoader<string, CurationChannel>
   public topicChannelIdLoader: AtomDataLoader<string, TopicChannel>
+  public tagChannelIdLoader: AtomDataLoader<string, TagChannel>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -255,6 +257,10 @@ export class AtomService {
     })
     this.curationChannelIdLoader = this.initLoader({
       table: 'curation_channel',
+      mode: 'id',
+    })
+    this.tagChannelIdLoader = this.initLoader({
+      table: 'tag_channel',
       mode: 'id',
     })
     this.topicChannelIdLoader = this.initLoader({

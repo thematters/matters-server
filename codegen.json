@@ -89,6 +89,7 @@
           "CampaignStage": "./campaign.js#CampaignStage",
           "TopicChannel": "./channel.js#TopicChannel",
           "CurationChannel": "./channel.js#CurationChannel",
+          "TagChannel": "./channel.js#TagChannel",
           "Announcement": "./announcement.js#Announcement",
           "TopicChannelFeedback": "./feedback.js#TopicChannelFeedback"
         },

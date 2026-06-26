@@ -36,7 +36,7 @@ export const trans = {
     zh_hans: '欢迎来到 Matters 宇宙航舰，这是为你准备的登船指南',
   }),
   userDeleted: i18n({
-    zh_hant: 'Matters | 你的賬號已被註銷',
+    zh_hant: 'Matters | 你的帳號已被註銷',
     zh_hans: 'Matters | 你的账号已被注销',
   }),
   migration: i18n({

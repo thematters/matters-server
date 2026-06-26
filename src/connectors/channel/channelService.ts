@@ -171,7 +171,12 @@ export class ChannelService {
     return this.models.upsert({
       table: 'tag_channel',
       where: { tagId },
-      create: { tagId, enabled, navbarTitle: navbarTitle ?? null },
+      create: {
+        tagId,
+        enabled,
+        navbarTitle: navbarTitle ?? null,
+        shortHash: shortHash(),
+      },
       update: { enabled, navbarTitle: navbarTitle ?? null },
     })
   }

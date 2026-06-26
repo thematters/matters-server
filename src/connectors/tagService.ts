@@ -561,6 +561,34 @@ export class TagService extends BaseService<Tag> {
   }
 
   /**
+   * Find moments by a given tag id, newest first.
+   * Excludes archived moments, ads and spam.
+   */
+  public findMoments = ({
+    id: tagId,
+    spamThreshold,
+  }: {
+    id: string
+    spamThreshold?: number
+  }) => {
+    return this.knexRO
+      .select('moment.*')
+      .from('moment')
+      .innerJoin('moment_tag', 'moment_tag.moment_id', 'moment.id')
+      .where('moment_tag.tag_id', tagId)
+      .andWhere('moment.state', MOMENT_STATE.active)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        // exclude ads only when explicitly flagged true
+        builder.where('moment.is_ad', false).orWhereNull('moment.is_ad')
+      })
+      .modify((builder: Knex.QueryBuilder) => {
+        if (spamThreshold) {
+          builder.modify(excludeSpamModifier, spamThreshold, 'moment')
+        }
+      })
+  }
+
+  /**
    * Find article ids by tag ids
    */
   private findArticleIdsByTagIds = async (tagIds: string[]) => {

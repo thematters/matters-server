@@ -65,19 +65,16 @@ const resolver: GQLQueryResolvers['channels'] = async (
       order: channel.order ?? 0,
       __type: 'WritingChallenge',
     })),
-    ...tagChannels.map(async (channel) => ({
-      ...(await atomService.findFirst({
-        table: 'tag',
-        where: { id: channel.tagId },
-      })),
+    ...tagChannels.map((channel) => ({
+      ...channel,
       order: channel.order ?? 0,
-      __type: 'Tag',
+      __type: 'TagChannel',
     })),
   ])
 
   const typePriority: Record<string, number> = {
     WritingChallenge: 0,
-    Tag: 1,
+    TagChannel: 1,
     CurationChannel: 2,
     TopicChannel: 3,
   }

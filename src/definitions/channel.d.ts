@@ -33,6 +33,7 @@ export interface CampaignChannel {
 export interface TagChannel {
   id: string
   tagId: string
+  shortHash: string
   order: number
   enabled: boolean
   navbarTitle: string | null
