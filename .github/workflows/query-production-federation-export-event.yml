@@ -97,11 +97,30 @@ jobs:
                     1
                   ) as threshold
                 ),
-                target_channels(name) as (
-                  values ('生活'), ('書影音'), ('時事'), ('還有')
+                target_channel_patterns(pattern) as (
+                  values ('還有'), ('性別'), ('生活事')
+                ),
+                target_channels as (
+                  select
+                    tc.id,
+                    tc.name,
+                    tc.short_hash,
+                    tc.parent_id,
+                    tc.enabled,
+                    tc.provider_id,
+                    tcp.pattern as requested_name
+                  from topic_channel tc
+                  join target_channel_patterns tcp
+                    on tc.name ilike '%' || tcp.pattern || '%'
+                    or tc.navbar_title ilike '%' || tcp.pattern || '%'
                 ),
                 channel_rows as (
                   select
+                    target.requested_name,
+                    target.short_hash as channel_short_hash,
+                    target.parent_id as channel_parent_id,
+                    target.enabled as channel_enabled,
+                    target.provider_id as channel_provider_id,
                     tc.name as channel_name,
                     tca.article_id,
                     tca.enabled as channel_row_enabled,
@@ -122,16 +141,32 @@ jobs:
                   join topic_channel tc on tc.id = tca.channel_id
                   join article a on a.id = tca.article_id
                   cross join spam_threshold st
-                  join target_channels target on target.name = tc.name
+                  join target_channels target on target.id = tc.id
                   where tca.enabled = true
                     and a.state = 'active'
                     and a.channel_enabled = true
                 ),
                 metrics as (
                   select
+                    requested_name,
                     channel_name,
+                    channel_short_hash,
+                    channel_enabled,
+                    channel_provider_id,
                     count(*) as enabled_active_rows,
                     count(distinct article_id) as distinct_articles,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '1 day'
+                    ) as rows_1d,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '3 days'
+                    ) as rows_3d,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '7 days'
+                    ) as rows_7d,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '30 days'
+                    ) as rows_30d,
                     count(*) filter (
                       where is_spam is null
                         and spam_score >= threshold
@@ -152,6 +187,16 @@ jobs:
                         and spam_score >= threshold
                     ) as false_high_score_rows,
                     count(*) filter (
+                      where article_created_at >= now() - interval '1 day'
+                        and is_spam is null
+                        and spam_score >= threshold
+                    ) as null_high_score_rows_1d,
+                    count(*) filter (
+                      where article_created_at >= now() - interval '3 days'
+                        and is_spam is null
+                        and spam_score >= threshold
+                    ) as null_high_score_rows_3d,
+                    count(*) filter (
                       where article_created_at >= now() - interval '7 days'
                         and is_spam is null
                         and spam_score >= threshold
@@ -162,12 +207,19 @@ jobs:
                         and spam_score >= threshold
                     ) as null_high_score_rows_30d
                   from channel_rows
-                  group by channel_name
+                  group by
+                    requested_name,
+                    channel_name,
+                    channel_short_hash,
+                    channel_enabled,
+                    channel_provider_id
                 ),
                 sample_null_high_score as (
                   select
                     'null_high_score' as sample_type,
+                    requested_name,
                     channel_name,
+                    channel_short_hash,
                     article_id,
                     short_hash,
                     left(title, 80) as title_preview,
@@ -189,7 +241,9 @@ jobs:
                 sample_false_high_score as (
                   select
                     'false_high_score' as sample_type,
+                    requested_name,
                     channel_name,
+                    channel_short_hash,
                     article_id,
                     short_hash,
                     left(title, 80) as title_preview,
@@ -216,8 +270,12 @@ jobs:
                 select jsonb_pretty(
                   jsonb_build_object(
                     'threshold', (select threshold from spam_threshold),
+                    'target_channels', coalesce(
+                      (select jsonb_agg(to_jsonb(target_channels) order by requested_name, name) from target_channels),
+                      '[]'::jsonb
+                    ),
                     'metrics', coalesce(
-                      (select jsonb_agg(to_jsonb(metrics) order by channel_name) from metrics),
+                      (select jsonb_agg(to_jsonb(metrics) order by requested_name, channel_name) from metrics),
                       '[]'::jsonb
                     ),
                     'samples', coalesce(
