@@ -1155,11 +1155,14 @@ export class UserService extends BaseService<User> {
     })
 
   public findScore = async (userId: string) => {
+    // New/inactive accounts have no user_reader_view row (.first() → undefined);
+    // treat a missing row as zero karma instead of throwing. This unblocks
+    // spam-ring freeze, whose members are mostly brand-new throwaway accounts.
     const author = await this.knexRO('user_reader_view')
       .select()
       .where({ id: userId })
       .first()
-    return author.authorScore || 0
+    return author?.authorScore || 0
   }
 
   /*********************************

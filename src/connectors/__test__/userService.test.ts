@@ -966,6 +966,15 @@ describe('recommendAuthors', () => {
   })
 })
 
+describe('findScore', () => {
+  test('returns 0 (not throw) when the user has no user_reader_view row', async () => {
+    // Brand-new/inactive accounts are absent from user_reader_view; findScore
+    // must not crash spam-ring freeze, whose members are mostly throwaway accounts.
+    const score = await userService.findScore('999999')
+    expect(score).toBe(0)
+  })
+})
+
 describe('updateUserExtra', () => {
   const userId = '1'
 
