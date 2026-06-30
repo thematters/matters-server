@@ -17,6 +17,11 @@ on:
         required: false
         type: boolean
         default: false
+      node_version:
+        description: 'Node.js version for install, lint, test, and build'
+        required: false
+        type: string
+        default: '18'
     outputs:
       environment:
         description: 'The environment that was processed'
@@ -54,19 +59,19 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ inputs.node_version }}
 
       - name: Cache NPM dependencies
         uses: actions/cache@v4
         id: node_modules_cache
         with:
           path: node_modules
-          key: ${{ runner.os }}-v18-npm-v3-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-v${{ inputs.node_version }}-npm-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
         if: steps.node_modules_cache.outputs.cache-hit != 'true'
@@ -82,7 +87,6 @@ jobs:
         if: inputs.skip_tests != true
         run: npm run test
         env:
-          NODE_OPTIONS: '--no-experimental-fetch'
           CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
           MATTERS_ENV: test
           MATTERS_LOGGING_LEVEL: critical
