@@ -1458,6 +1458,20 @@ describe('submitReport', () => {
     }
   `
 
+  test('rejects non-admin users from OSS reports', async () => {
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: { input: { first: 1, filter: { source: 'community_watch' } } },
+    })
+
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    expect(data).toBe(null)
+  })
+
   test('submit report successfully', async () => {
     const server = await testClient({
       isAuth: true,
