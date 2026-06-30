@@ -32,6 +32,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
+    "transparency:export": "node build/handlers/bin/exportTransparencyMetrics.js",
     "gen:schema": "tsc -p . && node build/common/utils/exportSchema.js",
     "gen:types": "graphql-codegen-esm --config codegen.json # detail docs see https://the-guild.dev/graphql/codegen/plugins/typescript/typescript",
     "gen": "npm run gen:schema && npm run gen:types",

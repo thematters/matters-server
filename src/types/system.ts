@@ -49,6 +49,7 @@ export default /* GraphQL */ `
     putUserFederationSetting(input: PutUserFederationSettingInput!): UserFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
     putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
+    updateModerationCase(input: UpdateModerationCaseInput!): ModerationCase! @auth(mode: "${AUTH_MODE.admin}")
     setSpamStatus(input: SetSpamStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
     setAdStatus(input: SetAdStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     setWritingAdStatus(input: SetAdStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
@@ -249,7 +250,24 @@ export default /* GraphQL */ `
     source: ReportSource!
     "The audit record when this report originates from a community watch action."
     communityWatchAction: CommunityWatchAction
+    "Structured moderation case summary for OSS review and transparency reporting."
+    moderationCase: ModerationCase
     createdAt: DateTime!
+  }
+
+  type ModerationCase {
+    id: ID!
+    source: ModerationCaseSource!
+    targetType: ModerationTargetType!
+    reason: String!
+    publicReason: String
+    status: ModerationCaseStatus!
+    outcome: ModerationCaseOutcome
+    automationRole: ModerationAutomationRole!
+    noticeState: ModerationNoticeState!
+    createdAt: DateTime!
+    resolvedAt: DateTime
+    closedAt: DateTime
   }
 
   type ReportConnection implements Connection {
@@ -308,6 +326,7 @@ export default /* GraphQL */ `
     topEntity: String
     sampleCodes: [String!]
     sampleBrands: [String!]
+    sampleTexts: [String!]
     contentModelMax: Float
   }
 
@@ -387,6 +406,7 @@ export default /* GraphQL */ `
     score
     detectedAt
     nAuthors
+    frozenAt
   }
 
   input OSSSpamRingsInput {
@@ -398,6 +418,15 @@ export default /* GraphQL */ `
 
   input OSSSpamRingsFilter {
     status: SpamRingStatus
+  }
+
+  input UpdateModerationCaseInput {
+    id: ID!
+    status: ModerationCaseStatus
+    outcome: ModerationCaseOutcome
+    noticeState: ModerationNoticeState
+    publicReason: String
+    internalNote: String
   }
 
   input NodeInput {
@@ -655,6 +684,7 @@ export default /* GraphQL */ `
     circle_management
     circle_interact
     spam_detection
+    topic_channel_spam_filter
     article_channel
     hottest_moment_feed
   }
@@ -742,6 +772,61 @@ export default /* GraphQL */ `
     direct
     "Created automatically when a community watch member removes a comment."
     community_watch
+  }
+
+  enum ModerationCaseSource {
+    direct_report
+    community_watch
+    admin
+    system
+    model_assisted
+    automated
+  }
+
+  enum ModerationTargetType {
+    article
+    comment
+    moment
+    user
+    tag
+    other
+  }
+
+  enum ModerationCaseStatus {
+    received
+    reviewing
+    action_taken
+    rejected
+    appealed
+    resolved
+    closed
+  }
+
+  enum ModerationCaseOutcome {
+    no_action
+    content_collapsed
+    content_hidden
+    content_removed
+    account_limited
+    restored
+    partially_restored
+    upheld
+  }
+
+  enum ModerationAutomationRole {
+    none
+    suggested
+    assisted
+    automated
+  }
+
+  enum ModerationNoticeState {
+    not_required
+    pending
+    sent
+    delayed
+    prohibited
+    failed
   }
 
   type IcymiTopic implements Node {

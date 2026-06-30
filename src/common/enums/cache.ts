@@ -34,6 +34,7 @@ export const CACHE_PREFIX = {
   EMAIL_DOMAIL_WHITELIST: 'cache-email-domain-whitelist',
   TAG_COVERS: 'cache-tag-covers',
   SPAM_THRESHOLD: 'cache-spam-threshold',
+  TOPIC_CHANNEL_SPAM_THRESHOLD: 'cache-topic-channel-spam-threshold',
   ARTICLE_CHANNEL_THRESHOLD: 'cache-article-channel-threshold',
   RECOMMENDATION_TAGS: 'cache-recommendation-tags',
   RECOMMENDATION_AUTHORS: 'cache-recommendation-authors',

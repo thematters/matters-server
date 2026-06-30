@@ -20,6 +20,7 @@ import setWritingAdStatus from './setWritingAdStatus.js'
 import singleFileUpload from './singleFileUpload.js'
 import submitReport from './submitReport.js'
 import toggleSeedingUsers from './toggleSeedingUsers.js'
+import updateModerationCase from './updateModerationCase.js'
 
 export default {
   Mutation: {
@@ -40,6 +41,7 @@ export default {
     putUserFederationSetting,
     putArticleFederationSetting,
     submitReport,
+    updateModerationCase,
     putIcymiTopic,
     setSpamStatus,
     setAdStatus,

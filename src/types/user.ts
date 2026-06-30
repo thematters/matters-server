@@ -898,6 +898,7 @@ export default /* GraphQL */ `
     topEntity: String
     sampleCodes: [String!]
     sampleBrands: [String!]
+    sampleTexts: [String!]
     contentModelMax: Float
   }
 

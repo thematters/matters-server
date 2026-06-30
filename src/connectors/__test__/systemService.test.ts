@@ -102,6 +102,31 @@ test('copy asset map', async () => {
 })
 
 describe('report', () => {
+  beforeEach(async () => {
+    await connections.knex('moderation_event').del()
+    await connections.knex('moderation_case_reporter').del()
+    await connections.knex('moderation_case').del()
+  })
+
+  const findModerationCase = ({
+    targetType,
+    targetId,
+    reason = 'other',
+  }: {
+    targetType: 'article' | 'comment' | 'moment'
+    targetId: string
+    reason?: string
+  }) =>
+    connections
+      .knex('moderation_case')
+      .where({
+        source: 'direct_report',
+        targetType,
+        targetId,
+        reason,
+      })
+      .first()
+
   test('submit report', async () => {
     const report = await systemService.submitReport({
       targetType: NODE_TYPES.Article,
@@ -112,7 +137,57 @@ describe('report', () => {
     expect(report.id).toBeDefined()
     expect(report.articleId).not.toBeNull()
     expect(report.commentId).toBeNull()
+
+    const moderationCase = await findModerationCase({
+      targetType: 'article',
+      targetId: '1',
+    })
+    expect(moderationCase).toEqual(
+      expect.objectContaining({
+        source: 'direct_report',
+        targetType: 'article',
+        targetId: '1',
+        primaryReporterId: '1',
+        reason: 'other',
+        status: 'received',
+        outcome: null,
+        automationRole: 'none',
+        noticeState: 'not_required',
+      })
+    )
+
+    const reporter = await connections
+      .knex('moderation_case_reporter')
+      .where({
+        caseId: moderationCase.id,
+        reporterId: '1',
+      })
+      .first()
+    expect(reporter.reportId).toBe(report.id)
+
+    const events = await connections
+      .knex('moderation_event')
+      .where({ caseId: moderationCase.id })
+      .orderBy('id')
+
+    expect(events).toHaveLength(1)
+    expect(events[0]).toEqual(
+      expect.objectContaining({
+        eventType: 'created',
+        actorType: 'user',
+        actorId: '1',
+        fromStatus: null,
+        toStatus: 'received',
+      })
+    )
+    expect(events[0].metadata).toEqual(
+      expect.objectContaining({
+        reportId: report.id,
+        targetType: 'article',
+      })
+    )
   })
+
   test('submit report on moments', async () => {
     const momentService = new MomentService(connections)
     const moment = await momentService.create(
@@ -129,7 +204,15 @@ describe('report', () => {
     expect(report.momentId).not.toBeNull()
     expect(report.commentId).toBeNull()
     expect(report.articleId).toBeNull()
+
+    const moderationCase = await findModerationCase({
+      targetType: 'moment',
+      targetId: moment.id,
+    })
+    expect(moderationCase.status).toBe('received')
+    expect(moderationCase.outcome).toBeNull()
   })
+
   test('collapse comment if more than 3 different users report it', async () => {
     const commentId = '1'
     const comment = await atomService.findUnique({
@@ -189,6 +272,40 @@ describe('report', () => {
       where: { id: commentId },
     })
     expect(commentAfter4Reports.state).toBe(COMMENT_STATE.collapsed)
+
+    const moderationCase = await findModerationCase({
+      targetType: 'comment',
+      targetId: commentId,
+    })
+    expect(moderationCase).toEqual(
+      expect.objectContaining({
+        status: 'action_taken',
+        outcome: 'content_collapsed',
+      })
+    )
+
+    const reporters = await connections
+      .knex('moderation_case_reporter')
+      .where({ caseId: moderationCase.id })
+      .orderBy('reporterId')
+    expect(reporters.map((r) => r.reporterId)).toEqual(['2', '3', '4'])
+
+    const events = await connections
+      .knex('moderation_event')
+      .where({ caseId: moderationCase.id })
+      .orderBy('id')
+
+    expect(events.map((e) => e.eventType)).toEqual(['created', 'actioned'])
+    expect(events[1]).toEqual(
+      expect.objectContaining({
+        eventType: 'actioned',
+        actorType: 'system',
+        fromStatus: 'received',
+        toStatus: 'action_taken',
+        fromOutcome: null,
+        toOutcome: 'content_collapsed',
+      })
+    )
   })
 
   test('collapse comment if article author report it', async () => {
@@ -218,6 +335,13 @@ describe('report', () => {
     })
 
     expect(commentAfterReport.state).toBe(COMMENT_STATE.collapsed)
+
+    const moderationCase = await findModerationCase({
+      targetType: 'comment',
+      targetId: commentId,
+    })
+    expect(moderationCase.status).toBe('action_taken')
+    expect(moderationCase.outcome).toBe('content_collapsed')
   })
 })
 
@@ -243,6 +367,17 @@ test('setFeature', async () => {
 test('get spam threshold', async () => {
   const threshold = await systemService.getSpamThreshold()
   expect(threshold).toBe(0.5)
+})
+
+test('get topic channel spam threshold', async () => {
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.topic_channel_spam_filter,
+    flag: FEATURE_FLAG.on,
+    value: 0.8,
+  })
+
+  const threshold = await systemService.getTopicChannelSpamThreshold()
+  expect(threshold).toBe(0.8)
 })
 
 describe('announcement', () => {

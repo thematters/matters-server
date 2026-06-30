@@ -1,0 +1,51 @@
+{
+  "government_requests": {
+    "total": 2,
+    "by_jurisdiction": {
+      "TW": 2
+    },
+    "by_agency_type": {
+      "court": 1,
+      "law_enforcement": 1
+    },
+    "by_request_type": {
+      "data_request": 1,
+      "content_restriction": 1
+    },
+    "by_data_type": {
+      "account_information": 1,
+      "content": 1
+    },
+    "by_result": {
+      "rejected": 1,
+      "partially_complied": 1
+    },
+    "by_user_notice": {
+      "notified": 1,
+      "prohibited": 1
+    }
+  },
+  "privacy_requests": {
+    "total": 3,
+    "access": 1,
+    "correction": 0,
+    "deletion": 2,
+    "restriction": 0
+  },
+  "policy_changes": [
+    {
+      "date": "2026-03-01",
+      "category": "content_rules",
+      "summary": "Updated public content handling rules for spam reports.",
+      "public_url": "/transparency/automation"
+    }
+  ],
+  "model_changes": [
+    {
+      "date": "2026-04-15",
+      "category": "spam_detection",
+      "summary": "Moved comment spam classifier to review-only monitoring."
+    }
+  ],
+  "recommendation_changes": []
+}

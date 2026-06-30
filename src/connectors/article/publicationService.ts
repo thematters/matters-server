@@ -49,7 +49,7 @@ import { DraftService } from '../draftService.js'
 import { LanguageDetector } from '../languageDetector.js'
 import { NotificationService } from '../notification/notificationService.js'
 import { SearchService } from '../searchService.js'
-import { SpamDetector } from '../spamDetector.js'
+import { type SpamDetectionResult, SpamDetector } from '../spamDetector.js'
 import { SystemService } from '../systemService.js'
 import { TagService } from '../tagService.js'
 import { UserService } from '../userService.js'
@@ -61,6 +61,13 @@ const require = createRequire(import.meta.url)
 const { html2md } = require('@matters/matters-editor/transformers')
 const logger = getLogger('service-article')
 const { difference, isEqual, uniq } = _
+
+type SpamDetectorLike = {
+  detect: (text: string) => Promise<number | null> | number | null
+  detectResult?: (
+    text: string
+  ) => Promise<SpamDetectionResult | null> | SpamDetectionResult | null
+}
 
 export class PublicationService extends BaseService<Article> {
   private systemService: SystemService
@@ -520,9 +527,12 @@ export class PublicationService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
+  public detectSpam = async (id: string, spamDetector?: SpamDetectorLike) => {
     const detector =
-      spamDetector ?? new SpamDetector(environment.spamDetectionApiUrl)
+      spamDetector ??
+      new SpamDetector(environment.spamDetectionApiUrl, {
+        requestFormat: 'raw',
+      })
     const { title, summary, summaryCustomized } =
       await this.articleService.loadLatestArticleVersion(id)
     const content = await this.articleService.loadLatestArticleContent(id)
@@ -539,21 +549,34 @@ export class PublicationService extends BaseService<Article> {
       content,
       summary,
     }: { id: string; title: string; content: string; summary?: string },
-    spamDetector?: SpamDetector
+    spamDetector?: SpamDetectorLike
   ) => {
     const detector =
-      spamDetector ?? new SpamDetector(environment.spamDetectionApiUrl)
+      spamDetector ??
+      new SpamDetector(environment.spamDetectionApiUrl, {
+        requestFormat: 'raw',
+      })
     const text = summary
       ? title + '\n' + summary + '\n' + content
       : title + '\n' + content
-    const score = await detector.detect(text)
+    const result =
+      detector.detectResult !== undefined
+        ? await detector.detectResult(text)
+        : { score: await detector.detect(text) }
+    const score = result?.score ?? null
     logger.info(`Spam detection for article ${id}: ${score}`)
 
-    if (score) {
+    if (score !== null) {
       await this.models.update({
         table: 'article',
         where: { id },
-        data: { spamScore: score },
+        data: {
+          spamScore: score,
+          decision: result && 'decision' in result ? result.decision : null,
+          reason: result && 'reason' in result ? result.reason : null,
+          pSpam: result && 'pSpam' in result ? result.pSpam : null,
+          pHam: result && 'pHam' in result ? result.pHam : null,
+        },
       })
     }
     return score

@@ -131,6 +131,12 @@ const createContext = ({
       userService: {
         findFeatureFlags: async () => featureFlags,
       },
+      commentService: {
+        findActiveCommunityWatchAction: async () =>
+          insertedActions[0] ? { id: '501', ...insertedActions[0] } : null,
+        syncCommunityWatchModerationCaseCreated: jest.fn(),
+        syncCommunityWatchModerationCaseNoticeSent: jest.fn(),
+      },
       notificationService: {
         trigger: jest.fn(),
       },
