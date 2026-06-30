@@ -294,6 +294,19 @@ export class SpamRingService extends BaseService<SpamRing> {
         skipped.push({ user, reason: 'already banned' })
         continue
       }
+      if (user.state === USER_STATE.frozen) {
+        // already frozen (by admin or another ring) → don't re-claim it,
+        // otherwise unfreeze would lift a freeze this ring didn't cause.
+        await this.skipMember(
+          member.id,
+          user,
+          'already frozen',
+          actorId,
+          ringId
+        )
+        skipped.push({ user, reason: 'already frozen' })
+        continue
+      }
 
       // 低信心 ring 保留老帳號 / 高 karma 護欄；大量重複或外連邀請 ring 仍處置重複帳號。
       const ageDays = (Date.now() - new Date(user.createdAt).getTime()) / DAY_MS
@@ -314,8 +327,9 @@ export class SpamRingService extends BaseService<SpamRing> {
         continue
       }
 
-      // 永久但可逆封禁：省略 banDays → 不寫 punish_record、無到期；仍發 user_banned 申訴通知
-      const banned = (await userService.banUser(user.id, {
+      // 永久但可逆的凍結：設 state='frozen'（與一般凍結同狀態，不寫 punish_record、
+      // 無到期）；freezeUser 會發 user_frozen 申訴通知，維持可申訴。
+      const frozenUser = (await userService.freezeUser(user.id, {
         remark: USER_BAN_REMARK.spamRing,
       })) as User
       await this.updateMember(member.id, {
@@ -325,9 +339,9 @@ export class SpamRingService extends BaseService<SpamRing> {
         skipReason: null,
       })
       await this.insertEvents([
-        { ringId, memberId: member.id, actorId, action: 'member_banned' },
+        { ringId, memberId: member.id, actorId, action: 'member_frozen' },
       ])
-      frozen.push(banned)
+      frozen.push(frozenUser)
     }
 
     const now = new Date()
@@ -393,8 +407,8 @@ export class SpamRingService extends BaseService<SpamRing> {
       if (!user) {
         continue
       }
-      // freeze 後狀態已變（例如被封存）→ 不復活，僅記錄
-      if (user.state !== USER_STATE.banned) {
+      // freeze 後狀態又被改動（例如被封存/封禁）→ 不復活，僅記錄
+      if (user.state !== USER_STATE.frozen) {
         const reason = `state changed to ${user.state}`
         await this.updateMember(member.id, {
           status: 'skipped',
@@ -403,9 +417,10 @@ export class SpamRingService extends BaseService<SpamRing> {
         skipped.push({ user, reason })
         continue
       }
-      const restored = (await userService.unbanUser(
+      // 還原成凍結前的狀態（preFreezeState，通常為 active）
+      const restored = (await userService.unfreezeUser(
         user.id,
-        USER_STATE.active
+        member.preFreezeState ?? USER_STATE.active
       )) as User
       await this.updateMember(member.id, {
         status: 'restored',

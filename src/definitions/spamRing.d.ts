@@ -7,6 +7,7 @@ export type SpamRingEventAction =
   | 'unfrozen'
   | 'dismissed'
   | 'member_banned'
+  | 'member_frozen'
   | 'member_skipped'
   | 'member_restored'
 
