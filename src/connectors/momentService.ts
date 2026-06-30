@@ -15,6 +15,7 @@ import {
   IMAGE_ASSET_TYPE,
   NOTICE_TYPE,
   MAX_CONTENT_LINK_TEXT_LENGTH,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
   ARTICLE_STATE,
   NODE_TYPES,
   AUDIT_LOG_ACTION,
@@ -217,11 +218,31 @@ export class MomentService {
     return records.length
   }
 
+  // invalidate response cache for the given tags and their tag channels
+  private invalidateTagFeeds = async (tagIds: string[]) => {
+    for (const tagId of tagIds) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Tag, id: tagId },
+        redis: this.connections.redis,
+      })
+      const channel = await this.models.findFirst({
+        table: 'tag_channel',
+        where: { tagId },
+      })
+      if (channel) {
+        invalidateFQC({
+          node: { type: NODE_TYPES.TagChannel, id: channel.id },
+          redis: this.connections.redis,
+        })
+      }
+    }
+  }
+
   public create = async (
     data: {
       content: string
       assetIds?: string[]
-      // only first tag/article will be linked due to unique(moment_id)
+      // tags are linked up to the max; only the first article is linked
       tagIds?: string[]
       articleIds?: string[]
     },
@@ -259,6 +280,14 @@ export class MomentService {
       if (contentLength === 0) {
         throw new UserInputError('empty moment content and assets')
       }
+    }
+
+    // validate tag count early to avoid creating an orphan moment
+    const tagIds = data.tagIds ? [...new Set(data.tagIds)] : []
+    if (tagIds.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+      throw new UserInputError(
+        `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on a moment`
+      )
     }
 
     const moment = await this.models.create({
@@ -309,18 +338,17 @@ export class MomentService {
       }
     }
 
-    // link one tag if provided
-    if (data.tagIds && data.tagIds.length > 0) {
-      await this.models.upsert({
-        table: 'moment_tag',
-        where: { momentId: moment.id },
-        create: { momentId: moment.id, tagId: data.tagIds[0] },
-        update: { tagId: data.tagIds[0] },
-      })
-      invalidateFQC({
-        node: { type: NODE_TYPES.Tag, id: data.tagIds[0] },
-        redis: this.connections.redis,
-      })
+    // link tags if provided (count already validated above)
+    if (tagIds.length > 0) {
+      await Promise.all(
+        tagIds.map((tagId) =>
+          this.models.create({
+            table: 'moment_tag',
+            data: { momentId: moment.id, tagId },
+          })
+        )
+      )
+      await this.invalidateTagFeeds(tagIds)
     }
     // notify mentioned users
     const notificationService = new NotificationService(this.connections)
@@ -339,6 +367,43 @@ export class MomentService {
     }
 
     return moment
+  }
+
+  // Overwrite a moment's tags with the given set, up to the max allowed.
+  // An empty array clears all tags.
+  public setTags = async (momentId: string, tagIds: string[]) => {
+    const targetIds = [...new Set(tagIds)]
+    if (targetIds.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+      throw new UserInputError(
+        `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on a moment`
+      )
+    }
+    const existing = await this.models.findMany({
+      table: 'moment_tag',
+      where: { momentId },
+    })
+    const currentIds = existing.map((record) => record.tagId)
+    const toAdd = targetIds.filter((id) => !currentIds.includes(id))
+    const toRemove = currentIds.filter((id) => !targetIds.includes(id))
+
+    await Promise.all(
+      toAdd.map((tagId) =>
+        this.models.create({
+          table: 'moment_tag',
+          data: { momentId, tagId },
+        })
+      )
+    )
+    await Promise.all(
+      toRemove.map((tagId) =>
+        this.models.deleteMany({
+          table: 'moment_tag',
+          where: { momentId, tagId },
+        })
+      )
+    )
+    // invalidate only the tags that changed
+    await this.invalidateTagFeeds([...toAdd, ...toRemove])
   }
 
   public delete = async (
@@ -363,11 +428,18 @@ export class MomentService {
         `moment ${momentId} is not created by user ${user.id}`
       )
     }
-    return this.models.update({
+    const archived = await this.models.update({
       table: 'moment',
       where: { id: momentId, authorId: user.id },
       data: { state: MOMENT_STATE.archived },
     })
+    // invalidate the tag feeds this moment was part of
+    const tagRecords = await this.models.findMany({
+      table: 'moment_tag',
+      where: { momentId },
+    })
+    await this.invalidateTagFeeds(tagRecords.map((record) => record.tagId))
+    return archived
   }
 
   public like = async (momentId: string, user: Pick<User, 'id' | 'state'>) => {
@@ -445,13 +517,15 @@ export class MomentService {
   }
 
   public getTags = async (momentId: string) => {
-    const record = await this.models.findFirst({
+    const records = await this.models.findMany({
       table: 'moment_tag',
       where: { momentId },
+      orderBy: [{ column: 'createdAt', order: 'asc' }],
     })
-    if (!record) return []
-    const tag = await this.models.tagIdLoader.load(record.tagId)
-    return tag ? [tag] : []
+    const tags = await Promise.all(
+      records.map((record) => this.models.tagIdLoader.load(record.tagId))
+    )
+    return tags.filter(Boolean)
   }
 
   public detectSpam = async ({

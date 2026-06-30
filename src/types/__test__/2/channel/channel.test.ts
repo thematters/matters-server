@@ -223,43 +223,48 @@ describe('channel query', () => {
     expect(data.channel.campaignState).toBe(CAMPAIGN_STATE.active)
   })
 
-  test('returns tag for any user', async () => {
+  test('returns tag channel by its short hash', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
     })
 
-    // Create tag with shortHash
+    // Create a tag and enable it as a sidebar tag channel
     const tag = await tagService.upsert({
       content: 'tag-channel',
       creator: '1',
     })
+    const tagChannel = await channelService.updateOrCreateTagChannel({
+      tagId: tag.id,
+      enabled: true,
+      navbarTitle: 'Tag Channel Nav',
+    })
 
-    const QUERY_CHANNEL = /* GraphQL */ `
+    const QUERY_TAG_CHANNEL = /* GraphQL */ `
       query Channel($input: ChannelInput!) {
         channel(input: $input) {
           id
           shortHash
-          ... on Tag {
-            content
+          ... on TagChannel {
+            enabled
           }
         }
       }
     `
 
     const { data, errors } = await server.executeOperation({
-      query: QUERY_CHANNEL,
+      query: QUERY_TAG_CHANNEL,
       variables: {
-        input: { shortHash: tag.shortHash },
+        input: { shortHash: tagChannel.shortHash },
       },
     })
 
     expect(errors).toBeUndefined()
     expect(data.channel.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
+      toGlobalId({ type: NODE_TYPES.TagChannel, id: tagChannel.id })
     )
-    expect(data.channel.shortHash).toBe(tag.shortHash)
-    expect(data.channel.content).toBe('tag-channel')
+    expect(data.channel.shortHash).toBe(tagChannel.shortHash)
+    expect(data.channel.enabled).toBe(true)
   })
 
   test('returns null for non-existent channel', async () => {

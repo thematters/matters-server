@@ -175,6 +175,7 @@ export enum NODE_TYPES {
   CampaignStage = 'CampaignStage',
   TopicChannel = 'TopicChannel',
   CurationChannel = 'CurationChannel',
+  TagChannel = 'TagChannel',
   TopicChannelFeedback = 'TopicChannelFeedback',
 
   IcymiTopic = 'IcymiTopic',

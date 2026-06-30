@@ -220,6 +220,198 @@ describe('delete moment', () => {
   })
 })
 
+describe('set moment tags', () => {
+  const PUT_MOMENT_WITH_TAGS = /* GraphQL */ `
+    mutation ($input: PutMomentInput!) {
+      putMoment(input: $input) {
+        id
+        shortHash
+        tags {
+          id
+          content
+        }
+      }
+    }
+  `
+  const SET_MOMENT_TAGS = /* GraphQL */ `
+    mutation ($input: SetMomentTagsInput!) {
+      setMomentTags(input: $input) {
+        id
+        tags {
+          id
+          content
+        }
+      }
+    }
+  `
+
+  const createMomentWithTags = async (
+    server: any,
+    content: string,
+    tags: string[]
+  ) => {
+    const { data } = await server.executeOperation({
+      query: PUT_MOMENT_WITH_TAGS,
+      variables: { input: { content, tags } },
+    })
+    return data.putMoment
+  }
+
+  test('author overwrites tags', async () => {
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
+    const moment = await createMomentWithTags(server, 'overwrite', [
+      'SetTagA',
+      'SetTagB',
+    ])
+    const { errors, data } = await server.executeOperation({
+      query: SET_MOMENT_TAGS,
+      variables: { input: { id: moment.id, tags: ['SetTagB', 'SetTagC'] } },
+    })
+    expect(errors).toBeUndefined()
+    const contents = data.setMomentTags.tags.map((t: any) => t.content).sort()
+    expect(contents).toEqual(['SetTagB', 'SetTagC'])
+  })
+
+  test('empty array clears all tags', async () => {
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
+    const moment = await createMomentWithTags(server, 'clear', ['SetTagClear'])
+    const { errors, data } = await server.executeOperation({
+      query: SET_MOMENT_TAGS,
+      variables: { input: { id: moment.id, tags: [] } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setMomentTags.tags).toHaveLength(0)
+  })
+
+  test('rejects more than three tags', async () => {
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
+    const moment = await createMomentWithTags(server, 'too many', ['Keep'])
+    const { errors } = await server.executeOperation({
+      query: SET_MOMENT_TAGS,
+      variables: {
+        input: { id: moment.id, tags: ['t1', 't2', 't3', 't4'] },
+      },
+    })
+    expect(errors).toBeDefined()
+  })
+
+  test('non-author is rejected', async () => {
+    const author = { id: '5', state: USER_STATE.active, userName: 'author5' }
+    const moment = await momentService.create(
+      { content: 'by author 5' },
+      author
+    )
+    const id = toGlobalId({ type: NODE_TYPES.Moment, id: moment.id })
+    const server = await testClient({ isAuth: true, connections })
+    const { errors } = await server.executeOperation({
+      query: SET_MOMENT_TAGS,
+      variables: { input: { id, tags: ['x'] } },
+    })
+    expect(errors).toBeDefined()
+  })
+})
+
+describe('query tag channel moments', () => {
+  const PUT_MOMENT_WITH_TAGS = /* GraphQL */ `
+    mutation ($input: PutMomentInput!) {
+      putMoment(input: $input) {
+        id
+        shortHash
+        tags {
+          id
+          content
+        }
+      }
+    }
+  `
+  const PUT_TAG_CHANNEL = /* GraphQL */ `
+    mutation ($input: PutTagChannelInput!) {
+      putTagChannel(input: $input) {
+        id
+      }
+    }
+  `
+  const GET_CHANNELS = /* GraphQL */ `
+    query ($input: ConnectionArgs!) {
+      channels(input: { oss: true }) {
+        ... on TagChannel {
+          navbarTitle(input: { language: en })
+          moments(input: $input) {
+            totalCount
+            edges {
+              node {
+                id
+                shortHash
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  test('tag channel returns moments attached with its tag', async () => {
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const userServer = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
+    const { data: putData } = await userServer.executeOperation({
+      query: PUT_MOMENT_WITH_TAGS,
+      variables: {
+        input: { content: 'tag channel moment', tags: ['TagChannelFeed'] },
+      },
+    })
+    const tagId = putData.putMoment.tags[0].id
+    const shortHash = putData.putMoment.shortHash
+
+    // enable the tag as a sidebar channel with a unique navbar title
+    const navTitle = 'TagChannelFeedNav'
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { errors: putErrors } = await adminServer.executeOperation({
+      query: PUT_TAG_CHANNEL,
+      variables: {
+        input: {
+          id: tagId,
+          enabled: true,
+          navbarTitle: [{ language: 'en', text: navTitle }],
+        },
+      },
+    })
+    expect(putErrors).toBeUndefined()
+
+    const { errors, data } = await adminServer.executeOperation({
+      query: GET_CHANNELS,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeUndefined()
+    const channel = data.channels.find((c: any) => c?.navbarTitle === navTitle)
+    expect(channel).toBeDefined()
+    expect(channel.moments.totalCount).toBeGreaterThanOrEqual(1)
+    const hashes = channel.moments.edges.map((e: any) => e.node.shortHash)
+    expect(hashes).toContain(shortHash)
+  })
+})
+
 describe('like/unlike moment', () => {
   const LIKE_MOMENT = /* GraphQL */ `
     mutation ($input: LikeMomentInput!) {

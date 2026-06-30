@@ -43,6 +43,16 @@ export default /* GraphQL */ `
     articles(input: ChannelArticlesInput!): ChannelArticleConnection! @privateCache @complexity(multipliers: ["input.first"], value: 1)
   }
 
+  type TagChannel implements Channel & Node {
+    id: ID!
+    shortHash: String!
+    navbarTitle(input: TranslationArgs): String!
+
+    enabled: Boolean!
+
+    moments(input: ConnectionArgs!): MomentConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_MOMENT}) @complexity(multipliers: ["input.first"], value: 1)
+  }
+
   input ChannelArticlesInput {
     after: String
     first: Int

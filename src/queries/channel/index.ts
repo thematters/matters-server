@@ -9,6 +9,8 @@ import CurationChannelArticles from './curation/articles.js'
 import CurationChannelName from './curation/name.js'
 import CurationChannelNavbarTitle from './curation/navbarTitle.js'
 import CurationChannelNote from './curation/note.js'
+import TagChannelMoments from './tag/moments.js'
+import TagChannelNavbarTitle from './tag/navbarTitle.js'
 import TopicChannelArticles from './topic/articles.js'
 import TopicChannelName from './topic/name.js'
 import TopicChannelNavbarTitle from './topic/navbarTitle.js'
@@ -39,6 +41,12 @@ const schema: GQLResolvers = {
       fromDatetimeRangeString(activePeriod as string),
     articles: CurationChannelArticles,
     showRecommendation: ({ showRecommendation }) => showRecommendation,
+  },
+  TagChannel: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.TagChannel, id }),
+    navbarTitle: TagChannelNavbarTitle,
+    enabled: ({ enabled }) => enabled,
+    moments: TagChannelMoments,
   },
   Channel: {
     __resolveType: ({ __type }: any) => __type,

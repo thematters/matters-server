@@ -7,7 +7,7 @@ import {
   ARTICLE_CHANNEL_JOB_STATE,
   USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
-import { toGlobalId } from '#common/utils/index.js'
+import { toGlobalId, shortHash } from '#common/utils/index.js'
 import { genConnections, closeConnections, testClient } from '../../utils.js'
 import {
   ChannelService,
@@ -53,8 +53,8 @@ describe('channels query', () => {
         ... on WritingChallenge {
           name
         }
-        ... on Tag {
-          content
+        ... on TagChannel {
+          enabled
         }
       }
     }
@@ -102,9 +102,15 @@ describe('channels query', () => {
 
     // Create a tag and enable tag_channel
     const tag = await tagService.upsert({ content: 'oss-tag', creator: '1' })
-    await atomService.create({
+    const tagChannel = await atomService.create({
       table: 'tag_channel',
-      data: { tagId: tag.id, enabled: false, navbarTitle: 'test', order: 5 },
+      data: {
+        tagId: tag.id,
+        enabled: false,
+        navbarTitle: 'test',
+        order: 5,
+        shortHash: shortHash(),
+      },
     })
 
     const { data, errors } = await server.executeOperation({
@@ -143,11 +149,12 @@ describe('channels query', () => {
     expect(returnedCampaign.name).toBe('test-campaign')
 
     // Verify tag channel
-    const returnedTag = data.channels.find(
-      (c: any) => c.id === toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
+    const returnedTagChannel = data.channels.find(
+      (c: any) =>
+        c.id === toGlobalId({ type: NODE_TYPES.TagChannel, id: tagChannel.id })
     )
-    expect(returnedTag).toBeDefined()
-    expect(returnedTag.content).toBe('oss-tag')
+    expect(returnedTagChannel).toBeDefined()
+    expect(returnedTagChannel.enabled).toBe(false)
   })
 
   test('returns only enabled channels for normal user', async () => {
@@ -212,9 +219,15 @@ describe('channels query', () => {
       content: 'enabled-tag',
       creator: '1',
     })
-    await atomService.create({
+    const tagChannel = await atomService.create({
       table: 'tag_channel',
-      data: { tagId: tag.id, enabled: true, navbarTitle: 'test', order: 2 },
+      data: {
+        tagId: tag.id,
+        enabled: true,
+        navbarTitle: 'test',
+        order: 2,
+        shortHash: shortHash(),
+      },
     })
 
     const { data, errors } = await server.executeOperation({
@@ -255,10 +268,11 @@ describe('channels query', () => {
     expect(returnedCampaign).toBeDefined()
 
     // Should include enabled tag channel
-    const returnedTag = data.channels.find(
-      (c: any) => c.id === toGlobalId({ type: NODE_TYPES.Tag, id: tag.id })
+    const returnedTagChannel = data.channels.find(
+      (c: any) =>
+        c.id === toGlobalId({ type: NODE_TYPES.TagChannel, id: tagChannel.id })
     )
-    expect(returnedTag).toBeDefined()
+    expect(returnedTagChannel).toBeDefined()
   })
 
   test('returns channels in correct order', async () => {
@@ -310,9 +324,15 @@ describe('channels query', () => {
 
     // Create a tag with order 1 (between campaign 0 and topic 2)
     const tag = await tagService.upsert({ content: 'order-tag', creator: '1' })
-    await atomService.create({
+    const tagChannel = await atomService.create({
       table: 'tag_channel',
-      data: { tagId: tag.id, enabled: true, navbarTitle: 'test', order: 1 },
+      data: {
+        tagId: tag.id,
+        enabled: true,
+        navbarTitle: 'test',
+        order: 1,
+        shortHash: shortHash(),
+      },
     })
 
     const { data, errors } = await server.executeOperation({
@@ -330,7 +350,7 @@ describe('channels query', () => {
     expect(ids).toEqual(
       expect.arrayContaining([
         toGlobalId({ type: NODE_TYPES.TopicChannel, id: topicChannel.id }),
-        toGlobalId({ type: NODE_TYPES.Tag, id: tag.id }),
+        toGlobalId({ type: NODE_TYPES.TagChannel, id: tagChannel.id }),
         toGlobalId({
           type: NODE_TYPES.CurationChannel,
           id: curationChannel.id,

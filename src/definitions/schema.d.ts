@@ -52,6 +52,7 @@ import {
 import {
   TopicChannel as TopicChannelModel,
   CurationChannel as CurationChannelModel,
+  TagChannel as TagChannelModel,
 } from './channel.js'
 import { Announcement as AnnouncementModel } from './announcement.js'
 import { TopicChannelFeedback as TopicChannelFeedbackModel } from './feedback.js'
@@ -2472,6 +2473,7 @@ export type GQLMutation = {
   /** Set user email. */
   setEmail: GQLUser
   setFeature: GQLFeature
+  setMomentTags: GQLMoment
   /** Set user email login password. */
   setPassword: GQLUser
   setSpamStatus: GQLWriting
@@ -2896,6 +2898,10 @@ export type GQLMutationSetEmailArgs = {
 
 export type GQLMutationSetFeatureArgs = {
   input: GQLSetFeatureInput
+}
+
+export type GQLMutationSetMomentTagsArgs = {
+  input: GQLSetMomentTagsInput
 }
 
 export type GQLMutationSetPasswordArgs = {
@@ -4191,6 +4197,11 @@ export type GQLSetFeatureInput = {
   value?: InputMaybe<Scalars['Float']['input']>
 }
 
+export type GQLSetMomentTagsInput = {
+  id: Scalars['ID']['input']
+  tags: Array<Scalars['String']['input']>
+}
+
 export type GQLSetPasswordInput = {
   password: Scalars['String']['input']
 }
@@ -4590,6 +4601,24 @@ export type GQLTagArticlesInput = {
 }
 
 export type GQLTagArticlesSortBy = 'byCreatedAtDesc' | 'byHottestDesc'
+
+export type GQLTagChannel = GQLChannel &
+  GQLNode & {
+    __typename?: 'TagChannel'
+    enabled: Scalars['Boolean']['output']
+    id: Scalars['ID']['output']
+    moments: GQLMomentConnection
+    navbarTitle: Scalars['String']['output']
+    shortHash: Scalars['String']['output']
+  }
+
+export type GQLTagChannelMomentsArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLTagChannelNavbarTitleArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
 
 export type GQLTagConnection = GQLConnection & {
   __typename?: 'TagConnection'
@@ -5755,7 +5784,12 @@ export type GQLResolversInterfaceTypes<
   _RefType extends Record<string, unknown>
 > = ResolversObject<{
   Campaign: CampaignModel
-  Channel: CurationChannelModel | TagModel | TopicChannelModel | CampaignModel
+  Channel:
+    | CurationChannelModel
+    | TagModel
+    | TagChannelModel
+    | TopicChannelModel
+    | CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['AppreciationEdge']>>
@@ -5871,6 +5905,7 @@ export type GQLResolversInterfaceTypes<
     | ReportModel
     | SpamRingModel
     | TagModel
+    | TagChannelModel
     | TopicChannelModel
     | UserModel
     | CampaignModel
@@ -6537,6 +6572,7 @@ export type GQLResolversTypes = ResolversObject<{
   SetCurrencyInput: GQLSetCurrencyInput
   SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
+  SetMomentTagsInput: GQLSetMomentTagsInput
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
@@ -6599,6 +6635,7 @@ export type GQLResolversTypes = ResolversObject<{
   Tag: ResolverTypeWrapper<TagModel>
   TagArticlesInput: GQLTagArticlesInput
   TagArticlesSortBy: GQLTagArticlesSortBy
+  TagChannel: ResolverTypeWrapper<TagChannelModel>
   TagConnection: ResolverTypeWrapper<
     Omit<GQLTagConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['TagEdge']>>
@@ -7284,6 +7321,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SetCurrencyInput: GQLSetCurrencyInput
   SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
+  SetMomentTagsInput: GQLSetMomentTagsInput
   SetPasswordInput: GQLSetPasswordInput
   SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
@@ -7328,6 +7366,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   Tag: TagModel
   TagArticlesInput: GQLTagArticlesInput
+  TagChannel: TagChannelModel
   TagConnection: Omit<GQLTagConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TagEdge']>>
   }
@@ -8558,7 +8597,11 @@ export type GQLChannelResolvers<
   ParentType extends GQLResolversParentTypes['Channel'] = GQLResolversParentTypes['Channel']
 > = ResolversObject<{
   __resolveType: TypeResolveFn<
-    'CurationChannel' | 'Tag' | 'TopicChannel' | 'WritingChallenge',
+    | 'CurationChannel'
+    | 'Tag'
+    | 'TagChannel'
+    | 'TopicChannel'
+    | 'WritingChallenge',
     ParentType,
     ContextType
   >
@@ -10410,6 +10453,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSetFeatureArgs, 'input'>
   >
+  setMomentTags?: Resolver<
+    GQLResolversTypes['Moment'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetMomentTagsArgs, 'input'>
+  >
   setPassword?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -10744,6 +10793,7 @@ export type GQLNodeResolvers<
     | 'Report'
     | 'SpamRing'
     | 'Tag'
+    | 'TagChannel'
     | 'TopicChannel'
     | 'User'
     | 'WritingChallenge',
@@ -11911,6 +11961,28 @@ export type GQLTagResolvers<
     ContextType,
     RequireFields<GQLTagWritingsArgs, 'input'>
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLTagChannelResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['TagChannel'] = GQLResolversParentTypes['TagChannel']
+> = ResolversObject<{
+  enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  moments?: Resolver<
+    GQLResolversTypes['MomentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLTagChannelMomentsArgs, 'input'>
+  >
+  navbarTitle?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLTagChannelNavbarTitleArgs>
+  >
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -13175,6 +13247,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   StripeAccount?: GQLStripeAccountResolvers<ContextType>
   SubscribeCircleResult?: GQLSubscribeCircleResultResolvers<ContextType>
   Tag?: GQLTagResolvers<ContextType>
+  TagChannel?: GQLTagChannelResolvers<ContextType>
   TagConnection?: GQLTagConnectionResolvers<ContextType>
   TagEdge?: GQLTagEdgeResolvers<ContextType>
   TagOSS?: GQLTagOssResolvers<ContextType>

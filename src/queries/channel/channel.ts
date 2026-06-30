@@ -32,13 +32,13 @@ const resolver: GQLQueryResolvers['channel'] = async (
     return { ...campaign, __type: 'WritingChallenge' }
   }
 
-  const tag = await atomService.findUnique({
-    table: 'tag',
+  const tagChannel = await atomService.findUnique({
+    table: 'tag_channel',
     where: { shortHash },
   })
 
-  if (tag) {
-    return { ...tag, __type: 'Tag' }
+  if (tagChannel) {
+    return { ...tagChannel, __type: 'TagChannel' }
   }
 
   return null
