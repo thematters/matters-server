@@ -369,6 +369,17 @@ test('get spam threshold', async () => {
   expect(threshold).toBe(0.5)
 })
 
+test('get topic channel spam threshold', async () => {
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.topic_channel_spam_filter,
+    flag: FEATURE_FLAG.on,
+    value: 0.8,
+  })
+
+  const threshold = await systemService.getTopicChannelSpamThreshold()
+  expect(threshold).toBe(0.8)
+})
+
 describe('announcement', () => {
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'channel_announcement' })

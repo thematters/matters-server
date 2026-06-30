@@ -37,6 +37,11 @@ export const seed = async (knex) => {
       value: 0.5,
     },
     {
+      name: 'topic_channel_spam_filter',
+      flag: 'on',
+      value: 0.8,
+    },
+    {
       name: 'article_channel',
       flag: 'off',
       value: 0.5,
