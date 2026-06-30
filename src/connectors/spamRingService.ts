@@ -248,111 +248,167 @@ export class SpamRingService extends BaseService<SpamRing> {
     frozen: User[]
     skipped: Array<{ user: User; reason: string }>
   }> => {
-    const ring = await this.findRingById(ringId)
-    if (!ring) {
-      throw new UserInputError('spam ring not found')
-    }
-    if (ring.status === 'dismissed') {
-      throw new UserInputError('cannot freeze a dismissed ring')
-    }
-
-    const members = await this.findMembers(ringId)
     const frozen: User[] = []
     const skipped: Array<{ user: User; reason: string }> = []
-    const bypassGuardrail = isHighConfidenceFreezeRing(ring)
 
-    for (const member of members) {
-      const user = (await this.models.userIdLoader.load(
-        member.userId
-      )) as User | null
+    // 整個凍結（逐成員 + ring 狀態）包在一個交易裡，並對 ring 列 FOR UPDATE：
+    //   - 原子性：中途失敗整批 rollback，不會留下「成員已凍但 ring 仍 pending」（稽核 F3）
+    //   - 序列化：並發 freeze/unfreeze/dismiss 互斥，不再重複處置／重複事件（F4）
+    //   - 新鮮讀：成員 user.state 在鎖內直接讀主庫（FOR UPDATE），不走 request 快取 loader（F2）
+    const updatedRing = await this.knex.transaction(async (trx) => {
+      const ring = (await this.knex('spam_ring')
+        .transacting(trx)
+        .forUpdate()
+        .where({ id: ringId })
+        .first()) as SpamRing | undefined
+      if (!ring) {
+        throw new UserInputError('spam ring not found')
+      }
+      if (ring.status === 'dismissed') {
+        throw new UserInputError('cannot freeze a dismissed ring')
+      }
+      if (ring.status === 'frozen') {
+        // 已在鎖內確認凍結 → idempotent no-op（成員早已處理）
+        return ring
+      }
 
-      if (!user) {
-        await this.updateMember(member.id, {
-          status: 'skipped',
-          skipReason: 'user not found',
-        })
-        continue
-      }
-      // 本 ring 已凍結過此人 → idempotent，略過
-      if (member.status === 'frozen' && member.bannedByThisRing) {
-        frozen.push(user)
-        continue
-      }
-      if (user.state === USER_STATE.archived) {
-        await this.skipMember(member.id, user, 'archived', actorId, ringId)
-        skipped.push({ user, reason: 'archived' })
-        continue
-      }
-      if (user.state === USER_STATE.banned) {
-        await this.skipMember(
+      const members = (await this.knex('spam_ring_member')
+        .transacting(trx)
+        .where({ ringId })
+        .orderBy('id', 'asc')) as SpamRingMember[]
+      const bypassGuardrail = isHighConfidenceFreezeRing(ring)
+
+      for (const member of members) {
+        const user = (await this.knex('user')
+          .transacting(trx)
+          .forUpdate()
+          .where({ id: member.userId })
+          .first()) as User | undefined
+
+        if (!user) {
+          await this.updateMember(
+            member.id,
+            { status: 'skipped', skipReason: 'user not found' },
+            trx
+          )
+          continue
+        }
+        // 本 ring 已凍結過此人 → idempotent，略過
+        if (member.status === 'frozen' && member.bannedByThisRing) {
+          frozen.push(user)
+          continue
+        }
+        if (user.state === USER_STATE.archived) {
+          await this.skipMember(
+            member.id,
+            user,
+            'archived',
+            actorId,
+            ringId,
+            trx
+          )
+          skipped.push({ user, reason: 'archived' })
+          continue
+        }
+        if (user.state === USER_STATE.banned) {
+          await this.skipMember(
+            member.id,
+            user,
+            'already banned',
+            actorId,
+            ringId,
+            trx
+          )
+          skipped.push({ user, reason: 'already banned' })
+          continue
+        }
+        if (user.state === USER_STATE.frozen) {
+          // already frozen (by admin or another ring) → don't re-claim it,
+          // otherwise unfreeze would lift a freeze this ring didn't cause.
+          await this.skipMember(
+            member.id,
+            user,
+            'already frozen',
+            actorId,
+            ringId,
+            trx
+          )
+          skipped.push({ user, reason: 'already frozen' })
+          continue
+        }
+
+        // 低信心 ring 保留老帳號 / 高 karma 護欄；大量重複或外連邀請 ring 仍處置重複帳號。
+        const ageDays =
+          (Date.now() - new Date(user.createdAt).getTime()) / DAY_MS
+        const score = await userService.findScore(user.id)
+        if (
+          !bypassGuardrail &&
+          (ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS ||
+            score > SPAM_RING_GUARDRAIL_MAX_SCORE)
+        ) {
+          const reason =
+            ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS
+              ? `old account (age ${Math.floor(
+                  ageDays
+                )}d > ${SPAM_RING_GUARDRAIL_MAX_AGE_DAYS}d)`
+              : `high karma (score ${score} > ${SPAM_RING_GUARDRAIL_MAX_SCORE})`
+          await this.skipMember(member.id, user, reason, actorId, ringId, trx)
+          skipped.push({ user, reason })
+          continue
+        }
+
+        // 永久但可逆的凍結：設 state='frozen'（與一般凍結同狀態，不寫 punish_record、
+        // 無到期）；freezeUser 會發 user_frozen 申訴通知，維持可申訴。
+        const frozenUser = (await userService.freezeUser(user.id, {
+          remark: USER_BAN_REMARK.spamRing,
+          trx,
+        })) as User
+        await this.updateMember(
           member.id,
-          user,
-          'already banned',
-          actorId,
-          ringId
+          {
+            status: 'frozen',
+            bannedByThisRing: true,
+            preFreezeState: user.state,
+            skipReason: null,
+          },
+          trx
         )
-        skipped.push({ user, reason: 'already banned' })
-        continue
+        await this.insertEvents(
+          [{ ringId, memberId: member.id, actorId, action: 'member_frozen' }],
+          trx
+        )
+        frozen.push(frozenUser)
       }
 
-      // 低信心 ring 保留老帳號 / 高 karma 護欄；大量重複或外連邀請 ring 仍處置重複帳號。
-      const ageDays = (Date.now() - new Date(user.createdAt).getTime()) / DAY_MS
-      const score = await userService.findScore(user.id)
-      if (
-        !bypassGuardrail &&
-        (ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS ||
-          score > SPAM_RING_GUARDRAIL_MAX_SCORE)
-      ) {
-        const reason =
-          ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS
-            ? `old account (age ${Math.floor(
-                ageDays
-              )}d > ${SPAM_RING_GUARDRAIL_MAX_AGE_DAYS}d)`
-            : `high karma (score ${score} > ${SPAM_RING_GUARDRAIL_MAX_SCORE})`
-        await this.skipMember(member.id, user, reason, actorId, ringId)
-        skipped.push({ user, reason })
-        continue
-      }
-
-      // 永久但可逆封禁：省略 banDays → 不寫 punish_record、無到期；仍發 user_banned 申訴通知
-      const banned = (await userService.banUser(user.id, {
-        remark: USER_BAN_REMARK.spamRing,
-      })) as User
-      await this.updateMember(member.id, {
-        status: 'frozen',
-        bannedByThisRing: true,
-        preFreezeState: user.state,
-        skipReason: null,
-      })
-      await this.insertEvents([
-        { ringId, memberId: member.id, actorId, action: 'member_banned' },
-      ])
-      frozen.push(banned)
-    }
-
-    const now = new Date()
-    const [updatedRing] = await this.knex('spam_ring')
-      .where({ id: ringId })
-      .update({
-        status: 'frozen',
-        frozenAt: now,
-        frozenBy: actorId,
-        updatedAt: now,
-      })
-      .returning('*')
-    await this.insertEvents([
-      {
-        ringId,
-        actorId,
-        action: 'frozen',
-        detail: {
-          remark: remark ?? null,
-          frozen: frozen.length,
-          skipped: skipped.length,
-          guardrailBypassed: bypassGuardrail,
-        },
-      },
-    ])
+      const now = new Date()
+      const [ring2] = await this.knex('spam_ring')
+        .transacting(trx)
+        .where({ id: ringId })
+        .update({
+          status: 'frozen',
+          frozenAt: now,
+          frozenBy: actorId,
+          updatedAt: now,
+        })
+        .returning('*')
+      await this.insertEvents(
+        [
+          {
+            ringId,
+            actorId,
+            action: 'frozen',
+            detail: {
+              remark: remark ?? null,
+              frozen: frozen.length,
+              skipped: skipped.length,
+              guardrailBypassed: bypassGuardrail,
+            },
+          },
+        ],
+        trx
+      )
+      return ring2 as SpamRing
+    })
 
     return { ring: updatedRing, frozen, skipped }
   }
@@ -371,65 +427,88 @@ export class SpamRingService extends BaseService<SpamRing> {
     unbanned: User[]
     skipped: Array<{ user: User; reason: string }>
   }> => {
-    const ring = await this.findRingById(ringId)
-    if (!ring) {
-      throw new UserInputError('spam ring not found')
-    }
-    if (ring.status !== 'frozen') {
-      throw new UserInputError('spam ring is not frozen')
-    }
-
-    const members = await this.findMembers(ringId)
     const unbanned: User[] = []
     const skipped: Array<{ user: User; reason: string }> = []
 
-    for (const member of members) {
-      if (!member.bannedByThisRing) {
-        continue
+    // 同 freezeRing：包進交易、ring 列 FOR UPDATE、成員 user.state 鎖內新鮮讀。
+    const updatedRing = await this.knex.transaction(async (trx) => {
+      const ring = (await this.knex('spam_ring')
+        .transacting(trx)
+        .forUpdate()
+        .where({ id: ringId })
+        .first()) as SpamRing | undefined
+      if (!ring) {
+        throw new UserInputError('spam ring not found')
       }
-      const user = (await this.models.userIdLoader.load(
-        member.userId
-      )) as User | null
-      if (!user) {
-        continue
+      if (ring.status !== 'frozen') {
+        throw new UserInputError('spam ring is not frozen')
       }
-      // freeze 後狀態已變（例如被封存）→ 不復活，僅記錄
-      if (user.state !== USER_STATE.banned) {
-        const reason = `state changed to ${user.state}`
-        await this.updateMember(member.id, {
-          status: 'skipped',
-          skipReason: reason,
-        })
-        skipped.push({ user, reason })
-        continue
-      }
-      const restored = (await userService.unbanUser(
-        user.id,
-        USER_STATE.active
-      )) as User
-      await this.updateMember(member.id, {
-        status: 'restored',
-        bannedByThisRing: false,
-      })
-      await this.insertEvents([
-        { ringId, memberId: member.id, actorId, action: 'member_restored' },
-      ])
-      unbanned.push(restored)
-    }
 
-    const now = new Date()
-    const [updatedRing] = await this.knex('spam_ring')
-      .where({ id: ringId })
-      .update({ status: 'restored', updatedAt: now })
-      .returning('*')
-    await this.insertEvents([
-      {
-        ringId,
-        actorId,
-        action: 'unfrozen',
-        detail: { unbanned: unbanned.length },
-      },
-    ])
+      const members = (await this.knex('spam_ring_member')
+        .transacting(trx)
+        .where({ ringId })
+        .orderBy('id', 'asc')) as SpamRingMember[]
+
+      for (const member of members) {
+        if (!member.bannedByThisRing) {
+          continue
+        }
+        const user = (await this.knex('user')
+          .transacting(trx)
+          .forUpdate()
+          .where({ id: member.userId })
+          .first()) as User | undefined
+        if (!user) {
+          continue
+        }
+        // freeze 後狀態又被改動（例如被封存/封禁）→ 不復活，僅記錄
+        if (user.state !== USER_STATE.frozen) {
+          const reason = `state changed to ${user.state}`
+          await this.updateMember(
+            member.id,
+            { status: 'skipped', skipReason: reason },
+            trx
+          )
+          skipped.push({ user, reason })
+          continue
+        }
+        // 還原成凍結前的狀態（preFreezeState，通常為 active）
+        const restored = (await userService.unfreezeUser(
+          user.id,
+          member.preFreezeState ?? USER_STATE.active,
+          trx
+        )) as User
+        await this.updateMember(
+          member.id,
+          { status: 'restored', bannedByThisRing: false },
+          trx
+        )
+        await this.insertEvents(
+          [{ ringId, memberId: member.id, actorId, action: 'member_restored' }],
+          trx
+        )
+        unbanned.push(restored)
+      }
+
+      const now = new Date()
+      const [ring2] = await this.knex('spam_ring')
+        .transacting(trx)
+        .where({ id: ringId })
+        .update({ status: 'restored', updatedAt: now })
+        .returning('*')
+      await this.insertEvents(
+        [
+          {
+            ringId,
+            actorId,
+            action: 'unfrozen',
+            detail: { unbanned: unbanned.length },
+          },
+        ],
+        trx
+      )
+      return ring2 as SpamRing
+    })
 
     return { ring: updatedRing, unbanned, skipped }
   }
@@ -506,11 +585,16 @@ export class SpamRingService extends BaseService<SpamRing> {
       bannedByThisRing: boolean
       skipReason: string | null
       preFreezeState: string
-    }>
+    }>,
+    trx?: Knex.Transaction
   ): Promise<void> => {
-    await this.knex('spam_ring_member')
+    const query = this.knex('spam_ring_member')
       .where({ id })
       .update({ ...patch, updatedAt: new Date() })
+    if (trx) {
+      query.transacting(trx)
+    }
+    await query
   }
 
   private skipMember = async (
@@ -518,28 +602,39 @@ export class SpamRingService extends BaseService<SpamRing> {
     user: User,
     reason: string,
     actorId: string,
-    ringId: string
+    ringId: string,
+    trx?: Knex.Transaction
   ): Promise<void> => {
-    await this.updateMember(memberId, {
-      status: 'skipped',
-      skipReason: reason,
-      bannedByThisRing: false,
-      preFreezeState: user.state,
-    })
-    await this.insertEvents([
+    await this.updateMember(
+      memberId,
       {
-        ringId,
-        memberId,
-        actorId,
-        action: 'member_skipped',
-        detail: { reason },
+        status: 'skipped',
+        skipReason: reason,
+        bannedByThisRing: false,
+        preFreezeState: user.state,
       },
-    ])
+      trx
+    )
+    await this.insertEvents(
+      [
+        {
+          ringId,
+          memberId,
+          actorId,
+          action: 'member_skipped',
+          detail: { reason },
+        },
+      ],
+      trx
+    )
   }
 
-  private insertEvents = async (events: RingEventInput[]): Promise<void> => {
+  private insertEvents = async (
+    events: RingEventInput[],
+    trx?: Knex.Transaction
+  ): Promise<void> => {
     const now = new Date()
-    await this.knex('spam_ring_event').insert(
+    const query = this.knex('spam_ring_event').insert(
       events.map((e) => ({
         uuid: v4(),
         ringId: e.ringId,
@@ -550,5 +645,9 @@ export class SpamRingService extends BaseService<SpamRing> {
         createdAt: now,
       }))
     )
+    if (trx) {
+      query.transacting(trx)
+    }
+    await query
   }
 }

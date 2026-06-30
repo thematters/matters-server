@@ -9,9 +9,11 @@ const DAY = 86400000
 const makeConnections = ({
   ring,
   members = [],
+  users = {},
 }: {
   ring: any
   members?: any[]
+  users?: Record<string, any>
 }) => {
   const rec = {
     memberUpdates: [] as any[],
@@ -26,6 +28,8 @@ const makeConnections = ({
         return b
       },
       orderBy: () => b,
+      transacting: () => b,
+      forUpdate: () => b,
       modify: (fn?: any) => {
         if (fn) fn(b)
         return b
@@ -36,6 +40,7 @@ const makeConnections = ({
       limit: () => b,
       first: async () => {
         if (ctx.table === 'spam_ring') return ring
+        if (ctx.table === 'user') return users[ctx.where.id] ?? undefined
         return undefined
       },
       update: (data: any) => {
@@ -46,14 +51,25 @@ const makeConnections = ({
           rec.ringUpdates.push(data)
         }
         return {
+          transacting: () => ({
+            returning: async () => [{ ...ring, ...data }],
+            then: (resolve: any) => resolve(1),
+          }),
           returning: async () => [{ ...ring, ...data }],
           then: (resolve: any) => resolve(1),
         }
       },
-      insert: async (rows: any) => {
+      insert: (rows: any) => {
         if (ctx.table === 'spam_ring_event') {
           rec.eventInserts.push(...(Array.isArray(rows) ? rows : [rows]))
         }
+        const inserted = Array.isArray(rows) ? rows[0] : rows
+        const res: any = {
+          transacting: () => res,
+          returning: async () => [{ ...ring, ...inserted }],
+          then: (resolve: any) => resolve(undefined),
+        }
+        return res
       },
       // awaiting the builder directly (findMembers): resolve member rows
       then: (resolve: any) =>
@@ -61,7 +77,9 @@ const makeConnections = ({
     }
     return b
   }
-  const knex = (t: string) => builder(t)
+  const knex: any = (t: string) => builder(t)
+  // run the freeze/unfreeze transaction inline against the same mock builder
+  knex.transaction = async (cb: (trx: any) => Promise<any>) => cb({})
   const connections: any = {
     knex,
     knexRO: knex,
@@ -80,6 +98,14 @@ const makeUserService = (users: Record<string, any>) => ({
   unbanUser: jest.fn(async (id: string) => ({
     ...users[id],
     state: USER_STATE.active,
+  })),
+  freezeUser: jest.fn(async (id: string) => ({
+    ...users[id],
+    state: USER_STATE.frozen,
+  })),
+  unfreezeUser: jest.fn(async (id: string, state: string) => ({
+    ...users[id],
+    state,
   })),
   findScore: jest.fn(async (_id: string) => 0),
 })
@@ -117,7 +143,7 @@ describe('SpamRingService.freezeRing', () => {
         createdAt: new Date(Date.now() - DAY),
       },
     }
-    const { connections, rec } = makeConnections({ ring, members })
+    const { connections, rec } = makeConnections({ ring, members, users })
     const service = makeService(connections, users)
     const userService = makeUserService(users)
 
@@ -127,11 +153,13 @@ describe('SpamRingService.freezeRing', () => {
       userService: userService as any,
     })
 
-    // only u1 banned (u2 old account, u3 already banned)
-    expect(userService.banUser).toHaveBeenCalledTimes(1)
-    expect(userService.banUser).toHaveBeenCalledWith('u1', {
-      remark: USER_BAN_REMARK.spamRing,
-    })
+    // only u1 frozen (u2 old account, u3 already banned)
+    expect(userService.freezeUser).toHaveBeenCalledTimes(1)
+    expect(userService.freezeUser).toHaveBeenCalledWith(
+      'u1',
+      expect.objectContaining({ remark: USER_BAN_REMARK.spamRing })
+    )
+    expect(userService.banUser).not.toHaveBeenCalled()
     expect(result.frozen.map((u: any) => u.id)).toEqual(['u1'])
     expect(result.skipped.map((s: any) => s.user.id).sort()).toEqual([
       'u2',
@@ -147,7 +175,7 @@ describe('SpamRingService.freezeRing', () => {
     // events include the member ban + ring frozen + a skip
     const actions = rec.eventInserts.map((e) => e.action)
     expect(actions).toEqual(
-      expect.arrayContaining(['member_banned', 'member_skipped', 'frozen'])
+      expect.arrayContaining(['member_frozen', 'member_skipped', 'frozen'])
     )
   })
 
@@ -173,7 +201,7 @@ describe('SpamRingService.freezeRing', () => {
         createdAt: new Date(Date.now() - DAY),
       },
     }
-    const { connections, rec } = makeConnections({ ring, members })
+    const { connections, rec } = makeConnections({ ring, members, users })
     const service = makeService(connections, users)
     const userService = makeUserService(users)
     userService.findScore = jest.fn(async (id: string) =>
@@ -186,7 +214,7 @@ describe('SpamRingService.freezeRing', () => {
       userService: userService as any,
     })
 
-    expect(userService.banUser).toHaveBeenCalledTimes(2)
+    expect(userService.freezeUser).toHaveBeenCalledTimes(2)
     expect(result.frozen.map((u: any) => u.id).sort()).toEqual(['u1', 'u2'])
     expect(result.skipped).toEqual([])
 
@@ -196,6 +224,62 @@ describe('SpamRingService.freezeRing', () => {
       skipped: 0,
       guardrailBypassed: true,
     })
+  })
+
+  test('skips a member already frozen by something else (no re-claim)', async () => {
+    const ring = { id: '1', status: 'pending', signals: { nearDupRingSize: 1 } }
+    const members = [
+      { id: 'm1', userId: 'u1', status: 'pending', bannedByThisRing: false },
+    ]
+    const users: Record<string, any> = {
+      u1: {
+        id: 'u1',
+        state: USER_STATE.frozen,
+        createdAt: new Date(Date.now() - DAY),
+      },
+    }
+    const { connections } = makeConnections({ ring, members, users })
+    const service = makeService(connections, users)
+    const userService = makeUserService(users)
+
+    const result = await service.freezeRing({
+      ringId: '1',
+      actorId: '9',
+      userService: userService as any,
+    })
+
+    expect(userService.freezeUser).not.toHaveBeenCalled()
+    expect(result.frozen).toEqual([])
+    expect(result.skipped.map((s: any) => s.reason)).toEqual(['already frozen'])
+  })
+
+  test('idempotent no-op when the ring is already frozen under the lock', async () => {
+    // concurrency guard (audit F4): a second freeze that finds the ring already
+    // frozen inside the transaction must not re-process members.
+    const ring = { id: '1', status: 'frozen', signals: { nearDupRingSize: 1 } }
+    const members = [
+      { id: 'm1', userId: 'u1', status: 'pending', bannedByThisRing: false },
+    ]
+    const users: Record<string, any> = {
+      u1: {
+        id: 'u1',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY),
+      },
+    }
+    const { connections } = makeConnections({ ring, members, users })
+    const service = makeService(connections, users)
+    const userService = makeUserService(users)
+
+    const result = await service.freezeRing({
+      ringId: '1',
+      actorId: '9',
+      userService: userService as any,
+    })
+
+    expect(userService.freezeUser).not.toHaveBeenCalled()
+    expect(result.frozen).toEqual([])
+    expect(result.ring.status).toBe('frozen')
   })
 
   test('refuses to freeze a dismissed ring', async () => {
@@ -214,19 +298,31 @@ describe('SpamRingService.freezeRing', () => {
 })
 
 describe('SpamRingService.unfreezeRing', () => {
-  test('unbans only members this ring banned; leaves others; restores ring', async () => {
+  test('unfreezes only members this ring froze; restores preFreezeState; leaves others', async () => {
     const ring = { id: '1', status: 'frozen' }
     const members = [
-      { id: 'm1', userId: 'u1', status: 'frozen', bannedByThisRing: true },
+      {
+        id: 'm1',
+        userId: 'u1',
+        status: 'frozen',
+        bannedByThisRing: true,
+        preFreezeState: USER_STATE.active,
+      },
       { id: 'm2', userId: 'u2', status: 'skipped', bannedByThisRing: false },
-      { id: 'm3', userId: 'u3', status: 'frozen', bannedByThisRing: true },
+      {
+        id: 'm3',
+        userId: 'u3',
+        status: 'frozen',
+        bannedByThisRing: true,
+        preFreezeState: USER_STATE.active,
+      },
     ]
     const users: Record<string, any> = {
-      u1: { id: 'u1', state: USER_STATE.banned },
-      u2: { id: 'u2', state: USER_STATE.banned }, // banned by something else
+      u1: { id: 'u1', state: USER_STATE.frozen },
+      u2: { id: 'u2', state: USER_STATE.frozen }, // frozen by something else
       u3: { id: 'u3', state: USER_STATE.archived }, // state changed since freeze
     }
-    const { connections } = makeConnections({ ring, members })
+    const { connections } = makeConnections({ ring, members, users })
     const service = makeService(connections, users)
     const userService = makeUserService(users)
 
@@ -236,9 +332,13 @@ describe('SpamRingService.unfreezeRing', () => {
       userService: userService as any,
     })
 
-    // only u1 unbanned (u2 not banned-by-this-ring → untouched; u3 archived → skipped)
-    expect(userService.unbanUser).toHaveBeenCalledTimes(1)
-    expect(userService.unbanUser).toHaveBeenCalledWith('u1', USER_STATE.active)
+    // only u1 unfrozen (u2 not frozen-by-this-ring → untouched; u3 archived → skipped)
+    expect(userService.unfreezeUser).toHaveBeenCalledTimes(1)
+    expect(userService.unfreezeUser).toHaveBeenCalledWith(
+      'u1',
+      USER_STATE.active,
+      expect.anything()
+    )
     expect(result.unbanned.map((u: any) => u.id)).toEqual(['u1'])
     expect(result.skipped.map((s: any) => s.user.id)).toEqual(['u3'])
   })
