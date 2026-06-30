@@ -1990,6 +1990,34 @@ export class UserService extends BaseService<User> {
     return await this.baseUpdate(userId, { state })
   }
 
+  // Freeze: reversible restriction state (`frozen`, not `banned`). Sends the
+  // user_frozen notice so the action stays appealable, mirroring banUser.
+  // Used by spam-ring freeze so ring-frozen accounts land in the same `frozen`
+  // state as an admin freeze (no punish_record, no expiry).
+  public freezeUser = async (
+    userId: string,
+    { remark }: { remark?: ValueOf<typeof USER_BAN_REMARK> } = {}
+  ) => {
+    const notificationService = new NotificationService(this.connections)
+    notificationService.trigger({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen,
+      recipientId: userId,
+    })
+
+    const data = {
+      state: USER_STATE.frozen,
+      updatedAt: new Date(),
+    }
+
+    return await this.baseUpdate(userId, remark ? { ...data, remark } : data)
+  }
+
+  // Reverse a freeze by restoring an explicit prior state (e.g. preFreezeState).
+  public unfreezeUser = async (
+    userId: string,
+    state: ValueOf<typeof USER_STATE>
+  ) => await this.baseUpdate(userId, { state })
+
   public verifyWalletSignature = async ({
     ethAddress,
     nonce,
