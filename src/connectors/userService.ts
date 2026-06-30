@@ -1996,8 +1996,14 @@ export class UserService extends BaseService<User> {
   // state as an admin freeze (no punish_record, no expiry).
   public freezeUser = async (
     userId: string,
-    { remark }: { remark?: ValueOf<typeof USER_BAN_REMARK> } = {}
+    {
+      remark,
+      trx,
+    }: { remark?: ValueOf<typeof USER_BAN_REMARK>; trx?: Knex.Transaction } = {}
   ) => {
+    // fire-and-forget appeal notice (not awaited, holds no DB lock); safe to keep
+    // inside a caller transaction — a rollback only wastes a notice in the rare
+    // mid-loop-failure case.
     const notificationService = new NotificationService(this.connections)
     notificationService.trigger({
       event: OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen,
@@ -2009,14 +2015,20 @@ export class UserService extends BaseService<User> {
       updatedAt: new Date(),
     }
 
-    return await this.baseUpdate(userId, remark ? { ...data, remark } : data)
+    return await this.baseUpdate(
+      userId,
+      remark ? { ...data, remark } : data,
+      undefined,
+      trx
+    )
   }
 
   // Reverse a freeze by restoring an explicit prior state (e.g. preFreezeState).
   public unfreezeUser = async (
     userId: string,
-    state: ValueOf<typeof USER_STATE>
-  ) => await this.baseUpdate(userId, { state })
+    state: ValueOf<typeof USER_STATE>,
+    trx?: Knex.Transaction
+  ) => await this.baseUpdate(userId, { state }, undefined, trx)
 
   public verifyWalletSignature = async ({
     ethAddress,
