@@ -17,6 +17,9 @@ export const spamRings: GQLOssResolvers['spamRings'] = async (
     case 'detectedAt':
       orderBy = { column: 'detectedAt', order: 'desc' }
       break
+    case 'frozenAt':
+      orderBy = { column: 'frozenAt', order: 'desc' }
+      break
     case 'nAuthors':
       orderBy = { column: 'nAuthors', order: 'desc' }
       break

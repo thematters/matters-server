@@ -1,9 +1,5 @@
 export type SpamRingStatus = 'pending' | 'frozen' | 'dismissed' | 'restored'
-export type SpamRingMemberStatus =
-  | 'pending'
-  | 'frozen'
-  | 'skipped'
-  | 'restored'
+export type SpamRingMemberStatus = 'pending' | 'frozen' | 'skipped' | 'restored'
 export type SpamRingSeverity = 'low' | 'medium' | 'high' | 'critical'
 export type SpamRingEventAction =
   | 'detected'
@@ -22,6 +18,7 @@ export interface SpamRingSignals {
   topEntity?: string | null
   sampleCodes?: string[] | null
   sampleBrands?: string[] | null
+  sampleTexts?: string[] | null
   contentModelMax?: number | null
 }
 

@@ -4424,6 +4424,7 @@ export type GQLSpamRingSignals = {
   nearDupRingSize?: Maybe<Scalars['Int']['output']>
   sampleBrands?: Maybe<Array<Scalars['String']['output']>>
   sampleCodes?: Maybe<Array<Scalars['String']['output']>>
+  sampleTexts?: Maybe<Array<Scalars['String']['output']>>
   topEntity?: Maybe<Scalars['String']['output']>
 }
 
@@ -4434,6 +4435,7 @@ export type GQLSpamRingSignalsInput = {
   nearDupRingSize?: InputMaybe<Scalars['Int']['input']>
   sampleBrands?: InputMaybe<Array<Scalars['String']['input']>>
   sampleCodes?: InputMaybe<Array<Scalars['String']['input']>>
+  sampleTexts?: InputMaybe<Array<Scalars['String']['input']>>
   topEntity?: InputMaybe<Scalars['String']['input']>
 }
 
@@ -4445,7 +4447,7 @@ export type GQLSpamRingSkip = {
 
 export type GQLSpamRingStatus = 'dismissed' | 'frozen' | 'pending' | 'restored'
 
-export type GQLSpamRingsSort = 'detectedAt' | 'nAuthors' | 'score'
+export type GQLSpamRingsSort = 'detectedAt' | 'frozenAt' | 'nAuthors' | 'score'
 
 export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
@@ -11794,6 +11796,11 @@ export type GQLSpamRingSignalsResolvers<
     ContextType
   >
   sampleCodes?: Resolver<
+    Maybe<Array<GQLResolversTypes['String']>>,
+    ParentType,
+    ContextType
+  >
+  sampleTexts?: Resolver<
     Maybe<Array<GQLResolversTypes['String']>>,
     ParentType,
     ContextType

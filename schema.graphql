@@ -2655,6 +2655,7 @@ type SpamRingSignals {
   topEntity: String
   sampleCodes: [String!]
   sampleBrands: [String!]
+  sampleTexts: [String!]
   contentModelMax: Float
 }
 
@@ -2736,6 +2737,7 @@ enum SpamRingsSort {
   score
   detectedAt
   nAuthors
+  frozenAt
 }
 
 input OSSSpamRingsInput {
@@ -3971,6 +3973,7 @@ input SpamRingSignalsInput {
   topEntity: String
   sampleCodes: [String!]
   sampleBrands: [String!]
+  sampleTexts: [String!]
   contentModelMax: Float
 }
 

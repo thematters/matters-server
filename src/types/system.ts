@@ -326,6 +326,7 @@ export default /* GraphQL */ `
     topEntity: String
     sampleCodes: [String!]
     sampleBrands: [String!]
+    sampleTexts: [String!]
     contentModelMax: Float
   }
 
@@ -405,6 +406,7 @@ export default /* GraphQL */ `
     score
     detectedAt
     nAuthors
+    frozenAt
   }
 
   input OSSSpamRingsInput {
