@@ -28,8 +28,13 @@ export const authDirective = (directiveName = 'auth') => ({
              * Query
              */
             if (isQuery) {
-              // "visitor" can only access anonymous' fields
-              if (!viewer.id && isSelf && !nodes.includes('oss')) {
+              // "visitor" can only access anonymous' fields.
+              // Gate on the field's own required mode, NOT on a substring of the
+              // response path: `nodes` is alias-derived, so `!nodes.includes('oss')`
+              // was bypassable by aliasing `oss` (e.g. `x: oss`), which let an
+              // anonymous viewer skip the admin check below and read the whole OSS
+              // admin subtree. Admin-gated fields must never take this fast path.
+              if (!viewer.id && isSelf && requireMode !== AUTH_MODE.admin) {
                 return await resolve(root, args, context, info)
               }
 
