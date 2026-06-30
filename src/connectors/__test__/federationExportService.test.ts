@@ -3,6 +3,7 @@ import {
   ARTICLE_STATE,
   USER_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { jest } from '@jest/globals'
 import {
   buildMattersArticleUrl,
@@ -94,6 +95,21 @@ const createKnexFirst = (row: any) => {
 }
 
 describe('federationExportService', () => {
+  const originalFederationExportLambdaFunctionName =
+    environment.federationExportLambdaFunctionName
+  const originalFederationExportS3Bucket = environment.federationExportS3Bucket
+  const originalFederationExportS3Prefix = environment.federationExportS3Prefix
+  const originalFederationExportWebfDomain = environment.federationExportWebfDomain
+
+  afterEach(() => {
+    environment.federationExportLambdaFunctionName =
+      originalFederationExportLambdaFunctionName
+    environment.federationExportS3Bucket = originalFederationExportS3Bucket
+    environment.federationExportS3Prefix = originalFederationExportS3Prefix
+    environment.federationExportWebfDomain = originalFederationExportWebfDomain
+    jest.clearAllMocks()
+  })
+
   test('builds canonical Matters article URLs from short hashes', () => {
     expect(
       buildMattersArticleUrl({
@@ -629,6 +645,168 @@ describe('federationExportService', () => {
       eligible: true,
       reason: 'eligible',
     })
+  })
+
+  test('queues an eligible strict export decision through async Lambda mode', async () => {
+    environment.federationExportLambdaFunctionName = 'federation-export-prod'
+    environment.federationExportS3Bucket = 'matters-fediverse-prod-bundles'
+    environment.federationExportS3Prefix = 'pilot'
+    environment.federationExportWebfDomain = 'matters.town'
+
+    const { knexRO } = createKnexRO([
+      {
+        articleId: '101',
+        articleState: ARTICLE_STATE.active,
+        shortHash: 'abc123',
+        title: '公開長文',
+        summary: '一篇公開長文摘要',
+        content: '<p>公開內容</p>',
+        tags: ['Fediverse'],
+        access: ARTICLE_ACCESS_TYPE.public,
+        circleId: null,
+        createdAt: new Date('2026-05-02T00:00:00.000Z'),
+        updatedAt: new Date('2026-05-02T01:00:00.000Z'),
+        authorId: '1',
+        userName: 'mashbean',
+        displayName: 'Mashbean',
+        authorDescription: 'Matters author',
+        authorState: USER_STATE.active,
+        ipnsKey: 'k51example',
+        authorFederationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleFederationSetting: FEDERATION_ARTICLE_SETTING.inherit,
+      },
+    ])
+    const { knex, query } = createKnexInsert([
+      {
+        id: '888',
+        articleId: '101',
+        actorId: '99',
+        trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+        mode: FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync,
+        status: 'queued',
+        eligible: true,
+        reason: 'eligible',
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        effectiveArticleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        decisionReport: {
+          enforceFederationGate: true,
+          selected: 1,
+          eligible: 1,
+          skipped: 0,
+          decisions: [],
+        },
+      },
+    ])
+    const aws = { invokeAsync: (jest.fn() as any).mockResolvedValue(undefined) }
+    const service = new FederationExportService(
+      { knex, knexRO } as any,
+      aws
+    )
+
+    const row = await service.recordExportTriggerDecision({
+      articleId: '101',
+      actorId: '99',
+      trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+      mode: FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync,
+    })
+
+    expect(query.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync,
+        status: 'queued',
+        eligible: true,
+      })
+    )
+    expect(aws.invokeAsync).toHaveBeenCalledWith({
+      functionName: 'federation-export-prod',
+      payload: expect.objectContaining({
+        forceRun: true,
+        articleIds: ['101'],
+        siteDomain: environment.siteDomain,
+        webfDomain: 'matters.town',
+        enforceFederationGate: true,
+        dryRun: false,
+        includeFileContents: false,
+        outputS3Bucket: 'matters-fediverse-prod-bundles',
+        outputS3Prefix: 'pilot',
+      }),
+    })
+    expect(row.status).toBe('queued')
+  })
+
+  test('skips async Lambda invocation when the strict gate rejects an article', async () => {
+    environment.federationExportLambdaFunctionName = 'federation-export-prod'
+    environment.federationExportS3Bucket = 'matters-fediverse-prod-bundles'
+
+    const { knexRO } = createKnexRO([
+      {
+        articleId: '101',
+        articleState: ARTICLE_STATE.active,
+        shortHash: 'abc123',
+        title: '付費長文',
+        summary: '付費長文摘要',
+        content: '<p>付費內容</p>',
+        tags: ['Fediverse'],
+        access: ARTICLE_ACCESS_TYPE.paywall,
+        circleId: null,
+        createdAt: new Date('2026-05-02T00:00:00.000Z'),
+        updatedAt: new Date('2026-05-02T01:00:00.000Z'),
+        authorId: '1',
+        userName: 'mashbean',
+        displayName: 'Mashbean',
+        authorDescription: 'Matters author',
+        authorState: USER_STATE.active,
+        ipnsKey: 'k51example',
+        authorFederationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleFederationSetting: FEDERATION_ARTICLE_SETTING.inherit,
+      },
+    ])
+    const { knex, query } = createKnexInsert([
+      {
+        id: '889',
+        articleId: '101',
+        actorId: '99',
+        trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+        mode: FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync,
+        status: 'skipped',
+        eligible: false,
+        reason: 'article_not_public',
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        effectiveArticleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        decisionReport: {
+          enforceFederationGate: true,
+          selected: 1,
+          eligible: 0,
+          skipped: 1,
+          decisions: [],
+        },
+      },
+    ])
+    const aws = { invokeAsync: (jest.fn() as any).mockResolvedValue(undefined) }
+    const service = new FederationExportService(
+      { knex, knexRO } as any,
+      aws
+    )
+
+    const row = await service.recordExportTriggerDecision({
+      articleId: '101',
+      actorId: '99',
+      trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+      mode: FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync,
+    })
+
+    expect(query.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync,
+        status: 'skipped',
+        eligible: false,
+        reason: 'article_not_public',
+      })
+    )
+    expect(aws.invokeAsync).not.toHaveBeenCalled()
+    expect(row.status).toBe('skipped')
   })
 
   test('rejects unsupported trigger modes before writing an event', async () => {

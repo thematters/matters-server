@@ -6,6 +6,9 @@ import {
   ARTICLE_STATE,
   USER_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { getLogger } from '#common/logger.js'
+import { InvocationType, InvokeCommand, Lambda } from '@aws-sdk/client-lambda'
 
 export type FederationExportAuthor = {
   id: string
@@ -55,6 +58,7 @@ export const FEDERATION_EXPORT_TRIGGER = {
 export const FEDERATION_EXPORT_TRIGGER_MODE = {
   off: 'off',
   recordOnly: 'record_only',
+  lambdaAsync: 'lambda_async',
 } as const
 
 export type FederationAuthorSetting =
@@ -104,8 +108,8 @@ export type FederationExportEvent = {
   articleId: string
   actorId: string | null
   trigger: FederationExportTrigger
-  mode: typeof FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
-  status: 'recorded'
+  mode: FederationExportTriggerMode
+  status: 'recorded' | 'queued' | 'skipped' | 'failed'
   eligible: boolean
   reason: FederationExportDecision['reason']
   authorSetting: FederationAuthorSetting | null
@@ -130,7 +134,14 @@ export type RecordFederationExportTriggerInput = {
   articleId: string
   actorId?: string | null
   trigger: FederationExportTrigger
-  mode?: typeof FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+  mode?: FederationExportTriggerMode
+}
+
+type FederationExportInvoker = {
+  invokeAsync: (input: {
+    functionName: string
+    payload: unknown
+  }) => Promise<void>
 }
 
 type ArticleExportQueryRow = {
@@ -260,10 +271,15 @@ export const buildMattersArticleUrl = ({
 export class FederationExportService {
   private knex: Knex
   private knexRO: Knex
+  private invoker: FederationExportInvoker
 
-  public constructor(connections: Connections) {
+  public constructor(
+    connections: Connections,
+    invoker: FederationExportInvoker = createFederationExportLambdaInvoker()
+  ) {
     this.knex = connections.knex
     this.knexRO = connections.knexRO
+    this.invoker = invoker
   }
 
   public async upsertAuthorFederationSetting({
@@ -424,7 +440,10 @@ export class FederationExportService {
     trigger,
     mode = FEDERATION_EXPORT_TRIGGER_MODE.recordOnly,
   }: RecordFederationExportTriggerInput): Promise<FederationExportEvent> {
-    if (mode !== FEDERATION_EXPORT_TRIGGER_MODE.recordOnly) {
+    if (
+      mode !== FEDERATION_EXPORT_TRIGGER_MODE.recordOnly &&
+      mode !== FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync
+    ) {
       throw new Error(`Unsupported federation export trigger mode: ${mode}`)
     }
 
@@ -445,6 +464,12 @@ export class FederationExportService {
       enforceFederationGate: true,
     })
     const [decision] = decisionReport.decisions
+    const status =
+      mode === FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+        ? 'recorded'
+        : decision.eligible
+          ? 'queued'
+          : 'skipped'
 
     const [row] = await this.knex('federation_export_event')
       .insert({
@@ -452,7 +477,7 @@ export class FederationExportService {
         actorId,
         trigger,
         mode,
-        status: 'recorded',
+        status,
         eligible: decision.eligible,
         reason: decision.reason,
         authorSetting: decision.authorSetting,
@@ -475,6 +500,105 @@ export class FederationExportService {
         'decisionReport',
       ])
 
+    if (
+      mode === FEDERATION_EXPORT_TRIGGER_MODE.lambdaAsync &&
+      decision.eligible
+    ) {
+      try {
+        await this.invokeFederationExportLambda({ articleId, eventId: row.id })
+      } catch (error) {
+        const [failedRow] = await this.knex('federation_export_event')
+          .where({ id: row.id })
+          .update({
+            status: 'failed',
+            updatedAt: this.knex.fn.now(),
+          })
+          .returning([
+            'id',
+            'articleId',
+            'actorId',
+            'trigger',
+            'mode',
+            'status',
+            'eligible',
+            'reason',
+            'authorSetting',
+            'articleSetting',
+            'effectiveArticleSetting',
+            'decisionReport',
+          ])
+
+        throw new Error(
+          `Failed to enqueue federation export event ${failedRow.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        )
+      }
+    }
+
     return row
+  }
+
+  private async invokeFederationExportLambda({
+    articleId,
+    eventId,
+  }: {
+    articleId: string
+    eventId: string
+  }) {
+    if (!environment.federationExportLambdaFunctionName) {
+      throw new Error('MATTERS_FEDERATION_EXPORT_LAMBDA_FUNCTION_NAME is required')
+    }
+    if (!environment.federationExportS3Bucket) {
+      throw new Error('MATTERS_FEDERATION_EXPORT_S3_BUCKET is required')
+    }
+
+    await this.invoker.invokeAsync({
+      functionName: environment.federationExportLambdaFunctionName,
+      payload: {
+        forceRun: true,
+        articleIds: [articleId],
+        siteDomain: environment.siteDomain,
+        webfDomain: environment.federationExportWebfDomain,
+        enforceFederationGate: true,
+        dryRun: false,
+        includeFileContents: false,
+        outputS3Bucket: environment.federationExportS3Bucket,
+        outputS3Prefix:
+          environment.federationExportS3Prefix ||
+          `federation/events/${eventId}`,
+      },
+    })
+  }
+}
+
+const logger = getLogger('federation-export-trigger')
+
+/* istanbul ignore next */
+const createFederationExportLambdaInvoker = (): FederationExportInvoker => {
+  const lambda = new Lambda({
+    credentials: {
+      accessKeyId: environment.awsAccessId,
+      secretAccessKey: environment.awsAccessKey,
+    },
+    region: environment.awsRegion,
+  })
+
+  return {
+    invokeAsync: async ({ functionName, payload }) => {
+      const res = await lambda.send(
+        new InvokeCommand({
+          FunctionName: functionName,
+          InvocationType: InvocationType.Event,
+          Payload: Buffer.from(JSON.stringify(payload)),
+        })
+      )
+      logger.debug(
+        'Lambda async invoke %s with status %s and request-id %s',
+        functionName,
+        res.StatusCode,
+        res.$metadata.requestId
+      )
+    },
   }
 }

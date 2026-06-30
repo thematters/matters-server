@@ -32,6 +32,7 @@ import { fromGlobalId, stripHtml } from '#common/utils/index.js'
 import {
   FEDERATION_EXPORT_TRIGGER,
   FEDERATION_EXPORT_TRIGGER_MODE,
+  FederationExportTriggerMode,
 } from '#connectors/article/federationExportService.js'
 import {
   AtomService,
@@ -243,14 +244,16 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       })
 
       if (
-        environment.federationExportTriggerMode ===
-        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+        environment.federationExportTriggerMode !==
+        FEDERATION_EXPORT_TRIGGER_MODE.off
       ) {
         try {
           await federationExportService.recordExportTriggerDecision({
             articleId: article.id,
             actorId: viewer.id,
             trigger: FEDERATION_EXPORT_TRIGGER.reviseArticle,
+            mode:
+              environment.federationExportTriggerMode as FederationExportTriggerMode,
           })
         } catch (error) {
           logger.error('Failed to record federation export trigger decision', {
