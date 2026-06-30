@@ -179,26 +179,32 @@ describe('SpamRingService.freezeRing', () => {
     )
   })
 
-  test('bans old and high-karma members for high-confidence repeated ring', async () => {
+  test('protects old / high-karma members even in a high-confidence ring', async () => {
     const ring = {
       id: '1',
       status: 'pending',
-      signals: { nearDupRingSize: 12, sampleCodes: ['LIDANG'] },
+      signals: { nearDupRingSize: 12, sampleCodes: ['LIDANG'] }, // high confidence
     }
     const members = [
       { id: 'm1', userId: 'u1', status: 'pending', bannedByThisRing: false },
       { id: 'm2', userId: 'u2', status: 'pending', bannedByThisRing: false },
+      { id: 'm3', userId: 'u3', status: 'pending', bannedByThisRing: false },
     ]
     const users: Record<string, any> = {
       u1: {
         id: 'u1',
         state: USER_STATE.active,
-        createdAt: new Date(Date.now() - 100 * DAY),
+        createdAt: new Date(Date.now() - 100 * DAY), // old account (> 60d)
       },
       u2: {
         id: 'u2',
         state: USER_STATE.active,
-        createdAt: new Date(Date.now() - DAY),
+        createdAt: new Date(Date.now() - DAY), // new but high karma
+      },
+      u3: {
+        id: 'u3',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY), // new, low karma → frozen
       },
     }
     const { connections, rec } = makeConnections({ ring, members, users })
@@ -214,15 +220,24 @@ describe('SpamRingService.freezeRing', () => {
       userService: userService as any,
     })
 
-    expect(userService.freezeUser).toHaveBeenCalledTimes(2)
-    expect(result.frozen.map((u: any) => u.id).sort()).toEqual(['u1', 'u2'])
-    expect(result.skipped).toEqual([])
+    // high confidence no longer bypasses the guard: u1 (old) and u2 (high karma)
+    // go to human; only u3 (new + low karma) is frozen.
+    expect(userService.freezeUser).toHaveBeenCalledTimes(1)
+    expect(userService.freezeUser).toHaveBeenCalledWith(
+      'u3',
+      expect.objectContaining({ remark: USER_BAN_REMARK.spamRing })
+    )
+    expect(result.frozen.map((u: any) => u.id)).toEqual(['u3'])
+    expect(result.skipped.map((s: any) => s.user.id).sort()).toEqual([
+      'u1',
+      'u2',
+    ])
 
     const frozenEvent = rec.eventInserts.find((e) => e.action === 'frozen')
     expect(JSON.parse(frozenEvent.detail)).toMatchObject({
-      frozen: 2,
-      skipped: 0,
-      guardrailBypassed: true,
+      frozen: 1,
+      skipped: 2,
+      highConfidence: true,
     })
   })
 

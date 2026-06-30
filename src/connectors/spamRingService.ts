@@ -20,7 +20,7 @@ import { BaseService } from './baseService.js'
 
 // 老帳號豁免護欄（roadmap 軸一 D 硬性）：超過任一門檻的帳號不自動凍結，改列人工複查。
 // 模組級常數，便於與信任安全負責人統一調參。
-export const SPAM_RING_GUARDRAIL_MAX_AGE_DAYS = 30
+export const SPAM_RING_GUARDRAIL_MAX_AGE_DAYS = 60
 export const SPAM_RING_GUARDRAIL_MAX_SCORE = 5
 export const SPAM_RING_GUARDRAIL_BYPASS_MIN_RING_SIZE = 10
 
@@ -276,7 +276,10 @@ export class SpamRingService extends BaseService<SpamRing> {
         .transacting(trx)
         .where({ ringId })
         .orderBy('id', 'asc')) as SpamRingMember[]
-      const bypassGuardrail = isHighConfidenceFreezeRing(ring)
+      // informational only: a high-confidence ring no longer bypasses the
+      // old-account / high-karma guard — established accounts always go to
+      // human review even in high-confidence rings.
+      const highConfidence = isHighConfidenceFreezeRing(ring)
 
       for (const member of members) {
         const user = (await this.knex('user')
@@ -337,14 +340,14 @@ export class SpamRingService extends BaseService<SpamRing> {
           continue
         }
 
-        // 低信心 ring 保留老帳號 / 高 karma 護欄；大量重複或外連邀請 ring 仍處置重複帳號。
+        // 硬性護欄：老帳號（帳齡 > 60 天）或高 karma 一律不自動凍結、改送人工，
+        // 高信心 ring 也不例外——避免誤判時把既有真實用戶直接凍掉。
         const ageDays =
           (Date.now() - new Date(user.createdAt).getTime()) / DAY_MS
         const score = await userService.findScore(user.id)
         if (
-          !bypassGuardrail &&
-          (ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS ||
-            score > SPAM_RING_GUARDRAIL_MAX_SCORE)
+          ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS ||
+          score > SPAM_RING_GUARDRAIL_MAX_SCORE
         ) {
           const reason =
             ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS
@@ -401,7 +404,7 @@ export class SpamRingService extends BaseService<SpamRing> {
               remark: remark ?? null,
               frozen: frozen.length,
               skipped: skipped.length,
-              guardrailBypassed: bypassGuardrail,
+              highConfidence,
             },
           },
         ],
