@@ -5,13 +5,10 @@ import {
   ARTICLE_STATE,
   MAX_QUOTE_LENGTH,
   NODE_TYPES,
-  QUOTE_DAILY_LIMIT,
-  QUOTE_PER_ARTICLE_LIMIT,
   QUOTE_STATE,
   USER_STATE,
 } from '#common/enums/index.js'
 import {
-  ActionLimitExceededError,
   ArticleNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
@@ -32,7 +29,7 @@ const resolver: GQLMutationResolvers['putQuote'] = async (
     dataSources: {
       atomService,
       articleService,
-      connections: { knexRO, redis },
+      connections: { redis },
     },
   }
 ) => {
@@ -127,34 +124,8 @@ const resolver: GQLMutationResolvers['putQuote'] = async (
     throw new UserInputError('this quote is already on the wall')
   }
 
-  // per-article cap (prevents plastering the wall with one article)
-  const perArticleCount = await atomService.count({
-    table: 'quote',
-    where: {
-      userId: viewer.id,
-      articleId: article.id,
-      state: QUOTE_STATE.active,
-    },
-  })
-  if (perArticleCount >= QUOTE_PER_ARTICLE_LIMIT) {
-    throw new ActionLimitExceededError(
-      `up to ${QUOTE_PER_ARTICLE_LIMIT} quotes per article`
-    )
-  }
-
-  // daily cap; counts posting actions (UTC day), retraction does not refund
-  const todayStart = new Date()
-  todayStart.setUTCHours(0, 0, 0, 0)
-  const dailyCount = await knexRO('quote')
-    .count('id')
-    .where({ userId: viewer.id })
-    .andWhere('createdAt', '>=', todayStart)
-    .first()
-  if (Number(dailyCount?.count ?? 0) >= QUOTE_DAILY_LIMIT) {
-    throw new ActionLimitExceededError(
-      `up to ${QUOTE_DAILY_LIMIT} quotes per day`
-    )
-  }
+  // no quantity caps: per-article and daily limits removed, so users may post
+  // any number of quotes; the content rules and dedup above still apply
 
   let quote
   try {

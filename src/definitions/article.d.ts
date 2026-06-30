@@ -20,6 +20,10 @@ export interface Article {
   shortHash: string
   spamScore: number | null
   isSpam: boolean | null
+  decision: string | null
+  reason: string | null
+  pSpam: number | null
+  pHam: number | null
   isAd: boolean | null
   channelEnabled: boolean
 }

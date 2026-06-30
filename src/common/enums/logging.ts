@@ -55,6 +55,8 @@ export const AUDIT_LOG_ACTION = {
   rejectMomentFeedApplication: 'reject_moment_feed_application',
   revokeMomentFeedApplication: 'revoke_moment_feed_application',
   autoApproveMomentFeedApplication: 'auto_approve_moment_feed_application',
+  setSpamStatus: 'set_spam_status',
+  updateArticleState: 'update_article_state',
 } as const
 
 export const AUDIT_LOG_STATUS = {

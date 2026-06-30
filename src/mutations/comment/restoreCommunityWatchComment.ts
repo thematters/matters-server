@@ -5,6 +5,7 @@ import {
   NODE_TYPES,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import { ForbiddenError } from '#common/errors.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -39,6 +40,13 @@ const resolver = async (
     }
   )
   const recordLink = communityWatchRecordLink(action.uuid)
+  const appealLink = `https://${environment.siteDomain}/appeals`
+  const moderationNoticeData = {
+    link: recordLink,
+    moderationSource: 'community_watch',
+    publicReason: action.reason,
+    appealLink,
+  }
   const commentEntity = {
     type: 'target' as const,
     entityTable: 'comment' as const,
@@ -52,7 +60,7 @@ const resolver = async (
           event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored,
           recipientId: commentAuthorId,
           entities: [commentEntity],
-          data: { link: recordLink },
+          data: moderationNoticeData,
         })
       : Promise.resolve(),
     action.actorId && action.actorId !== viewer.id
@@ -60,10 +68,12 @@ const resolver = async (
           event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_action_reversed,
           recipientId: action.actorId,
           entities: [commentEntity],
-          data: { link: recordLink },
+          data: moderationNoticeData,
         })
       : Promise.resolve(),
   ])
+
+  await commentService.syncCommunityWatchModerationCaseNoticeSent({ action })
 
   await invalidateFQC({
     node: {

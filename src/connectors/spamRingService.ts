@@ -22,8 +22,44 @@ import { BaseService } from './baseService.js'
 // 模組級常數，便於與信任安全負責人統一調參。
 export const SPAM_RING_GUARDRAIL_MAX_AGE_DAYS = 30
 export const SPAM_RING_GUARDRAIL_MAX_SCORE = 5
+export const SPAM_RING_GUARDRAIL_BYPASS_MIN_RING_SIZE = 10
 
 const DAY_MS = 86400000
+
+const parseSignals = (
+  signals: SpamRing['signals'] | string | null | undefined
+): SpamRingSignals => {
+  if (!signals) {
+    return {}
+  }
+  if (typeof signals !== 'string') {
+    return signals
+  }
+  try {
+    return JSON.parse(signals) ?? {}
+  } catch {
+    return {}
+  }
+}
+
+const arrayLength = (value?: string[] | null) =>
+  Array.isArray(value) ? value.length : 0
+
+const isHighConfidenceFreezeRing = (ring: SpamRing) => {
+  const signals = parseSignals(ring.signals)
+  const nearDupRingSize = signals.nearDupRingSize ?? 0
+  const entityRingSize = signals.entityRingSize ?? 0
+  const hasExternalEntity =
+    !!signals.topEntity ||
+    arrayLength(signals.sampleCodes) > 0 ||
+    arrayLength(signals.sampleBrands) > 0
+
+  return (
+    nearDupRingSize >= SPAM_RING_GUARDRAIL_BYPASS_MIN_RING_SIZE ||
+    entityRingSize >= SPAM_RING_GUARDRAIL_BYPASS_MIN_RING_SIZE ||
+    hasExternalEntity
+  )
+}
 
 export interface SpamRingCandidate {
   fingerprint: string
@@ -223,6 +259,7 @@ export class SpamRingService extends BaseService<SpamRing> {
     const members = await this.findMembers(ringId)
     const frozen: User[] = []
     const skipped: Array<{ user: User; reason: string }> = []
+    const bypassGuardrail = isHighConfidenceFreezeRing(ring)
 
     for (const member of members) {
       const user = (await this.models.userIdLoader.load(
@@ -247,17 +284,24 @@ export class SpamRingService extends BaseService<SpamRing> {
         continue
       }
       if (user.state === USER_STATE.banned) {
-        await this.skipMember(member.id, user, 'already banned', actorId, ringId)
+        await this.skipMember(
+          member.id,
+          user,
+          'already banned',
+          actorId,
+          ringId
+        )
         skipped.push({ user, reason: 'already banned' })
         continue
       }
 
-      // 老帳號 / 高 karma 豁免（硬性護欄）
+      // 低信心 ring 保留老帳號 / 高 karma 護欄；大量重複或外連邀請 ring 仍處置重複帳號。
       const ageDays = (Date.now() - new Date(user.createdAt).getTime()) / DAY_MS
       const score = await userService.findScore(user.id)
       if (
-        ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS ||
-        score > SPAM_RING_GUARDRAIL_MAX_SCORE
+        !bypassGuardrail &&
+        (ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS ||
+          score > SPAM_RING_GUARDRAIL_MAX_SCORE)
       ) {
         const reason =
           ageDays > SPAM_RING_GUARDRAIL_MAX_AGE_DAYS
@@ -305,6 +349,7 @@ export class SpamRingService extends BaseService<SpamRing> {
           remark: remark ?? null,
           frozen: frozen.length,
           skipped: skipped.length,
+          guardrailBypassed: bypassGuardrail,
         },
       },
     ])
@@ -351,7 +396,10 @@ export class SpamRingService extends BaseService<SpamRing> {
       // freeze 後狀態已變（例如被封存）→ 不復活，僅記錄
       if (user.state !== USER_STATE.banned) {
         const reason = `state changed to ${user.state}`
-        await this.updateMember(member.id, { status: 'skipped', skipReason: reason })
+        await this.updateMember(member.id, {
+          status: 'skipped',
+          skipReason: reason,
+        })
         skipped.push({ user, reason })
         continue
       }
@@ -375,7 +423,12 @@ export class SpamRingService extends BaseService<SpamRing> {
       .update({ status: 'restored', updatedAt: now })
       .returning('*')
     await this.insertEvents([
-      { ringId, actorId, action: 'unfrozen', detail: { unbanned: unbanned.length } },
+      {
+        ringId,
+        actorId,
+        action: 'unfrozen',
+        detail: { unbanned: unbanned.length },
+      },
     ])
 
     return { ring: updatedRing, unbanned, skipped }
@@ -474,7 +527,13 @@ export class SpamRingService extends BaseService<SpamRing> {
       preFreezeState: user.state,
     })
     await this.insertEvents([
-      { ringId, memberId, actorId, action: 'member_skipped', detail: { reason } },
+      {
+        ringId,
+        memberId,
+        actorId,
+        action: 'member_skipped',
+        detail: { reason },
+      },
     ])
   }
 

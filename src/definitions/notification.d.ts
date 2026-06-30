@@ -376,6 +376,12 @@ interface NoticeCommentBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
+  data?: {
+    link?: string
+    moderationSource?: string
+    publicReason?: string
+    appealLink?: string
+  }
 }
 
 interface NoticeCommunityWatchCommentRestoredParams
@@ -383,7 +389,12 @@ interface NoticeCommunityWatchCommentRestoredParams
   event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_comment_restored
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
-  data: { link: string }
+  data: {
+    link: string
+    moderationSource?: string
+    publicReason?: string
+    appealLink?: string
+  }
 }
 
 interface NoticeCommunityWatchActionReversedParams
@@ -391,7 +402,12 @@ interface NoticeCommunityWatchActionReversedParams
   event: OFFICIAL_NOTICE_EXTEND_TYPE.community_watch_action_reversed
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
-  data: { link: string }
+  data: {
+    link: string
+    moderationSource?: string
+    publicReason?: string
+    appealLink?: string
+  }
 }
 
 interface NoticeCommunityWatchEnabledParams extends NotificationRequiredParams {
@@ -515,6 +531,9 @@ type NoticeMessage = string
 interface NoticeData {
   // used by official announcement notices
   link?: string
+  moderationSource?: string
+  publicReason?: string
+  appealLink?: string
   // reason for banned/frozen users, not in used
   reason?: string
 

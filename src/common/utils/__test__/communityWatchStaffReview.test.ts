@@ -149,7 +149,10 @@ const createMutationContext = ({
       hasRole: (role: string) => isAdmin && role === 'admin',
     },
     dataSources: {
-      commentService,
+      commentService: {
+        syncCommunityWatchModerationCaseNoticeSent: jest.fn<any>(),
+        ...commentService,
+      },
       notificationService,
       connections: { redis: { smembers: async () => [] } },
     },
@@ -433,6 +436,9 @@ describe('community watch staff review mutations', () => {
       ],
       data: {
         link: `https://community-watch.matters.town/records/${baseAction.uuid}/`,
+        moderationSource: 'community_watch',
+        publicReason: baseAction.reason,
+        appealLink: 'https://matters.town/appeals',
       },
     })
     expect(notificationTrigger).toHaveBeenCalledWith({
@@ -447,6 +453,9 @@ describe('community watch staff review mutations', () => {
       ],
       data: {
         link: `https://community-watch.matters.town/records/${baseAction.uuid}/`,
+        moderationSource: 'community_watch',
+        publicReason: baseAction.reason,
+        appealLink: 'https://matters.town/appeals',
       },
     })
   })

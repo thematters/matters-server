@@ -5,8 +5,6 @@ import {
   USER_STATE,
   CAMPAIGN_STATE,
   QUOTE_STATE,
-  QUOTE_DAILY_LIMIT,
-  QUOTE_PER_ARTICLE_LIMIT,
 } from '#common/enums/index.js'
 import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 import { AtomService, CampaignService } from '#connectors/index.js'
@@ -255,11 +253,10 @@ describe('putQuote', () => {
     expect(count).toBe(1)
   })
 
-  test('per-article cap blocks the next quote once the limit is reached', async () => {
-    // pre-fill up to the per-article limit with distinct excerpts
+  test('no per-article cap: more quotes from the same article still succeed', async () => {
+    // quantity limits removed — distinct excerpts from one article all post
     await seedQuote({ content: 'some' })
     await seedQuote({ content: 'html' })
-    expect(QUOTE_PER_ARTICLE_LIMIT).toBe(2)
 
     const server = await testClient({
       connections,
@@ -270,13 +267,12 @@ describe('putQuote', () => {
       query: PUT_QUOTE,
       variables: { input: { articleId: articleGlobalId, content: 'string' } },
     })
-    expect(errors?.[0].extensions.code).toBe('ACTION_LIMIT_EXCEEDED')
+    expect(errors).toBeUndefined()
   })
 
-  test('daily cap blocks the next quote once the limit is reached', async () => {
-    // seed the daily limit worth of quotes for this user (today, any article)
-    expect(QUOTE_DAILY_LIMIT).toBe(5)
-    for (let i = 0; i < QUOTE_DAILY_LIMIT; i++) {
+  test('no daily cap: posting beyond the old daily limit still succeeds', async () => {
+    // quantity limits removed — posting many in a day no longer blocks
+    for (let i = 0; i < 5; i++) {
       await seedQuote({ content: `daily-${i}` })
     }
     const server = await testClient({
@@ -288,7 +284,7 @@ describe('putQuote', () => {
       query: PUT_QUOTE,
       variables: { input: { articleId: articleGlobalId, content: 'string' } },
     })
-    expect(errors?.[0].extensions.code).toBe('ACTION_LIMIT_EXCEEDED')
+    expect(errors).toBeUndefined()
   })
 })
 

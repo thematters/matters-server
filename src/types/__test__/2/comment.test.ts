@@ -664,12 +664,167 @@ describe('community watch remove comment', () => {
       },
     })
     expect(syncedReport).toBeDefined()
+
+    const moderationCase = await connections
+      .knex('moderation_case')
+      .where({
+        source: 'community_watch',
+        targetType: 'comment',
+        targetId: comment.id,
+        reason: 'spam_ad',
+      })
+      .first()
+    expect(moderationCase).toMatchObject({
+      primaryReporterId: watcher.id,
+      publicReason: 'spam_ad',
+      status: 'action_taken',
+      outcome: 'content_hidden',
+      automationRole: 'none',
+      noticeState: 'sent',
+    })
+
+    const moderationEvents = await connections
+      .knex('moderation_event')
+      .where({ caseId: moderationCase.id })
+      .orderBy('id', 'asc')
+    expect(moderationEvents.map(({ eventType }) => eventType)).toEqual([
+      'created',
+      'actioned',
+      'notified',
+    ])
+    expect(JSON.stringify(moderationEvents)).not.toContain('<p>spam ad</p>')
+
     expect(mockTrigger).toHaveBeenCalledWith(
       expect.objectContaining({
         event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
         recipientId: '2',
       })
     )
+  })
+
+  test('syncs moderation case review and restore transitions', async () => {
+    const watcher = await userService.create({
+      userName: `watcher${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+    })
+    await atomService.create({
+      table: 'user_feature_flag',
+      data: {
+        userId: watcher.id,
+        type: USER_FEATURE_FLAG_TYPE.communityWatch,
+      },
+    })
+
+    const article = await atomService.articleIdLoader.load('1')
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>appealed spam ad</p>',
+        authorId: '2',
+        targetId: article.id,
+        targetTypeId,
+        parentCommentId: null,
+        type: COMMENT_TYPE.article,
+        state: COMMENT_STATE.active,
+      },
+    })
+    const server = await testClient({
+      userId: watcher.id,
+      isAuth: true,
+      connections,
+      dataSources: { notificationService: { trigger: jest.fn() } },
+    })
+
+    const { errors } = await server.executeOperation({
+      query: COMMUNITY_WATCH_REMOVE_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
+          reason: 'porn_ad',
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+
+    const action = await atomService.findFirst({
+      table: 'community_watch_action',
+      where: { commentId: comment.id },
+    })
+    let moderationCase = await connections
+      .knex('moderation_case')
+      .where({
+        source: 'community_watch',
+        targetType: 'comment',
+        targetId: comment.id,
+        reason: 'porn_ad',
+      })
+      .first()
+    expect(moderationCase).toMatchObject({
+      status: 'action_taken',
+      outcome: 'content_hidden',
+    })
+
+    await commentService.updateCommunityWatchActionState({
+      uuid: action.uuid,
+      actorId: watcher.id,
+      appealState: 'received',
+      note: 'appeal received',
+    })
+    moderationCase = await connections
+      .knex('moderation_case')
+      .where({ id: moderationCase.id })
+      .first()
+    expect(moderationCase).toMatchObject({
+      status: 'appealed',
+      outcome: 'content_hidden',
+    })
+
+    await commentService.updateCommunityWatchActionState({
+      uuid: action.uuid,
+      actorId: watcher.id,
+      reviewState: 'upheld',
+      note: 'review upheld',
+    })
+    moderationCase = await connections
+      .knex('moderation_case')
+      .where({ id: moderationCase.id })
+      .first()
+    expect(moderationCase).toMatchObject({
+      status: 'resolved',
+      outcome: 'upheld',
+    })
+    expect(moderationCase.resolvedAt).toBeDefined()
+
+    await commentService.restoreCommunityWatchComment({
+      uuid: action.uuid,
+      actorId: watcher.id,
+      note: 'restore after appeal',
+    })
+    moderationCase = await connections
+      .knex('moderation_case')
+      .where({ id: moderationCase.id })
+      .first()
+    expect(moderationCase).toMatchObject({
+      status: 'resolved',
+      outcome: 'restored',
+    })
+
+    const moderationEvents = await connections
+      .knex('moderation_event')
+      .where({ caseId: moderationCase.id })
+      .orderBy('id', 'asc')
+    expect(moderationEvents.map(({ eventType }) => eventType)).toEqual([
+      'created',
+      'actioned',
+      'notified',
+      'appealed',
+      'reviewed',
+      'restored',
+    ])
   })
 })
 

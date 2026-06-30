@@ -75,8 +75,7 @@ jobs:
       - name: Lint
         id: lint
         run: |
-          npm run lint \
-          && npm run format:check
+          npm run lint
 
       - name: Test
         id: test

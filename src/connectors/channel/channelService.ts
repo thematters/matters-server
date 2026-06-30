@@ -393,9 +393,12 @@ export class ChannelService {
     }
 
     const pinnedArticleIds = channel.pinnedArticles || []
-    const spamThreshold = await new SystemService(
-      this.connections
-    ).getSpamThreshold()
+    const systemService = new SystemService(this.connections)
+    const [globalSpamThreshold, topicChannelSpamThreshold] = await Promise.all([
+      systemService.getSpamThreshold(),
+      systemService.getTopicChannelSpamThreshold(),
+    ])
+    const spamThreshold = topicChannelSpamThreshold ?? globalSpamThreshold
 
     const pinnedQuery = knexRO
       .select(
@@ -425,7 +428,17 @@ export class ChannelService {
         'article.channel_enabled': true,
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
-      .modify(excludeSpamModifier, spamThreshold)
+      .modify((builder) => {
+        if (spamThreshold) {
+          builder.modify(excludeSpamModifier, spamThreshold)
+        } else {
+          builder.where((qb) => {
+            qb.where('article.is_spam', false).orWhere((b) => {
+              b.whereNull('article.is_spam')
+            })
+          })
+        }
+      })
       .modify(excludeRestrictedModifier)
       .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {

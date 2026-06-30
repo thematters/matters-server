@@ -91,8 +91,12 @@ const { version } = require('../package.json')
   // Sentry error handler
   Sentry.setupExpressErrorHandler(app)
 
-  await new Promise((resolve) =>
-    app.listen({ port: PORT }, resolve as () => void)
-  )
-  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`)
+  const httpServer = app.listen({ port: PORT }, () => {
+    console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`)
+  })
+
+  // Keep server keep-alive longer than nginx upstream to avoid reusing
+  // connections the server already closed (connection reset by peer).
+  httpServer.keepAliveTimeout = 65000
+  httpServer.headersTimeout = 66000
 })()

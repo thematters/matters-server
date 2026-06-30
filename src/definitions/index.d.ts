@@ -107,6 +107,11 @@ import type {
   SearchHistory,
 } from './misc.js'
 import type {
+  ModerationCase,
+  ModerationCaseReporter,
+  ModerationEvent,
+} from './moderation.js'
+import type {
   Moment,
   MomentAsset,
   MomentArticle,
@@ -129,11 +134,7 @@ import type {
 } from './payment.js'
 import type { Quote } from './quote.js'
 import type { Report } from './report.js'
-import type {
-  SpamRing,
-  SpamRingMember,
-  SpamRingEvent,
-} from './spamRing.js'
+import type { SpamRing, SpamRingMember, SpamRingEvent } from './spamRing.js'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag.js'
 import type { Translation } from './translation.js'
 import type {
@@ -178,6 +179,7 @@ export * from './report.js'
 export * from './spamRing.js'
 export * from './wallet.js'
 export * from './misc.js'
+export * from './moderation.js'
 export * from './schema.js'
 export * from './moment.js'
 export * from './quote.js'
@@ -292,6 +294,9 @@ export interface TableTypeMap {
   spam_ring: SpamRing
   spam_ring_member: SpamRingMember
   spam_ring_event: SpamRingEvent
+  moderation_case: ModerationCase
+  moderation_case_reporter: ModerationCaseReporter
+  moderation_event: ModerationEvent
   crypto_wallet: CryptoWallet
   crypto_wallet_signature: CryptoWalletSignature
   customer: Customer

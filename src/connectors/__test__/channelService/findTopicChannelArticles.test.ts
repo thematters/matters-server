@@ -10,17 +10,17 @@ import { genConnections, closeConnections, createCampaign } from '../utils.js'
 let connections: Connections
 let channelService: ChannelService
 let atomService: AtomService
+let systemService: SystemService
 let channel: TopicChannel
 let articles: Article[]
 let campaignService: CampaignService
-let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   channelService = new ChannelService(connections)
   atomService = new AtomService(connections)
-  campaignService = new CampaignService(connections)
   systemService = new SystemService(connections)
+  campaignService = new CampaignService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -28,6 +28,14 @@ afterAll(async () => {
 })
 
 beforeEach(async () => {
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.topic_channel_spam_filter,
+    flag: FEATURE_FLAG.off,
+  })
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.spam_detection,
+    flag: FEATURE_FLAG.off,
+  })
   await atomService.deleteMany({ table: 'topic_channel_article' })
   await atomService.deleteMany({ table: 'topic_channel' })
 
@@ -45,19 +53,14 @@ beforeEach(async () => {
   })
   expect(articles).toHaveLength(6)
   await Promise.all(
-    articles.map((article) =>
+    articles.map(({ id }) =>
       atomService.update({
         table: 'article',
-        where: { id: article.id },
+        where: { id },
         data: { isSpam: null, spamScore: null },
       })
     )
   )
-  await systemService.setFeatureFlag({
-    name: FEATURE_NAME.spam_detection,
-    flag: FEATURE_FLAG.on,
-    value: 0.5,
-  })
 
   // Add articles to channel
   await channelService.setArticleTopicChannels({
@@ -198,7 +201,12 @@ describe('findTopicChannelArticles', () => {
     }
   })
 
-  test('excludes unpinned articles with spam score above threshold', async () => {
+  test('falls back to global spam threshold when topic channel filter is off', async () => {
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.5,
+    })
     await atomService.update({
       table: 'article',
       where: { id: articles[0].id },
@@ -223,6 +231,37 @@ describe('findTopicChannelArticles', () => {
     expect(resultIds).toContain(articles[1].id)
     expect(resultIds).not.toContain(articles[2].id)
     expect(resultIds).toContain(articles[3].id)
+  })
+
+  test('uses topic channel spam threshold separately from global threshold', async () => {
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.94,
+    })
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.topic_channel_spam_filter,
+      flag: FEATURE_FLAG.on,
+      value: 0.8,
+    })
+
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: null, spamScore: 0.85 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: null, spamScore: 0.75 },
+    })
+
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    const resultIds = results.map((article) => article.id)
+
+    expect(resultIds).not.toContain(articles[0].id)
+    expect(resultIds).toContain(articles[1].id)
   })
 
   describe('datetimeRange filtering', () => {
