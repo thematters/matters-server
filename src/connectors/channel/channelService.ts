@@ -45,6 +45,7 @@ import { ArticleService } from '../article/articleService.js'
 import { AtomService } from '../atomService.js'
 import { Cache } from '../cache/index.js'
 import { NotificationService } from '../notification/notificationService.js'
+import { SystemService } from '../systemService.js'
 
 import { ChannelClassifier } from './channelClassifier.js'
 
@@ -397,6 +398,12 @@ export class ChannelService {
     }
 
     const pinnedArticleIds = channel.pinnedArticles || []
+    const systemService = new SystemService(this.connections)
+    const [globalSpamThreshold, topicChannelSpamThreshold] = await Promise.all([
+      systemService.getSpamThreshold(),
+      systemService.getTopicChannelSpamThreshold(),
+    ])
+    const spamThreshold = topicChannelSpamThreshold ?? globalSpamThreshold
 
     const pinnedQuery = knexRO
       .select(
@@ -426,10 +433,16 @@ export class ChannelService {
         'article.channel_enabled': true,
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
-      .where((qb) => {
-        qb.where('article.is_spam', false).orWhere((b) => {
-          b.whereNull('article.is_spam')
-        })
+      .modify((builder) => {
+        if (spamThreshold) {
+          builder.modify(excludeSpamModifier, spamThreshold)
+        } else {
+          builder.where((qb) => {
+            qb.where('article.is_spam', false).orWhere((b) => {
+              b.whereNull('article.is_spam')
+            })
+          })
+        }
       })
       .modify(excludeRestrictedModifier)
       .modify(excludeExclusiveCampaignArticles)

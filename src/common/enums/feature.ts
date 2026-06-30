@@ -8,6 +8,7 @@ export const FEATURE_NAME = {
   circle_management: 'circle_management',
   circle_interact: 'circle_interact',
   spam_detection: 'spam_detection',
+  topic_channel_spam_filter: 'topic_channel_spam_filter',
   article_channel: 'article_channel',
   hottest_moment_feed: 'hottest_moment_feed',
 } as const

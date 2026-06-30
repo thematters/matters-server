@@ -989,6 +989,38 @@ describe('spam detection', () => {
     })
     expect(article?.spamScore).toBe(score)
   })
+  test('persists detector metadata', async () => {
+    const articleId = '1'
+
+    const mockSpamDetoctor = {
+      detectResult: jest.fn(() => ({
+        score: 0.88,
+        decision: 'block',
+        reason: 'commercial solicitation',
+        pSpam: 0.7,
+        pHam: 0.02,
+      })),
+    }
+    // @ts-ignore
+    await publicationService._detectSpam(
+      { id: articleId, title: 'test', content: 'test' },
+      mockSpamDetoctor as any
+    )
+
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    expect(article).toEqual(
+      expect.objectContaining({
+        spamScore: 0.88,
+        decision: 'block',
+        reason: 'commercial solicitation',
+        pSpam: 0.7,
+        pHam: 0.02,
+      })
+    )
+  })
   test('find spam articles', async () => {
     const articles = await articleService.findArticles({
       spam: {

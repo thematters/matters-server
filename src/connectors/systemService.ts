@@ -168,6 +168,35 @@ export class SystemService extends BaseService<BaseDBSchema> {
   }
 
   /**
+   * Get the topic-channel-only spam threshold from `feature_flag` table.
+   */
+  public getTopicChannelSpamThreshold = async (): Promise<number | null> => {
+    const cache = new Cache(
+      CACHE_PREFIX.TOPIC_CHANNEL_SPAM_THRESHOLD,
+      this.connections.objectCacheRedis
+    )
+    const value = (await cache.getObject({
+      keys: { id: 'topic_channel_spam_threshold' },
+      getter: this._getTopicChannelSpamThreshold,
+      expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
+    })) as number | null
+    return value
+  }
+  private _getTopicChannelSpamThreshold = async (): Promise<number | null> => {
+    const threshold = await this.models.findFirst({
+      table: 'feature_flag',
+      where: {
+        name: FEATURE_NAME.topic_channel_spam_filter,
+        flag: FEATURE_FLAG.on,
+      },
+    })
+    if (!threshold || !threshold.value) {
+      return null
+    }
+    return threshold.value
+  }
+
+  /**
    * Get the article channel threshold from `feature_flag` table
    * Use to determine whether a article is in a channel by its score
    */

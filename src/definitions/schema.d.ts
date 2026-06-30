@@ -1898,6 +1898,7 @@ export type GQLFeatureName =
   | 'payout'
   | 'spam_detection'
   | 'tag_adoption'
+  | 'topic_channel_spam_filter'
   | 'verify_appreciate'
 
 export type GQLFeaturedCommentsInput = {
