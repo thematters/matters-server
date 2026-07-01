@@ -746,8 +746,7 @@ export class CommentService extends BaseService<Comment> {
       action: CommunityWatchAction
     }
   ): Promise<ModerationCase> => {
-    const previousBase =
-      this.toCommunityWatchModerationCaseBase(previousAction)
+    const previousBase = this.toCommunityWatchModerationCaseBase(previousAction)
     const currentBase = this.toCommunityWatchModerationCaseBase(action)
 
     const previousCase = await trx<ModerationCase>('moderation_case')
@@ -809,7 +808,9 @@ export class CommentService extends BaseService<Comment> {
       .where(base)
       .first()
     if (!moderationCase) {
-      throw new Error('failed to create or load Community Watch moderation case')
+      throw new Error(
+        'failed to create or load Community Watch moderation case'
+      )
     }
 
     return { moderationCase, created: false }
@@ -1480,9 +1481,9 @@ export class CommentService extends BaseService<Comment> {
         2
       )}）：${snippet}`,
       reason: TIER_REASON[tier],
-      ossUrl: `${environment.ossSiteDomain}/comments?id=${encodeURIComponent(
-        globalId
-      )}`,
+      ossUrl: `${
+        environment.ossSiteDomain
+      }/next/comments?id=${encodeURIComponent(globalId)}`,
     })
   }
 
