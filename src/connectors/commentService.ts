@@ -1480,9 +1480,9 @@ export class CommentService extends BaseService<Comment> {
         2
       )}）：${snippet}`,
       reason: TIER_REASON[tier],
-      ossUrl: `${environment.ossSiteDomain}/comments?id=${encodeURIComponent(
-        globalId
-      )}`,
+      ossUrl: `${
+        environment.ossSiteDomain
+      }/next/comments?id=${encodeURIComponent(globalId)}`,
     })
   }
 
