@@ -39,12 +39,15 @@ const resolver: GQLArticleResolvers['noindex'] = async (
     return true
   }
 
-  // if author is archived
+  // if author is hidden from public reading
   const author = await atomService.findUnique({
     table: 'user',
     where: { id: authorId },
   })
-  if (author?.state === USER_STATE.archived) {
+  if (
+    author?.state === USER_STATE.archived ||
+    author?.state === USER_STATE.frozen
+  ) {
     return true
   }
 
