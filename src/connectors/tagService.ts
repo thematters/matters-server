@@ -438,17 +438,57 @@ export class TagService extends BaseService<Tag> {
   }
 
   /**
-   * Count moment by a given tag id.
+   * Shared query for moments attached with a given tag.
+   * Selects moment.* explicitly to avoid colliding with moment_tag.id after
+   * the connection CTE clone. Optionally excludes spam moments.
    */
-  public countMoments = async ({ id: tagId }: { id: string }) => {
-    const result = await this.knexRO('moment_tag')
-      .join('moment', 'moment_id', 'moment.id')
-      .where({ tagId, state: MOMENT_STATE.active })
-      .count('moment_id')
+  private momentsByTagQuery = ({
+    tagId,
+    spamThreshold,
+  }: {
+    tagId: string
+    spamThreshold?: number
+  }) =>
+    this.knexRO
+      .select('moment.*')
+      .from('moment')
+      .join('moment_tag', 'moment_tag.moment_id', 'moment.id')
+      .where({ 'moment_tag.tag_id': tagId, 'moment.state': MOMENT_STATE.active })
+      .modify((builder: Knex.QueryBuilder) => {
+        if (spamThreshold) {
+          builder.modify(excludeSpamModifier, spamThreshold, 'moment')
+        }
+      })
+
+  /**
+   * Count moment by a given tag id, excluding spam when spamThreshold is set.
+   */
+  public countMoments = async ({
+    id: tagId,
+    spamThreshold,
+  }: {
+    id: string
+    spamThreshold?: number
+  }) => {
+    const result = await this.momentsByTagQuery({ tagId, spamThreshold })
+      .clearSelect()
+      .countDistinct('moment.id')
       .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
   }
+
+  /**
+   * Find moments by tag id, ordered by moment.id desc, excluding spam when set.
+   */
+  public findMoments = ({
+    id: tagId,
+    spamThreshold,
+  }: {
+    id: string
+    spamThreshold?: number
+  }) =>
+    this.momentsByTagQuery({ tagId, spamThreshold }).orderBy('moment.id', 'desc')
 
   public findHottestArticles = (tagId: string) => {
     return this.knexRO

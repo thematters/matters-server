@@ -170,6 +170,73 @@ test('countMoments', async () => {
   expect(count).toBeDefined()
 })
 
+describe('moments', () => {
+  const spamThreshold = 0.5
+  let tagId: string
+  const momentIds: string[] = []
+
+  const createMoment = async (shortHash: string) => {
+    const moment = await atomService.create({
+      table: 'moment',
+      data: { shortHash, authorId: '1', content: 'moment', state: 'active' },
+    })
+    await atomService.create({
+      table: 'moment_tag',
+      data: { momentId: moment.id, tagId },
+    })
+    return moment.id as string
+  }
+
+  beforeAll(async () => {
+    const tag = await tagService.upsert({
+      content: 'moment-feed-tag',
+      creator: '1',
+    })
+    tagId = tag.id
+    // create 3 moments attached with this tag
+    momentIds.push(await createMoment('moment-feed-1'))
+    momentIds.push(await createMoment('moment-feed-2'))
+    momentIds.push(await createMoment('moment-feed-3'))
+  })
+
+  const toIds = (moments: { id: string }[]) => moments.map(({ id }) => id)
+
+  test('findMoments orders by id desc', async () => {
+    const moments = await tagService.findMoments({ id: tagId })
+    expect(toIds(moments)).toEqual([...momentIds].reverse())
+  })
+
+  test('findMoments paginates', async () => {
+    const page = await tagService
+      .findMoments({ id: tagId })
+      .offset(1)
+      .limit(1)
+    expect(toIds(page)).toEqual([momentIds[1]])
+  })
+
+  test('findMoments excludes spam', async () => {
+    const spamId = momentIds[momentIds.length - 1]
+    await atomService.update({
+      table: 'moment',
+      where: { id: spamId },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const moments = await tagService.findMoments({ id: tagId, spamThreshold })
+    expect(toIds(moments)).not.toContain(spamId)
+    expect(toIds(moments)).toContain(momentIds[0])
+  })
+
+  test('countMoments excludes spam', async () => {
+    const withSpam = await tagService.countMoments({ id: tagId })
+    expect(withSpam).toBe(momentIds.length)
+    const withoutSpam = await tagService.countMoments({
+      id: tagId,
+      spamThreshold,
+    })
+    expect(withoutSpam).toBe(momentIds.length - 1)
+  })
+})
+
 test('countAuthors', async () => {
   const count = await tagService.countAuthors({ id: '2' })
   expect(count).toBeDefined()
