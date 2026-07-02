@@ -84,6 +84,7 @@ const resolver: GQLCircleResolvers['discussion'] = async (
     order,
     includeAfter: rest.includeAfter,
     includeBefore: rest.includeBefore,
+    includeRestrictedAuthors: viewer.hasRole('admin'),
   })
 
   if (!comments.length) {

@@ -12,7 +12,7 @@ import {
 const resolver: GQLMomentResolvers['comments'] = async (
   { id },
   { input: { sort, first, ...rest } },
-  { dataSources: { atomService, commentService } }
+  { viewer, dataSources: { atomService, commentService } }
 ) => {
   // resolve sort to order
   const order = sort === 'oldest' ? 'asc' : 'desc'
@@ -61,6 +61,7 @@ const resolver: GQLMomentResolvers['comments'] = async (
     order,
     includeAfter: rest.includeAfter,
     includeBefore: rest.includeBefore,
+    includeRestrictedAuthors: viewer.hasRole('admin'),
   })
 
   if (!comments.length) {

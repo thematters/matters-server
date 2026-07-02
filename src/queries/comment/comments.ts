@@ -5,7 +5,7 @@ import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 const resolver: GQLCommentResolvers['comments'] = async (
   { id },
   { input: { author, sort, ...connectionArgs } },
-  { dataSources: { commentService } }
+  { viewer, dataSources: { commentService } }
 ) => {
   const { take, skip } = fromConnectionArgs(connectionArgs, {
     allowTakeAll: true,
@@ -17,6 +17,7 @@ const resolver: GQLCommentResolvers['comments'] = async (
     sort,
     skip,
     take,
+    includeRestrictedAuthors: viewer.hasRole('admin'),
   })
   return connectionFromArray(comments, connectionArgs, totalCount)
 }

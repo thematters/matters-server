@@ -1,13 +1,19 @@
-import type { Context, Draft, GlobalId } from '#definitions/index.js'
+import type { Comment, Context, Draft, GlobalId } from '#definitions/index.js'
 
 import { NODE_TYPES } from '#common/enums/index.js'
 import { EntityNotFoundError, ForbiddenError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-export const getNode = async (globalId: GlobalId, context: Context) => {
+export const getNode = async (
+  globalId: GlobalId,
+  context: Context,
+  {
+    hideRestrictedCommentAuthorAsNull = false,
+  }: { hideRestrictedCommentAuthorAsNull?: boolean } = {}
+) => {
   const {
     viewer,
-    dataSources: { atomService },
+    dataSources: { atomService, commentService },
   } = context
   const services = {
     [NODE_TYPES.Article]: atomService.articleIdLoader,
@@ -40,6 +46,17 @@ export const getNode = async (globalId: GlobalId, context: Context) => {
 
   if (type === 'Draft' && viewer.id !== (node as Draft).authorId) {
     throw new ForbiddenError('only author is allowed to view draft')
+  }
+
+  if (
+    type === NODE_TYPES.Comment &&
+    !viewer.hasRole('admin') &&
+    (await commentService.isAuthorRestricted(node as Comment))
+  ) {
+    if (hideRestrictedCommentAuthorAsNull) {
+      return null
+    }
+    throw new EntityNotFoundError('target does not exist')
   }
 
   return { ...node, __type: type }
