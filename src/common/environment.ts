@@ -52,12 +52,10 @@ export const environment = {
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
-  awsReportAlertQueueUrl:
-    process.env.MATTERS_AWS_REPORT_ALERT_QUEUE_URL || '',
+  awsReportAlertQueueUrl: process.env.MATTERS_AWS_REPORT_ALERT_QUEUE_URL || '',
   // Spam training-sample capture (axis-2 L2): de-identified moderation events
   // for the spam-model training corpus. Best-effort; off when unset.
-  awsSpamSampleQueueUrl:
-    process.env.MATTERS_AWS_SPAM_SAMPLE_QUEUE_URL || '',
+  awsSpamSampleQueueUrl: process.env.MATTERS_AWS_SPAM_SAMPLE_QUEUE_URL || '',
   spamSampleHashSalt: process.env.MATTERS_SPAM_SAMPLE_HASH_SALT || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
   awsLikecoinSendPVUrl:

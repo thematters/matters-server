@@ -57,7 +57,8 @@ const communityWatchActionPublic: GQLCommunityWatchActionResolvers = {
     _: unknown,
     { dataSources: { connections } }: Context
   ) => {
-    const report = await connections.knex('report')
+    const report = await connections
+      .knex('report')
       .select('id')
       .where({
         commentId,

@@ -50,7 +50,9 @@ describe('hasSolicit', () => {
   })
 
   test('does not fire on benign creative writing', () => {
-    expect(hasSolicit('紀子璇作為楊羽棠管家的最後一天定在夏天的尾聲')).toBe(false)
+    expect(hasSolicit('紀子璇作為楊羽棠管家的最後一天定在夏天的尾聲')).toBe(
+      false
+    )
   })
 })
 

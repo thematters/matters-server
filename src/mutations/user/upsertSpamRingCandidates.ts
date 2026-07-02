@@ -17,9 +17,7 @@ const resolver: GQLMutationResolvers['upsertSpamRingCandidates'] = async (
     severity: c.severity ?? undefined,
     firstSeenAt: c.firstSeenAt ?? undefined,
     lastSeenAt: c.lastSeenAt ?? undefined,
-    memberEvidence: c.memberEvidence
-      ? JSON.parse(c.memberEvidence)
-      : undefined,
+    memberEvidence: c.memberEvidence ? JSON.parse(c.memberEvidence) : undefined,
   }))
   return spamRingService.upsertCandidates(mapped)
 }

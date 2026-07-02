@@ -60,7 +60,13 @@ const createKnex = () => {
     },
   }
 
-  return { knex, entityTypeInserts, entityTypeDeletes, tableCalls, droppedTables }
+  return {
+    knex,
+    entityTypeInserts,
+    entityTypeDeletes,
+    tableCalls,
+    droppedTables,
+  }
 }
 
 describe('spam ring migrations', () => {

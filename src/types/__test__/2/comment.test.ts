@@ -665,12 +665,15 @@ describe('community watch remove comment', () => {
     })
     expect(syncedReport).toBeDefined()
 
-    const moderationCase = await connections.knex('moderation_case').where({
-      source: 'community_watch',
-      targetType: 'comment',
-      targetId: comment.id,
-      reason: 'spam_ad',
-    }).first()
+    const moderationCase = await connections
+      .knex('moderation_case')
+      .where({
+        source: 'community_watch',
+        targetType: 'comment',
+        targetId: comment.id,
+        reason: 'spam_ad',
+      })
+      .first()
     expect(moderationCase).toMatchObject({
       primaryReporterId: watcher.id,
       publicReason: 'spam_ad',
@@ -751,12 +754,15 @@ describe('community watch remove comment', () => {
       table: 'community_watch_action',
       where: { commentId: comment.id },
     })
-    let moderationCase = await connections.knex('moderation_case').where({
-      source: 'community_watch',
-      targetType: 'comment',
-      targetId: comment.id,
-      reason: 'porn_ad',
-    }).first()
+    let moderationCase = await connections
+      .knex('moderation_case')
+      .where({
+        source: 'community_watch',
+        targetType: 'comment',
+        targetId: comment.id,
+        reason: 'porn_ad',
+      })
+      .first()
     expect(moderationCase).toMatchObject({
       status: 'action_taken',
       outcome: 'content_hidden',
