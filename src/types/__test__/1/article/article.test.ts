@@ -10,6 +10,7 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   CAMPAIGN_STATE,
+  USER_STATE,
 } from '#common/enums/index.js'
 import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import {
@@ -92,6 +93,22 @@ const GET_ARTICLE = /* GraphQL */ `
         }
       }
       bookmarkCount
+      noindex
+    }
+  }
+`
+
+const GET_USER_ARTICLES = /* GraphQL */ `
+  query ($input: UserInput!) {
+    user(input: $input) {
+      articles(input: { first: 10 }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
     }
   }
 `
@@ -170,6 +187,71 @@ describe('query articles', () => {
 
     expect(errors2).toBeUndefined()
     expect(data2.article.mediaHash).toBe('someIpfsMediaHash1')
+  })
+
+  test('hide frozen author article from public reads', async () => {
+    const article = await atomService.articleIdLoader.load(ARTICLE_DB_ID)
+    const author = await atomService.userIdLoader.load(article.authorId)
+
+    expect(article.shortHash).toBe('short-hash-1')
+    const anonymousServer = await testClient({ connections })
+
+    await atomService.update({
+      table: 'user',
+      where: { id: author.id },
+      data: { state: USER_STATE.frozen },
+    })
+
+    try {
+      const shortHashResult = await anonymousServer.executeOperation({
+        query: GET_ARTICLE,
+        variables: {
+          input: { shortHash: article.shortHash },
+        },
+      })
+      expect(shortHashResult.errors).toBeUndefined()
+      expect(shortHashResult.data.article).toBeNull()
+
+      const mediaHashResult = await anonymousServer.executeOperation({
+        query: GET_ARTICLE,
+        variables: {
+          input: { mediaHash: 'someIpfsMediaHash1' },
+        },
+      })
+      expect(mediaHashResult.errors).toBeUndefined()
+      expect(mediaHashResult.data.article).toBeNull()
+
+      const adminServer = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+      const adminResult = await adminServer.executeOperation({
+        query: GET_ARTICLE,
+        variables: {
+          input: { shortHash: article.shortHash },
+        },
+      })
+      expect(adminResult.errors).toBeUndefined()
+      expect(adminResult.data.article.shortHash).toBe(article.shortHash)
+      expect(adminResult.data.article.noindex).toBe(true)
+
+      const userArticlesResult = await anonymousServer.executeOperation({
+        query: GET_USER_ARTICLES,
+        variables: {
+          input: { userName: author.userName },
+        },
+      })
+      expect(userArticlesResult.errors).toBeUndefined()
+      expect(userArticlesResult.data.user.articles.totalCount).toBe(0)
+      expect(userArticlesResult.data.user.articles.edges).toHaveLength(0)
+    } finally {
+      await atomService.update({
+        table: 'user',
+        where: { id: author.id },
+        data: { state: author.state },
+      })
+    }
   })
 })
 
