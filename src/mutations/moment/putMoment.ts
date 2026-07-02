@@ -1,7 +1,7 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
-import { AuthenticationError } from '#common/errors.js'
+import { NODE_TYPES, MAX_TAGS_PER_ARTICLE_LIMIT } from '#common/enums/index.js'
+import { AuthenticationError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -20,6 +20,12 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+  // reject over-limit before any tag upsert, to avoid creating dirty tags
+  if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+    throw new UserInputError(
+      `cannot attach more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags to a moment`
+    )
   }
   if (tags && tags.length > 0) {
     await Promise.all(

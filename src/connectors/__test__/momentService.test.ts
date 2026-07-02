@@ -121,6 +121,21 @@ describe('create moments', () => {
     expect(articles.length).toBe(1)
     expect(articles[0].id).toBe('1')
   })
+
+  test('links multiple tags and getTags returns them all', async () => {
+    const tags = await Promise.all(
+      ['MomentMultiTagA', 'MomentMultiTagB', 'MomentMultiTagC'].map((content) =>
+        tagService.upsert({ content, creator: user.id })
+      )
+    )
+    const tagIds = tags.map((tag) => tag.id)
+    const moment = await momentService.create(
+      { content: 'multi tags', tagIds },
+      user
+    )
+    const linked = await momentService.getTags(moment.id)
+    expect(linked.map((tag) => tag.id).sort()).toEqual([...tagIds].sort())
+  })
 })
 
 describe('delete moments', () => {
