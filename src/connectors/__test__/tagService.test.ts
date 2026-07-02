@@ -1,6 +1,10 @@
 import type { Connections } from '#definitions/index.js'
 
-import { USER_FEATURE_FLAG_TYPE, RESERVED_TAGS } from '#common/enums/index.js'
+import {
+  USER_FEATURE_FLAG_TYPE,
+  USER_STATE,
+  RESERVED_TAGS,
+} from '#common/enums/index.js'
 import { UserInputError, ForbiddenError } from '#common/errors.js'
 import { PublicationService } from '../article/publicationService.js'
 import { AtomService } from '../atomService.js'
@@ -98,6 +102,36 @@ describe('findArticles', () => {
       spamThreshold,
     })
     expect(toIds(excluded3)).toContain(articles[0].id)
+  })
+  test('exclude articles by frozen authors', async () => {
+    const articles = await tagService.findArticles({ id: '2' })
+    expect(articles.length).toBeGreaterThan(0)
+
+    const target = articles[0]
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: target.id },
+    })
+    const author = await atomService.findUnique({
+      table: 'user',
+      where: { id: article?.authorId },
+    })
+
+    // freezing a spam-ring account must remove its content from the tag feed
+    await atomService.update({
+      table: 'user',
+      where: { id: article?.authorId },
+      data: { state: USER_STATE.frozen },
+    })
+    const excluded = await tagService.findArticles({ id: '2' })
+    expect(toIds(excluded)).not.toContain(target.id)
+
+    // restore original state to avoid leaking into other tests
+    await atomService.update({
+      table: 'user',
+      where: { id: article?.authorId },
+      data: { state: author?.state },
+    })
   })
 })
 

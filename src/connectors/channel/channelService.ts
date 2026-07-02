@@ -36,6 +36,7 @@ import {
   toDatetimeRangeString,
   excludeSpam as excludeSpamModifier,
   excludeRestrictedAuthors as excludeRestrictedModifier,
+  excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -445,6 +446,7 @@ export class ChannelService {
         }
       })
       .modify(excludeRestrictedModifier)
+      .modify(excludeStateRestrictedModifier)
       .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {
         if (channelThreshold) {
@@ -1132,6 +1134,7 @@ export class ChannelService {
         .leftJoin('article', 'topic_channel_feedback.article_id', 'article.id')
         .modify(excludeSpamModifier, spamThreshold)
         .modify(excludeRestrictedModifier)
+        .modify(excludeStateRestrictedModifier)
     }
     return query
   }
