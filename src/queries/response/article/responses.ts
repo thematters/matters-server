@@ -5,7 +5,7 @@ import type {
   GlobalId,
 } from '#definitions/index.js'
 
-import { NODE_TYPES } from '#common/enums/index.js'
+import { COMMENT_TYPE, NODE_TYPES } from '#common/enums/index.js'
 import { ServerError } from '#common/errors.js'
 import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
 import _last from 'lodash/last.js'
@@ -13,7 +13,7 @@ import _last from 'lodash/last.js'
 const resolver: GQLArticleResolvers['responses'] = async (
   { id: articleId },
   { input: { sort, first, ...restParams } },
-  { dataSources: { articleService, atomService } }
+  { viewer, dataSources: { articleService, atomService, commentService } }
 ) => {
   const order = sort === 'oldest' ? 'asc' : 'desc'
 
@@ -43,9 +43,17 @@ const resolver: GQLArticleResolvers['responses'] = async (
     includeBefore,
     articleOnly,
   })
+  const [articleResponseCount, commentResponseCount] = await Promise.all([
+    articleService.countActiveConnectedBy(articleId),
+    articleOnly
+      ? Promise.resolve(0)
+      : commentService.count(articleId, COMMENT_TYPE.article, {
+          includeRestrictedAuthors: viewer.hasRole('admin'),
+        }),
+  ])
 
   // fetch responses
-  const items = await Promise.all(
+  const loadedItems = await Promise.all(
     sources.map((source: { entityId: string; type: string }) => {
       switch (source.type) {
         case 'Article': {
@@ -60,6 +68,21 @@ const resolver: GQLArticleResolvers['responses'] = async (
       }
     })
   )
+  const items = (
+    await Promise.all(
+      loadedItems.map(async (item) => {
+        const isComment = 'articleId' in item
+        if (
+          isComment &&
+          !viewer.hasRole('admin') &&
+          (await commentService.isAuthorRestricted(item))
+        ) {
+          return null
+        }
+        return item
+      })
+    )
+  ).filter(Boolean) as Array<Article | Comment>
 
   // re-process edges
   const isArticle = (item: Article | Comment): item is Article =>
@@ -98,7 +121,7 @@ const resolver: GQLArticleResolvers['responses'] = async (
 
   return {
     edges,
-    totalCount: +head.totalCount,
+    totalCount: articleResponseCount + commentResponseCount,
     pageInfo: {
       startCursor: edgeHead ? edgeHead.cursor : '',
       endCursor: edgeTail ? edgeTail.cursor : '',

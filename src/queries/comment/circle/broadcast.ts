@@ -12,7 +12,7 @@ import {
 const resolver: GQLCircleResolvers['broadcast'] = async (
   { id },
   { input: { sort, first, ...rest } },
-  { dataSources: { atomService, commentService } }
+  { viewer, dataSources: { atomService, commentService } }
 ) => {
   if (!id) {
     return connectionFromArray([], rest)
@@ -73,6 +73,7 @@ const resolver: GQLCircleResolvers['broadcast'] = async (
     order,
     includeAfter: rest.includeAfter,
     includeBefore: rest.includeBefore,
+    includeRestrictedAuthors: viewer.hasRole('admin'),
   })
 
   if (!comments.length) {

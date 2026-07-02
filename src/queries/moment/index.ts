@@ -25,8 +25,10 @@ const schema: GQLResolvers = {
       atomService.userIdLoader.load(authorId),
     state: ({ state }) => state,
 
-    commentCount: ({ id }, _, { dataSources: { commentService } }) =>
-      commentService.count(id, COMMENT_TYPE.moment),
+    commentCount: ({ id }, _, { dataSources: { commentService }, viewer }) =>
+      commentService.count(id, COMMENT_TYPE.moment, {
+        includeRestrictedAuthors: viewer.hasRole('admin'),
+      }),
     comments: comments,
     commentedFollowees: (
       { id, authorId },
