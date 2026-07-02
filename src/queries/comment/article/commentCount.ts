@@ -5,7 +5,10 @@ import { COMMENT_TYPE } from '#common/enums/index.js'
 const resolver: GQLArticleResolvers['commentCount'] = (
   { id: articleId },
   _,
-  { dataSources: { commentService } }
-) => commentService.count(articleId, COMMENT_TYPE.article)
+  { viewer, dataSources: { commentService } }
+) =>
+  commentService.count(articleId, COMMENT_TYPE.article, {
+    includeRestrictedAuthors: viewer.hasRole('admin'),
+  })
 
 export default resolver
