@@ -6,6 +6,6 @@ const resolver: GQLQueryResolvers['node'] = async (
   _,
   { input: { id } },
   context
-) => getNode(id, context) as any
+) => getNode(id, context, { hideRestrictedCommentAuthorAsNull: true }) as any
 
 export default resolver

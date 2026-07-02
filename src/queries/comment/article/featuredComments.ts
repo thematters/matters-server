@@ -6,7 +6,7 @@ import { connectionFromArray } from '#common/utils/index.js'
 const resolver: GQLArticleResolvers['featuredComments'] = async (
   { id: articleId },
   { input: { first, after } },
-  { dataSources: { atomService } }
+  { viewer, dataSources: { atomService, commentService } }
 ) => {
   const featuredsComments = await atomService.findMany({
     table: 'featured_comment_materialized',
@@ -20,9 +20,22 @@ const resolver: GQLArticleResolvers['featuredComments'] = async (
       { column: 'score', order: 'desc' },
     ],
   })
+  const visibleComments = viewer.hasRole('admin')
+    ? featuredsComments
+    : (
+        await Promise.all(
+          featuredsComments.map(async (comment) =>
+            (await commentService.isAuthorRestricted(
+              comment as unknown as Comment
+            ))
+              ? null
+              : comment
+          )
+        )
+      ).filter(Boolean)
 
   // use simple pagination for now
-  return connectionFromArray(featuredsComments as unknown as Comment[], {
+  return connectionFromArray(visibleComments as unknown as Comment[], {
     first,
     after,
   })
