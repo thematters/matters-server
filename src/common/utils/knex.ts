@@ -4,6 +4,7 @@ import type { Knex } from 'knex'
 import {
   USER_FEATURE_FLAG_TYPE,
   USER_RESTRICTION_TYPE,
+  USER_STATE,
 } from '#common/enums/index.js'
 
 /**
@@ -59,6 +60,31 @@ export const excludeRestrictedAuthors = (
       .from('user_restriction')
       .where('user_restriction.type', type)
       .where('user_restriction.user_id', qb.client.ref(`${table}.author_id`))
+  )
+}
+
+/**
+ * Exclude articles whose author is in a restricted state (frozen / banned /
+ * archived). Freezing a spam-ring account sets user.state=frozen but does NOT
+ * change its articles' state, so without this its content still surfaces in
+ * public feeds (channels, etc.). Mirrors the frozen/archived exclusion already
+ * applied in recommendations.
+ */
+export const excludeStateRestrictedAuthors = (
+  builder: Knex.QueryBuilder,
+  states: Array<ValueOf<typeof USER_STATE>> = [
+    USER_STATE.frozen,
+    USER_STATE.banned,
+    USER_STATE.archived,
+  ],
+  table = 'article'
+) => {
+  builder.whereNotExists((qb) =>
+    qb
+      .select(1)
+      .from('user')
+      .where('user.id', qb.client.ref(`${table}.author_id`))
+      .whereIn('user.state', states)
   )
 }
 

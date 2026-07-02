@@ -152,6 +152,7 @@ export class SearchService {
                 // USER_STATE.active
                 USER_STATE.archived,
                 USER_STATE.banned,
+                USER_STATE.frozen,
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
@@ -461,6 +462,7 @@ export class SearchService {
         // USER_STATE.active,
         USER_STATE.archived,
         USER_STATE.banned,
+        USER_STATE.frozen,
       ])
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
