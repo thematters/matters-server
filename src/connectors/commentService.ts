@@ -746,8 +746,7 @@ export class CommentService extends BaseService<Comment> {
       action: CommunityWatchAction
     }
   ): Promise<ModerationCase> => {
-    const previousBase =
-      this.toCommunityWatchModerationCaseBase(previousAction)
+    const previousBase = this.toCommunityWatchModerationCaseBase(previousAction)
     const currentBase = this.toCommunityWatchModerationCaseBase(action)
 
     const previousCase = await trx<ModerationCase>('moderation_case')
@@ -809,7 +808,9 @@ export class CommentService extends BaseService<Comment> {
       .where(base)
       .first()
     if (!moderationCase) {
-      throw new Error('failed to create or load Community Watch moderation case')
+      throw new Error(
+        'failed to create or load Community Watch moderation case'
+      )
     }
 
     return { moderationCase, created: false }
