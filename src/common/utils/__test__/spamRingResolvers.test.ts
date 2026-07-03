@@ -36,9 +36,19 @@ const makeContext = (viewer: any = { id: '9' }) => {
     viewer,
     dataSources: {
       userService,
+      articleService: { findByAuthor: jest.fn(async () => []) },
+      connections: { redis: { __sentinel: 'redis' } },
       spamRingService: {
-        freezeRing: jest.fn(async () => ({ ring: {}, frozen: [], skipped: [] })),
-        unfreezeRing: jest.fn(async () => ({ ring: {}, unbanned: [], skipped: [] })),
+        freezeRing: jest.fn(async () => ({
+          ring: {},
+          frozen: [],
+          skipped: [],
+        })),
+        unfreezeRing: jest.fn(async () => ({
+          ring: {},
+          unbanned: [],
+          skipped: [],
+        })),
         dismissRing: jest.fn(async () => ({ id: '1' })),
         upsertCandidates: jest.fn(async () => ({
           created: 1,
@@ -99,6 +109,43 @@ describe('spam ring mutation resolvers', () => {
     })
   })
 
+  test('freezeSpamRing purges caches of frozen members', async () => {
+    const ctx = makeContext()
+    ctx.dataSources.spamRingService.freezeRing = jest.fn(async () => ({
+      ring: {},
+      frozen: [{ id: '11' }, { id: '12' }],
+      skipped: [],
+    }))
+    await (freezeSpamRing as any)(
+      null,
+      { input: { id: ringGlobalId('1') } },
+      ctx
+    )
+    expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
+      '11'
+    )
+    expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
+      '12'
+    )
+  })
+
+  test('unfreezeSpamRing purges caches of restored members', async () => {
+    const ctx = makeContext()
+    ctx.dataSources.spamRingService.unfreezeRing = jest.fn(async () => ({
+      ring: {},
+      unbanned: [{ id: '21' }],
+      skipped: [],
+    }))
+    await (unfreezeSpamRing as any)(
+      null,
+      { input: { id: ringGlobalId('2') } },
+      ctx
+    )
+    expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
+      '21'
+    )
+  })
+
   test('freezeSpamRing rejects when viewer has no id', async () => {
     await expect(
       (freezeSpamRing as any)(
@@ -155,9 +202,8 @@ describe('spam ring mutation resolvers', () => {
       },
       ctx
     )
-    const arg = (
-      ctx.dataSources.spamRingService.upsertCandidates as any
-    ).mock.calls[0][0]
+    const arg = (ctx.dataSources.spamRingService.upsertCandidates as any).mock
+      .calls[0][0]
     expect(arg[0].fingerprint).toBe('fp1')
     expect(arg[0].memberUserIds).toEqual(['u1', 'u2'])
     expect(arg[0].memberUserNames).toBeUndefined()
@@ -279,10 +325,9 @@ describe('SpamRing type resolvers', () => {
       { input: { first: 1 } },
       ctx
     )
-    expect(ctx.dataSources.spamRingService.findMembersAndCount).toHaveBeenCalledWith(
-      'r1',
-      { take: 1, skip: 0 }
-    )
+    expect(
+      ctx.dataSources.spamRingService.findMembersAndCount
+    ).toHaveBeenCalledWith('r1', { take: 1, skip: 0 })
     expect(memberConnection.totalCount).toBe(2)
     expect(memberConnection.edges.map((edge: any) => edge.node.id)).toEqual([
       'm1',
@@ -328,7 +373,9 @@ describe('SpamRing type resolvers', () => {
     await expect(
       (SpamRingEvent.actor as any)({ actorId: 'u9' }, null, ctx)
     ).resolves.toBe(actor)
-    expect((SpamRingEvent.actor as any)({ actorId: null }, null, ctx)).toBeNull()
+    expect(
+      (SpamRingEvent.actor as any)({ actorId: null }, null, ctx)
+    ).toBeNull()
     expect((SpamRingEvent.detail as any)({ detail: { reason: 'fp' } })).toBe(
       JSON.stringify({ reason: 'fp' })
     )
