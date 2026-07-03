@@ -1125,7 +1125,11 @@ test('hide restricted user articles from public latest works', async () => {
   const GET_USER_LATEST_WORKS = /* GraphQL */ `
     query ($input: UserInput!) {
       user(input: $input) {
+        status {
+          state
+        }
         latestWorks {
+          __typename
           id
           ... on Article {
             shortHash
@@ -1135,12 +1139,34 @@ test('hide restricted user articles from public latest works', async () => {
     }
   `
   const user = await userService.findByUserName('test1')
-  await connections.knex('user').where({ id: user.id }).update({
-    state: USER_STATE.frozen,
-  })
+  const articles = await articleService.findByAuthor(user.id, { take: 1 })
+  expect(articles.length).toBeGreaterThan(0)
+
+  const article = articles[0]
+  const originalArticleUpdatedAt = article.updatedAt
+  await connections
+    .knex('article')
+    .where({ id: article.id })
+    .update({ updatedAt: new Date(Date.now() + 60 * 1000) })
 
   try {
     const server = await testClient({ connections })
+    const { data: activeData } = await server.executeOperation({
+      query: GET_USER_LATEST_WORKS,
+      variables: {
+        input: { userName: user.userName },
+      },
+    })
+    expect(
+      activeData?.user?.latestWorks.some(
+        (work: { __typename: string }) => work.__typename === 'Article'
+      )
+    ).toBe(true)
+
+    await connections.knex('user').where({ id: user.id }).update({
+      state: USER_STATE.frozen,
+    })
+
     const { data } = await server.executeOperation({
       query: GET_USER_LATEST_WORKS,
       variables: {
@@ -1148,15 +1174,20 @@ test('hide restricted user articles from public latest works', async () => {
       },
     })
 
+    expect(data?.user?.status.state).toBe(USER_STATE.frozen)
     expect(
       data?.user?.latestWorks.some(
-        (work: { shortHash?: string }) => work.shortHash
+        (work: { __typename: string }) => work.__typename === 'Article'
       )
     ).toBe(false)
   } finally {
     await connections.knex('user').where({ id: user.id }).update({
       state: USER_STATE.active,
     })
+    await connections
+      .knex('article')
+      .where({ id: article.id })
+      .update({ updatedAt: originalArticleUpdatedAt })
   }
 })
 
