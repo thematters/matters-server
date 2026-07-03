@@ -66,9 +66,9 @@ const resolver: GQLMutationResolvers['submitReport'] = async (
     dedupeKey: `direct:${type}:${targetId}`,
     subject: `${type} (${targetGlobalId})`,
     reason,
-    ossUrl: `${environment.ossSiteDomain}/reports?targetId=${encodeURIComponent(
-      targetGlobalId
-    )}`,
+    ossUrl: `${
+      environment.ossSiteDomain
+    }/next/watch?targetId=${encodeURIComponent(targetGlobalId)}`,
   })
 
   return report
