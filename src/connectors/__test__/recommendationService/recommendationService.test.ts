@@ -644,6 +644,194 @@ describe('recommandation', () => {
       const tags = await query
       expect(tags.length).toEqual(0)
     })
+
+    describe('moment side (sitewide UNION)', () => {
+      let hotTagId: string
+      let coldTagId: string
+      let momentTypeId: string
+      const createdMomentIds: string[] = []
+
+      const createMoment = async (
+        authorId: string,
+        { likers = [] }: { likers?: string[] } = {}
+      ) => {
+        const moment = await atomService.create({
+          table: 'moment',
+          data: {
+            shortHash: `rec-${uuidv4().slice(0, 8)}`,
+            authorId,
+            content: 'moment',
+            state: 'active',
+            // the pipeline drops content created today (UTC+8), mirroring the
+            // article side; backdate so moments enter the pool
+            createdAt: new Date(Date.now() - DAY),
+          },
+        })
+        createdMomentIds.push(moment.id)
+        for (const userId of likers) {
+          await atomService.create({
+            table: 'action_moment',
+            data: { userId, action: 'like', targetId: moment.id },
+          })
+        }
+        return moment.id as string
+      }
+
+      const tagMoment = async (momentId: string, tagId: string) =>
+        atomService.create({
+          table: 'moment_tag',
+          data: { momentId, tagId },
+        })
+
+      // non-author comment lifts the moment score above the median gate
+      const commentMoment = async (
+        momentId: string,
+        authorId: string,
+        isSpam: boolean | null = false
+      ) =>
+        atomService.create({
+          table: 'comment',
+          data: {
+            uuid: uuidv4(),
+            type: 'moment',
+            targetId: momentId,
+            targetTypeId: momentTypeId,
+            parentCommentId: null,
+            state: COMMENT_STATE.active,
+            authorId,
+            content: 'c',
+            isSpam,
+          },
+        })
+
+      beforeAll(async () => {
+        const { id } = await atomService.findFirst({
+          table: 'entity_type',
+          where: { table: 'moment' },
+        })
+        momentTypeId = id
+        const hotTag = await atomService.create({
+          table: 'tag',
+          data: { content: `rec-hot-${uuidv4().slice(0, 8)}`, creator: '1' },
+        })
+        const coldTag = await atomService.create({
+          table: 'tag',
+          data: { content: `rec-cold-${uuidv4().slice(0, 8)}`, creator: '1' },
+        })
+        hotTagId = hotTag.id
+        coldTagId = coldTag.id
+      })
+
+      afterEach(async () => {
+        // moment_tag has FK to moment; clear children first
+        await atomService.deleteMany({ table: 'moment_tag' })
+        await atomService.deleteMany({ table: 'action_moment' })
+        for (const momentId of createdMomentIds) {
+          await atomService.deleteMany({
+            table: 'comment',
+            where: { targetId: momentId, type: 'moment' },
+          })
+          await atomService.deleteMany({
+            table: 'moment',
+            where: { id: momentId },
+          })
+        }
+        createdMomentIds.length = 0
+      })
+
+      test('folds moment tags in and filters by author breadth', async () => {
+        // pool scores (identical decay): hot1 1.2, hot2 1.0, hot3 0.6,
+        // cold1 1.0, cold2/cold3 0 -> median 0.8, so hot1/hot2/cold1 pass the
+        // median gate and both tags reach the breadth gate; hot tag spans 3
+        // authors vs 1 for the cold tag, so only the hot tag passes breadth
+        const hot1 = await createMoment(author1.id)
+        const hot2 = await createMoment(author2.id, { likers: [author1.id] })
+        const hot3 = await createMoment(author3.id)
+        for (const id of [hot1, hot2, hot3]) {
+          await tagMoment(id, hotTagId)
+        }
+        await commentMoment(hot1, author2.id)
+        await commentMoment(hot1, author3.id)
+        await commentMoment(hot2, author3.id)
+        await commentMoment(hot3, author1.id)
+        // cold tag: single author; cold1 passes the median gate, the zero-score
+        // moments keep the median below it
+        const cold1 = await createMoment(author1.id, { likers: [author2.id] })
+        await commentMoment(cold1, author2.id)
+        const cold2 = await createMoment(author1.id) // no interaction -> score 0
+        const cold3 = await createMoment(author1.id) // no interaction -> score 0
+        for (const id of [cold1, cold2, cold3]) {
+          await tagMoment(id, coldTagId)
+        }
+
+        const { query } = await recommendationService.recommendTags()
+        const tags = (await query) as Array<{ tagId: string }>
+        const ids = tags.map(({ tagId }) => tagId)
+        expect(ids).toContain(hotTagId)
+        expect(ids).not.toContain(coldTagId)
+      })
+
+      test('excludes spam moments from the pool', async () => {
+        // seed ships spam_detection off; enable it so recommendTags gets a
+        // non-null threshold and the null-safe spam filter actually applies
+        const threshold = 0.5
+        await atomService.updateMany({
+          table: 'feature_flag',
+          where: { name: 'spam_detection' },
+          data: { flag: 'on', value: threshold },
+        })
+        const spamScore = threshold + 0.1
+        const m1 = await createMoment(author1.id)
+        const m2 = await createMoment(author2.id)
+        await tagMoment(m1, hotTagId)
+        await tagMoment(m2, hotTagId)
+        await commentMoment(m1, author3.id)
+        await commentMoment(m2, author3.id)
+        // mark the whole hot-tag pool as spam
+        await atomService.updateMany({
+          table: 'moment',
+          where: { id: m1 },
+          data: { spamScore },
+        })
+        await atomService.updateMany({
+          table: 'moment',
+          where: { id: m2 },
+          data: { spamScore },
+        })
+
+        try {
+          const { query } = await recommendationService.recommendTags()
+          const tags = (await query) as Array<{ tagId: string }>
+          expect(tags.map(({ tagId }) => tagId)).not.toContain(hotTagId)
+        } finally {
+          await atomService.updateMany({
+            table: 'feature_flag',
+            where: { name: 'spam_detection' },
+            data: { flag: 'off', value: threshold },
+          })
+        }
+      })
+
+      test('empty moment pool: returns only article side, no error', async () => {
+        // no moments exist: median/percentile over the empty pool return NULL
+        // and count > NULL is always false, so the moment side contributes no
+        // rows and the UNION still resolves without error
+        await Promise.all(
+          [article1.id, article2.id, article3.id].map((articleId) =>
+            atomService.create({
+              table: 'article_tag',
+              data: { articleId, tagId: '1' },
+            })
+          )
+        )
+        const { query } = await recommendationService.recommendTags()
+        const tags = (await query) as Array<{ tagId: string }>
+        const ids = tags.map(({ tagId }) => tagId)
+        expect(Array.isArray(tags)).toBe(true)
+        expect(ids).not.toContain(hotTagId)
+        expect(ids).not.toContain(coldTagId)
+      })
+    })
   })
 
   describe('countUsersFollowers', () => {
