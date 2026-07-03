@@ -1,8 +1,9 @@
 import type { GQLMutationResolvers, User } from '#definitions/index.js'
 
-import { USER_STATE } from '#common/enums/index.js'
+import { NODE_TYPES, USER_STATE } from '#common/enums/index.js'
 import { ActionFailedError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
@@ -11,13 +12,25 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     viewer,
     dataSources: {
       userService,
+      articleService,
       notificationService,
       atomService,
+      connections: { redis },
       queues: { userQueue },
     },
   }
 ) => {
   const id = globalId ? fromGlobalId(globalId).id : undefined
+
+  const invalidateUserCaches = async (userId: string) => {
+    await invalidateFQC({ node: { type: NODE_TYPES.User, id: userId }, redis })
+    for (const article of await articleService.findByAuthor(userId)) {
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: article.id },
+        redis,
+      })
+    }
+  }
 
   /**
    * archive
@@ -40,6 +53,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     // sync
     const user = await atomService.userIdLoader.load(id)
     const archivedUser = await userService.archive(id)
+    await invalidateUserCaches(id)
 
     // async
     userQueue.archiveUser({ userId: id })
@@ -61,12 +75,13 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
    * active, banned, frozen
    */
   const handleUpdateUserState = async (user: User) => {
+    let updatedUser: User
     if (state === USER_STATE.banned) {
-      return await userService.banUser(user.id, { banDays })
+      updatedUser = await userService.banUser(user.id, { banDays })
     } else if (state !== user.state && user.state === USER_STATE.banned) {
-      return await userService.unbanUser(user.id, state)
+      updatedUser = await userService.unbanUser(user.id, state)
     } else {
-      return await atomService.update({
+      updatedUser = await atomService.update({
         table: 'user',
         where: { id: user.id },
         data: {
@@ -74,6 +89,8 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
         },
       })
     }
+    await invalidateUserCaches(user.id)
+    return updatedUser
   }
   const validateUserState = (user: User) => {
     if (

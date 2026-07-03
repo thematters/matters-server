@@ -1,16 +1,35 @@
 import type { GQLUserResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES, LATEST_WORKS_NUM } from '#common/enums/index.js'
+import {
+  NODE_TYPES,
+  LATEST_WORKS_NUM,
+  USER_STATE,
+} from '#common/enums/index.js'
+
+const restrictedAuthorStates = new Set<string>([
+  USER_STATE.frozen,
+  USER_STATE.banned,
+  USER_STATE.archived,
+])
 
 const resolver: GQLUserResolvers['latestWorks'] = async (
   { id },
   _,
-  { dataSources: { articleService, collectionService } }
+  { dataSources: { articleService, atomService, collectionService }, viewer }
 ) => {
+  const user = await atomService.userIdLoader.load(id)
+  const hideArticles =
+    viewer.id !== id &&
+    !viewer.hasRole('admin') &&
+    user &&
+    restrictedAuthorStates.has(user.state)
+
   const [articles, collections] = await Promise.all([
-    articleService.findByAuthor(id, {
-      take: LATEST_WORKS_NUM,
-    }),
+    hideArticles
+      ? []
+      : articleService.findByAuthor(id, {
+          take: LATEST_WORKS_NUM,
+        }),
     collectionService.findByAuthor(id, { take: LATEST_WORKS_NUM }, true),
   ])
   const works = [

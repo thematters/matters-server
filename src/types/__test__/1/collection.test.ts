@@ -3,20 +3,27 @@ import type { Connections } from '#definitions/index.js'
 import {
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
   NODE_TYPES,
+  USER_STATE,
 } from '#common/enums/index.js'
 import { toGlobalId } from '#common/utils/index.js'
-import { CollectionService, ArticleService } from '#connectors/index.js'
+import {
+  CollectionService,
+  ArticleService,
+  UserService,
+} from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
 
 let connections: Connections
 let collectionService: CollectionService
 let articleService: ArticleService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   collectionService = new CollectionService(connections)
   articleService = new ArticleService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -1111,6 +1118,45 @@ test('get latest works', async () => {
     expect(data?.viewer?.latestWorks[0].updatedAt.getTime()).toBeGreaterThan(
       data?.viewer?.latestWorks[1].updatedAt.getTime()
     )
+  }
+})
+
+test('hide restricted user articles from public latest works', async () => {
+  const GET_USER_LATEST_WORKS = /* GraphQL */ `
+    query ($input: UserInput!) {
+      user(input: $input) {
+        latestWorks {
+          id
+          ... on Article {
+            shortHash
+          }
+        }
+      }
+    }
+  `
+  const user = await userService.findByUserName('test1')
+  await connections.knex('user').where({ id: user.id }).update({
+    state: USER_STATE.frozen,
+  })
+
+  try {
+    const server = await testClient({ connections })
+    const { data } = await server.executeOperation({
+      query: GET_USER_LATEST_WORKS,
+      variables: {
+        input: { userName: user.userName },
+      },
+    })
+
+    expect(
+      data?.user?.latestWorks.some(
+        (work: { shortHash?: string }) => work.shortHash
+      )
+    ).toBe(false)
+  } finally {
+    await connections.knex('user').where({ id: user.id }).update({
+      state: USER_STATE.active,
+    })
   }
 })
 
