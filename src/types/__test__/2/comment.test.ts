@@ -11,6 +11,7 @@ import {
   NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   USER_FEATURE_FLAG_TYPE,
+  USER_STATE,
 } from '#common/enums/index.js'
 import {
   AtomService,
@@ -169,6 +170,48 @@ describe('query comment list on article', () => {
       }
     }
   `
+  const GET_ARTICLE_COMMENT_SURFACE = /* GraphQL */ `
+    query ($articleInput: NodeInput!, $commentInput: NodeInput!, $author: ID!) {
+      articleNode: node(input: $articleInput) {
+        ... on Article {
+          commentCount
+          pinnedComments {
+            id
+            content
+          }
+          comments(input: { filter: { author: $author }, first: 10 }) {
+            totalCount
+            edges {
+              node {
+                id
+                content
+                parentComment {
+                  id
+                  content
+                }
+                replyTo {
+                  id
+                  content
+                }
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+      commentNode: node(input: $commentInput) {
+        ... on Comment {
+          id
+          content
+          author {
+            id
+          }
+        }
+      }
+    }
+  `
   const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
   test('query comments by author', async () => {
@@ -264,6 +307,137 @@ describe('query comment list on article', () => {
     expect(data2.node.comments.pageInfo.hasPreviousPage).toBe(true)
     expect(data2.node.comments.pageInfo.hasNextPage).toBe(true)
     expect(data.node.comments.totalCount).toBeGreaterThan(1)
+  })
+
+  test('hide article comments by restricted authors from public surfaces', async () => {
+    const author = await userService.create({
+      userName: `hiddencomment${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+    })
+    await atomService.update({
+      table: 'user',
+      where: { id: author.id },
+      data: { state: USER_STATE.frozen },
+    })
+
+    const publicServer = await testClient({ connections })
+    const before = await publicServer.executeOperation({
+      query: GET_ARTICLE_COMMENT_SURFACE,
+      variables: {
+        articleInput: { id: ARTICLE_ID },
+        commentInput: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
+        author: toGlobalId({ type: NODE_TYPES.User, id: author.id }),
+      },
+    })
+    expect(before.errors).toBeUndefined()
+
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>hidden spam</p>',
+        authorId: author.id,
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        type: COMMENT_TYPE.article,
+        pinned: true,
+        pinnedAt: new Date(),
+      },
+    })
+    const childComment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>visible child</p>',
+        authorId: '1',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: comment.id,
+        replyTo: comment.id,
+        state: COMMENT_STATE.active,
+        type: COMMENT_TYPE.article,
+      },
+    })
+
+    const publicResult = await publicServer.executeOperation({
+      query: GET_ARTICLE_COMMENT_SURFACE,
+      variables: {
+        articleInput: { id: ARTICLE_ID },
+        commentInput: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
+        },
+        author: toGlobalId({ type: NODE_TYPES.User, id: author.id }),
+      },
+    })
+    expect(publicResult.errors).toBeUndefined()
+    expect(publicResult.data.articleNode.commentCount).toBe(
+      before.data.articleNode.commentCount + 1
+    )
+    expect(publicResult.data.articleNode.comments.totalCount).toBe(0)
+    expect(publicResult.data.articleNode.comments.edges).toHaveLength(0)
+    expect(publicResult.data.commentNode).toBeNull()
+    expect(
+      publicResult.data.articleNode.pinnedComments.map(
+        ({ id }: { id: string }) => id
+      )
+    ).not.toContain(toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }))
+
+    const publicChildResult = await publicServer.executeOperation({
+      query: GET_ARTICLE_COMMENT_SURFACE,
+      variables: {
+        articleInput: { id: ARTICLE_ID },
+        commentInput: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: childComment.id }),
+        },
+        author: toGlobalId({ type: NODE_TYPES.User, id: '1' }),
+      },
+    })
+    expect(publicChildResult.errors).toBeUndefined()
+    const publicChild = publicChildResult.data.articleNode.comments.edges.find(
+      ({ node }: { node: { id: string } }) =>
+        node.id ===
+        toGlobalId({ type: NODE_TYPES.Comment, id: childComment.id })
+    ).node
+    expect(publicChild.parentComment).toBeNull()
+    expect(publicChild.replyTo).toBeNull()
+
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+    const adminResult = await adminServer.executeOperation({
+      query: GET_ARTICLE_COMMENT_SURFACE,
+      variables: {
+        articleInput: { id: ARTICLE_ID },
+        commentInput: {
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
+        },
+        author: toGlobalId({ type: NODE_TYPES.User, id: author.id }),
+      },
+    })
+    expect(adminResult.errors).toBeUndefined()
+    expect(adminResult.data.articleNode.commentCount).toBe(
+      before.data.articleNode.commentCount + 2
+    )
+    expect(adminResult.data.articleNode.comments.totalCount).toBe(1)
+    expect(adminResult.data.commentNode.content).toBe('<p>hidden spam</p>')
+    expect(
+      adminResult.data.articleNode.pinnedComments.map(
+        ({ id }: { id: string }) => id
+      )
+    ).toContain(toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }))
+
+    await atomService.update({
+      table: 'comment',
+      where: { id: comment.id },
+      data: { pinned: false, pinnedAt: null },
+    })
   })
 })
 
@@ -515,6 +689,93 @@ describe('vote/unvote commment', () => {
       },
     })
     expect(unvoteData.unvoteComment.upvotes).toBe(upvotes - 1)
+  })
+})
+
+describe('query comment list on moment', () => {
+  const GET_MOMENT_COMMENT_SURFACE = /* GraphQL */ `
+    query ($input: MomentInput!, $author: ID!) {
+      moment(input: $input) {
+        commentCount
+        comments(input: { filter: { author: $author }, first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+              content
+              author {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('hide moment comments by archived authors from public surfaces', async () => {
+    const moment = await momentService.create(
+      { content: 'moment with hidden comment' },
+      { id: '1', state: USER_STATE.active, userName: 'test' }
+    )
+    const author = await userService.create({
+      userName: `archivedcomment${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+    })
+    await atomService.update({
+      table: 'user',
+      where: { id: author.id },
+      data: { state: USER_STATE.archived },
+    })
+
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'moment' },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: '<p>archived spam</p>',
+        authorId: author.id,
+        targetId: moment.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        type: COMMENT_TYPE.moment,
+      },
+    })
+
+    const publicServer = await testClient({ connections })
+    const publicResult = await publicServer.executeOperation({
+      query: GET_MOMENT_COMMENT_SURFACE,
+      variables: {
+        input: { shortHash: moment.shortHash },
+        author: toGlobalId({ type: NODE_TYPES.User, id: author.id }),
+      },
+    })
+    expect(publicResult.errors).toBeUndefined()
+    expect(publicResult.data.moment.commentCount).toBe(0)
+    expect(publicResult.data.moment.comments.totalCount).toBe(0)
+    expect(publicResult.data.moment.comments.edges).toHaveLength(0)
+
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+    const adminResult = await adminServer.executeOperation({
+      query: GET_MOMENT_COMMENT_SURFACE,
+      variables: {
+        input: { shortHash: moment.shortHash },
+        author: toGlobalId({ type: NODE_TYPES.User, id: author.id }),
+      },
+    })
+    expect(adminResult.errors).toBeUndefined()
+    expect(adminResult.data.moment.commentCount).toBe(1)
+    expect(adminResult.data.moment.comments.totalCount).toBe(1)
+    expect(adminResult.data.moment.comments.edges[0].node.content).toBe(
+      '<p>archived spam</p>'
+    )
   })
 })
 

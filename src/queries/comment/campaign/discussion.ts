@@ -14,7 +14,7 @@ import {
 const resolver: GQLWritingChallengeResolvers['discussion'] = async (
   { id },
   { input: { sort, first, ...rest } },
-  { dataSources: { atomService, commentService } }
+  { viewer, dataSources: { atomService, commentService } }
 ) => {
   if (!id) {
     return connectionFromArray([], rest)
@@ -76,6 +76,7 @@ const resolver: GQLWritingChallengeResolvers['discussion'] = async (
     order,
     includeAfter: rest.includeAfter,
     includeBefore: rest.includeBefore,
+    includeRestrictedAuthors: viewer.hasRole('admin'),
   })
 
   if (!comments.length) {
