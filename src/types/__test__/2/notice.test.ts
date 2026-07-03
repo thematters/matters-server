@@ -1,12 +1,18 @@
 import type { Connections } from '#definitions/index.js'
 import { v4 as uuidv4 } from 'uuid'
-import { NODE_TYPES } from '#common/enums/index.js'
+import {
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  NODE_TYPES,
+  USER_STATE,
+} from '#common/enums/index.js'
 import { toGlobalId, fromGlobalId } from '#common/utils/index.js'
 import {
   AtomService,
   SystemService,
   CollectionService,
   CampaignService,
+  UserService,
 } from '#connectors/index.js'
 
 import { testClient, genConnections, closeConnections } from '../utils.js'
@@ -193,4 +199,120 @@ test('query `scheduled_article_published` notice', async () => {
       latestNotice.entities[2].__typename,
     ].sort()
   ).toEqual(['Article', 'WritingChallenge', 'Collection'].sort())
+})
+
+test('hide notices from restricted actors', async () => {
+  const GET_COMMENT_NOTICES = /* GraphQL */ `
+    query ($nodeInput: NodeInput!) {
+      node(input: $nodeInput) {
+        ... on User {
+          notices(input: { first: 100 }) {
+            edges {
+              node {
+                id
+                ... on CommentNotice {
+                  actors {
+                    id
+                  }
+                  target {
+                    id
+                    content
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  const userService = new UserService(connections)
+  const spammer = await userService.create({
+    userName: `spamactor${uuidv4().replace(/-/g, '').slice(0, 12)}`,
+  })
+
+  // an active spam comment on article 1, authored by the spammer
+  const { id: articleEntityTypeId } = await systemService.baseFindEntityTypeId(
+    'article'
+  )
+  const comment = await atomService.create({
+    table: 'comment',
+    data: {
+      uuid: uuidv4(),
+      content: '<p>spam notice content</p>',
+      authorId: spammer.id,
+      targetId: '1',
+      targetTypeId: articleEntityTypeId,
+      parentCommentId: null,
+      state: COMMENT_STATE.active,
+      type: COMMENT_TYPE.article,
+    },
+  })
+
+  // an `article_new_comment` notice to user 1 with the spammer as actor
+  const noticeDetail = await atomService.create({
+    table: 'notice_detail',
+    data: { noticeType: 'article_new_comment' },
+  })
+  const notice = await atomService.create({
+    table: 'notice',
+    data: {
+      noticeDetailId: noticeDetail.id,
+      recipientId: '1',
+      uuid: uuidv4(),
+    },
+  })
+  await atomService.create({
+    table: 'notice_actor',
+    data: { noticeId: notice.id, actorId: spammer.id },
+  })
+  const { id: commentEntityTypeId } = await systemService.baseFindEntityTypeId(
+    'comment'
+  )
+  await atomService.create({
+    table: 'notice_entity',
+    data: {
+      noticeId: notice.id,
+      entityTypeId: commentEntityTypeId,
+      entityId: comment.id,
+      type: 'comment',
+    },
+  })
+
+  const noticeGlobalId = toGlobalId({ type: NODE_TYPES.Notice, id: notice.id })
+  const server = await testClient({ isAuth: true, connections })
+  const findNotice = async () => {
+    const { data, errors } = await server.executeOperation({
+      query: GET_COMMENT_NOTICES,
+      variables: { nodeInput: { id: USER_ID } },
+    })
+    expect(errors).toBeUndefined()
+    return data.node.notices.edges.find(
+      (e: { node: { id: string } }) => e.node.id === noticeGlobalId
+    )?.node
+  }
+
+  // visible while the actor is active
+  const before = await findNotice()
+  expect(before.target.content).toBe('<p>spam notice content</p>')
+
+  // freezing the only actor drops the whole notice
+  await atomService.update({
+    table: 'user',
+    where: { id: spammer.id },
+    data: { state: USER_STATE.frozen },
+  })
+  expect(await findNotice()).toBeUndefined()
+
+  // bundling an active actor restores the notice, but the frozen actor
+  // stays hidden and the restricted author's comment content is blanked
+  await atomService.create({
+    table: 'notice_actor',
+    data: { noticeId: notice.id, actorId: '2' },
+  })
+  const bundled = await findNotice()
+  expect(bundled.actors.map((a: { id: string }) => a.id)).toEqual([
+    toGlobalId({ type: NODE_TYPES.User, id: 2 }),
+  ])
+  expect(bundled.target.content).toBe('')
 })
