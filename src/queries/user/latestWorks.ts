@@ -13,16 +13,14 @@ const restrictedAuthorStates = new Set<string>([
 ])
 
 const resolver: GQLUserResolvers['latestWorks'] = async (
-  { id },
+  { id, state },
   _,
-  { dataSources: { articleService, atomService, collectionService }, viewer }
+  { dataSources: { articleService, collectionService }, viewer }
 ) => {
-  const user = await atomService.userIdLoader.load(id)
   const hideArticles =
     viewer.id !== id &&
     !viewer.hasRole('admin') &&
-    user &&
-    restrictedAuthorStates.has(user.state)
+    restrictedAuthorStates.has(state || '')
 
   const [articles, collections] = await Promise.all([
     hideArticles
