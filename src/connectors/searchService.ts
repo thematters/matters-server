@@ -24,6 +24,20 @@ const logger = getLogger('service-search')
 const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
+// user states excluded from search results; the search index snapshots
+// `state`/`author_state` and can lag behind freshly restricted accounts,
+// so results are also re-checked against the live user rows
+const SEARCH_EXCLUDED_USER_STATES = [
+  USER_STATE.archived,
+  USER_STATE.banned,
+  USER_STATE.frozen,
+] as const
+
+const isSearchExcludedUserState = (state?: string) =>
+  SEARCH_EXCLUDED_USER_STATES.includes(
+    state as (typeof SEARCH_EXCLUDED_USER_STATES)[number]
+  )
+
 export class SearchService {
   private connections: Connections
   private models: AtomService
@@ -148,12 +162,11 @@ export class SearchService {
               )
               .whereNotIn('id', articleIds)
               .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'NOT IN', [
-                // USER_STATE.active
-                USER_STATE.archived,
-                USER_STATE.banned,
-                USER_STATE.frozen,
-              ])
+              .andWhere(
+                'author_state',
+                'NOT IN',
+                SEARCH_EXCLUDED_USER_STATES as unknown as string[]
+              )
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
                 `(query @@ title_jieba_ts OR query @@ summary_jieba_ts OR query @@ text_jieba_ts)`
@@ -187,11 +200,34 @@ export class SearchService {
         }
       })
 
-    const nodes = await this.models.articleIdLoader.loadMany(
-      records.map((item: { id: string }) => item.id).filter(Boolean)
+    const loaded = (
+      await this.models.articleIdLoader.loadMany(
+        records.map((item: { id: string }) => item.id).filter(Boolean)
+      )
+    ).filter((node): node is Article => !(node instanceof Error))
+
+    // drop articles whose authors were restricted after the last index sync
+    const authors = await this.models.userIdLoader.loadMany(
+      loaded.map(({ authorId }) => authorId)
+    )
+    const restrictedAuthorIds = new Set(
+      authors
+        .filter(
+          (author) =>
+            !(author instanceof Error) &&
+            isSearchExcludedUserState(author.state)
+        )
+        .map((author) => (author as { id: string }).id)
+    )
+    const nodes = loaded.filter(
+      ({ authorId }) => !restrictedAuthorIds.has(authorId)
     )
 
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const snapshotTotalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const totalCount = Math.max(
+      0,
+      snapshotTotalCount - (loaded.length - nodes.length)
+    )
 
     logger.debug(
       `articleService::searchV2 knexSearch instance got ${nodes.length} nodes from: ${totalCount} total:`,
@@ -240,6 +276,12 @@ export class SearchService {
           .from('article_version_newest')
       )
       .where({ state: ARTICLE_STATE.active })
+      .whereNotIn(
+        'authorId',
+        this.knexRO('user')
+          .select('id')
+          .whereIn('state', SEARCH_EXCLUDED_USER_STATES as unknown as string[])
+      )
       // .modify(excludeSpam, spamThreshold)
       .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
@@ -458,12 +500,11 @@ export class SearchService {
       .crossJoin(
         this.knexSearch.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
       )
-      .where('state', 'NOT IN', [
-        // USER_STATE.active,
-        USER_STATE.archived,
-        USER_STATE.banned,
-        USER_STATE.frozen,
-      ])
+      .where(
+        'state',
+        'NOT IN',
+        SEARCH_EXCLUDED_USER_STATES as unknown as string[]
+      )
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
@@ -522,11 +563,19 @@ export class SearchService {
       { sample: records?.slice(0, 3) }
     )
 
-    const nodes = await this.models.userIdLoader.loadMany(
+    const loaded = await this.models.userIdLoader.loadMany(
       records.map(({ id }) => id)
     )
+    // drop accounts restricted after the last search index sync
+    const nodes = loaded.filter(
+      (node) =>
+        !(node instanceof Error) && !isSearchExcludedUserState(node.state)
+    )
 
-    return { nodes, totalCount }
+    return {
+      nodes,
+      totalCount: Math.max(0, totalCount - (loaded.length - nodes.length)),
+    }
   }
 
   public findFrequentSearches = async ({

@@ -1,7 +1,8 @@
 import type { Connections } from '#definitions/index.js'
 
-import { FEATURE_NAME, FEATURE_FLAG } from '#common/enums/index.js'
+import { FEATURE_NAME, FEATURE_FLAG, USER_STATE } from '#common/enums/index.js'
 import { PublicationService } from '../../article/publicationService.js'
+import { UserService } from '../../userService.js'
 import { AtomService } from '../../atomService.js'
 import { SearchService } from '../../searchService.js'
 import { SystemService } from '../../systemService.js'
@@ -183,5 +184,49 @@ describe('quicksearch', () => {
       where: { id: article.id },
       data: { spamScore: spamThreshold + 0.1 },
     })
+  })
+})
+
+describe('restricted authors', () => {
+  test('exclude articles whose authors were restricted after the index sync', async () => {
+    const userService = new UserService(connections)
+    const author = await userService.create({ userName: 'stalefrozenauthor' })
+    const [article] = await publicationService.createArticle({
+      title: 'stalesearchable title',
+      content: 'stalesearchable body',
+      authorId: author.id,
+    })
+    // index while the author is still active
+    await searchService.indexArticles([article.id])
+
+    const before = await searchService.searchArticles({
+      key: 'stalesearchable',
+      take: 10,
+      skip: 0,
+    })
+    expect(before.nodes.map(({ id }) => id)).toContain(article.id)
+
+    await connections
+      .knex('user')
+      .where({ id: author.id })
+      .update({ state: USER_STATE.frozen })
+
+    // fresh service to avoid the test-only dataloader cache
+    const freshSearchService = new SearchService(connections)
+    const after = await freshSearchService.searchArticles({
+      key: 'stalesearchable',
+      take: 10,
+      skip: 0,
+    })
+    expect(after.nodes.map(({ id }) => id)).not.toContain(article.id)
+
+    // quicksearch reads the live database and excludes as well
+    const quick = await freshSearchService.searchArticles({
+      key: 'stalesearchable',
+      take: 10,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(quick.nodes.map(({ id }) => id)).not.toContain(article.id)
   })
 })

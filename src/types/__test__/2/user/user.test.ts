@@ -1406,3 +1406,41 @@ describe('query user writings', () => {
     expect(dataAfter.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
   })
 })
+
+describe('restricted user description', () => {
+  const GET_USER_DESCRIPTION = /* GraphQL */ `
+    query ($input: UserInput!) {
+      user(input: $input) {
+        info {
+          description
+        }
+      }
+    }
+  `
+  test('hide description of restricted users from visitors', async () => {
+    const user = await userService.create({ userName: 'frozendescuser' })
+    await connections
+      .knex('user')
+      .where({ id: user.id })
+      .update({ description: 'spam self intro', state: USER_STATE.frozen })
+
+    const visitorServer = await testClient({ connections })
+    const { data } = await visitorServer.executeOperation({
+      query: GET_USER_DESCRIPTION,
+      variables: { input: { userName: 'frozendescuser' } },
+    })
+    expect(data.user.info.description).toBeNull()
+
+    // admin still sees it
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data: adminData } = await adminServer.executeOperation({
+      query: GET_USER_DESCRIPTION,
+      variables: { input: { userName: 'frozendescuser' } },
+    })
+    expect(adminData.user.info.description).toBe('spam self intro')
+  })
+})

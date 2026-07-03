@@ -40,6 +40,7 @@ import Collection from './collection/index.js'
 import collections from './collections.js'
 import commentCount from './commentCount.js'
 import cryptoWallet from './cryptoWallet.js'
+import description from './description.js'
 import donatedArticleCount from './donatedArticleCount.js'
 import featuredTags from './featuredTags.js'
 import features from './features.js'
@@ -160,6 +161,7 @@ const user: {
   UserInfo: {
     ipnsKey,
     badges,
+    description,
     userNameEditable,
     email: ({ email }) => email && email.replace(/#/g, '@'),
     emailVerified: ({ emailVerified }) => emailVerified || false,
