@@ -453,7 +453,10 @@ export class TagService extends BaseService<Tag> {
       .select('moment.*')
       .from('moment')
       .join('moment_tag', 'moment_tag.moment_id', 'moment.id')
-      .where({ 'moment_tag.tag_id': tagId, 'moment.state': MOMENT_STATE.active })
+      .where({
+        'moment_tag.tag_id': tagId,
+        'moment.state': MOMENT_STATE.active,
+      })
       .modify((builder: Knex.QueryBuilder) => {
         if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold, 'moment')
@@ -488,7 +491,10 @@ export class TagService extends BaseService<Tag> {
     id: string
     spamThreshold?: number
   }) =>
-    this.momentsByTagQuery({ tagId, spamThreshold }).orderBy('moment.id', 'desc')
+    this.momentsByTagQuery({ tagId, spamThreshold }).orderBy(
+      'moment.id',
+      'desc'
+    )
 
   public findHottestArticles = (tagId: string) => {
     return this.knexRO
@@ -542,7 +548,10 @@ export class TagService extends BaseService<Tag> {
       .select('author_id as id')
       .from(MATERIALIZED_VIEW.tag_related_authors_materialized)
       .where({ tagId })
+      // secondary key makes tied (normalized 1.0) authors from both sides
+      // interleave deterministically
       .orderBy('score', 'desc')
+      .orderBy('author_id')
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
