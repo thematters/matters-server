@@ -21,6 +21,7 @@ import {
   QUEUE_URL,
   CACHE_TTL,
   USER_ACTION,
+  USER_STATE,
   NOTICE_TYPE,
   BUNDLED_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -46,6 +47,14 @@ const logger = getLogger('service-notification')
 const SKIP_NOTICE_FLAG_PREFIX = 'skip-notice'
 const DELETE_NOTICE_KEY_PREFIX = 'delete-notice'
 const LOCK_NOTICE_PREFIX = 'lock-notice'
+
+// mirrors RESTRICTED_COMMENT_AUTHOR_STATES in commentService: `banned` is a
+// temporary punishment whose content stays, while frozen/archived actors
+// should not surface in other users' notification feeds
+const RESTRICTED_NOTICE_ACTOR_STATES = [
+  USER_STATE.frozen,
+  USER_STATE.archived,
+] as const
 
 export class NotificationService {
   public mail: typeof mail
@@ -145,6 +154,7 @@ export class NotificationService {
       where,
       skip,
       take,
+      excludeRestrictedActors: true,
     })
 
     return Promise.all(
@@ -185,6 +195,9 @@ export class NotificationService {
     if (onlyRecent) {
       query.whereRaw(`updated_at > now() - interval '6 months'`)
     }
+
+    // keep the badge count in sync with the filtered notice list
+    this.excludeRestrictedActorNotices(query)
 
     const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -296,11 +309,13 @@ export class NotificationService {
     whereIn,
     skip,
     take,
+    excludeRestrictedActors,
   }: {
     where?: any[][]
     whereIn?: [string, any[]]
     skip?: number
     take?: number
+    excludeRestrictedActors?: boolean
   }): Promise<NoticeDetail[]> => {
     const knexRO = this.connections.knexRO
     const query = knexRO
@@ -331,6 +346,10 @@ export class NotificationService {
 
     if (whereIn) {
       query.whereIn(...whereIn)
+    }
+
+    if (excludeRestrictedActors) {
+      this.excludeRestrictedActorNotices(query)
     }
 
     if (skip) {
@@ -401,8 +420,30 @@ export class NotificationService {
       .from('notice_actor')
       .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
       .where({ noticeId })
+      .whereNotIn('user.state', RESTRICTED_NOTICE_ACTOR_STATES)
     return actors
   }
+
+  // exclude notices whose actors are all restricted; notices without actors
+  // (e.g. official announcements) are kept
+  private excludeRestrictedActorNotices = (query: Knex.QueryBuilder) =>
+    query.where((builder) =>
+      builder
+        .whereNotExists(
+          this.knexRO
+            .select(1)
+            .from('notice_actor')
+            .whereRaw('notice_actor.notice_id = notice.id')
+        )
+        .orWhereExists(
+          this.knexRO
+            .select(1)
+            .from('notice_actor')
+            .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
+            .whereRaw('notice_actor.notice_id = notice.id')
+            .whereNotIn('user.state', RESTRICTED_NOTICE_ACTOR_STATES)
+        )
+    )
 
   private deleteNotice = async (id: string) =>
     this.models.update({
