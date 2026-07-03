@@ -221,6 +221,16 @@ describe('query articles', () => {
       expect(mediaHashResult.errors).toBeUndefined()
       expect(mediaHashResult.data.article).toBeNull()
 
+      const nodeResult = await anonymousServer.executeOperation({
+        query: GET_ARTICLE_TAGS,
+        variables: {
+          input: {
+            id: ARTICLE_ID,
+          },
+        },
+      })
+      expect(nodeResult.errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
+
       const adminServer = await testClient({
         connections,
         isAuth: true,

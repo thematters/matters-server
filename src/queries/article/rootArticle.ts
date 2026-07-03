@@ -6,7 +6,13 @@ import { getLogger } from '#common/logger.js'
 
 const logger = getLogger('resolver-root-articles')
 
-const hideFrozenAuthorArticle = async ({
+const restrictedAuthorStates = new Set<string>([
+  USER_STATE.frozen,
+  USER_STATE.banned,
+  USER_STATE.archived,
+])
+
+const hideRestrictedAuthorArticle = async ({
   article,
   atomService,
   viewer,
@@ -19,12 +25,12 @@ const hideFrozenAuthorArticle = async ({
     return null
   }
 
-  if (viewer.hasRole('admin')) {
+  if (viewer.id === article.authorId || viewer.hasRole('admin')) {
     return article
   }
 
   const author = await atomService.userIdLoader.load(article.authorId)
-  if (author?.state === USER_STATE.frozen) {
+  if (author && restrictedAuthorStates.has(author.state)) {
     return null
   }
 
@@ -38,7 +44,7 @@ const resolver: GQLQueryResolvers['article'] = async (
 ) => {
   if (shortHash) {
     const article = await articleService.findArticleByShortHash(shortHash)
-    return hideFrozenAuthorArticle({ article, atomService, viewer })
+    return hideRestrictedAuthorArticle({ article, atomService, viewer })
   }
   if (mediaHash) {
     const node = await articleService.findVersionByMediaHash(mediaHash)
@@ -47,7 +53,7 @@ const resolver: GQLQueryResolvers['article'] = async (
       return null
     }
     const article = await atomService.articleIdLoader.load(node.articleId)
-    return hideFrozenAuthorArticle({ article, atomService, viewer })
+    return hideRestrictedAuthorArticle({ article, atomService, viewer })
   }
 
   throw new UserInputError('one of mediaHash or shortHash is required')

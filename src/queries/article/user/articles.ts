@@ -9,10 +9,16 @@ import {
 
 const logger = getLogger('resolver-user-articles')
 
+const restrictedAuthorStates = new Set<string>([
+  USER_STATE.frozen,
+  USER_STATE.banned,
+  USER_STATE.archived,
+])
+
 const resolver: GQLUserResolvers['articles'] = async (
   { id, state: userState },
   { input },
-  { dataSources: { articleService }, viewer }
+  { dataSources: { articleService, atomService }, viewer }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -21,8 +27,12 @@ const resolver: GQLUserResolvers['articles'] = async (
   const isViewer = viewer.id === id
   const isAdmin = viewer.hasRole('admin')
 
-  if (!isViewer && !isAdmin && userState === USER_STATE.frozen) {
-    return connectionFromArray([], input)
+  if (!isViewer && !isAdmin) {
+    const authorState =
+      userState ?? (await atomService.userIdLoader.load(id))?.state ?? null
+    if (authorState && restrictedAuthorStates.has(authorState)) {
+      return connectionFromArray([], input)
+    }
   }
 
   // only viewer and admin can see all articles
