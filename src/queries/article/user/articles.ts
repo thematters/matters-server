@@ -1,5 +1,6 @@
 import type { GQLUserResolvers } from '#definitions/index.js'
 
+import { USER_STATE } from '#common/enums/index.js'
 import { getLogger } from '#common/logger.js'
 import {
   connectionFromArray,
@@ -8,10 +9,16 @@ import {
 
 const logger = getLogger('resolver-user-articles')
 
+const restrictedAuthorStates = new Set<string>([
+  USER_STATE.frozen,
+  USER_STATE.banned,
+  USER_STATE.archived,
+])
+
 const resolver: GQLUserResolvers['articles'] = async (
-  { id },
+  { id, state: userState },
   { input },
-  { dataSources: { articleService }, viewer }
+  { dataSources: { articleService, atomService }, viewer }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -19,20 +26,33 @@ const resolver: GQLUserResolvers['articles'] = async (
 
   const isViewer = viewer.id === id
   const isAdmin = viewer.hasRole('admin')
+
+  if (!isViewer && !isAdmin) {
+    const authorState =
+      userState ?? (await atomService.userIdLoader.load(id))?.state ?? null
+    if (authorState && restrictedAuthorStates.has(authorState)) {
+      return connectionFromArray([], input)
+    }
+  }
+
   // only viewer and admin can see all articles
-  let state
+  let articleState
   if (isViewer || isAdmin) {
-    state = input?.filter?.state ?? null
+    articleState = input?.filter?.state ?? null
   } else {
-    state = input?.filter?.state ?? 'active'
-    if (state !== 'active') {
-      logger.warn('user %s is not allowed to see state %s', viewer.id, state)
+    articleState = input?.filter?.state ?? 'active'
+    if (articleState !== 'active') {
+      logger.warn(
+        'user %s is not allowed to see state %s',
+        viewer.id,
+        articleState
+      )
       return connectionFromArray([], input)
     }
   }
 
   const articles = await articleService.findByAuthor(id, {
-    state,
+    state: articleState,
     orderBy: input.sort,
   })
 
