@@ -4,9 +4,12 @@ import {
   MONTH,
   NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
+  USER_STATE,
 } from '#common/enums/index.js'
 import { NotificationService } from '#connectors/notification/notificationService.js'
 import { mergeDataWith } from '#connectors/notification/utils.js'
+import { UserService } from '#connectors/userService.js'
+import { v4 as uuidv4 } from 'uuid'
 
 import { genConnections, closeConnections } from './utils.js'
 
@@ -398,5 +401,53 @@ describe('query notices with onlyRecent flag', () => {
       onlyRecent: true,
     })
     expect(notices1.length - notices2.length).toBe(1)
+  })
+})
+
+describe('exclude restricted actor notices', () => {
+  test('frozen/archived actor notices are hidden from list and count', async () => {
+    const userService = new UserService(connections)
+    const genUserName = () =>
+      `noticeactor${uuidv4().replace(/-/g, '').slice(0, 12)}`
+    const recipient = await userService.create({ userName: genUserName() })
+    const actor = await userService.create({ userName: genUserName() })
+
+    await notificationService.process({
+      event: NOTICE_TYPE.user_new_follower,
+      actorId: actor.id,
+      recipientId: recipient.id,
+      tag: `follow:${actor.id}:${recipient.id}`,
+    })
+    const setActorState = (state: string) =>
+      connections
+        .knex('user')
+        .where({ id: actor.id })
+        .update({ state, updatedAt: new Date() })
+
+    expect(
+      await notificationService.countNotice({ userId: recipient.id })
+    ).toBe(1)
+    expect(
+      (await notificationService.findByUser({ userId: recipient.id })).length
+    ).toBe(1)
+
+    // frozen and archived actors are excluded
+    for (const state of [USER_STATE.frozen, USER_STATE.archived]) {
+      await setActorState(state)
+      expect(
+        await notificationService.countNotice({ userId: recipient.id })
+      ).toBe(0)
+      expect(
+        (await notificationService.findByUser({ userId: recipient.id })).length
+      ).toBe(0)
+    }
+
+    // banned is a temporary punishment and stays visible
+    await setActorState(USER_STATE.banned)
+    const notices = await notificationService.findByUser({
+      userId: recipient.id,
+    })
+    expect(notices.length).toBe(1)
+    expect(notices[0]?.actors?.map(({ id }) => id)).toEqual([actor.id])
   })
 })

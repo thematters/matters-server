@@ -222,6 +222,7 @@ export class DailySummaryEmailService {
         ],
       ],
       whereIn: ['notice_detail.notice_type', validNoticeTypes],
+      excludeRestrictedActors: true,
     })
 
     const notices = await Promise.all(
