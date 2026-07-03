@@ -1,9 +1,10 @@
 import type { GQLMutationResolvers, User } from '#definitions/index.js'
 
-import { NODE_TYPES, USER_STATE } from '#common/enums/index.js'
+import { USER_STATE } from '#common/enums/index.js'
 import { ActionFailedError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
-import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import { invalidateUserContentCaches } from './utils.js'
 
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
@@ -22,15 +23,8 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
 ) => {
   const id = globalId ? fromGlobalId(globalId).id : undefined
 
-  const invalidateUserCaches = async (userId: string) => {
-    await invalidateFQC({ node: { type: NODE_TYPES.User, id: userId }, redis })
-    for (const article of await articleService.findByAuthor(userId)) {
-      await invalidateFQC({
-        node: { type: NODE_TYPES.Article, id: article.id },
-        redis,
-      })
-    }
-  }
+  const invalidateUserCaches = (userId: string) =>
+    invalidateUserContentCaches(userId, { articleService, redis })
 
   /**
    * archive
