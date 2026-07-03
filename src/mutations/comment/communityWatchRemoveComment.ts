@@ -222,7 +222,7 @@ const resolver = async (
         dedupeKey: `cw:author:${authorId}`,
         subject,
         reason,
-        ossUrl: `${environment.ossSiteDomain}/reports`,
+        ossUrl: `${environment.ossSiteDomain}/next/watch`,
       })
     } catch {
       // swallowed; report-alert is a notification side channel
