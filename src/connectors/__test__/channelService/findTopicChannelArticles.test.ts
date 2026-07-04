@@ -201,6 +201,38 @@ describe('findTopicChannelArticles', () => {
     }
   })
 
+  test('falls back to global spam threshold when topic channel filter is off', async () => {
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.5,
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: null, spamScore: 0.6 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: false, spamScore: 0.9 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: { isSpam: true, spamScore: 0.1 },
+    })
+
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    const resultIds = results.map((a) => a.id)
+
+    expect(resultIds).not.toContain(articles[0].id)
+    expect(resultIds).toContain(articles[1].id)
+    expect(resultIds).not.toContain(articles[2].id)
+    expect(resultIds).toContain(articles[3].id)
+  })
+
   test('uses topic channel spam threshold separately from global threshold', async () => {
     await systemService.setFeatureFlag({
       name: FEATURE_NAME.spam_detection,
