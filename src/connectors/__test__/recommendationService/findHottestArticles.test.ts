@@ -276,20 +276,23 @@ describe('findHottestArticles', () => {
       name: FEATURE_NAME.discovery_probation,
       flag: FEATURE_FLAG.on,
     })
-    const after = await recommendationService.findHottestArticles({
-      days: 5,
-      readersThreshold: 0,
-      commentsThreshold: 0,
-    })
-    const afterIds = after.map((r: any) => r.articleId)
-    expect(afterIds).not.toContain(article1.id)
-    expect(afterIds).toContain(article2.id)
-
-    // kill-switch: turning the flag off restores the previous behavior
-    await systemService.setFeatureFlag({
-      name: FEATURE_NAME.discovery_probation,
-      flag: FEATURE_FLAG.off,
-    })
+    try {
+      const after = await recommendationService.findHottestArticles({
+        days: 5,
+        readersThreshold: 0,
+        commentsThreshold: 0,
+      })
+      const afterIds = after.map((r: any) => r.articleId)
+      expect(afterIds).not.toContain(article1.id)
+      expect(afterIds).toContain(article2.id)
+    } finally {
+      // kill-switch — and cleanup even on failure, so a thrown assertion
+      // cannot leak the flag into the rest of this suite
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.off,
+      })
+    }
     const restored = await recommendationService.findHottestArticles({
       days: 5,
       readersThreshold: 0,

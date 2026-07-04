@@ -105,7 +105,8 @@ export const excludeProbationAuthors = (
       .select(1)
       .from('user')
       .where('user.id', qb.client.ref(`${table}.author_id`))
-      .whereRaw(`user.created_at >= now() - interval '1 day' * ?`, [days])
+      // "user" must be quoted in raw SQL — unquoted it parses as the USER keyword
+      .whereRaw(`"user".created_at >= now() - interval '1 day' * ?`, [days])
   )
 }
 
