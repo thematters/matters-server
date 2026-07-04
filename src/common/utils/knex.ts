@@ -88,6 +88,27 @@ export const excludeStateRestrictedAuthors = (
   )
 }
 
+/**
+ * Exclude articles whose author account is younger than `days` days
+ * (discovery probation). Applied only to discovery surfaces (hottest /
+ * newest / icymi / tag / channel feeds); direct links, profile pages,
+ * followee feeds and search are intentionally untouched so anonymous
+ * whistleblower accounts can still be reached and followed.
+ */
+export const excludeProbationAuthors = (
+  builder: Knex.QueryBuilder,
+  days: number,
+  table = 'article'
+) => {
+  builder.whereNotExists((qb) =>
+    qb
+      .select(1)
+      .from('user')
+      .where('user.id', qb.client.ref(`${table}.author_id`))
+      .whereRaw(`user.created_at >= now() - interval '1 day' * ?`, [days])
+  )
+}
+
 export const excludeExclusiveCampaignArticles = (
   builder: Knex.QueryBuilder,
   table = 'article'

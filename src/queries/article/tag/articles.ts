@@ -9,11 +9,14 @@ const resolver: GQLTagResolvers['articles'] = async (
 ) => {
   const { sortBy } = input
   const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
+  // dark-launched discovery probation: `undefined` while flag is off (zero diff)
+  const probationDays =
+    (await systemService.getDiscoveryProbationDays()) ?? undefined
   const isHottest = sortBy === 'byHottestDesc'
 
   const query = isHottest
-    ? tagService.findHottestArticles(id)
-    : tagService.findArticles({ id, spamThreshold })
+    ? tagService.findHottestArticles(id, probationDays)
+    : tagService.findArticles({ id, spamThreshold, probationDays })
   const orderBy = { column: isHottest ? 'score' : 'id', order: 'desc' as const }
 
   const result = await connectionFromQuery({ query, args: input, orderBy })

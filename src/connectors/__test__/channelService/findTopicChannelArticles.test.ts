@@ -36,6 +36,10 @@ beforeEach(async () => {
     name: FEATURE_NAME.spam_detection,
     flag: FEATURE_FLAG.off,
   })
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_probation,
+    flag: FEATURE_FLAG.off,
+  })
   await atomService.deleteMany({ table: 'topic_channel_article' })
   await atomService.deleteMany({ table: 'topic_channel' })
 
@@ -417,6 +421,79 @@ describe('findTopicChannelArticles', () => {
       expect(results.map((a) => a.id)).toContain(articles[0].id)
 
       await atomService.deleteMany({ table: 'user_restriction' })
+    })
+  })
+
+  describe('discovery probation', () => {
+    // articles[1]'s author does not own any other article in the channel
+    // (articles[0] and articles[3] share an author), so it is a clean target
+    const originalCreatedAt: Record<string, Date> = {}
+
+    beforeEach(async () => {
+      // age all channel article authors out of the probation window first
+      // (seed users are created at test run time, i.e. "new" accounts)
+      const authorIds = [
+        ...new Set(articles.slice(0, 4).map(({ authorId }) => authorId)),
+      ]
+      for (const authorId of authorIds) {
+        const author = await atomService.findUnique({
+          table: 'user',
+          where: { id: authorId },
+        })
+        originalCreatedAt[authorId] = author.createdAt
+        await atomService.update({
+          table: 'user',
+          where: { id: authorId },
+          data: { createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000) },
+        })
+      }
+      // make the target author a brand-new account (inside probation window)
+      await atomService.update({
+        table: 'user',
+        where: { id: articles[1].authorId },
+        data: { createdAt: new Date() },
+      })
+    })
+
+    afterEach(async () => {
+      // restore created_at to avoid leaking into other tests
+      for (const [authorId, createdAt] of Object.entries(originalCreatedAt)) {
+        await atomService.update({
+          table: 'user',
+          where: { id: authorId },
+          data: { createdAt },
+        })
+      }
+    })
+
+    test('flag off: results identical to before (zero diff)', async () => {
+      // flag is off via beforeEach; new-account article still shows up
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      expect(results).toHaveLength(4)
+      expect(results.map((a) => a.id)).toContain(articles[1].id)
+    })
+
+    test('flag on: excludes articles from new accounts only', async () => {
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.on,
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      const ids = results.map((a) => a.id)
+      expect(ids).not.toContain(articles[1].id)
+      // articles by older accounts are not affected
+      expect(ids).toContain(articles[0].id)
+      expect(ids).toContain(articles[2].id)
+      expect(ids).toContain(articles[3].id)
     })
   })
 

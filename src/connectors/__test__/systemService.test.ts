@@ -380,6 +380,33 @@ test('get topic channel spam threshold', async () => {
   expect(threshold).toBe(0.8)
 })
 
+test('get discovery probation days', async () => {
+  // flag off (seed default): null, discovery feeds stay unchanged
+  expect(await systemService.getDiscoveryProbationDays()).toBeNull()
+
+  // flag on without value: falls back to env default (3)
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_probation,
+    flag: FEATURE_FLAG.on,
+  })
+  expect(await systemService.getDiscoveryProbationDays()).toBe(3)
+
+  // `value` overrides the env default
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_probation,
+    flag: FEATURE_FLAG.on,
+    value: 7,
+  })
+  expect(await systemService.getDiscoveryProbationDays()).toBe(7)
+
+  // kill-switch: setFeature off restores null
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_probation,
+    flag: FEATURE_FLAG.off,
+  })
+  expect(await systemService.getDiscoveryProbationDays()).toBeNull()
+})
+
 describe('announcement', () => {
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'channel_announcement' })

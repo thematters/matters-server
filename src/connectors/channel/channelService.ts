@@ -37,6 +37,7 @@ import {
   excludeSpam as excludeSpamModifier,
   excludeRestrictedAuthors as excludeRestrictedModifier,
   excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
+  excludeProbationAuthors as excludeProbationModifier,
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -395,10 +396,13 @@ export class ChannelService {
 
     const pinnedArticleIds = channel.pinnedArticles || []
     const systemService = new SystemService(this.connections)
-    const [globalSpamThreshold, topicChannelSpamThreshold] = await Promise.all([
-      systemService.getSpamThreshold(),
-      systemService.getTopicChannelSpamThreshold(),
-    ])
+    const [globalSpamThreshold, topicChannelSpamThreshold, probationDays] =
+      await Promise.all([
+        systemService.getSpamThreshold(),
+        systemService.getTopicChannelSpamThreshold(),
+        // dark-launched discovery probation: `null` while flag is off (zero diff)
+        systemService.getDiscoveryProbationDays(),
+      ])
     const spamThreshold = topicChannelSpamThreshold ?? globalSpamThreshold
 
     const pinnedQuery = knexRO
@@ -442,6 +446,12 @@ export class ChannelService {
       })
       .modify(excludeRestrictedModifier)
       .modify(excludeStateRestrictedModifier)
+      .modify((builder) => {
+        // discovery probation (dark): only applied when the flag is on
+        if (probationDays) {
+          builder.modify(excludeProbationModifier, probationDays)
+        }
+      })
       .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {
         if (channelThreshold) {

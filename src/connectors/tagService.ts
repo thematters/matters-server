@@ -21,6 +21,7 @@ import {
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
   excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
+  excludeProbationAuthors as excludeProbationModifier,
 } from '#common/utils/index.js'
 import _ from 'lodash'
 
@@ -451,7 +452,7 @@ export class TagService extends BaseService<Tag> {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  public findHottestArticles = (tagId: string) => {
+  public findHottestArticles = (tagId: string, probationDays?: number) => {
     return this.knexRO
       .with('tagged_articles', (builder) =>
         builder
@@ -475,6 +476,12 @@ export class TagService extends BaseService<Tag> {
           // hide articles by authors in a restricted state (frozen / banned /
           // archived) from the public hottest tag feed
           .modify(excludeStateRestrictedModifier)
+          .modify((qb) => {
+            // discovery probation (dark): only applied when the flag is on
+            if (probationDays) {
+              qb.modify(excludeProbationModifier, probationDays)
+            }
+          })
       )
       .with('scored_articles', (builder) =>
         builder
@@ -536,10 +543,12 @@ export class TagService extends BaseService<Tag> {
     id: tagId,
     spamThreshold,
     excludeRestricted,
+    probationDays,
   }: {
     id: string
     spamThreshold?: number
     excludeRestricted?: boolean
+    probationDays?: number
   }) => {
     return this.knexRO
       .select(['article.*', 'article_tag.pinned as tag_pinned'])
@@ -561,6 +570,10 @@ export class TagService extends BaseService<Tag> {
         builder.modify(excludeStateRestrictedModifier)
         if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold, 'article')
+        }
+        // discovery probation (dark): only applied when the flag is on
+        if (probationDays) {
+          builder.modify(excludeProbationModifier, probationDays)
         }
 
         builder.orderBy('article.id', 'desc')

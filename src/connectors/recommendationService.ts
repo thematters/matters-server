@@ -25,6 +25,7 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
+import { excludeProbationAuthors as excludeProbationModifier } from '#common/utils/index.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
 import { quantile, median } from 'd3-array'
 import keyBy from 'lodash/keyBy.js'
@@ -347,6 +348,8 @@ export class RecommendationService {
       'article'
     )
     const spamThreshold = await this.systemService.getSpamThreshold()
+    // dark-launched discovery probation: `null` while flag is off (zero diff)
+    const probationDays = await this.systemService.getDiscoveryProbationDays()
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -365,6 +368,7 @@ export class RecommendationService {
                 excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
                 excludeExclusiveCampaignArticles: true,
                 excludeComplaintAreaArticles: true,
+                excludeProbationAuthors: probationDays ?? undefined,
                 datetimeRange: {
                   start: startDate,
                 },
@@ -884,6 +888,8 @@ export class RecommendationService {
     skip?: number
   }) => {
     const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
+    // dark-launched discovery probation: `null` while flag is off (zero diff)
+    const probationDays = await this.systemService.getDiscoveryProbationDays()
     const records = await this.knexRO
       .select(
         'article.*',
@@ -906,6 +912,11 @@ export class RecommendationService {
       )
       .leftJoin('article', 'choice.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
+      .modify((builder) => {
+        if (probationDays) {
+          builder.modify(excludeProbationModifier, probationDays)
+        }
+      })
       .modify((builder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
