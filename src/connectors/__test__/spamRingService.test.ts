@@ -594,6 +594,12 @@ describe('SpamRingService.upsertCandidates', () => {
 
     expect(result.created).toBe(1)
     expect(result.updated).toBe(0)
+    // rings carries the upserted entities so the job can freeze by id
+    expect(result.rings).toHaveLength(1)
+    expect(result.rings[0]).toMatchObject({
+      fingerprint: 'fp-new',
+      status: 'pending',
+    })
     expect(rec.ringInserts[0]).toMatchObject({
       fingerprint: 'fp-new',
       status: 'pending',
@@ -640,6 +646,11 @@ describe('SpamRingService.upsertCandidates', () => {
     expect(result.created).toBe(0)
     expect(result.updated).toBe(1)
     expect(result.skipped).toBe(1)
+    // both the updated ring and the locked (skipped) ring are returned
+    expect(result.rings.map((r) => r.fingerprint).sort()).toEqual([
+      'fp-existing',
+      'fp-frozen',
+    ])
     expect(rec.ringUpdates[0]).toMatchObject({
       where: { id: 'r1' },
       data: {
