@@ -23,6 +23,7 @@
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "testcmd": "MATTERS_ENV=test node --experimental-vm-modules --no-experimental-fetch node_modules/.bin/jest",
     "test:connectors": "npm run testcmd -- build/connectors/ --forceExit --coverageDirectory coverage/connectors",
+    "test:handlers": "npm run testcmd -- build/handlers/ --forceExit --coverageDirectory coverage/handlers",
     "test:utils": "npm run testcmd -- build/common/utils/ --coverageDirectory coverage/utils",
     "test:routes": "npm run testcmd -- build/routes/ --forceExit --coverageDirectory coverage/routes",
     "test:types:1": "npm run testcmd -- build/types/__test__/1/ --forceExit --coverageDirectory coverage/types-1",
