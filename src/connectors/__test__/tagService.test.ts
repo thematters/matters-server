@@ -133,6 +133,79 @@ describe('findArticles', () => {
       data: { state: author?.state },
     })
   })
+  test('exclude articles by authors in discovery probation', async () => {
+    const articles = await tagService.findArticles({ id: '2' })
+    expect(articles.length).toBeGreaterThan(1)
+
+    // age all tag authors out of the probation window first
+    // (seed users are created at test run time, i.e. "new" accounts)
+    const authorIds: string[] = [
+      ...new Set<string>(
+        articles.map(({ authorId }: { authorId: string }) => authorId)
+      ),
+    ]
+    const originalCreatedAt: Record<string, Date> = {}
+    for (const authorId of authorIds) {
+      const author = await atomService.findUnique({
+        table: 'user',
+        where: { id: authorId },
+      })
+      originalCreatedAt[authorId] = author.createdAt
+      await atomService.update({
+        table: 'user',
+        where: { id: authorId },
+        data: { createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000) },
+      })
+    }
+
+    // make the target author a brand-new account (inside probation window)
+    const target = articles[0]
+    await atomService.update({
+      table: 'user',
+      where: { id: target.authorId },
+      data: { createdAt: new Date() },
+    })
+
+    // flag off (no probationDays passed): results identical to before
+    const unchanged = await tagService.findArticles({ id: '2' })
+    expect(toIds(unchanged)).toEqual(toIds(articles))
+
+    // flag on: new-account article is excluded, older accounts unaffected
+    const excluded = await tagService.findArticles({
+      id: '2',
+      probationDays: 3,
+    })
+    expect(toIds(excluded)).not.toContain(target.id)
+    expect(toIds(excluded)).toContain(articles[1].id)
+
+    // hottest tag tab follows the same rule
+    const hottestOff = await tagService.findHottestArticles('2')
+    expect(toIds(hottestOff)).toContain(target.id)
+    const hottestOn = await tagService.findHottestArticles('2', 3)
+    expect(toIds(hottestOn)).not.toContain(target.id)
+    expect(toIds(hottestOn)).toContain(articles[1].id)
+
+    // account older than the window is not affected
+    await atomService.update({
+      table: 'user',
+      where: { id: target.authorId },
+      data: { createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000) },
+    })
+    const included = await tagService.findArticles({
+      id: '2',
+      probationDays: 3,
+    })
+    expect(toIds(included)).toContain(target.id)
+
+    // restore original created_at to avoid leaking into other tests
+    for (const [authorId, createdAt] of Object.entries(originalCreatedAt)) {
+      await atomService.update({
+        table: 'user',
+        where: { id: authorId },
+        data: { createdAt },
+      })
+    }
+  })
 })
 
 test('create', async () => {

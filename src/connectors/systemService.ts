@@ -38,7 +38,7 @@ import {
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
-import { isTest } from '#common/environment.js'
+import { environment, isTest } from '#common/environment.js'
 import { AssetNotFoundError, UserInputError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -194,6 +194,38 @@ export class SystemService extends BaseService<BaseDBSchema> {
       return null
     }
     return threshold.value
+  }
+
+  /**
+   * Get the discovery probation window (days) from the `discovery_probation`
+   * feature flag. Returns `null` when the flag is off or missing, which means
+   * discovery feeds behave exactly as before (dark launch, zero diff).
+   * `feature_flag.value` overrides the env default when set.
+   */
+  public getDiscoveryProbationDays = async (): Promise<number | null> => {
+    const cache = new Cache(
+      CACHE_PREFIX.DISCOVERY_PROBATION_DAYS,
+      this.connections.objectCacheRedis
+    )
+    const value = (await cache.getObject({
+      keys: { id: 'discovery_probation_days' },
+      getter: this._getDiscoveryProbationDays,
+      expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
+    })) as number | null
+    return value
+  }
+  private _getDiscoveryProbationDays = async (): Promise<number | null> => {
+    const featureFlag = await this.models.findFirst({
+      table: 'feature_flag',
+      where: {
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.on,
+      },
+    })
+    if (!featureFlag) {
+      return null
+    }
+    return featureFlag.value || environment.discoveryProbationDays
   }
 
   /**

@@ -1892,6 +1892,7 @@ export type GQLFeatureName =
   | 'article_channel'
   | 'circle_interact'
   | 'circle_management'
+  | 'discovery_probation'
   | 'fingerprint'
   | 'hottest_moment_feed'
   | 'payment'

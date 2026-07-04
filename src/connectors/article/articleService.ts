@@ -40,6 +40,7 @@ import {
   excludeSpam as excludeSpamModifier,
   excludeRestrictedAuthors as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
+  excludeProbationAuthors as excludeProbationModifier,
 } from '#common/utils/index.js'
 import DataLoader from 'dataloader'
 import { simplecc } from 'simplecc-wasm'
@@ -97,6 +98,7 @@ export class ArticleService extends BaseService<Article> {
       excludeExclusiveCampaignArticles,
       excludeChannelArticles,
       excludeComplaintAreaArticles,
+      excludeProbationAuthors,
       datetimeRange,
     }: {
       state?: ValueOf<typeof ARTICLE_STATE>
@@ -109,6 +111,8 @@ export class ArticleService extends BaseService<Article> {
       excludeExclusiveCampaignArticles?: boolean
       excludeChannelArticles?: boolean
       excludeComplaintAreaArticles?: boolean
+      // days; when set, exclude articles by authors younger than this
+      excludeProbationAuthors?: number
       datetimeRange?: { start: Date; end?: Date }
     } = { state: ARTICLE_STATE.active }
   ) => {
@@ -149,6 +153,10 @@ export class ArticleService extends BaseService<Article> {
 
     if (excludeExclusiveCampaignArticles) {
       query.modify(excludeExclusiveCampaignArticlesModifier)
+    }
+
+    if (excludeProbationAuthors) {
+      query.modify(excludeProbationModifier, excludeProbationAuthors)
     }
 
     if (excludeComplaintAreaArticles) {
@@ -192,10 +200,12 @@ export class ArticleService extends BaseService<Article> {
     spamThreshold,
     excludeChannelArticles,
     excludeExclusiveCampaignArticles,
+    probationDays,
   }: {
     spamThreshold?: number
     excludeChannelArticles?: boolean
     excludeExclusiveCampaignArticles?: boolean
+    probationDays?: number
   } = {}): Knex.QueryBuilder<Article, Article[]> => {
     const query = this.findArticles({
       state: ARTICLE_STATE.active,
@@ -208,6 +218,7 @@ export class ArticleService extends BaseService<Article> {
       excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
       excludeChannelArticles,
       excludeExclusiveCampaignArticles,
+      excludeProbationAuthors: probationDays,
     })
     return query.orderBy('id', 'desc')
   }
