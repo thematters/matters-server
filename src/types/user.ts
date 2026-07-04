@@ -841,6 +841,8 @@ export default /* GraphQL */ `
   input FreezeSpamRingInput {
     id: ID!
     remark: String
+    "Restrict this freeze to these members (raw DB user ids, same semantics as SpamRingCandidateInput.memberUserIds). Members not listed are skipped, not frozen. Omit to process all members. Must be non-empty when provided."
+    memberUserIds: [String!]
   }
 
   type FreezeSpamRingResult {

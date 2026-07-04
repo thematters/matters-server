@@ -1972,6 +1972,8 @@ export type GQLFollowingActivityEdge = {
 
 export type GQLFreezeSpamRingInput = {
   id: Scalars['ID']['input']
+  /** Restrict this freeze to these members (raw DB user ids, same semantics as SpamRingCandidateInput.memberUserIds). Members not listed are skipped, not frozen. Omit to process all members. Must be non-empty when provided. */
+  memberUserIds?: InputMaybe<Array<Scalars['String']['input']>>
   remark?: InputMaybe<Scalars['String']['input']>
 }
 
