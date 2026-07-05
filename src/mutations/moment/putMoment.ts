@@ -1,8 +1,8 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
-import { NODE_TYPES, MAX_TAGS_PER_ARTICLE_LIMIT } from '#common/enums/index.js'
+import { NODE_TYPES, MAX_TAGS_PER_MOMENT_LIMIT } from '#common/enums/index.js'
 import { AuthenticationError, UserInputError } from '#common/errors.js'
-import { fromGlobalId } from '#common/utils/index.js'
+import { fromGlobalId, stripHtml } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
 const resolver: GQLMutationResolvers['putMoment'] = async (
@@ -21,10 +21,14 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
+  // tags alone are not publishable; reject before any tag upsert
+  if (stripHtml(content).length === 0 && (!assets || assets.length === 0)) {
+    throw new UserInputError('empty moment content and assets')
+  }
   // reject over-limit before any tag upsert, to avoid creating dirty tags
-  if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+  if (tags && tags.length > MAX_TAGS_PER_MOMENT_LIMIT) {
     throw new UserInputError(
-      `cannot attach more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags to a moment`
+      `cannot attach more than ${MAX_TAGS_PER_MOMENT_LIMIT} tags to a moment`
     )
   }
   if (tags && tags.length > 0) {
