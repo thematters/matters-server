@@ -650,6 +650,9 @@ type Tag implements Node & Channel {
   """Articles and moments were attached with this tag."""
   writings(input: WritingInput!): TagWritingConnection!
 
+  """List of moments were attached with this tag."""
+  moments(input: ConnectionArgs!): MomentConnection!
+
   """Time of this tag was created."""
   createdAt: DateTime!
 
