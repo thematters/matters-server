@@ -81,6 +81,28 @@ describe('spam ring mutation resolvers', () => {
     })
   })
 
+  test('freezeSpamRing forwards memberUserIds for a scoped freeze (audit F1)', async () => {
+    const ctx = makeContext()
+    await (freezeSpamRing as any)(
+      null,
+      {
+        input: {
+          id: ringGlobalId('1'),
+          remark: 'r',
+          memberUserIds: ['u1', 'u2'],
+        },
+      },
+      ctx
+    )
+    expect(ctx.dataSources.spamRingService.freezeRing).toHaveBeenCalledWith({
+      ringId: '1',
+      actorId: '9',
+      remark: 'r',
+      memberUserIds: ['u1', 'u2'],
+      userService: ctx.dataSources.userService,
+    })
+  })
+
   test('unfreezeSpamRing forwards ringId + userService', async () => {
     const ctx = makeContext()
     await (unfreezeSpamRing as any)(

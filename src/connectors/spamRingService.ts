@@ -237,17 +237,31 @@ export class SpamRingService extends BaseService<SpamRing> {
     ringId,
     actorId,
     remark,
+    memberUserIds,
     userService,
   }: {
     ringId: string
     actorId: string
     remark?: string | null
+    // 稽核 F1：本次偵測驗證過的成員（raw DB user id）。有給時凍結只作用於
+    // 「ring 成員 ∩ 此名單」；名單外成員記 skipped、不凍結、不發通知。
+    // 不給＝現行為（全成員，控制台人工一鍵）。
+    memberUserIds?: string[] | null
     userService: UserService
   }): Promise<{
     ring: SpamRing
     frozen: User[]
     skipped: Array<{ user: User; reason: string }>
   }> => {
+    // provided-but-empty is almost certainly a caller bug: it would mark every
+    // member skipped and still lock the ring as frozen — reject it instead.
+    if (memberUserIds && memberUserIds.length === 0) {
+      throw new UserInputError('memberUserIds must not be empty when provided')
+    }
+    const memberScope = memberUserIds
+      ? new Set(memberUserIds.map((id) => String(id)))
+      : null
+
     const frozen: User[] = []
     const skipped: Array<{ user: User; reason: string }> = []
 
@@ -299,6 +313,21 @@ export class SpamRingService extends BaseService<SpamRing> {
         // 本 ring 已凍結過此人 → idempotent，略過
         if (member.status === 'frozen' && member.bannedByThisRing) {
           frozen.push(user)
+          continue
+        }
+        // 稽核 F1：spam_ring_member 是歷次偵測的聯集（只增不減），可能含
+        // 歷史誤列的真人。成員不在本次驗證名單 → 只記 skipped，不凍結、
+        // 不發通知；下方既有護欄只對名單內成員照跑。
+        if (memberScope && !memberScope.has(String(member.userId))) {
+          await this.skipMember(
+            member.id,
+            user,
+            'not_in_verified_candidate',
+            actorId,
+            ringId,
+            trx
+          )
+          skipped.push({ user, reason: 'not_in_verified_candidate' })
           continue
         }
         if (user.state === USER_STATE.archived) {
