@@ -7,7 +7,7 @@ import { invalidateUserContentCaches } from './utils.js'
 
 const resolver: GQLMutationResolvers['freezeSpamRing'] = async (
   _,
-  { input: { id, remark } },
+  { input: { id, remark, memberUserIds } },
   {
     viewer,
     dataSources: {
@@ -26,6 +26,8 @@ const resolver: GQLMutationResolvers['freezeSpamRing'] = async (
     ringId,
     actorId: viewer.id,
     remark,
+    // audit F1: restrict the freeze to members verified by this detection run
+    memberUserIds,
     userService,
   })
 

@@ -3015,6 +3015,7 @@ enum FeatureName {
   topic_channel_spam_filter
   article_channel
   hottest_moment_feed
+  discovery_probation
 }
 
 enum FeatureFlag {
@@ -3911,6 +3912,11 @@ type ArchiveUserFailure {
 input FreezeSpamRingInput {
   id: ID!
   remark: String
+
+  """
+  Restrict this freeze to these members (raw DB user ids, same semantics as SpamRingCandidateInput.memberUserIds). Members not listed are skipped, not frozen. Omit to process all members. Must be non-empty when provided.
+  """
+  memberUserIds: [String!]
 }
 
 type FreezeSpamRingResult {

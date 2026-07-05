@@ -9,6 +9,8 @@ import {
   TRANSACTION_STATE,
   PAYMENT_CURRENCY,
   DAY,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from '#common/enums/index.js'
 import {
   RecommendationService,
@@ -243,6 +245,60 @@ describe('findHottestArticles', () => {
     const articleIds = results.map((r: any) => r.articleId)
     expect(articleIds).toContain(article1.id)
     expect(articleIds).not.toContain(restrictedAuthorArticle.id)
+  })
+
+  test('discovery probation: flag off keeps new accounts, flag on excludes them', async () => {
+    await createArticleReadCount(author1.id, article1.id, 10)
+    await createArticleReadCount(author1.id, article2.id, 10)
+    await createComment(author3.id, article1.id)
+    await createComment(author3.id, article2.id)
+
+    // age author2 out of the probation window; author1 stays brand-new
+    // (users in this suite are created at test run time)
+    await atomService.update({
+      table: 'user',
+      where: { id: author2.id },
+      data: { createdAt: new Date(Date.now() - 30 * DAY) },
+    })
+
+    // flag off (seed default): both articles surface, zero diff
+    const before = await recommendationService.findHottestArticles({
+      days: 5,
+      readersThreshold: 0,
+      commentsThreshold: 0,
+    })
+    const beforeIds = before.map((r: any) => r.articleId)
+    expect(beforeIds).toContain(article1.id)
+    expect(beforeIds).toContain(article2.id)
+
+    // flag on: new-account article excluded, aged account unaffected
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.discovery_probation,
+      flag: FEATURE_FLAG.on,
+    })
+    try {
+      const after = await recommendationService.findHottestArticles({
+        days: 5,
+        readersThreshold: 0,
+        commentsThreshold: 0,
+      })
+      const afterIds = after.map((r: any) => r.articleId)
+      expect(afterIds).not.toContain(article1.id)
+      expect(afterIds).toContain(article2.id)
+    } finally {
+      // kill-switch — and cleanup even on failure, so a thrown assertion
+      // cannot leak the flag into the rest of this suite
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.off,
+      })
+    }
+    const restored = await recommendationService.findHottestArticles({
+      days: 5,
+      readersThreshold: 0,
+      commentsThreshold: 0,
+    })
+    expect(restored.map((r: any) => r.articleId)).toContain(article1.id)
   })
 
   test('applies minimum reader and comment thresholds', async () => {

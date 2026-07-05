@@ -36,6 +36,10 @@ beforeEach(async () => {
     name: FEATURE_NAME.spam_detection,
     flag: FEATURE_FLAG.off,
   })
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_probation,
+    flag: FEATURE_FLAG.off,
+  })
   await atomService.deleteMany({ table: 'topic_channel_article' })
   await atomService.deleteMany({ table: 'topic_channel' })
 
@@ -417,6 +421,98 @@ describe('findTopicChannelArticles', () => {
       expect(results.map((a) => a.id)).toContain(articles[0].id)
 
       await atomService.deleteMany({ table: 'user_restriction' })
+    })
+  })
+
+  describe('discovery probation', () => {
+    const originalCreatedAt: Record<string, Date> = {}
+    let target: Article
+    let others: Article[]
+
+    beforeEach(async () => {
+      // `articles` comes from an unordered findMany, so index→author mapping
+      // is not guaranteed — pick a target whose author owns exactly one of
+      // the four channel articles, so newing that author affects one article
+      const channelArticles = articles.slice(0, 4)
+      const authorCount: Record<string, number> = {}
+      for (const { authorId } of channelArticles) {
+        authorCount[authorId] = (authorCount[authorId] ?? 0) + 1
+      }
+      target = channelArticles.find(
+        ({ authorId }) => authorCount[authorId] === 1
+      ) as Article
+      expect(target).toBeDefined()
+      others = channelArticles.filter(({ id }) => id !== target.id)
+
+      // age all channel article authors out of the probation window first
+      // (seed users are created at test run time, i.e. "new" accounts)
+      const authorIds = [
+        ...new Set(channelArticles.map(({ authorId }) => authorId)),
+      ]
+      for (const authorId of authorIds) {
+        const author = await atomService.findUnique({
+          table: 'user',
+          where: { id: authorId },
+        })
+        originalCreatedAt[authorId] = author.createdAt
+        await atomService.update({
+          table: 'user',
+          where: { id: authorId },
+          data: { createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000) },
+        })
+      }
+      // make the target author a brand-new account (inside probation window)
+      await atomService.update({
+        table: 'user',
+        where: { id: target.authorId },
+        data: { createdAt: new Date() },
+      })
+    })
+
+    afterEach(async () => {
+      // restore created_at and the flag, even when an assertion threw —
+      // a leaked flag would poison every later test in this file
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.off,
+      })
+      for (const [authorId, createdAt] of Object.entries(originalCreatedAt)) {
+        await atomService.update({
+          table: 'user',
+          where: { id: authorId },
+          data: { createdAt },
+        })
+      }
+    })
+
+    test('flag off: results identical to before (zero diff)', async () => {
+      // flag is off via beforeEach; new-account article still shows up
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      expect(results).toHaveLength(4)
+      expect(results.map((a) => a.id)).toContain(target.id)
+    })
+
+    test('flag on: excludes articles from new accounts only', async () => {
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.on,
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      const ids = results.map((a) => a.id)
+      expect(ids).not.toContain(target.id)
+      // articles by older accounts are not affected
+      for (const other of others) {
+        expect(ids).toContain(other.id)
+      }
     })
   })
 
