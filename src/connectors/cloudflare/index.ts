@@ -1,5 +1,9 @@
 import { environment, isProd, isTest } from '#common/environment.js'
-import { ActionFailedError, UserInputError } from '#common/errors.js'
+import {
+  ActionFailedError,
+  ServerError,
+  UserInputError,
+} from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import { GQLAssetType } from '#definitions/index.js'
 import * as Sentry from '@sentry/node'
@@ -15,6 +19,12 @@ const envPrefix = isProd ? 'prod' : 'non-prod'
 const CLOUDFLARE_IMAGES_URL = `https://api.cloudflare.com/client/v4/accounts/${environment.cloudflareAccountId}/images/v1`
 const CLOUDFLARE_IMAGES_DIRECT_UPLOAD_ENDPOINT = `https://api.cloudflare.com/client/v4/accounts/${environment.cloudflareAccountId}/images/v2/direct_upload`
 const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountHash}/${envPrefix}`
+
+interface CloudflareAPIResponse {
+  success?: boolean
+  errors?: Array<{ code?: number; message?: string }>
+  result?: { id?: string; uploadURL?: string }
+}
 
 export class CloudflareService {
   public baseUploadFileByUrl = async (
@@ -45,12 +55,7 @@ export class CloudflareService {
       body: formData,
     })
 
-    try {
-      await res.json()
-    } catch (err) {
-      Sentry.captureException(err)
-      throw err
-    }
+    await this.parseResponse(res, 'upload by url')
 
     return key
   }
@@ -72,7 +77,7 @@ export class CloudflareService {
     const extension = mime.extension(mimetype)
 
     if (!extension) {
-      throw new Error('Invalid file type.')
+      throw new UserInputError('Invalid file type.')
     }
 
     const key = this.genKey(folder, uuid, extension)
@@ -89,12 +94,8 @@ export class CloudflareService {
       body: formData,
     })
 
-    try {
-      await res.json()
-    } catch (err) {
-      Sentry.captureException(err)
-      throw err
-    }
+    await this.parseResponse(res, 'file upload')
+
     return key
   }
 
@@ -118,21 +119,50 @@ export class CloudflareService {
       body: formData,
     })
 
+    const resData = await this.parseResponse(res, 'direct upload')
+    const { id, uploadURL } = resData.result || {}
+
+    if (!id || !uploadURL) {
+      logger.error('cloudflare direct upload returned incomplete result: %j', {
+        result: resData.result,
+      })
+      throw new ServerError('cloudflare direct upload failed')
+    }
+
+    return { key, id, uploadURL }
+  }
+
+  /**
+   * Parse a Cloudflare Images API response; log and throw on failure instead
+   * of letting `success: false` (expired token, quota, rate limit) pass
+   * silently and corrupt assets downstream.
+   */
+  private parseResponse = async (
+    res: { ok: boolean; status: number; json: () => Promise<unknown> },
+    context: string
+  ): Promise<CloudflareAPIResponse> => {
+    let resData: CloudflareAPIResponse
     try {
-      const resData = (await res.json()) as {
-        success: boolean
-        result: { id: string; uploadURL: string }
-      }
-      if (resData?.success) {
-        return {
-          key,
-          ...(resData.result as { id: string; uploadURL: string }),
-        }
-      }
+      resData = (await res.json()) as CloudflareAPIResponse
     } catch (err) {
+      logger.error('cloudflare %s returned invalid JSON: %j', context, {
+        status: res.status,
+      })
       Sentry.captureException(err)
       throw err
     }
+
+    if (!res.ok || resData?.success !== true) {
+      logger.error('cloudflare %s failed: %j', context, {
+        status: res.status,
+        errors: resData?.errors,
+      })
+      const error = new ServerError(`cloudflare ${context} failed`)
+      Sentry.captureException(error)
+      throw error
+    }
+
+    return resData
   }
 
   // TODO:
