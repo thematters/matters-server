@@ -107,7 +107,9 @@ export class ArticleService extends BaseService<Article> {
         spamThreshold: number
       }
       excludeAuthorStates?: Array<ValueOf<typeof USER_STATE>>
-      excludeRestrictedAuthors?: ValueOf<typeof USER_RESTRICTION_TYPE>
+      excludeRestrictedAuthors?:
+        | ValueOf<typeof USER_RESTRICTION_TYPE>
+        | Array<ValueOf<typeof USER_RESTRICTION_TYPE>>
       excludeExclusiveCampaignArticles?: boolean
       excludeChannelArticles?: boolean
       excludeComplaintAreaArticles?: boolean
@@ -215,7 +217,10 @@ export class ArticleService extends BaseService<Article> {
             spamThreshold,
           }
         : undefined,
-      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
+      excludeRestrictedAuthors: [
+        USER_RESTRICTION_TYPE.articleNewest,
+        USER_RESTRICTION_TYPE.spamRing,
+      ],
       excludeChannelArticles,
       excludeExclusiveCampaignArticles,
       excludeProbationAuthors: probationDays,

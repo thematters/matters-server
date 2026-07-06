@@ -71,9 +71,25 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
   const handleUpdateUserState = async (user: User) => {
     let updatedUser: User
     if (state === USER_STATE.banned) {
+      // leaving frozen for banned: freeze-time spam marks no longer apply
+      if (user.state === USER_STATE.frozen) {
+        await userService.revertUserContentSpamMarks(user.id)
+      }
       updatedUser = await userService.banUser(user.id, { banDays })
+    } else if (state === USER_STATE.frozen) {
+      // clean up punish records so the daily unban job cannot flip a
+      // frozen user back to active
+      if (user.state === USER_STATE.banned) {
+        await userService.archivePunishRecordsByUserId({
+          userId: user.id,
+          state: USER_STATE.banned,
+        })
+      }
+      updatedUser = await userService.freezeUser(user.id)
     } else if (state !== user.state && user.state === USER_STATE.banned) {
       updatedUser = await userService.unbanUser(user.id, state)
+    } else if (state !== user.state && user.state === USER_STATE.frozen) {
+      updatedUser = await userService.unfreezeUser(user.id, state)
     } else {
       updatedUser = await atomService.update({
         table: 'user',

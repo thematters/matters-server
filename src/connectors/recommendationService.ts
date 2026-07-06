@@ -365,7 +365,10 @@ export class RecommendationService {
                   spamThreshold: spamThreshold ?? 0,
                 },
                 excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
-                excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+                excludeRestrictedAuthors: [
+                  USER_RESTRICTION_TYPE.articleHottest,
+                  USER_RESTRICTION_TYPE.spamRing,
+                ],
                 excludeExclusiveCampaignArticles: true,
                 excludeComplaintAreaArticles: true,
                 excludeProbationAuthors: probationDays ?? undefined,
