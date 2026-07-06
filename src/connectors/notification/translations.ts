@@ -36,9 +36,9 @@ export default {
         : '因为违反社区规则，您已被禁言，无法发布作品和评论',
     en: ({ banDays }) =>
       banDays
-        ? 'You have been fobidden to publish any contents' +
-          `and comments within ${banDays} days for vilolating the Term of Use`
-        : 'You have been fobidden to publish any contents and comments for vilolating the Term of Use',
+        ? 'You have been forbidden to publish any contents ' +
+          `and comments within ${banDays} days for violating the Terms of Use`
+        : 'You have been forbidden to publish any contents and comments for violating the Terms of Use',
   }),
   user_banned_payment: i18n({
     zh_hant:
@@ -48,14 +48,16 @@ export default {
     en: 'Due to the detection of irregular transactions, your account has been temporarily suspended. If you require further clarification, please contact us at hi@matters.town',
   }),
   user_frozen: i18n({
-    zh_hant: '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動',
-    zh_hans: '因为违反社区规则，Matters 决定将您的账户冻结，无法在站上进行互动',
-    en: 'Your account has been deactivated for vilolating the Term of Use',
+    zh_hant:
+      '因為違反用戶協議與社區規則，Matters 已將您的帳戶凍結，凍結期間無法在站上進行互動。若對此處置有疑問或希望申訴，請來信 hi@matters.town，站方將覆核後回覆',
+    zh_hans:
+      '因为违反用户协议与社区规则，Matters 已将您的账户冻结，冻结期间无法在站上进行互动。若对此处置有疑问或希望申诉，请来信 hi@matters.town，站方将覆核后回复',
+    en: 'Your account has been frozen for violating the Terms of Use and community guidelines, and cannot interact on the site while frozen. If you have questions or wish to appeal, please contact hi@matters.town and our team will review your case.',
   }),
   user_unbanned: i18n({
     zh_hant: '你的評論與創作權限已恢復',
     zh_hans: '你的评论与创作权限已恢复',
-    en: 'Your account has been recover.',
+    en: 'Your account has been recovered.',
   }),
   comment_banned: i18n<{ content: string }>({
     zh_hant: ({ content }) =>
@@ -63,7 +65,7 @@ export default {
     zh_hans: ({ content }) =>
       `因为违反社区规则，您的评论“${makeSummary(content, 21)}”已被隐藏`,
     en: ({ content }) =>
-      `You comment "${makeSummary(
+      `Your comment "${makeSummary(
         content,
         21
       )}" has been archived from Matters for violating the community rules`,

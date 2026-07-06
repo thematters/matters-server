@@ -828,6 +828,126 @@ export class SystemService extends BaseService<BaseDBSchema> {
     })
   }
 
+  /**
+   * Record an account-level enforcement (freeze) as a moderation case so it
+   * enters transparency metrics. Re-freezing with the same source/reason
+   * reuses the case (unique on source/targetType/targetId/reason).
+   */
+  public recordAccountRestrictionCase = async ({
+    userId,
+    reason,
+    source,
+    automationRole = 'none',
+    actorId,
+    noticeSent = false,
+    metadata,
+  }: {
+    userId: string
+    reason: string
+    source: ModerationCaseSource
+    automationRole?: ModerationAutomationRole
+    actorId?: string | null
+    noticeSent?: boolean
+    metadata?: Record<string, unknown>
+  }): Promise<ModerationCase> => {
+    const { moderationCase, created } = await this.findOrCreateModerationCase({
+      source,
+      targetType: 'user',
+      targetId: userId,
+      reason,
+      automationRole,
+    })
+
+    if (created) {
+      await this.createModerationEvent({
+        caseId: moderationCase.id,
+        eventType: 'created',
+        actorType: actorId ? 'admin' : 'system',
+        actorId,
+        toStatus: 'received',
+        metadata: metadata ?? null,
+      })
+    }
+
+    const [updatedCase] = await this.knex<ModerationCase>('moderation_case')
+      .where({ id: moderationCase.id })
+      .update({
+        status: 'action_taken',
+        outcome: 'account_limited',
+        ...(noticeSent ? { noticeState: 'sent' } : {}),
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning('*')
+
+    await this.createModerationEvent({
+      caseId: moderationCase.id,
+      eventType: 'actioned',
+      actorType: actorId ? 'admin' : 'system',
+      actorId,
+      publicReason: reason,
+      fromStatus: moderationCase.status,
+      toStatus: 'action_taken',
+      fromOutcome: moderationCase.outcome,
+      toOutcome: 'account_limited',
+      metadata: metadata ?? null,
+    })
+
+    return updatedCase
+  }
+
+  /**
+   * Resolve the open account-restriction case when the account is unfrozen
+   * (appeal accepted or staff reversal). No-op when no open case exists,
+   * e.g. freezes that predate case recording.
+   */
+  public resolveAccountRestrictionCase = async ({
+    userId,
+    actorId,
+    metadata,
+  }: {
+    userId: string
+    actorId?: string | null
+    metadata?: Record<string, unknown>
+  }): Promise<ModerationCase | null> => {
+    const moderationCase = await this.knex<ModerationCase>('moderation_case')
+      .where({
+        targetType: 'user',
+        targetId: userId,
+        outcome: 'account_limited',
+      })
+      .whereNull('resolvedAt')
+      .orderBy('id', 'desc')
+      .first()
+
+    if (!moderationCase) {
+      return null
+    }
+
+    const [updatedCase] = await this.knex<ModerationCase>('moderation_case')
+      .where({ id: moderationCase.id })
+      .update({
+        status: 'resolved',
+        outcome: 'restored',
+        resolvedAt: this.knex.fn.now(),
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning('*')
+
+    await this.createModerationEvent({
+      caseId: moderationCase.id,
+      eventType: 'restored',
+      actorType: actorId ? 'admin' : 'system',
+      actorId,
+      fromStatus: moderationCase.status,
+      toStatus: 'resolved',
+      fromOutcome: moderationCase.outcome,
+      toOutcome: 'restored',
+      metadata: metadata ?? null,
+    })
+
+    return updatedCase
+  }
+
   private toModerationTargetType = (
     targetType: ReportType
   ): ModerationTargetType => {
