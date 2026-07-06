@@ -93,11 +93,19 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
           state: USER_STATE.banned,
         })
       }
-      updatedUser = await userService.freezeUser(user.id)
+      // freezeUser also sends the user_frozen appeal notice and records an
+      // admin moderation case for transparency metrics
+      updatedUser = (await userService.freezeUser(user.id, {
+        actorId: viewer.id,
+        source: 'admin',
+      })) as User
     } else if (state !== user.state && user.state === USER_STATE.banned) {
       updatedUser = await userService.unbanUser(user.id, state)
     } else if (state !== user.state && user.state === USER_STATE.frozen) {
-      updatedUser = await userService.unfreezeUser(user.id, state)
+      // unfreeze resolves the open account-restriction case (appeal accepted)
+      updatedUser = (await userService.unfreezeUser(user.id, state, undefined, {
+        actorId: viewer.id,
+      })) as User
     } else {
       updatedUser = await atomService.update({
         table: 'user',

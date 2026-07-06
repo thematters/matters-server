@@ -15,6 +15,8 @@ import type {
   LANGUAGES,
   UserBoost,
   UserFeatureFlag,
+  ModerationCaseSource,
+  ModerationAutomationRole,
 } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
@@ -117,6 +119,7 @@ import { LikeCoin } from './likecoin/index.js'
 import { NotificationService } from './notification/notificationService.js'
 import { OAuthService } from './oauthService.js'
 import { SearchService } from './searchService.js'
+import { SystemService } from './systemService.js'
 
 const logger = getLogger('service-user')
 
@@ -2010,7 +2013,18 @@ export class UserService extends BaseService<User> {
     {
       remark,
       trx,
-    }: { remark?: ValueOf<typeof USER_BAN_REMARK>; trx?: Knex.Transaction } = {}
+      actorId,
+      source = 'admin',
+      automationRole = 'none',
+      reason = 'tos_violation',
+    }: {
+      remark?: ValueOf<typeof USER_BAN_REMARK>
+      trx?: Knex.Transaction
+      actorId?: string | null
+      source?: ModerationCaseSource
+      automationRole?: ModerationAutomationRole
+      reason?: string
+    } = {}
   ) => {
     // fire-and-forget appeal notice (not awaited, holds no DB lock); safe to keep
     // inside a caller transaction — a rollback only wastes a notice in the rare
@@ -2031,12 +2045,38 @@ export class UserService extends BaseService<User> {
     // Only fills `null` rows — manual is_spam verdicts are kept.
     await this.markUserContentSpam(userId, trx)
 
-    return await this.baseUpdate(
+    const updated = await this.baseUpdate(
       userId,
       remark ? { ...data, remark } : data,
       undefined,
       trx
     )
+
+    // best-effort moderation case for NCC transparency metrics; must not fail
+    // the freeze itself. Runs on its own connection: when inside a caller
+    // transaction, do not await — waiting on a second pool connection while
+    // the transaction holds one can starve small pools (deadlocks the test
+    // pool), same reasoning as the fire-and-forget notice above.
+    const systemService = new SystemService(this.connections)
+    const recordCase = () =>
+      systemService
+        .recordAccountRestrictionCase({
+          userId,
+          reason,
+          source,
+          automationRole,
+          actorId,
+          noticeSent: true,
+          ...(remark ? { metadata: { remark } } : {}),
+        })
+        .catch((error) => logger.error(error))
+    if (trx) {
+      void recordCase()
+    } else {
+      await recordCase()
+    }
+
+    return updated
   }
 
   // Reverse a freeze by restoring an explicit prior state (e.g. preFreezeState).
@@ -2045,10 +2085,28 @@ export class UserService extends BaseService<User> {
   public unfreezeUser = async (
     userId: string,
     state: ValueOf<typeof USER_STATE>,
-    trx?: Knex.Transaction
+    trx?: Knex.Transaction,
+    { actorId }: { actorId?: string | null } = {}
   ) => {
     await this.revertUserContentSpamMarks(userId, trx)
-    return this.baseUpdate(userId, { state }, undefined, trx)
+    const updated = await this.baseUpdate(userId, { state }, undefined, trx)
+
+    // best-effort: close the open account-restriction case (appeal accepted /
+    // staff reversal); no-op for freezes that predate case recording. Same
+    // pool-starvation rule as freezeUser: never await while inside a caller
+    // transaction.
+    const systemService = new SystemService(this.connections)
+    const resolveCase = () =>
+      systemService
+        .resolveAccountRestrictionCase({ userId, actorId })
+        .catch((error) => logger.error(error))
+    if (trx) {
+      void resolveCase()
+    } else {
+      await resolveCase()
+    }
+
+    return updated
   }
 
   private contentSpamTables = ['article', 'comment', 'moment']

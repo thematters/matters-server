@@ -419,6 +419,10 @@ export class SpamRingService extends BaseService<SpamRing> {
         const frozenUser = (await userService.freezeUser(user.id, {
           remark: USER_BAN_REMARK.spamRing,
           trx,
+          actorId,
+          source: 'model_assisted',
+          automationRole: 'assisted',
+          reason: 'spam',
         })) as User
         await this.updateMember(
           member.id,
@@ -533,7 +537,8 @@ export class SpamRingService extends BaseService<SpamRing> {
         const restored = (await userService.unfreezeUser(
           user.id,
           member.preFreezeState ?? USER_STATE.active,
-          trx
+          trx,
+          { actorId }
         )) as User
         await this.updateMember(
           member.id,
