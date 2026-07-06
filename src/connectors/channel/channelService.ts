@@ -432,10 +432,6 @@ export class ChannelService {
         'article.channel_enabled': true,
       })
       .whereIn('article.id', pinnedArticleIds)
-    // pinning happens before an author may get frozen; keep parity with the
-    // unpinned query below (applied outside the chain so knex's loosely-typed
-    // `.modify()` does not widen the query's row type)
-    excludeStateRestrictedModifier(pinnedQuery)
 
     // pinning is admin curation, so it overrides the soft `articleNewest`
     // ranking restriction — but a frozen/banned/archived author, a
