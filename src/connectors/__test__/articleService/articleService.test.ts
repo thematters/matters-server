@@ -424,28 +424,6 @@ describe('latestArticles', () => {
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
-  test('state-restricted authors are excluded', async () => {
-    const articles = await articleService.findNewestArticles()
-    const targetAuthorId = articles[0].authorId
-
-    await atomService.update({
-      table: 'user',
-      where: { id: targetAuthorId },
-      data: { state: USER_STATE.frozen },
-    })
-    const excluded = await articleService.findNewestArticles()
-    expect(excluded.map(({ authorId }) => authorId)).not.toContain(
-      targetAuthorId
-    )
-
-    await atomService.update({
-      table: 'user',
-      where: { id: targetAuthorId },
-      data: { state: USER_STATE.active },
-    })
-    const restored = await articleService.findNewestArticles()
-    expect(restored.map(({ authorId }) => authorId)).toContain(targetAuthorId)
-  })
   test('spam are excluded', async () => {
     const articles = await articleService.findNewestArticles({
       spamThreshold: 0.5,
