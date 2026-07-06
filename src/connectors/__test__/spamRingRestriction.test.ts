@@ -47,26 +47,32 @@ beforeEach(async () => {
 describe('spam-ring detection-time restrictions', () => {
   test('flag off: upsert writes no restrictions (zero diff)', async () => {
     await setFlag(FEATURE_FLAG.off)
-    await spamRingService.upsertCandidates([
+    const result = await spamRingService.upsertCandidates([
       { fingerprint: 'fp-off', memberUserIds: ['2', '3'], nAuthors: 2 },
     ])
     expect(await spamRingRestrictions('2')).toHaveLength(0)
     expect(await spamRingRestrictions('3')).toHaveLength(0)
+    // nothing newly restricted → nothing to purge
+    expect(result.restrictedUserIds).toEqual([])
   })
 
   test('flag on: upsert restricts each member once (idempotent)', async () => {
     await setFlag(FEATURE_FLAG.on)
-    await spamRingService.upsertCandidates([
+    const first = await spamRingService.upsertCandidates([
       { fingerprint: 'fp-on', memberUserIds: ['2', '3'], nAuthors: 2 },
     ])
     expect(await spamRingRestrictions('2')).toHaveLength(1)
     expect(await spamRingRestrictions('3')).toHaveLength(1)
+    // newly-restricted members are reported so the resolver can purge them
+    expect(first.restrictedUserIds.sort()).toEqual(['2', '3'])
 
-    // re-upsert the same ring must not duplicate the restriction
-    await spamRingService.upsertCandidates([
+    // re-upsert the same ring must not duplicate the restriction nor re-report
+    // members as newly restricted (no redundant cache purge)
+    const second = await spamRingService.upsertCandidates([
       { fingerprint: 'fp-on', memberUserIds: ['2', '3'], nAuthors: 2 },
     ])
     expect(await spamRingRestrictions('2')).toHaveLength(1)
+    expect(second.restrictedUserIds).toEqual([])
   })
 
   test('dismiss lifts the members restrictions', async () => {

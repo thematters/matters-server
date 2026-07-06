@@ -166,11 +166,13 @@ export class SpamRingService extends BaseService<SpamRing> {
     updated: number
     skipped: number
     rings: SpamRing[]
+    restrictedUserIds: string[]
   }> => {
     let created = 0
     let updated = 0
     let skipped = 0
     const rings: SpamRing[] = []
+    const restrictedUserIds = new Set<string>()
     const restrictionEnabled = await this.isRestrictionEnabled()
 
     for (const c of candidates) {
@@ -240,12 +242,19 @@ export class SpamRingService extends BaseService<SpamRing> {
       // pending only: a restored ring re-surfacing must not override the
       // admin's restore decision
       if (restrictionEnabled && ring.status === 'pending') {
-        await this.applyMemberRestrictions(userIds)
+        const restricted = await this.applyMemberRestrictions(userIds)
+        restricted.forEach((id) => restrictedUserIds.add(id))
       }
       rings.push(ring)
     }
 
-    return { created, updated, skipped, rings }
+    return {
+      created,
+      updated,
+      skipped,
+      rings,
+      restrictedUserIds: Array.from(restrictedUserIds),
+    }
   }
 
   // --- 一鍵凍結（永久但可逆的封禁）---
@@ -605,9 +614,12 @@ export class SpamRingService extends BaseService<SpamRing> {
     return !!flag
   }
 
+  // returns the userIds that had a restriction newly written, so the caller
+  // can purge their content caches (an already-restricted member is a no-op)
   private applyMemberRestrictions = async (
     userIds: string[]
-  ): Promise<void> => {
+  ): Promise<string[]> => {
+    const restricted: string[] = []
     for (const userId of userIds) {
       const existing = await this.knexRO('user_restriction')
         .where({ userId, type: USER_RESTRICTION_TYPE.spamRing })
@@ -619,7 +631,9 @@ export class SpamRingService extends BaseService<SpamRing> {
         userId,
         type: USER_RESTRICTION_TYPE.spamRing,
       })
+      restricted.push(userId)
     }
+    return restricted
   }
 
   // lift the spamRing restriction of this ring's members, unless a member
