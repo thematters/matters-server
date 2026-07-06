@@ -1,9 +1,17 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
+import { invalidateUserContentCaches } from './utils.js'
+
 const resolver: GQLMutationResolvers['upsertSpamRingCandidates'] = async (
   _,
   { input: { candidates } },
-  { dataSources: { spamRingService } }
+  {
+    dataSources: {
+      spamRingService,
+      articleService,
+      connections: { redis },
+    },
+  }
 ) => {
   const mapped = candidates.map((c) => ({
     fingerprint: c.fingerprint,
@@ -17,11 +25,18 @@ const resolver: GQLMutationResolvers['upsertSpamRingCandidates'] = async (
     severity: c.severity ?? undefined,
     firstSeenAt: c.firstSeenAt ?? undefined,
     lastSeenAt: c.lastSeenAt ?? undefined,
-    memberEvidence: c.memberEvidence
-      ? JSON.parse(c.memberEvidence)
-      : undefined,
+    memberEvidence: c.memberEvidence ? JSON.parse(c.memberEvidence) : undefined,
   }))
-  return spamRingService.upsertCandidates(mapped)
+  const result = await spamRingService.upsertCandidates(mapped)
+
+  // purge content caches of members newly excluded this run, so the
+  // detection-time restriction takes effect immediately instead of waiting
+  // out the PUBLIC_QUERY TTL — mirrors the freeze/unfreeze/ring paths
+  for (const userId of result.restrictedUserIds) {
+    await invalidateUserContentCaches(userId, { articleService, redis })
+  }
+
+  return result
 }
 
 export default resolver

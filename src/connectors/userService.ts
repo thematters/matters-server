@@ -45,6 +45,7 @@ import {
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
   USER_RESTRICTION_TYPE,
+  ADMIN_USER_RESTRICTION_TYPES,
   VIEW,
   CIRCLE_STATE,
   NOTICE_TYPE,
@@ -1878,13 +1879,20 @@ export class UserService extends BaseService<User> {
    *        Restrictions           *
    *                               *
    *********************************/
-  public findRestrictions = async (id: string): Promise<UserRestriction[]> => {
-    const table = 'user_restriction'
-    return this.models.findMany({
-      table,
-      select: ['type', 'createdAt'],
-      where: { userId: id },
-    })
+  // admin-managed types only by default: the internal `spamRing` type is not
+  // part of the GraphQL UserRestrictionType enum and must not leak into the
+  // OSS restrictions field, nor be deleted by updateRestrictions' diff
+  public findRestrictions = async (
+    id: string,
+    { includeInternal = false }: { includeInternal?: boolean } = {}
+  ): Promise<UserRestriction[]> => {
+    const query = this.knexRO('user_restriction')
+      .select('type', 'created_at')
+      .where({ userId: id })
+    if (!includeInternal) {
+      query.whereIn('type', ADMIN_USER_RESTRICTION_TYPES)
+    }
+    return query
   }
 
   public updateRestrictions = async (
@@ -1925,6 +1933,9 @@ export class UserService extends BaseService<User> {
       .select('user.*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
       .from('user')
       .join('user_restriction', 'user.id', 'user_restriction.user_id')
+      // OSS restricted-user list manages admin-set types only; spam-ring
+      // detected members are reviewed on the rings page instead
+      .whereIn('user_restriction.type', ADMIN_USER_RESTRICTION_TYPES)
       .groupBy('user.id')
       .orderByRaw('MAX(user_restriction.created_at) DESC')
       .modify((builder: Knex.QueryBuilder) => {
@@ -2029,6 +2040,11 @@ export class UserService extends BaseService<User> {
       updatedAt: new Date(),
     }
 
+    // frozen accounts' content is spam by policy: mark it so spam-filtered
+    // surfaces (channels, feeds, classifier training) all pick it up.
+    // Only fills `null` rows — manual is_spam verdicts are kept.
+    await this.markUserContentSpam(userId, trx)
+
     const updated = await this.baseUpdate(
       userId,
       remark ? { ...data, remark } : data,
@@ -2058,12 +2074,15 @@ export class UserService extends BaseService<User> {
   }
 
   // Reverse a freeze by restoring an explicit prior state (e.g. preFreezeState).
+  // Also reverts the freeze-time spam marks so a wrongly frozen user is fully
+  // restored (back to classifier-score-based filtering).
   public unfreezeUser = async (
     userId: string,
     state: ValueOf<typeof USER_STATE>,
     trx?: Knex.Transaction,
     { actorId }: { actorId?: string | null } = {}
   ) => {
+    await this.revertUserContentSpamMarks(userId, trx)
     const updated = await this.baseUpdate(userId, { state }, undefined, trx)
 
     // best-effort: close the open account-restriction case (appeal accepted /
@@ -2076,6 +2095,35 @@ export class UserService extends BaseService<User> {
     }
 
     return updated
+  }
+
+  private contentSpamTables = ['article', 'comment', 'moment']
+
+  private markUserContentSpam = async (
+    userId: string,
+    trx?: Knex.Transaction
+  ) => {
+    const knexInstance = trx ?? this.knex
+    for (const table of this.contentSpamTables) {
+      await knexInstance(table)
+        .where({ authorId: userId })
+        .whereNull('isSpam')
+        .update({ isSpam: true, updatedAt: new Date() })
+    }
+  }
+
+  // `true` → `null` (not `false`): unfreezing means "no verdict", the spam
+  // classifier score takes over again. Manually set `false` rows are untouched.
+  public revertUserContentSpamMarks = async (
+    userId: string,
+    trx?: Knex.Transaction
+  ) => {
+    const knexInstance = trx ?? this.knex
+    for (const table of this.contentSpamTables) {
+      await knexInstance(table)
+        .where({ authorId: userId, isSpam: true })
+        .update({ isSpam: null, updatedAt: new Date() })
+    }
   }
 
   public verifyWalletSignature = async ({

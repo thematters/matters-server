@@ -59,6 +59,7 @@ const makeContext = (viewer: any = { id: '9' }) => {
           updated: 0,
           skipped: 0,
           rings: [],
+          restrictedUserIds: [],
         })),
       },
     },
@@ -239,6 +240,32 @@ describe('spam ring mutation resolvers', () => {
     expect(arg[0].memberUserNames).toBeUndefined()
     expect(arg[0].newAccountRatio).toBeUndefined()
     expect(arg[0].memberEvidence).toEqual({ u1: { a: 1 } })
+    // nothing newly restricted → no cache purge
+    expect(ctx.dataSources.articleService.findByAuthor).not.toHaveBeenCalled()
+  })
+
+  test('upsertSpamRingCandidates purges caches for newly-restricted members', async () => {
+    const ctx = makeContext()
+    ctx.dataSources.spamRingService.upsertCandidates = jest.fn(async () => ({
+      created: 1,
+      updated: 0,
+      skipped: 0,
+      rings: [],
+      restrictedUserIds: ['u1', 'u2'],
+    }))
+    await (upsertSpamRingCandidates as any)(
+      null,
+      {
+        input: { candidates: [{ fingerprint: 'fp1', memberUserIds: ['u1'] }] },
+      },
+      ctx
+    )
+    expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
+      'u1'
+    )
+    expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
+      'u2'
+    )
   })
 })
 

@@ -5,6 +5,7 @@ import type {
   ValueOf,
   TopicChannelFeedback,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   ARTICLE_CHANNEL_JOB_STATE,
@@ -23,6 +24,7 @@ import {
   CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
+  USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -405,6 +407,18 @@ export class ChannelService {
       ])
     const spamThreshold = topicChannelSpamThreshold ?? globalSpamThreshold
 
+    const applySpamFilter = (builder: Knex.QueryBuilder) => {
+      if (spamThreshold) {
+        builder.modify(excludeSpamModifier, spamThreshold)
+      } else {
+        builder.where((qb) => {
+          qb.where('article.is_spam', false).orWhere((b) => {
+            b.whereNull('article.is_spam')
+          })
+        })
+      }
+    }
+
     const pinnedQuery = knexRO
       .select(
         'article.*',
@@ -418,10 +432,20 @@ export class ChannelService {
         'article.channel_enabled': true,
       })
       .whereIn('article.id', pinnedArticleIds)
-    // pinning happens before an author may get frozen; keep parity with the
-    // unpinned query below (applied outside the chain so knex's loosely-typed
-    // `.modify()` does not widen the query's row type)
+
+    // pinning is admin curation, so it overrides the soft `articleNewest`
+    // ranking restriction — but a frozen/banned/archived author, a
+    // spam-marked article, or a spam-ring-detected author is a hard exclusion
+    // that must still drop out of the channel.
+    // statement form (not `.modify`) — knex's `.modify` return type degrades
+    // to `<any, any>` and breaks the callers' result typing
+    applySpamFilter(pinnedQuery)
     excludeStateRestrictedModifier(pinnedQuery)
+    excludeRestrictedModifier(
+      pinnedQuery,
+      'article',
+      USER_RESTRICTION_TYPE.spamRing
+    )
 
     const unpinnedQuery = knexRO
       .select(
@@ -438,15 +462,7 @@ export class ChannelService {
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
       .modify((builder) => {
-        if (spamThreshold) {
-          builder.modify(excludeSpamModifier, spamThreshold)
-        } else {
-          builder.where((qb) => {
-            qb.where('article.is_spam', false).orWhere((b) => {
-              b.whereNull('article.is_spam')
-            })
-          })
-        }
+        applySpamFilter(builder)
       })
       .modify(excludeRestrictedModifier)
       .modify(excludeStateRestrictedModifier)
@@ -720,6 +736,23 @@ export class ChannelService {
     { addOrderColumn }: { addOrderColumn: boolean } = { addOrderColumn: false }
   ) => {
     const knexRO = this.connections.knexRO
+
+    // curation is hand-picked, so no classifier-threshold filtering here —
+    // but explicitly spam-marked articles and frozen/banned/archived or
+    // spam-ring-detected authors must still drop out of the channel
+    const applyModerationFilter = (builder: Knex.QueryBuilder) => {
+      builder
+        .where((qb) => {
+          qb.where('article.is_spam', false).orWhereNull('article.is_spam')
+        })
+        .modify(excludeStateRestrictedModifier)
+        .modify(
+          excludeRestrictedModifier,
+          'article',
+          USER_RESTRICTION_TYPE.spamRing
+        )
+    }
+
     const pinnedQuery = knexRO('article')
       .select('article.*')
       .join(
@@ -745,6 +778,11 @@ export class ChannelService {
         'curation_channel_article.pinned': false,
         'article.state': ARTICLE_STATE.active,
       })
+
+    // statement form (not `.modify`) — knex's `.modify` return type degrades
+    // to `<any, any>` and breaks the callers' result typing
+    applyModerationFilter(pinnedQuery)
+    applyModerationFilter(unpinnedQuery)
 
     if (addOrderColumn) {
       pinnedQuery.select(

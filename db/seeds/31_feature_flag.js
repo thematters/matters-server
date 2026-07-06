@@ -54,5 +54,9 @@ export const seed = async (knex) => {
       name: 'discovery_probation',
       flag: 'off',
     },
+    {
+      name: 'spam_ring_restriction',
+      flag: 'off',
+    },
   ])
 }

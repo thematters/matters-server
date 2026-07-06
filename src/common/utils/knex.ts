@@ -47,18 +47,25 @@ export const excludeSpam = (
   }
 }
 
+// `spamRing` is excluded by default alongside `articleNewest`: rows of that
+// type only exist while the spam_ring_restriction flag is on, so default call
+// sites (channels / newest) are zero-diff until the feature launches.
 export const excludeRestrictedAuthors = (
   builder: Knex.QueryBuilder,
   table = 'article',
-  type: ValueOf<
-    typeof USER_RESTRICTION_TYPE
-  > = USER_RESTRICTION_TYPE.articleNewest
+  types:
+    | ValueOf<typeof USER_RESTRICTION_TYPE>
+    | Array<ValueOf<typeof USER_RESTRICTION_TYPE>> = [
+    USER_RESTRICTION_TYPE.articleNewest,
+    USER_RESTRICTION_TYPE.spamRing,
+  ]
 ) => {
+  const typeList = Array.isArray(types) ? types : [types]
   builder.whereNotExists((qb) =>
     qb
       .select(1)
       .from('user_restriction')
-      .where('user_restriction.type', type)
+      .whereIn('user_restriction.type', typeList)
       .where('user_restriction.user_id', qb.client.ref(`${table}.author_id`))
   )
 }

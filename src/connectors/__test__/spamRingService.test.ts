@@ -30,6 +30,10 @@ const makeConnections = ({
       orderBy: () => b,
       transacting: () => b,
       forUpdate: () => b,
+      select: () => b,
+      whereIn: () => b,
+      whereNot: () => b,
+      del: () => b,
       modify: (fn?: any) => {
         if (fn) fn(b)
         return b
@@ -564,6 +568,8 @@ const makeImportConnections = ({
         rec.whereInCalls.push({ table, column, values })
         return b
       },
+      whereNot: () => b,
+      del: () => b,
       select: () => b,
       orderBy: (...args: any[]) => {
         rec.orderByCalls.push({ table, args })
