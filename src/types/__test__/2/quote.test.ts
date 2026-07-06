@@ -253,6 +253,36 @@ describe('putQuote', () => {
     expect(count).toBe(1)
   })
 
+  test('article of a restricted author does not resolve in the response', async () => {
+    // article.state stays `active` when its author is frozen, so putQuote
+    // itself passes; the Quote.article gate must still hide the article
+    await atomService.update({
+      table: 'user',
+      where: { id: '1' },
+      data: { state: USER_STATE.frozen },
+    })
+    try {
+      const server = await testClient({
+        connections,
+        context: { viewer: posterUser },
+        isAuth: true,
+      })
+      const { errors } = await server.executeOperation({
+        query: PUT_QUOTE,
+        variables: {
+          input: { articleId: articleGlobalId, content: 'some html string' },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
+    } finally {
+      await atomService.update({
+        table: 'user',
+        where: { id: '1' },
+        data: { state: USER_STATE.active },
+      })
+    }
+  })
+
   test('no per-article cap: more quotes from the same article still succeed', async () => {
     // quantity limits removed — distinct excerpts from one article all post
     await seedQuote({ content: 'some' })
@@ -481,5 +511,119 @@ describe('quotes query', () => {
     expect(errors).toBeUndefined()
     expect(data.campaign.quotes.totalCount).toBe(2)
     expect(data.campaign.quotes.edges.length).toBe(2)
+  })
+
+  const QUERY_CAMPAIGN_QUOTE_COUNT = /* GraphQL */ `
+    query ($campaignInput: CampaignInput!) {
+      campaign(input: $campaignInput) {
+        ... on WritingChallenge {
+          quoteCount
+        }
+      }
+    }
+  `
+
+  // freezing / banning / archiving a user does not change their articles'
+  // state, so without author-state filtering the wall would leak their content
+  const setAuthorState = async (state: keyof typeof USER_STATE) =>
+    atomService.update({
+      table: 'user',
+      where: { id: '1' },
+      data: { state },
+    })
+
+  test('quotes from restricted authors are hidden from the public wall', async () => {
+    await seedQuote({ content: 'some' })
+    const server = await testClient({ connections })
+    try {
+      for (const state of [
+        USER_STATE.frozen,
+        USER_STATE.banned,
+        USER_STATE.archived,
+      ]) {
+        await setAuthorState(state)
+        const { errors, data } = await server.executeOperation({
+          query: QUERY_CAMPAIGN_QUOTES,
+          variables: {
+            campaignInput: { shortHash: campaign.shortHash },
+            quotesInput: { first: 10 },
+          },
+        })
+        expect(errors).toBeUndefined()
+        expect(data.campaign.quotes.totalCount).toBe(0)
+        expect(data.campaign.quotes.edges).toEqual([])
+
+        const { errors: countErrors, data: countData } =
+          await server.executeOperation({
+            query: QUERY_CAMPAIGN_QUOTE_COUNT,
+            variables: {
+              campaignInput: { shortHash: campaign.shortHash },
+            },
+          })
+        expect(countErrors).toBeUndefined()
+        expect(countData.campaign.quoteCount).toBe(0)
+      }
+    } finally {
+      await setAuthorState(USER_STATE.active)
+    }
+  })
+
+  const QUERY_CAMPAIGN_QUOTES_WITH_ARTICLE = /* GraphQL */ `
+    query ($campaignInput: CampaignInput!, $quotesInput: QuotesInput!) {
+      campaign(input: $campaignInput) {
+        ... on WritingChallenge {
+          quotes(input: $quotesInput) {
+            totalCount
+            edges {
+              node {
+                id
+                content
+                article {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('restricted-author quotes stay visible to admin (management view)', async () => {
+    await seedQuote({ content: 'some' })
+    await setAuthorState(USER_STATE.frozen)
+    try {
+      const server = await testClient({
+        connections,
+        isAuth: true,
+        isAdmin: true,
+      })
+      const { errors, data } = await server.executeOperation({
+        query: QUERY_CAMPAIGN_QUOTES_WITH_ARTICLE,
+        variables: {
+          campaignInput: { shortHash: campaign.shortHash },
+          quotesInput: { first: 10 },
+        },
+      })
+      expect(errors).toBeUndefined()
+      expect(data.campaign.quotes.totalCount).toBe(1)
+      expect(data.campaign.quotes.edges.length).toBe(1)
+      // admin is also exempt from the Quote.article gate
+      expect(data.campaign.quotes.edges[0].node.article.id).toBe(
+        articleGlobalId
+      )
+
+      const { errors: countErrors, data: countData } =
+        await server.executeOperation({
+          query: QUERY_CAMPAIGN_QUOTE_COUNT,
+          variables: {
+            campaignInput: { shortHash: campaign.shortHash },
+          },
+        })
+      expect(countErrors).toBeUndefined()
+      expect(countData.campaign.quoteCount).toBe(1)
+    } finally {
+      await setAuthorState(USER_STATE.active)
+    }
   })
 })
