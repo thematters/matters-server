@@ -237,6 +237,20 @@ describe('find icymi articles', () => {
     expect(articles).toHaveLength(0)
     expect(totalCount).toBe(0)
   })
+  test('does not filter author state at request time', async () => {
+    const queries: string[] = []
+    const onQuery = ({ sql }: { sql: string }) => {
+      queries.push(sql)
+    }
+    connections.knexRO.on('query', onQuery)
+    try {
+      await recommendationService.findIcymiArticles({})
+    } finally {
+      connections.knexRO.off('query', onQuery)
+    }
+
+    expect(queries.join('\n')).not.toContain('"user"."state"')
+  })
   test('find articles', async () => {
     const topic = await recommendationService.createIcymiTopic({
       title,
