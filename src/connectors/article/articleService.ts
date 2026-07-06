@@ -215,6 +215,14 @@ export class ArticleService extends BaseService<Article> {
             spamThreshold,
           }
         : undefined,
+      // freezing only flips user.state, not user_restriction, so the
+      // restricted-authors filter alone still surfaces frozen accounts in
+      // newest / recommended-authors / recommended-tags pools
+      excludeAuthorStates: [
+        USER_STATE.frozen,
+        USER_STATE.banned,
+        USER_STATE.archived,
+      ],
       excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
       excludeChannelArticles,
       excludeExclusiveCampaignArticles,

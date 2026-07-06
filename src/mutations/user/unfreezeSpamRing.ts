@@ -3,7 +3,10 @@ import type { GQLMutationResolvers } from '#definitions/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-import { invalidateUserContentCaches } from './utils.js'
+import {
+  invalidateRecommendationAuthorsCache,
+  invalidateUserContentCaches,
+} from './utils.js'
 
 const resolver: GQLMutationResolvers['unfreezeSpamRing'] = async (
   _,
@@ -14,7 +17,8 @@ const resolver: GQLMutationResolvers['unfreezeSpamRing'] = async (
       spamRingService,
       userService,
       articleService,
-      connections: { redis },
+      atomService,
+      connections: { redis, objectCacheRedis },
     },
   }
 ) => {
@@ -32,6 +36,12 @@ const resolver: GQLMutationResolvers['unfreezeSpamRing'] = async (
   // responses so restored members' content shows up again promptly
   for (const user of result.unbanned) {
     await invalidateUserContentCaches(user.id, { articleService, redis })
+  }
+  if (result.unbanned.length > 0) {
+    await invalidateRecommendationAuthorsCache({
+      atomService,
+      objectCacheRedis,
+    })
   }
 
   return result

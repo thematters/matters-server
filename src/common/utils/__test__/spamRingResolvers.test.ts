@@ -37,7 +37,11 @@ const makeContext = (viewer: any = { id: '9' }) => {
     dataSources: {
       userService,
       articleService: { findByAuthor: jest.fn(async () => []) },
-      connections: { redis: { __sentinel: 'redis' } },
+      atomService: { findMany: jest.fn(async () => []) },
+      connections: {
+        redis: { __sentinel: 'redis' },
+        objectCacheRedis: { del: jest.fn(async () => 1) },
+      },
       spamRingService: {
         freezeRing: jest.fn(async () => ({
           ring: {},
@@ -149,6 +153,8 @@ describe('spam ring mutation resolvers', () => {
     expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
       '12'
     )
+    // the recommended-authors pool cache is also dropped
+    expect(ctx.dataSources.connections.objectCacheRedis.del).toHaveBeenCalled()
   })
 
   test('unfreezeSpamRing purges caches of restored members', async () => {
@@ -166,6 +172,8 @@ describe('spam ring mutation resolvers', () => {
     expect(ctx.dataSources.articleService.findByAuthor).toHaveBeenCalledWith(
       '21'
     )
+    // the recommended-authors pool cache is also dropped
+    expect(ctx.dataSources.connections.objectCacheRedis.del).toHaveBeenCalled()
   })
 
   test('freezeSpamRing rejects when viewer has no id', async () => {
