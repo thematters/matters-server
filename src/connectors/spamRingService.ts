@@ -12,7 +12,13 @@ import type {
 import type { UserService } from './userService.js'
 import type { Knex } from 'knex'
 
-import { USER_STATE, USER_BAN_REMARK } from '#common/enums/index.js'
+import {
+  FEATURE_FLAG,
+  FEATURE_NAME,
+  USER_RESTRICTION_TYPE,
+  USER_STATE,
+  USER_BAN_REMARK,
+} from '#common/enums/index.js'
 import { UserInputError } from '#common/errors.js'
 import { v4 } from 'uuid'
 
@@ -160,11 +166,14 @@ export class SpamRingService extends BaseService<SpamRing> {
     updated: number
     skipped: number
     rings: SpamRing[]
+    restrictedUserIds: string[]
   }> => {
     let created = 0
     let updated = 0
     let skipped = 0
     const rings: SpamRing[] = []
+    const restrictedUserIds = new Set<string>()
+    const restrictionEnabled = await this.isRestrictionEnabled()
 
     for (const c of candidates) {
       const existing = await this.findRingByFingerprint(c.fingerprint)
@@ -226,10 +235,26 @@ export class SpamRingService extends BaseService<SpamRing> {
 
       const userIds = await this.resolveMemberIds(c)
       await this.upsertMembers(ring.id, userIds, c.memberEvidence ?? null)
+
+      // detection-time author-level exclusion (dark, flag `spam_ring_restriction`):
+      // members drop out of channels / newest / hottest while pending human
+      // review — covers guardrail-skipped members auto-freeze cannot touch.
+      // pending only: a restored ring re-surfacing must not override the
+      // admin's restore decision
+      if (restrictionEnabled && ring.status === 'pending') {
+        const restricted = await this.applyMemberRestrictions(userIds)
+        restricted.forEach((id) => restrictedUserIds.add(id))
+      }
       rings.push(ring)
     }
 
-    return { created, updated, skipped, rings }
+    return {
+      created,
+      updated,
+      skipped,
+      rings,
+      restrictedUserIds: Array.from(restrictedUserIds),
+    }
   }
 
   // --- 一鍵凍結（永久但可逆的封禁）---
@@ -522,6 +547,9 @@ export class SpamRingService extends BaseService<SpamRing> {
         unbanned.push(restored)
       }
 
+      // restore also lifts the detection-time author-level exclusion
+      await this.liftMemberRestrictions(ringId, trx)
+
       const now = new Date()
       const [ring2] = await this.knex('spam_ring')
         .transacting(trx)
@@ -564,10 +592,101 @@ export class SpamRingService extends BaseService<SpamRing> {
       .where({ id: ringId })
       .update({ status: 'dismissed', note: note ?? null, updatedAt: now })
       .returning('*')
+    // dismissal = false positive: lift the detection-time exclusion
+    await this.liftMemberRestrictions(ringId)
     await this.insertEvents([
       { ringId, actorId, action: 'dismissed', detail: { note: note ?? null } },
     ])
     return updatedRing
+  }
+
+  // --- 偵測即作者級排除（SPEC-blackhouse-permanent-and-auto §2-D）---
+
+  // flag read is viewer-independent (detection job runs headless), so query
+  // the row directly instead of systemService.isFeatureEnabled
+  private isRestrictionEnabled = async (): Promise<boolean> => {
+    const flag = await this.knexRO('feature_flag')
+      .where({
+        name: FEATURE_NAME.spam_ring_restriction,
+        flag: FEATURE_FLAG.on,
+      })
+      .first()
+    return !!flag
+  }
+
+  // returns the userIds that had a restriction newly written, so the caller
+  // can purge their content caches (an already-restricted member is a no-op)
+  private applyMemberRestrictions = async (
+    userIds: string[]
+  ): Promise<string[]> => {
+    const restricted: string[] = []
+    for (const userId of userIds) {
+      const existing = await this.knexRO('user_restriction')
+        .where({ userId, type: USER_RESTRICTION_TYPE.spamRing })
+        .first()
+      if (existing) {
+        continue
+      }
+      await this.knex('user_restriction').insert({
+        userId,
+        type: USER_RESTRICTION_TYPE.spamRing,
+      })
+      restricted.push(userId)
+    }
+    return restricted
+  }
+
+  // lift the spamRing restriction of this ring's members, unless a member
+  // also belongs to another ring that is still detected (pending / frozen) —
+  // dismissing one ring must not unhide a user another ring still flags.
+  // runs regardless of the feature flag so turning the flag off later still
+  // lets dismiss/restore clean up rows written while it was on.
+  private liftMemberRestrictions = async (
+    ringId: string,
+    trx?: Knex.Transaction
+  ): Promise<void> => {
+    const memberQuery = this.knex('spam_ring_member')
+      .where({ ringId })
+      .select('userId')
+    if (trx) {
+      memberQuery.transacting(trx)
+    }
+    const memberRows = await memberQuery
+    const memberIds = Array.from(
+      new Set(memberRows.map((r: { userId: string }) => String(r.userId)))
+    )
+    if (memberIds.length === 0) {
+      return
+    }
+    // members still flagged by another ring that is actively detected
+    // (pending / frozen) — their restriction must stay
+    const activeRingIds = this.knex('spam_ring')
+      .whereIn('status', ['pending', 'frozen'])
+      .select('id')
+    const otherQuery = this.knex('spam_ring_member')
+      .whereIn('userId', memberIds)
+      .whereNot('ringId', ringId)
+      .whereIn('ringId', activeRingIds)
+      .select('userId')
+    if (trx) {
+      otherQuery.transacting(trx)
+    }
+    const otherRows = await otherQuery
+    const stillDetected = new Set(
+      otherRows.map((r: { userId: string }) => String(r.userId))
+    )
+    const toLift = memberIds.filter((id) => !stillDetected.has(id))
+    if (toLift.length === 0) {
+      return
+    }
+    const delQuery = this.knex('user_restriction')
+      .whereIn('userId', toLift)
+      .where({ type: USER_RESTRICTION_TYPE.spamRing })
+      .del()
+    if (trx) {
+      delQuery.transacting(trx)
+    }
+    await delQuery
   }
 
   // --- 私有輔助 ---

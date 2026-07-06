@@ -1898,6 +1898,7 @@ export type GQLFeatureName =
   | 'payment'
   | 'payout'
   | 'spam_detection'
+  | 'spam_ring_restriction'
   | 'tag_adoption'
   | 'topic_channel_spam_filter'
   | 'verify_appreciate'

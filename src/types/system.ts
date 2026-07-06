@@ -688,6 +688,7 @@ export default /* GraphQL */ `
     article_channel
     hottest_moment_feed
     discovery_probation
+    spam_ring_restriction
   }
 
   enum FeatureFlag {
