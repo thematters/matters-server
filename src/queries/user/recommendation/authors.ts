@@ -15,7 +15,6 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
   {
     dataSources: {
       userService,
-      recommendationService,
       atomService,
       connections: { objectCacheRedis },
     },
@@ -60,17 +59,17 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     channelId = channel?.id
   }
 
-  const authorIds = await cache.getObject({
+  const authorIds = await cache.getObject<Array<{ authorId: string }>>({
     keys: {
       type: 'recommendationAuthors',
       args: {
         channelId,
       },
     },
-    getter: async () => {
-      const { query } = await recommendationService.recommendAuthors(channelId)
-      return query
-    },
+    // The recommendation pool is expensive to rebuild on public reads. Cache
+    // misses are filled by the cache-ahead Lambda instead of tying up web DB
+    // connections during deploys or cold starts.
+    getter: async () => [],
     expire: CACHE_TTL.LONG,
   })
   const filtered = authorIds.filter(({ authorId }) => !notIn.includes(authorId))
