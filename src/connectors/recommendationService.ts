@@ -367,7 +367,13 @@ export class RecommendationService {
                   isSpam: false,
                   spamThreshold: spamThreshold ?? 0,
                 },
-                excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
+                // keep in sync with excludeStateRestrictedAuthors: banned
+                // authors' works must not resurface in hottest either
+                excludeAuthorStates: [
+                  USER_STATE.frozen,
+                  USER_STATE.banned,
+                  USER_STATE.archived,
+                ],
                 excludeRestrictedAuthors: [
                   USER_RESTRICTION_TYPE.articleHottest,
                   USER_RESTRICTION_TYPE.spamRing,
