@@ -33,6 +33,7 @@ import {
   toDatetimeRangeString,
   fromDatetimeRangeString,
   fromGlobalId,
+  excludeStateRestrictedAuthors,
   // excludeSpam,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -350,6 +351,11 @@ export class CampaignService {
     if (featured) {
       query.where({ featured })
     }
+
+    // freezing only flips user.state, so without this the public campaign
+    // feed keeps listing frozen authors' articles (applied as a plain call:
+    // knex's loosely-typed `.modify()` would widen the query's row type)
+    excludeStateRestrictedAuthors(query)
 
     return query
   }
