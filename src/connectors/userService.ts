@@ -2052,22 +2052,28 @@ export class UserService extends BaseService<User> {
       trx
     )
 
-    // best-effort moderation case for NCC transparency metrics; runs outside
-    // the caller transaction (own connection, different tables) and must not
-    // fail the freeze itself.
-    try {
-      const systemService = new SystemService(this.connections)
-      await systemService.recordAccountRestrictionCase({
-        userId,
-        reason,
-        source,
-        automationRole,
-        actorId,
-        noticeSent: true,
-        ...(remark ? { metadata: { remark } } : {}),
-      })
-    } catch (error) {
-      logger.error(error)
+    // best-effort moderation case for NCC transparency metrics; must not fail
+    // the freeze itself. Runs on its own connection: when inside a caller
+    // transaction, do not await — waiting on a second pool connection while
+    // the transaction holds one can starve small pools (deadlocks the test
+    // pool), same reasoning as the fire-and-forget notice above.
+    const systemService = new SystemService(this.connections)
+    const recordCase = () =>
+      systemService
+        .recordAccountRestrictionCase({
+          userId,
+          reason,
+          source,
+          automationRole,
+          actorId,
+          noticeSent: true,
+          ...(remark ? { metadata: { remark } } : {}),
+        })
+        .catch((error) => logger.error(error))
+    if (trx) {
+      void recordCase()
+    } else {
+      await recordCase()
     }
 
     return updated
@@ -2086,12 +2092,18 @@ export class UserService extends BaseService<User> {
     const updated = await this.baseUpdate(userId, { state }, undefined, trx)
 
     // best-effort: close the open account-restriction case (appeal accepted /
-    // staff reversal); no-op for freezes that predate case recording.
-    try {
-      const systemService = new SystemService(this.connections)
-      await systemService.resolveAccountRestrictionCase({ userId, actorId })
-    } catch (error) {
-      logger.error(error)
+    // staff reversal); no-op for freezes that predate case recording. Same
+    // pool-starvation rule as freezeUser: never await while inside a caller
+    // transaction.
+    const systemService = new SystemService(this.connections)
+    const resolveCase = () =>
+      systemService
+        .resolveAccountRestrictionCase({ userId, actorId })
+        .catch((error) => logger.error(error))
+    if (trx) {
+      void resolveCase()
+    } else {
+      await resolveCase()
     }
 
     return updated
