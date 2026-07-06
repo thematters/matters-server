@@ -25,10 +25,7 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import {
-  excludeProbationAuthors as excludeProbationModifier,
-  excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
-} from '#common/utils/index.js'
+import { excludeProbationAuthors as excludeProbationModifier } from '#common/utils/index.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
 import { quantile, median } from 'd3-array'
 import keyBy from 'lodash/keyBy.js'
@@ -924,9 +921,6 @@ export class RecommendationService {
       )
       .leftJoin('article', 'choice.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
-      // matters_choice is curated before an author may get frozen, so the
-      // author state must be re-checked at read time
-      .modify(excludeStateRestrictedModifier)
       .modify((builder) => {
         if (probationDays) {
           builder.modify(excludeProbationModifier, probationDays)
