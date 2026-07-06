@@ -39,7 +39,6 @@ import {
 import {
   excludeSpam as excludeSpamModifier,
   excludeRestrictedAuthors as excludeRestrictedModifier,
-  excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
   excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
   excludeProbationAuthors as excludeProbationModifier,
 } from '#common/utils/index.js'
@@ -221,11 +220,6 @@ export class ArticleService extends BaseService<Article> {
       excludeExclusiveCampaignArticles,
       excludeProbationAuthors: probationDays,
     })
-    // freezing only flips user.state, not user_restriction, so the
-    // restricted-authors filter alone still surfaces frozen accounts in
-    // newest / recommended-authors / recommended-tags pools; the correlated
-    // modifier probes user pkey per row instead of scanning the user table
-    excludeStateRestrictedModifier(query)
     return query.orderBy('id', 'desc')
   }
 

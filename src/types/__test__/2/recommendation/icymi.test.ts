@@ -6,7 +6,6 @@ import {
   NODE_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
   LANGUAGE,
-  USER_STATE,
 } from '#common/enums/index.js'
 import { RecommendationService, AtomService } from '#connectors/index.js'
 import { toGlobalId } from '#common/utils/index.js'
@@ -71,52 +70,6 @@ describe('icymi', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.viewer.recommendation.icymi.totalCount).toBeGreaterThan(0)
-  })
-  test('articles by state-restricted authors are excluded', async () => {
-    const server = await testClient({ connections })
-    const article = await atomService.findUnique({
-      table: 'article',
-      where: { id: '1' },
-    })
-    await atomService.upsert({
-      table: 'matters_choice',
-      where: { articleId: article.id },
-      create: { articleId: article.id },
-      update: {},
-    })
-
-    await atomService.update({
-      table: 'user',
-      where: { id: article.authorId },
-      data: { state: USER_STATE.frozen },
-    })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_ICYMI,
-      variables: { input: { first: 10 } },
-    })
-    expect(errors).toBeUndefined()
-    const ids = data.viewer.recommendation.icymi.edges.map(
-      ({ node }: { node: { id: string } }) => node.id
-    )
-    expect(ids).not.toContain(
-      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
-    )
-
-    await atomService.update({
-      table: 'user',
-      where: { id: article.authorId },
-      data: { state: USER_STATE.active },
-    })
-    const { data: restoredData } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_ICYMI,
-      variables: { input: { first: 10 } },
-    })
-    const restoredIds = restoredData.viewer.recommendation.icymi.edges.map(
-      ({ node }: { node: { id: string } }) => node.id
-    )
-    expect(restoredIds).toContain(
-      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
-    )
   })
 })
 
