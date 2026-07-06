@@ -1,6 +1,6 @@
 import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 
-import { FEATURE_FLAG, FEATURE_NAME } from '#common/enums/index.js'
+import { FEATURE_FLAG, FEATURE_NAME, USER_STATE } from '#common/enums/index.js'
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
 import { ChannelService } from '../../channel/channelService.js'
@@ -117,6 +117,36 @@ describe('findTopicChannelArticles', () => {
     expect(results).toHaveLength(4)
     expect(results[0].id).toBe(articles[0].id) // Pinned should be first
     expect(results[1].id).not.toBe(articles[0].id) // Rest should be unpinned
+  })
+
+  test('pinned articles by state-restricted authors are excluded', async () => {
+    await atomService.update({
+      table: 'topic_channel',
+      where: { id: channel.id },
+      data: { pinnedArticles: [articles[0].id] },
+    })
+    const pinnedAuthorId = articles[0].authorId
+
+    await atomService.update({
+      table: 'user',
+      where: { id: pinnedAuthorId },
+      data: { state: USER_STATE.frozen },
+    })
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    expect(results.map(({ authorId }) => authorId)).not.toContain(
+      pinnedAuthorId
+    )
+
+    await atomService.update({
+      table: 'user',
+      where: { id: pinnedAuthorId },
+      data: { state: USER_STATE.active },
+    })
+    const { query: restoredQuery } =
+      await channelService.findTopicChannelArticles(channel.id)
+    const restored = await restoredQuery
+    expect(restored.map(({ id }) => id)).toContain(articles[0].id)
   })
 
   test('orders pinned articles by pinnedArticles array order', async () => {
