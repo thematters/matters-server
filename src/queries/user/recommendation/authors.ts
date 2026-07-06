@@ -1,6 +1,6 @@
 import type { GQLRecommendationResolvers } from '#definitions/index.js'
 
-import { CACHE_PREFIX, CACHE_TTL } from '#common/enums/index.js'
+import { CACHE_PREFIX, CACHE_TTL, USER_STATE } from '#common/enums/index.js'
 import { ForbiddenError } from '#common/errors.js'
 import {
   connectionFromArray,
@@ -77,8 +77,21 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
   const chunks = circleChunk(filtered, draw)
   const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
   const randomAuthorIds = chunks[index] || []
-  const randomAuthors = await atomService.userIdLoader.loadMany(
+  const loadedAuthors = await atomService.userIdLoader.loadMany(
     randomAuthorIds.map(({ authorId }) => authorId)
+  )
+  // the cached pool may predate a freeze (CACHE_TTL.LONG), so author state
+  // must be re-checked at read time
+  const restrictedStates: string[] = [
+    USER_STATE.frozen,
+    USER_STATE.banned,
+    USER_STATE.archived,
+  ]
+  const randomAuthors = loadedAuthors.filter(
+    (author) =>
+      author &&
+      !(author instanceof Error) &&
+      !restrictedStates.includes(author.state)
   )
   return connectionFromArray(randomAuthors, input, authorIds.length)
 }

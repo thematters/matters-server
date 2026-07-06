@@ -4,7 +4,10 @@ import { USER_STATE } from '#common/enums/index.js'
 import { ActionFailedError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
-import { invalidateUserContentCaches } from './utils.js'
+import {
+  invalidateRecommendationAuthorsCache,
+  invalidateUserContentCaches,
+} from './utils.js'
 
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
@@ -16,15 +19,20 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
       articleService,
       notificationService,
       atomService,
-      connections: { redis },
+      connections: { redis, objectCacheRedis },
       queues: { userQueue },
     },
   }
 ) => {
   const id = globalId ? fromGlobalId(globalId).id : undefined
 
-  const invalidateUserCaches = (userId: string) =>
-    invalidateUserContentCaches(userId, { articleService, redis })
+  const invalidateUserCaches = async (userId: string) => {
+    await invalidateUserContentCaches(userId, { articleService, redis })
+    await invalidateRecommendationAuthorsCache({
+      atomService,
+      objectCacheRedis,
+    })
+  }
 
   /**
    * archive
