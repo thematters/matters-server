@@ -676,6 +676,12 @@ export class ChannelService {
     const result = await classifier.classify(texts)
 
     if (!result) {
+      // classify() returns null both when the API is unconfigured and when it
+      // fails. If the API isn't configured there was nothing to attempt, so keep
+      // the original quiet no-op (also avoids spurious jobs in tests/dev).
+      if (!environment.channelClassificationApiUrl) {
+        return
+      }
       // The classification API failed for the whole batch. Do NOT drop
       // silently: without a job row these articles are never classified and
       // never retried. Record an error job per article so retry-error-jobs can
