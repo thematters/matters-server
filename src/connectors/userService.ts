@@ -2045,6 +2045,21 @@ export class UserService extends BaseService<User> {
     // Only fills `null` rows — manual is_spam verdicts are kept.
     await this.markUserContentSpam(userId, trx)
 
+    // visibility restriction row: the already-deployed excludeRestrictedAuthors
+    // filter (newest / icymi / channels) picks it up without any hot-path query
+    // change (SPEC-frozen-newest-icymi-recovery). Same connection as the freeze.
+    await (trx ?? this.knex)('user_restriction')
+      .insert({ userId, type: USER_RESTRICTION_TYPE.frozen })
+      .onConflict(['userId', 'type'])
+      .ignore()
+
+    // a frozen account must not keep a spam-detection bypass: the whitelist
+    // overrides is_spam marks in excludeSpam and would leak its content back
+    // into spam-filtered surfaces.
+    await (trx ?? this.knex)('user_feature_flag')
+      .where({ userId, type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection })
+      .del()
+
     const updated = await this.baseUpdate(
       userId,
       remark ? { ...data, remark } : data,
@@ -2089,6 +2104,14 @@ export class UserService extends BaseService<User> {
     { actorId }: { actorId?: string | null } = {}
   ) => {
     await this.revertUserContentSpamMarks(userId, trx)
+
+    // lift the freeze-time visibility restriction (only the `frozen` type —
+    // admin-set articleNewest/articleHottest rows and ring-managed spamRing
+    // rows are intentionally untouched)
+    await (trx ?? this.knex)('user_restriction')
+      .where({ userId, type: USER_RESTRICTION_TYPE.frozen })
+      .del()
+
     const updated = await this.baseUpdate(userId, { state }, undefined, trx)
 
     // best-effort: close the open account-restriction case (appeal accepted /

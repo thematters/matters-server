@@ -50,6 +50,9 @@ export const excludeSpam = (
 // `spamRing` is excluded by default alongside `articleNewest`: rows of that
 // type only exist while the spam_ring_restriction flag is on, so default call
 // sites (channels / newest) are zero-diff until the feature launches.
+// `frozen` rows are written by freezeUser / removed by unfreezeUser — this
+// data-path keeps frozen authors out of default call sites without adding
+// any per-row user-table probe (the #4920 approach that timed out on prod).
 export const excludeRestrictedAuthors = (
   builder: Knex.QueryBuilder,
   table = 'article',
@@ -58,6 +61,7 @@ export const excludeRestrictedAuthors = (
     | Array<ValueOf<typeof USER_RESTRICTION_TYPE>> = [
     USER_RESTRICTION_TYPE.articleNewest,
     USER_RESTRICTION_TYPE.spamRing,
+    USER_RESTRICTION_TYPE.frozen,
   ]
 ) => {
   const typeList = Array.isArray(types) ? types : [types]
