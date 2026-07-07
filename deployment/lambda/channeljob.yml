@@ -30,8 +30,13 @@ Resources:
           MATTERS_ENV: !Ref mattersEnv
       Architectures:
         - x86_64
-      MemorySize: 512
-      Timeout: 180
+      # Sized up from 512/180 after the 2026-07 channel-pipeline outage: syncing
+      # a large processing/error backlog parses a big classifier response and
+      # loops per-job, which OOM'd at 512MB and timed out at 180s. The batch cap
+      # (JOB_BATCH_SIZE in channelJobService) bounds each tick; the extra memory
+      # and timeout give headroom while a backlog drains.
+      MemorySize: 1536
+      Timeout: 300
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SecurityGroupIds:
