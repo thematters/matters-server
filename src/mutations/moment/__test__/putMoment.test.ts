@@ -1,4 +1,4 @@
-import { UserInputError } from '#common/errors.js'
+import { ForbiddenError, UserInputError } from '#common/errors.js'
 
 import putMoment from '../putMoment.js'
 
@@ -24,5 +24,25 @@ describe('putMoment mutation', () => {
     await expect(
       (putMoment as any)({}, { input: { content: '', tags: ['a'] } }, context)
     ).rejects.toThrowError(UserInputError)
+  })
+
+  test('rejects tags when moment_tag feature flag is off', async () => {
+    const flagOffContext = {
+      ...context,
+      dataSources: {
+        ...context.dataSources,
+        systemService: {
+          getFeatureFlag: async () => ({ flag: 'off' }),
+          isFeatureEnabled: async () => false,
+        },
+      },
+    }
+    await expect(
+      (putMoment as any)(
+        {},
+        { input: { content: 'test', tags: ['a'] } },
+        flagOffContext
+      )
+    ).rejects.toThrowError(ForbiddenError)
   })
 })

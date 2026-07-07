@@ -1,7 +1,11 @@
 import type { GQLMutationResolvers } from '#definitions/index.js'
 
 import { NODE_TYPES, MAX_TAGS_PER_MOMENT_LIMIT } from '#common/enums/index.js'
-import { AuthenticationError, UserInputError } from '#common/errors.js'
+import {
+  AuthenticationError,
+  ForbiddenError,
+  UserInputError,
+} from '#common/errors.js'
 import { fromGlobalId, stripHtml } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -14,6 +18,7 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
       momentService,
       tagService,
       atomService,
+      systemService,
       connections: { redis },
     },
   }
@@ -32,6 +37,13 @@ const resolver: GQLMutationResolvers['putMoment'] = async (
     )
   }
   if (tags && tags.length > 0) {
+    const feature = await systemService.getFeatureFlag('moment_tag')
+    if (
+      feature &&
+      !(await systemService.isFeatureEnabled(feature.flag, viewer))
+    ) {
+      throw new ForbiddenError('moment tags are disabled')
+    }
     await Promise.all(
       tags.map(async (tagContent) => {
         await tagService.validate(tagContent, {

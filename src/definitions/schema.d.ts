@@ -1881,6 +1881,8 @@ export type GQLExchangeRatesInput = {
 export type GQLFeature = {
   __typename?: 'Feature'
   enabled: Scalars['Boolean']['output']
+  /** Admin-only raw phase. Public consumers (matters-web etc.) must not select this field, otherwise the anonymous official.features query fails with ForbiddenError. */
+  flag?: Maybe<GQLFeatureFlag>
   name: GQLFeatureName
   value?: Maybe<Scalars['Float']['output']>
 }
@@ -1894,6 +1896,8 @@ export type GQLFeatureName =
   | 'circle_management'
   | 'fingerprint'
   | 'hottest_moment_feed'
+  | 'moment_tag'
+  | 'moment_tag_display'
   | 'payment'
   | 'payout'
   | 'spam_detection'
@@ -9451,6 +9455,11 @@ export type GQLFeatureResolvers<
   ParentType extends GQLResolversParentTypes['Feature'] = GQLResolversParentTypes['Feature']
 > = ResolversObject<{
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  flag?: Resolver<
+    Maybe<GQLResolversTypes['FeatureFlag']>,
+    ParentType,
+    ContextType
+  >
   name?: Resolver<GQLResolversTypes['FeatureName'], ParentType, ContextType>
   value?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>

@@ -111,6 +111,8 @@ export default /* GraphQL */ `
     name: FeatureName!
     enabled: Boolean!
     value: Float
+    "Admin-only raw phase. Public consumers (matters-web etc.) must not select this field, otherwise the anonymous official.features query fails with ForbiddenError."
+    flag: FeatureFlag @auth(mode: "${AUTH_MODE.admin}") @privateCache
   }
 
   type Announcement {
@@ -687,6 +689,8 @@ export default /* GraphQL */ `
     topic_channel_spam_filter
     article_channel
     hottest_moment_feed
+    moment_tag
+    moment_tag_display
   }
 
   enum FeatureFlag {

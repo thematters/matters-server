@@ -11,6 +11,8 @@ export const FEATURE_NAME = {
   topic_channel_spam_filter: 'topic_channel_spam_filter',
   article_channel: 'article_channel',
   hottest_moment_feed: 'hottest_moment_feed',
+  moment_tag: 'moment_tag',
+  moment_tag_display: 'moment_tag_display',
 } as const
 
 export const FEATURE_FLAG = {
