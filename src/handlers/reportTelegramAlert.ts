@@ -3,6 +3,10 @@ import type { SQSEvent, SQSBatchResponse } from 'aws-lambda'
 
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
+import {
+  sendTelegramMessage,
+  TELEGRAM_API_TIMEOUT_MS,
+} from '#common/notifications/telegram.js'
 import * as Sentry from '@sentry/node'
 import axios from 'axios'
 
@@ -16,8 +20,6 @@ const logger = getLogger('handler-report-telegram-alert')
  * instead of posting a new one, so the admin chat doesn't get flooded.
  */
 const DEDUP_WINDOW_S = 60 * 60 * 24 // 24h
-
-const TELEGRAM_API_TIMEOUT_MS = 5000
 
 const SOURCE_LABELS: Record<ReportAlertRequested['source'], string> = {
   direct: '🚨 站內檢舉',
@@ -96,26 +98,6 @@ const isValidPayload = (raw: unknown): raw is ReportAlertRequested => {
   )
 }
 
-const sendMessage = async (
-  botToken: string,
-  chatId: string,
-  threadId: string,
-  text: string
-): Promise<number> => {
-  const resp = await axios.post(
-    `https://api.telegram.org/bot${botToken}/sendMessage`,
-    {
-      chat_id: chatId,
-      ...(threadId ? { message_thread_id: Number(threadId) } : {}),
-      text,
-      parse_mode: 'HTML',
-      disable_web_page_preview: true,
-    },
-    { timeout: TELEGRAM_API_TIMEOUT_MS }
-  )
-  return resp.data.result.message_id as number
-}
-
 const editMessage = async (
   botToken: string,
   chatId: string,
@@ -179,12 +161,12 @@ export const processRecord = async (
     }
   }
 
-  const messageId = await sendMessage(
+  const messageId = await sendTelegramMessage({
     botToken,
     chatId,
     threadId,
-    formatText({ ...payload, count: 1 })
-  )
+    text: formatText({ ...payload, count: 1 }),
+  })
   await redis.set(
     key,
     JSON.stringify({ messageId, count: 1 }),

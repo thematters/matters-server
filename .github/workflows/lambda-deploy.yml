@@ -25,6 +25,12 @@ env:
   ECR_REPOSITORY: lambda-handlers-image
   MATTERS_ENV: ${{ inputs.environment == 'develop' && 'development' || 'production' }}
   SQS_ENV: ${{ inputs.environment == 'develop' && 'dev' || 'prod' }}
+  # ~28 deploy jobs hit CloudFormation concurrently and trip its API rate
+  # limit, failing a random subset with "Rate exceeded" on nearly every run.
+  # aws-cloudformation-github-deploy@v1 uses AWS SDK v3, which honors these
+  # vars: adaptive mode rate-limits client-side and retries with backoff.
+  AWS_RETRY_MODE: adaptive
+  AWS_MAX_ATTEMPTS: '10'
 
 jobs:
   build-lambda-image:
@@ -564,6 +570,31 @@ jobs:
             mattersEnv=${{ env.MATTERS_ENV }},
             imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
             lambdaCMD=dailySummaryEmail.handler,
+            lambdaTimeout=900,
+            lambdaMemorySize=512,
+            cronExpression="cron(0 1 * * ? *)"
+
+  deploy-spam-ring-digest:
+    if: inputs.environment == 'production'
+    needs: build-lambda-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Deploy Lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: spam-ring-digest-${{ inputs.environment }}
+          template: ./deployment/lambda/cronjob.yml
+          parameter-overrides: >-
+            mattersEnv=${{ env.MATTERS_ENV }},
+            imageUri=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:matters-server-${{ github.SHA }},
+            lambdaCMD=spamRingDigest.handler,
             lambdaTimeout=900,
             lambdaMemorySize=512,
             cronExpression="cron(0 1 * * ? *)"

@@ -43,7 +43,7 @@ describe('enqueueReportAlert (producer)', () => {
       dedupeKey: 'direct:Article:42',
       subject: 'Article (QXJ0aWNsZTo0Mg)',
       reason: 'illegal_advertising',
-      ossUrl: 'https://oss.example.com/reports?targetId=QXJ0aWNsZTo0Mg',
+      ossUrl: 'https://oss.example.com/next/watch?targetId=QXJ0aWNsZTo0Mg',
     })
 
     expect(sentMessages).toHaveLength(1)
@@ -54,7 +54,7 @@ describe('enqueueReportAlert (producer)', () => {
       dedupeKey: 'direct:Article:42',
       subject: 'Article (QXJ0aWNsZTo0Mg)',
       reason: 'illegal_advertising',
-      ossUrl: 'https://oss.example.com/reports?targetId=QXJ0aWNsZTo0Mg',
+      ossUrl: 'https://oss.example.com/next/watch?targetId=QXJ0aWNsZTo0Mg',
     })
     expect(typeof sent.messageBody.occurredAt).toBe('string')
     // Loose ISO-8601 sanity check; we don't try to validate calendar dates.
@@ -69,7 +69,7 @@ describe('enqueueReportAlert (producer)', () => {
       dedupeKey: 'cw:author:99',
       subject: 'Alice @alice',
       reason: 'porn_ad',
-      ossUrl: 'https://oss.example.com/reports',
+      ossUrl: 'https://oss.example.com/next/watch',
     })
 
     expect(sentMessages).toHaveLength(1)
@@ -78,7 +78,7 @@ describe('enqueueReportAlert (producer)', () => {
       dedupeKey: 'cw:author:99',
       subject: 'Alice @alice',
       reason: 'porn_ad',
-      ossUrl: 'https://oss.example.com/reports',
+      ossUrl: 'https://oss.example.com/next/watch',
     })
   })
 

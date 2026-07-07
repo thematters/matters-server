@@ -26,6 +26,10 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
+import {
+  excludeProbationAuthors as excludeProbationModifier,
+  excludeRestrictedAuthors as excludeRestrictedModifier,
+} from '#common/utils/index.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
 import { quantile, median } from 'd3-array'
 import keyBy from 'lodash/keyBy.js'
@@ -348,6 +352,8 @@ export class RecommendationService {
       'article'
     )
     const spamThreshold = await this.systemService.getSpamThreshold()
+    // dark-launched discovery probation: `null` while flag is off (zero diff)
+    const probationDays = await this.systemService.getDiscoveryProbationDays()
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -362,10 +368,21 @@ export class RecommendationService {
                   isSpam: false,
                   spamThreshold: spamThreshold ?? 0,
                 },
-                excludeAuthorStates: [USER_STATE.frozen, USER_STATE.archived],
-                excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+                // keep in sync with excludeStateRestrictedAuthors: banned
+                // authors' works must not resurface in hottest either
+                excludeAuthorStates: [
+                  USER_STATE.frozen,
+                  USER_STATE.banned,
+                  USER_STATE.archived,
+                ],
+                excludeRestrictedAuthors: [
+                  USER_RESTRICTION_TYPE.articleHottest,
+                  USER_RESTRICTION_TYPE.spamRing,
+                  USER_RESTRICTION_TYPE.frozen,
+                ],
                 excludeExclusiveCampaignArticles: true,
                 excludeComplaintAreaArticles: true,
+                excludeProbationAuthors: probationDays ?? undefined,
                 datetimeRange: {
                   start: startDate,
                 },
@@ -885,6 +902,11 @@ export class RecommendationService {
     skip?: number
   }) => {
     const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
+    // Keep user state checks out of this request-time public feed query.
+    // Frozen/archived author suppression for ICYMI must be handled before
+    // articles enter matters_choice or by a cache-ahead path.
+    // dark-launched discovery probation: `null` while flag is off (zero diff)
+    const probationDays = await this.systemService.getDiscoveryProbationDays()
     const records = await this.knexRO
       .select(
         'article.*',
@@ -907,6 +929,15 @@ export class RecommendationService {
       )
       .leftJoin('article', 'choice.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
+      // curation happens before an author may get frozen; the restriction-row
+      // anti-join is bounded by the curated window (≤ MAX_ITEM_COUNT rows) —
+      // unlike the per-row user-state probe #4927 had to revert
+      .modify((builder) => excludeRestrictedModifier(builder))
+      .modify((builder) => {
+        if (probationDays) {
+          builder.modify(excludeProbationModifier, probationDays)
+        }
+      })
       .modify((builder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)

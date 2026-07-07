@@ -1,6 +1,6 @@
 import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 
-import { FEATURE_FLAG, FEATURE_NAME } from '#common/enums/index.js'
+import { FEATURE_FLAG, FEATURE_NAME, USER_STATE } from '#common/enums/index.js'
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
 import { ChannelService } from '../../channel/channelService.js'
@@ -34,6 +34,10 @@ beforeEach(async () => {
   })
   await systemService.setFeatureFlag({
     name: FEATURE_NAME.spam_detection,
+    flag: FEATURE_FLAG.off,
+  })
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_probation,
     flag: FEATURE_FLAG.off,
   })
   await atomService.deleteMany({ table: 'topic_channel_article' })
@@ -113,6 +117,36 @@ describe('findTopicChannelArticles', () => {
     expect(results).toHaveLength(4)
     expect(results[0].id).toBe(articles[0].id) // Pinned should be first
     expect(results[1].id).not.toBe(articles[0].id) // Rest should be unpinned
+  })
+
+  test('pinned articles by state-restricted authors are excluded', async () => {
+    await atomService.update({
+      table: 'topic_channel',
+      where: { id: channel.id },
+      data: { pinnedArticles: [articles[0].id] },
+    })
+    const pinnedAuthorId = articles[0].authorId
+
+    await atomService.update({
+      table: 'user',
+      where: { id: pinnedAuthorId },
+      data: { state: USER_STATE.frozen },
+    })
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    expect(results.map(({ authorId }) => authorId)).not.toContain(
+      pinnedAuthorId
+    )
+
+    await atomService.update({
+      table: 'user',
+      where: { id: pinnedAuthorId },
+      data: { state: USER_STATE.active },
+    })
+    const { query: restoredQuery } =
+      await channelService.findTopicChannelArticles(channel.id)
+    const restored = await restoredQuery
+    expect(restored.map(({ id }) => id)).toContain(articles[0].id)
   })
 
   test('orders pinned articles by pinnedArticles array order', async () => {
@@ -199,6 +233,38 @@ describe('findTopicChannelArticles', () => {
     for (const id of [articles[0].id, articles[2].id, articles[3].id]) {
       expect(resultIds).toContain(id)
     }
+  })
+
+  test('falls back to global spam threshold when topic channel filter is off', async () => {
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.5,
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: null, spamScore: 0.6 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: false, spamScore: 0.9 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: { isSpam: true, spamScore: 0.1 },
+    })
+
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    const resultIds = results.map((a) => a.id)
+
+    expect(resultIds).not.toContain(articles[0].id)
+    expect(resultIds).toContain(articles[1].id)
+    expect(resultIds).not.toContain(articles[2].id)
+    expect(resultIds).toContain(articles[3].id)
   })
 
   test('uses topic channel spam threshold separately from global threshold', async () => {
@@ -385,6 +451,182 @@ describe('findTopicChannelArticles', () => {
       expect(results.map((a) => a.id)).toContain(articles[0].id)
 
       await atomService.deleteMany({ table: 'user_restriction' })
+    })
+
+    test('pinned articles ARE excluded for spam-ring-detected authors', async () => {
+      // spamRing is a hard exclusion — unlike articleNewest, pinning does not
+      // override it
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: articles[0].authorId,
+          type: 'spamRing',
+        },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+
+      await atomService.deleteMany({ table: 'user_restriction' })
+    })
+  })
+
+  describe('frozen / spam hard exclusions', () => {
+    afterEach(async () => {
+      await atomService.update({
+        table: 'user',
+        where: { id: articles[0].authorId },
+        data: { state: 'active' },
+      })
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[0].id },
+        data: { isSpam: null },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [] },
+      })
+    })
+
+    test('excludes pinned article whose author is frozen', async () => {
+      await atomService.update({
+        table: 'user',
+        where: { id: articles[0].authorId },
+        data: { state: 'frozen' },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+    })
+
+    test('excludes pinned article marked is_spam=true', async () => {
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[0].id },
+        data: { isSpam: true },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+    })
+  })
+
+  describe('discovery probation', () => {
+    const originalCreatedAt: Record<string, Date> = {}
+    let target: Article
+    let others: Article[]
+
+    beforeEach(async () => {
+      // `articles` comes from an unordered findMany, so index→author mapping
+      // is not guaranteed — pick a target whose author owns exactly one of
+      // the four channel articles, so newing that author affects one article
+      const channelArticles = articles.slice(0, 4)
+      const authorCount: Record<string, number> = {}
+      for (const { authorId } of channelArticles) {
+        authorCount[authorId] = (authorCount[authorId] ?? 0) + 1
+      }
+      target = channelArticles.find(
+        ({ authorId }) => authorCount[authorId] === 1
+      ) as Article
+      expect(target).toBeDefined()
+      others = channelArticles.filter(({ id }) => id !== target.id)
+
+      // age all channel article authors out of the probation window first
+      // (seed users are created at test run time, i.e. "new" accounts)
+      const authorIds = [
+        ...new Set(channelArticles.map(({ authorId }) => authorId)),
+      ]
+      for (const authorId of authorIds) {
+        const author = await atomService.findUnique({
+          table: 'user',
+          where: { id: authorId },
+        })
+        originalCreatedAt[authorId] = author.createdAt
+        await atomService.update({
+          table: 'user',
+          where: { id: authorId },
+          data: { createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000) },
+        })
+      }
+      // make the target author a brand-new account (inside probation window)
+      await atomService.update({
+        table: 'user',
+        where: { id: target.authorId },
+        data: { createdAt: new Date() },
+      })
+    })
+
+    afterEach(async () => {
+      // restore created_at and the flag, even when an assertion threw —
+      // a leaked flag would poison every later test in this file
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.off,
+      })
+      for (const [authorId, createdAt] of Object.entries(originalCreatedAt)) {
+        await atomService.update({
+          table: 'user',
+          where: { id: authorId },
+          data: { createdAt },
+        })
+      }
+    })
+
+    test('flag off: results identical to before (zero diff)', async () => {
+      // flag is off via beforeEach; new-account article still shows up
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      expect(results).toHaveLength(4)
+      expect(results.map((a) => a.id)).toContain(target.id)
+    })
+
+    test('flag on: excludes articles from new accounts only', async () => {
+      await systemService.setFeatureFlag({
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.on,
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      const ids = results.map((a) => a.id)
+      expect(ids).not.toContain(target.id)
+      // articles by older accounts are not affected
+      for (const other of others) {
+        expect(ids).toContain(other.id)
+      }
     })
   })
 

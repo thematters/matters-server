@@ -5,6 +5,7 @@ import type {
   ValueOf,
   TopicChannelFeedback,
 } from '#definitions/index.js'
+import type { Knex } from 'knex'
 
 import {
   ARTICLE_CHANNEL_JOB_STATE,
@@ -23,6 +24,7 @@ import {
   CHANNEL_ANTIFLOOD_LIMIT_PER_WINDOW,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
+  USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
 import { environment } from '#common/environment.js'
 import {
@@ -36,6 +38,8 @@ import {
   toDatetimeRangeString,
   excludeSpam as excludeSpamModifier,
   excludeRestrictedAuthors as excludeRestrictedModifier,
+  excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
+  excludeProbationAuthors as excludeProbationModifier,
   excludeExclusiveCampaignArticles,
 } from '#common/utils/index.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -50,6 +54,11 @@ import { SystemService } from '../systemService.js'
 import { ChannelClassifier } from './channelClassifier.js'
 
 const logger = getLogger('service-channel')
+
+// Sentinel job_id used when the classification API fails before returning a
+// real job id. Lets us record a retryable error job (article_channel_job
+// requires a non-null job_id and is unique on [article_id, job_id]).
+const CLASSIFICATION_FAILED_JOB_ID = 'classification-failed'
 
 export class ChannelService {
   private connections: Connections
@@ -322,11 +331,6 @@ export class ChannelService {
 
     // Add new channels or re-enable disabled ones
     if (toAdd.length > 0) {
-      await this.models.update({
-        table: 'article',
-        where: { id: articleId },
-        data: { isSpam: false },
-      })
       await this.models.upsertOnConflict({
         table: 'topic_channel_article',
         create: toAdd.map((channelId) =>
@@ -399,11 +403,26 @@ export class ChannelService {
 
     const pinnedArticleIds = channel.pinnedArticles || []
     const systemService = new SystemService(this.connections)
-    const [globalSpamThreshold, topicChannelSpamThreshold] = await Promise.all([
-      systemService.getSpamThreshold(),
-      systemService.getTopicChannelSpamThreshold(),
-    ])
+    const [globalSpamThreshold, topicChannelSpamThreshold, probationDays] =
+      await Promise.all([
+        systemService.getSpamThreshold(),
+        systemService.getTopicChannelSpamThreshold(),
+        // dark-launched discovery probation: `null` while flag is off (zero diff)
+        systemService.getDiscoveryProbationDays(),
+      ])
     const spamThreshold = topicChannelSpamThreshold ?? globalSpamThreshold
+
+    const applySpamFilter = (builder: Knex.QueryBuilder) => {
+      if (spamThreshold) {
+        builder.modify(excludeSpamModifier, spamThreshold)
+      } else {
+        builder.where((qb) => {
+          qb.where('article.is_spam', false).orWhere((b) => {
+            b.whereNull('article.is_spam')
+          })
+        })
+      }
+    }
 
     const pinnedQuery = knexRO
       .select(
@@ -418,6 +437,20 @@ export class ChannelService {
         'article.channel_enabled': true,
       })
       .whereIn('article.id', pinnedArticleIds)
+
+    // pinning is admin curation, so it overrides the soft `articleNewest`
+    // ranking restriction — but a frozen/banned/archived author, a
+    // spam-marked article, or a spam-ring-detected author is a hard exclusion
+    // that must still drop out of the channel.
+    // statement form (not `.modify`) — knex's `.modify` return type degrades
+    // to `<any, any>` and breaks the callers' result typing
+    applySpamFilter(pinnedQuery)
+    excludeStateRestrictedModifier(pinnedQuery)
+    excludeRestrictedModifier(
+      pinnedQuery,
+      'article',
+      USER_RESTRICTION_TYPE.spamRing
+    )
 
     const unpinnedQuery = knexRO
       .select(
@@ -434,17 +467,16 @@ export class ChannelService {
       })
       .whereIn('topic_channel_article.channel_id', channelIds)
       .modify((builder) => {
-        if (spamThreshold) {
-          builder.modify(excludeSpamModifier, spamThreshold)
-        } else {
-          builder.where((qb) => {
-            qb.where('article.is_spam', false).orWhere((b) => {
-              b.whereNull('article.is_spam')
-            })
-          })
-        }
+        applySpamFilter(builder)
       })
       .modify(excludeRestrictedModifier)
+      .modify(excludeStateRestrictedModifier)
+      .modify((builder) => {
+        // discovery probation (dark): only applied when the flag is on
+        if (probationDays) {
+          builder.modify(excludeProbationModifier, probationDays)
+        }
+      })
       .modify(excludeExclusiveCampaignArticles)
       .where((builder) => {
         if (channelThreshold) {
@@ -644,6 +676,32 @@ export class ChannelService {
     const result = await classifier.classify(texts)
 
     if (!result) {
+      // classify() returns null both when the API is unconfigured and when it
+      // fails. If the API isn't configured there was nothing to attempt, so keep
+      // the original quiet no-op (also avoids spurious jobs in tests/dev).
+      if (!environment.channelClassificationApiUrl) {
+        return
+      }
+      // The classification API failed for the whole batch. Do NOT drop
+      // silently: without a job row these articles are never classified and
+      // never retried. Record an error job per article so retry-error-jobs can
+      // pick them up once the API recovers.
+      logger.error(
+        `Channel classification API failed for ${articles.length} article(s); recording error jobs for retry`
+      )
+      await Promise.all(
+        articles.map((article) =>
+          this.models.upsertOnConflict({
+            table: 'article_channel_job',
+            create: {
+              articleId: article.id,
+              jobId: CLASSIFICATION_FAILED_JOB_ID,
+              state: ARTICLE_CHANNEL_JOB_STATE.error,
+            },
+            onConflict: ['articleId', 'jobId'],
+          })
+        )
+      )
       return
     }
 
@@ -709,6 +767,23 @@ export class ChannelService {
     { addOrderColumn }: { addOrderColumn: boolean } = { addOrderColumn: false }
   ) => {
     const knexRO = this.connections.knexRO
+
+    // curation is hand-picked, so no classifier-threshold filtering here —
+    // but explicitly spam-marked articles and frozen/banned/archived or
+    // spam-ring-detected authors must still drop out of the channel
+    const applyModerationFilter = (builder: Knex.QueryBuilder) => {
+      builder
+        .where((qb) => {
+          qb.where('article.is_spam', false).orWhereNull('article.is_spam')
+        })
+        .modify(excludeStateRestrictedModifier)
+        .modify(
+          excludeRestrictedModifier,
+          'article',
+          USER_RESTRICTION_TYPE.spamRing
+        )
+    }
+
     const pinnedQuery = knexRO('article')
       .select('article.*')
       .join(
@@ -734,6 +809,11 @@ export class ChannelService {
         'curation_channel_article.pinned': false,
         'article.state': ARTICLE_STATE.active,
       })
+
+    // statement form (not `.modify`) — knex's `.modify` return type degrades
+    // to `<any, any>` and breaks the callers' result typing
+    applyModerationFilter(pinnedQuery)
+    applyModerationFilter(unpinnedQuery)
 
     if (addOrderColumn) {
       pinnedQuery.select(
@@ -1132,6 +1212,7 @@ export class ChannelService {
         .leftJoin('article', 'topic_channel_feedback.article_id', 'article.id')
         .modify(excludeSpamModifier, spamThreshold)
         .modify(excludeRestrictedModifier)
+        .modify(excludeStateRestrictedModifier)
     }
     return query
   }

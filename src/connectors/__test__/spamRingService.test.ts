@@ -30,6 +30,10 @@ const makeConnections = ({
       orderBy: () => b,
       transacting: () => b,
       forUpdate: () => b,
+      select: () => b,
+      whereIn: () => b,
+      whereNot: () => b,
+      del: () => b,
       modify: (fn?: any) => {
         if (fn) fn(b)
         return b
@@ -157,7 +161,13 @@ describe('SpamRingService.freezeRing', () => {
     expect(userService.freezeUser).toHaveBeenCalledTimes(1)
     expect(userService.freezeUser).toHaveBeenCalledWith(
       'u1',
-      expect.objectContaining({ remark: USER_BAN_REMARK.spamRing })
+      expect.objectContaining({
+        remark: USER_BAN_REMARK.spamRing,
+        source: 'model_assisted',
+        automationRole: 'assisted',
+        reason: 'spam',
+        actorId: '9',
+      })
     )
     expect(userService.banUser).not.toHaveBeenCalled()
     expect(result.frozen.map((u: any) => u.id)).toEqual(['u1'])
@@ -297,6 +307,117 @@ describe('SpamRingService.freezeRing', () => {
     expect(result.ring.status).toBe('frozen')
   })
 
+  test('memberUserIds restricts the freeze to verified members; others are skipped untouched', async () => {
+    // audit F1: spam_ring_member is a union of all past detection runs, so a
+    // scoped freeze must only touch members verified by the current run.
+    const ring = { id: '1', status: 'pending', signals: { nearDupRingSize: 1 } }
+    const members = [
+      { id: 'm1', userId: 'u1', status: 'pending', bannedByThisRing: false },
+      { id: 'm2', userId: 'u2', status: 'pending', bannedByThisRing: false },
+    ]
+    const users: Record<string, any> = {
+      u1: {
+        id: 'u1',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY),
+      },
+      // stale member from an earlier detection run — must stay untouched
+      u2: {
+        id: 'u2',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY),
+      },
+    }
+    const { connections, rec } = makeConnections({ ring, members, users })
+    const service = makeService(connections, users)
+    const userService = makeUserService(users)
+
+    const result = await service.freezeRing({
+      ringId: '1',
+      actorId: '9',
+      memberUserIds: ['u1'],
+      userService: userService as any,
+    })
+
+    // only the verified member is frozen; u2 is never passed to freezeUser
+    expect(userService.freezeUser).toHaveBeenCalledTimes(1)
+    expect(userService.freezeUser).toHaveBeenCalledWith(
+      'u1',
+      expect.objectContaining({ remark: USER_BAN_REMARK.spamRing })
+    )
+    expect(result.frozen.map((u: any) => u.id)).toEqual(['u1'])
+    expect(result.skipped).toEqual([
+      { user: users.u2, reason: 'not_in_verified_candidate' },
+    ])
+    // the stale member row is marked skipped with the scope reason
+    const m2Update = rec.memberUpdates.find((u) => u.where.id === 'm2')
+    expect(m2Update?.data).toMatchObject({
+      status: 'skipped',
+      skipReason: 'not_in_verified_candidate',
+      bannedByThisRing: false,
+    })
+    expect(rec.eventInserts.map((e) => e.action)).toEqual(
+      expect.arrayContaining(['member_frozen', 'member_skipped', 'frozen'])
+    )
+    // ring itself still transitions to frozen
+    expect(rec.ringUpdates.at(-1)).toMatchObject({ status: 'frozen' })
+  })
+
+  test('guardrails still apply to members inside the memberUserIds scope', async () => {
+    const ring = { id: '1', status: 'pending', signals: { nearDupRingSize: 1 } }
+    const members = [
+      { id: 'm1', userId: 'u1', status: 'pending', bannedByThisRing: false },
+      { id: 'm2', userId: 'u2', status: 'pending', bannedByThisRing: false },
+    ]
+    const users: Record<string, any> = {
+      // in scope but old account → guardrail wins, goes to human review
+      u1: {
+        id: 'u1',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - 100 * DAY),
+      },
+      u2: {
+        id: 'u2',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY),
+      },
+    }
+    const { connections } = makeConnections({ ring, members, users })
+    const service = makeService(connections, users)
+    const userService = makeUserService(users)
+
+    const result = await service.freezeRing({
+      ringId: '1',
+      actorId: '9',
+      memberUserIds: ['u1', 'u2'],
+      userService: userService as any,
+    })
+
+    expect(userService.freezeUser).toHaveBeenCalledTimes(1)
+    expect(userService.freezeUser).toHaveBeenCalledWith(
+      'u2',
+      expect.objectContaining({ remark: USER_BAN_REMARK.spamRing })
+    )
+    expect(result.frozen.map((u: any) => u.id)).toEqual(['u2'])
+    expect(result.skipped.map((s: any) => s.user.id)).toEqual(['u1'])
+    expect(result.skipped[0].reason).toMatch(/old account/)
+  })
+
+  test('rejects an explicitly empty memberUserIds list', async () => {
+    const { connections } = makeConnections({
+      ring: { id: '1', status: 'pending' },
+    })
+    const service = makeService(connections, {})
+    await expect(
+      service.freezeRing({
+        ringId: '1',
+        actorId: '9',
+        memberUserIds: [],
+        userService: makeUserService({}) as any,
+      })
+    ).rejects.toThrow('memberUserIds must not be empty')
+  })
+
   test('refuses to freeze a dismissed ring', async () => {
     const { connections } = makeConnections({
       ring: { id: '1', status: 'dismissed' },
@@ -352,7 +473,8 @@ describe('SpamRingService.unfreezeRing', () => {
     expect(userService.unfreezeUser).toHaveBeenCalledWith(
       'u1',
       USER_STATE.active,
-      expect.anything()
+      expect.anything(),
+      { actorId: '9' }
     )
     expect(result.unbanned.map((u: any) => u.id)).toEqual(['u1'])
     expect(result.skipped.map((s: any) => s.user.id)).toEqual(['u3'])
@@ -446,6 +568,8 @@ const makeImportConnections = ({
         rec.whereInCalls.push({ table, column, values })
         return b
       },
+      whereNot: () => b,
+      del: () => b,
       select: () => b,
       orderBy: (...args: any[]) => {
         rec.orderByCalls.push({ table, args })
@@ -594,6 +718,12 @@ describe('SpamRingService.upsertCandidates', () => {
 
     expect(result.created).toBe(1)
     expect(result.updated).toBe(0)
+    // rings carries the upserted entities so the job can freeze by id
+    expect(result.rings).toHaveLength(1)
+    expect(result.rings[0]).toMatchObject({
+      fingerprint: 'fp-new',
+      status: 'pending',
+    })
     expect(rec.ringInserts[0]).toMatchObject({
       fingerprint: 'fp-new',
       status: 'pending',
@@ -640,6 +770,11 @@ describe('SpamRingService.upsertCandidates', () => {
     expect(result.created).toBe(0)
     expect(result.updated).toBe(1)
     expect(result.skipped).toBe(1)
+    // both the updated ring and the locked (skipped) ring are returned
+    expect(result.rings.map((r) => r.fingerprint).sort()).toEqual([
+      'fp-existing',
+      'fp-frozen',
+    ])
     expect(rec.ringUpdates[0]).toMatchObject({
       where: { id: 'r1' },
       data: {

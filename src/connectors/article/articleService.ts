@@ -40,6 +40,7 @@ import {
   excludeSpam as excludeSpamModifier,
   excludeRestrictedAuthors as excludeRestrictedModifier,
   excludeExclusiveCampaignArticles as excludeExclusiveCampaignArticlesModifier,
+  excludeProbationAuthors as excludeProbationModifier,
 } from '#common/utils/index.js'
 import DataLoader from 'dataloader'
 import { simplecc } from 'simplecc-wasm'
@@ -97,6 +98,7 @@ export class ArticleService extends BaseService<Article> {
       excludeExclusiveCampaignArticles,
       excludeChannelArticles,
       excludeComplaintAreaArticles,
+      excludeProbationAuthors,
       datetimeRange,
     }: {
       state?: ValueOf<typeof ARTICLE_STATE>
@@ -105,10 +107,14 @@ export class ArticleService extends BaseService<Article> {
         spamThreshold: number
       }
       excludeAuthorStates?: Array<ValueOf<typeof USER_STATE>>
-      excludeRestrictedAuthors?: ValueOf<typeof USER_RESTRICTION_TYPE>
+      excludeRestrictedAuthors?:
+        | ValueOf<typeof USER_RESTRICTION_TYPE>
+        | Array<ValueOf<typeof USER_RESTRICTION_TYPE>>
       excludeExclusiveCampaignArticles?: boolean
       excludeChannelArticles?: boolean
       excludeComplaintAreaArticles?: boolean
+      // days; when set, exclude articles by authors younger than this
+      excludeProbationAuthors?: number
       datetimeRange?: { start: Date; end?: Date }
     } = { state: ARTICLE_STATE.active }
   ) => {
@@ -149,6 +155,10 @@ export class ArticleService extends BaseService<Article> {
 
     if (excludeExclusiveCampaignArticles) {
       query.modify(excludeExclusiveCampaignArticlesModifier)
+    }
+
+    if (excludeProbationAuthors) {
+      query.modify(excludeProbationModifier, excludeProbationAuthors)
     }
 
     if (excludeComplaintAreaArticles) {
@@ -192,11 +202,16 @@ export class ArticleService extends BaseService<Article> {
     spamThreshold,
     excludeChannelArticles,
     excludeExclusiveCampaignArticles,
+    probationDays,
   }: {
     spamThreshold?: number
     excludeChannelArticles?: boolean
     excludeExclusiveCampaignArticles?: boolean
+    probationDays?: number
   } = {}): Knex.QueryBuilder<Article, Article[]> => {
+    // Keep user state checks out of this request-time public feed query.
+    // Frozen/archived author suppression for discovery surfaces must be
+    // handled by precomputed/cached data, not by joining user state here.
     const query = this.findArticles({
       state: ARTICLE_STATE.active,
       spam: spamThreshold
@@ -205,9 +220,14 @@ export class ArticleService extends BaseService<Article> {
             spamThreshold,
           }
         : undefined,
-      excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleNewest,
+      excludeRestrictedAuthors: [
+        USER_RESTRICTION_TYPE.articleNewest,
+        USER_RESTRICTION_TYPE.spamRing,
+        USER_RESTRICTION_TYPE.frozen,
+      ],
       excludeChannelArticles,
       excludeExclusiveCampaignArticles,
+      excludeProbationAuthors: probationDays,
     })
     return query.orderBy('id', 'desc')
   }

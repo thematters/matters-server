@@ -9,6 +9,13 @@ import { ChannelService } from './channelService.js'
 
 const logger = getLogger('service-channel-job')
 
+// Cap how many jobs a single sync/retry tick pulls and forwards to the
+// classification API. Without a cap a large backlog is sent in one oversized
+// batch that never finishes within the Lambda timeout, so the same backlog is
+// re-sent every tick and never drains (a self-sustaining failure loop). A cap
+// lets each tick chip away at the backlog instead.
+const JOB_BATCH_SIZE = 100
+
 export type JobState =
   (typeof ARTICLE_CHANNEL_JOB_STATE)[keyof typeof ARTICLE_CHANNEL_JOB_STATE]
 
@@ -164,6 +171,8 @@ export class ChannelJobService {
           .as('jobs')
       )
       .where('state', 'processing')
+      .orderBy('created_at', 'asc')
+      .limit(JOB_BATCH_SIZE)
   }
 
   // get latest error job for each article
@@ -182,27 +191,33 @@ export class ChannelJobService {
           .as('jobs')
       )
       .where('state', 'error')
+      .orderBy('created_at', 'asc')
+      .limit(JOB_BATCH_SIZE)
   }
 
   public getRecentJobs = async (
     hours: number
   ): Promise<ArticleChannelJob[]> => {
-    return this.knexRO.select('*').from(
-      this.knexRO
-        .select('*')
-        .distinctOn('article_id')
-        .from('article_channel_job')
-        .where(
-          'created_at',
-          '>',
-          this.knexRO.raw(`CURRENT_TIMESTAMP - interval '${hours} hours'`)
-        )
-        .orderBy([
-          { column: 'article_id', order: 'asc' },
-          { column: 'created_at', order: 'desc' },
-        ])
-        .as('jobs')
-    )
+    return this.knexRO
+      .select('*')
+      .from(
+        this.knexRO
+          .select('*')
+          .distinctOn('article_id')
+          .from('article_channel_job')
+          .where(
+            'created_at',
+            '>',
+            this.knexRO.raw(`CURRENT_TIMESTAMP - interval '${hours} hours'`)
+          )
+          .orderBy([
+            { column: 'article_id', order: 'asc' },
+            { column: 'created_at', order: 'desc' },
+          ])
+          .as('jobs')
+      )
+      .orderBy('created_at', 'asc')
+      .limit(JOB_BATCH_SIZE)
   }
 
   private updateJobState = async (

@@ -20,6 +20,8 @@ import {
   shortHash,
   normalizeTagInput,
   excludeSpam as excludeSpamModifier,
+  excludeStateRestrictedAuthors as excludeStateRestrictedModifier,
+  excludeProbationAuthors as excludeProbationModifier,
 } from '#common/utils/index.js'
 import _ from 'lodash'
 
@@ -496,7 +498,7 @@ export class TagService extends BaseService<Tag> {
       'desc'
     )
 
-  public findHottestArticles = (tagId: string) => {
+  public findHottestArticles = (tagId: string, probationDays?: number) => {
     return this.knexRO
       .with('tagged_articles', (builder) =>
         builder
@@ -516,6 +518,15 @@ export class TagService extends BaseService<Tag> {
           .where({
             'article_tag.tag_id': tagId,
             'article.state': ARTICLE_STATE.active,
+          })
+          // hide articles by authors in a restricted state (frozen / banned /
+          // archived) from the public hottest tag feed
+          .modify(excludeStateRestrictedModifier)
+          .modify((qb) => {
+            // discovery probation (dark): only applied when the flag is on
+            if (probationDays) {
+              qb.modify(excludeProbationModifier, probationDays)
+            }
           })
       )
       .with('scored_articles', (builder) =>
@@ -581,10 +592,12 @@ export class TagService extends BaseService<Tag> {
     id: tagId,
     spamThreshold,
     excludeRestricted,
+    probationDays,
   }: {
     id: string
     spamThreshold?: number
     excludeRestricted?: boolean
+    probationDays?: number
   }) => {
     return this.knexRO
       .select(['article.*', 'article_tag.pinned as tag_pinned'])
@@ -601,8 +614,15 @@ export class TagService extends BaseService<Tag> {
             this.knexRO.select('userId').from('user_restriction')
           )
         }
+        // hide articles by authors in a restricted state (frozen / banned /
+        // archived) from the public tag feed and related articles
+        builder.modify(excludeStateRestrictedModifier)
         if (spamThreshold) {
           builder.modify(excludeSpamModifier, spamThreshold, 'article')
+        }
+        // discovery probation (dark): only applied when the flag is on
+        if (probationDays) {
+          builder.modify(excludeProbationModifier, probationDays)
         }
 
         builder.orderBy('article.id', 'desc')

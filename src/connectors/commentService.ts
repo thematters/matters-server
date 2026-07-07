@@ -70,12 +70,23 @@ export interface CommentFilter {
   state?: string
 }
 
+type FindCommentsInput = GQLCommentsInput & {
+  where: CommentFilter
+  order?: string
+  includeRestrictedAuthors?: boolean
+}
+
 export type CommunityWatchActionsFilter = {
   reason?: string | null
   actionState?: string | null
   appealState?: string | null
   reviewState?: string | null
 }
+
+const RESTRICTED_COMMENT_AUTHOR_STATES = [
+  USER_STATE.frozen,
+  USER_STATE.archived,
+] as const
 
 export type CommunityWatchActionStateUpdate = {
   uuid: string
@@ -746,8 +757,7 @@ export class CommentService extends BaseService<Comment> {
       action: CommunityWatchAction
     }
   ): Promise<ModerationCase> => {
-    const previousBase =
-      this.toCommunityWatchModerationCaseBase(previousAction)
+    const previousBase = this.toCommunityWatchModerationCaseBase(previousAction)
     const currentBase = this.toCommunityWatchModerationCaseBase(action)
 
     const previousCase = await trx<ModerationCase>('moderation_case')
@@ -809,7 +819,9 @@ export class CommentService extends BaseService<Comment> {
       .where(base)
       .first()
     if (!moderationCase) {
-      throw new Error('failed to create or load Community Watch moderation case')
+      throw new Error(
+        'failed to create or load Community Watch moderation case'
+      )
     }
 
     return { moderationCase, created: false }
@@ -883,16 +895,31 @@ export class CommentService extends BaseService<Comment> {
    */
   public count = async (
     targetId: string,
-    type: ValueOf<typeof COMMENT_TYPE>
+    type: ValueOf<typeof COMMENT_TYPE>,
+    {
+      parentCommentId,
+      includeRestrictedAuthors = false,
+    }: {
+      parentCommentId?: string | null
+      includeRestrictedAuthors?: boolean
+    } = {}
   ) => {
-    const result = await this.knexRO(this.table)
+    const query = this.knexRO(this.table)
       .where({
         targetId,
         type,
       })
       .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
-      .count()
-      .first()
+
+    if (parentCommentId || parentCommentId === null) {
+      query.where({ parentCommentId })
+    }
+
+    if (!includeRestrictedAuthors) {
+      this.excludeRestrictedCommentAuthors(query)
+    }
+
+    const result = await query.count().first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -907,10 +934,12 @@ export class CommentService extends BaseService<Comment> {
     sort,
     skip,
     take,
+    includeRestrictedAuthors = false,
   }: GQLCommentCommentsInput & {
     id: string
     skip?: number
     take?: number
+    includeRestrictedAuthors?: boolean
   }): Promise<[Comment[], number]> => {
     let where: { [key: string]: string | boolean } = {
       parentCommentId: id,
@@ -935,6 +964,11 @@ export class CommentService extends BaseService<Comment> {
                   )
                 )
             })
+        })
+        .modify((builder) => {
+          if (!includeRestrictedAuthors) {
+            this.excludeRestrictedCommentAuthors(builder)
+          }
         })
         .orderBy('created_at', by)
 
@@ -972,9 +1006,8 @@ export class CommentService extends BaseService<Comment> {
     before,
     includeAfter = false,
     includeBefore = false,
-  }: GQLCommentsInput & { where: CommentFilter; order?: string }): Promise<
-    [Comment[], number]
-  > => {
+    includeRestrictedAuthors = false,
+  }: FindCommentsInput): Promise<[Comment[], number]> => {
     const subQuery = this.knexRO
       .select(this.knexRO.raw('COUNT(id) OVER() AS total_count'), '*')
       .fromRaw('comment AS outer_comment')
@@ -1009,6 +1042,11 @@ export class CommentService extends BaseService<Comment> {
             })
         }
       })
+      .modify((builder) => {
+        if (!includeRestrictedAuthors) {
+          this.excludeRestrictedCommentAuthors(builder, 'outer_comment')
+        }
+      })
       .orderBy('created_at', order)
 
     const query = this.knexRO.from(subQuery.as('t1'))
@@ -1033,6 +1071,25 @@ export class CommentService extends BaseService<Comment> {
     const records = await query
     return [records, +records[0]?.totalCount || 0]
   }
+
+  public isAuthorRestricted = async (comment: Comment) => {
+    const author = await this.models.userIdLoader.load(comment.authorId)
+    return RESTRICTED_COMMENT_AUTHOR_STATES.includes(
+      author?.state as (typeof RESTRICTED_COMMENT_AUTHOR_STATES)[number]
+    )
+  }
+
+  private excludeRestrictedCommentAuthors = (
+    query: Knex.QueryBuilder,
+    commentTable = 'comment'
+  ) =>
+    query.whereNotExists(
+      this.knexRO
+        .select(1)
+        .from('user')
+        .whereRaw('"user"."id" = ??', [`${commentTable}.author_id`])
+        .whereIn('user.state', RESTRICTED_COMMENT_AUTHOR_STATES)
+    )
 
   /**
    * Find commented followees by a given comment target.
@@ -1480,9 +1537,9 @@ export class CommentService extends BaseService<Comment> {
         2
       )}）：${snippet}`,
       reason: TIER_REASON[tier],
-      ossUrl: `${environment.ossSiteDomain}/comments?id=${encodeURIComponent(
-        globalId
-      )}`,
+      ossUrl: `${
+        environment.ossSiteDomain
+      }/next/comments?id=${encodeURIComponent(globalId)}`,
     })
   }
 

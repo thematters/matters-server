@@ -1345,6 +1345,29 @@ describe('query user writings', () => {
       }
     }
   `
+  const QUERY_USER_WRITINGS = /* GraphQL */ `
+    query ($userInput: UserInput!, $writingsInput: WritingInput!) {
+      user(input: $userInput) {
+        id
+        status {
+          state
+        }
+        writings(input: $writingsInput) {
+          edges {
+            node {
+              ... on Article {
+                id
+              }
+              ... on Moment {
+                id
+              }
+            }
+          }
+          totalCount
+        }
+      }
+    }
+  `
   let user: User
   let idx: number = 1
   beforeEach(async () => {
@@ -1404,5 +1427,107 @@ describe('query user writings', () => {
     expect(dataAfter.viewer.writings.totalCount).toBe(2)
     expect(dataAfter.viewer.writings.pageInfo.hasPreviousPage).toBeTruthy()
     expect(dataAfter.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
+  })
+  test('hide restricted user writings from public visitors', async () => {
+    await momentService.create({ content: 'test' }, user)
+    await publicationService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: user.id,
+    })
+
+    await connections.knex('user').where({ id: user.id }).update({
+      state: USER_STATE.frozen,
+    })
+
+    try {
+      const publicServer = await testClient({ connections })
+      const publicResult = await publicServer.executeOperation({
+        query: QUERY_USER_WRITINGS,
+        variables: {
+          userInput: { userName: user.userName },
+          writingsInput: { first: 5 },
+        },
+      })
+
+      expect(publicResult.errors).toBeUndefined()
+      expect(publicResult.data?.user?.status.state).toBe(USER_STATE.frozen)
+      expect(publicResult.data?.user?.writings.totalCount).toBe(0)
+      expect(publicResult.data?.user?.writings.edges).toHaveLength(0)
+
+      const ownerServer = await testClient({
+        isAuth: true,
+        connections,
+        context: { viewer: user },
+      })
+      const ownerResult = await ownerServer.executeOperation({
+        query: QUERY_USER_WRITINGS,
+        variables: {
+          userInput: { userName: user.userName },
+          writingsInput: { first: 5 },
+        },
+      })
+
+      expect(ownerResult.errors).toBeUndefined()
+      expect(ownerResult.data?.user?.writings.totalCount).toBe(2)
+
+      const adminServer = await testClient({
+        isAuth: true,
+        isAdmin: true,
+        connections,
+      })
+      const adminResult = await adminServer.executeOperation({
+        query: QUERY_USER_WRITINGS,
+        variables: {
+          userInput: { userName: user.userName },
+          writingsInput: { first: 5 },
+        },
+      })
+
+      expect(adminResult.errors).toBeUndefined()
+      expect(adminResult.data?.user?.writings.totalCount).toBe(2)
+    } finally {
+      await connections.knex('user').where({ id: user.id }).update({
+        state: USER_STATE.active,
+      })
+    }
+  })
+})
+
+describe('restricted user description', () => {
+  const GET_USER_DESCRIPTION = /* GraphQL */ `
+    query ($input: UserInput!) {
+      user(input: $input) {
+        info {
+          description
+        }
+      }
+    }
+  `
+  test('hide description of restricted users from visitors', async () => {
+    const user = await userService.create({ userName: 'frozendescuser' })
+    await connections
+      .knex('user')
+      .where({ id: user.id })
+      .update({ description: 'spam self intro', state: USER_STATE.frozen })
+
+    const visitorServer = await testClient({ connections })
+    const { data } = await visitorServer.executeOperation({
+      query: GET_USER_DESCRIPTION,
+      variables: { input: { userName: 'frozendescuser' } },
+    })
+    expect(data.user.info.description).toBeNull()
+
+    // admin still sees it
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data: adminData } = await adminServer.executeOperation({
+      query: GET_USER_DESCRIPTION,
+      variables: { input: { userName: 'frozendescuser' } },
+    })
+    expect(adminData.user.info.description).toBe('spam self intro')
   })
 })

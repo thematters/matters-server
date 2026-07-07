@@ -1,7 +1,8 @@
 import type { Connections } from '#definitions/index.js'
 
-import { USER_ACTION } from '#common/enums/index.js'
+import { USER_ACTION, USER_STATE } from '#common/enums/index.js'
 import { SearchService } from '../../searchService.js'
+import { UserService } from '../../userService.js'
 
 import { genConnections, closeConnections } from '../utils.js'
 
@@ -120,5 +121,44 @@ describe('search', () => {
     })
     expect(res3.nodes.length).toBe(5)
     expect(res3.totalCount).toBe(6)
+  })
+})
+
+describe('restricted users', () => {
+  test('exclude users restricted after the index sync', async () => {
+    const userService = new UserService(connections)
+    const user = await userService.create({ userName: 'stalefrozenuser' })
+    // simulate a stale search index snapshot: still `active` there
+    await connections.knexSearch('search_index.user').insert({
+      id: user.id,
+      userName: user.userName,
+      displayName: 'stalefrozenuser',
+      displayNameOrig: 'stalefrozenuser',
+      description: '',
+      state: USER_STATE.active,
+      createdAt: new Date(),
+    })
+
+    const before = await searchService.searchUsers({
+      key: 'stalefrozenuser',
+      take: 3,
+      skip: 0,
+    })
+    expect(before.totalCount).toBe(1)
+
+    await connections
+      .knex('user')
+      .where({ id: user.id })
+      .update({ state: USER_STATE.frozen })
+
+    // fresh service to avoid the test-only dataloader cache
+    const freshSearchService = new SearchService(connections)
+    const after = await freshSearchService.searchUsers({
+      key: 'stalefrozenuser',
+      take: 3,
+      skip: 0,
+    })
+    expect(after.nodes.length).toBe(0)
+    expect(after.totalCount).toBe(0)
   })
 })

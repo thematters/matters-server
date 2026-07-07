@@ -134,11 +134,7 @@ import type {
 } from './payment.js'
 import type { Quote } from './quote.js'
 import type { Report } from './report.js'
-import type {
-  SpamRing,
-  SpamRingMember,
-  SpamRingEvent,
-} from './spamRing.js'
+import type { SpamRing, SpamRingMember, SpamRingEvent } from './spamRing.js'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag.js'
 import type { Translation } from './translation.js'
 import type {

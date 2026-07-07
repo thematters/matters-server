@@ -5,6 +5,7 @@ import { AtomService } from '../../atomService.js'
 import { ChannelService } from '../../channel/channelService.js'
 import { genConnections, closeConnections } from '../utils.js'
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 
 import { jest } from '@jest/globals'
 
@@ -186,6 +187,11 @@ describe('setArticleChannels', () => {
   beforeEach(async () => {
     await atomService.deleteMany({ table: 'topic_channel_article' })
     await atomService.deleteMany({ table: 'topic_channel' })
+    await atomService.update({
+      table: 'article',
+      where: { id: articleId },
+      data: { isSpam: null, spamScore: null },
+    })
   })
 
   test('sets article channels', async () => {
@@ -215,8 +221,7 @@ describe('setArticleChannels', () => {
     expect(articleChannels[1].isLabeled).toBe(true)
   })
 
-  test('sets isSpam to false when adding articles to channels', async () => {
-    // First set article as spam
+  test('does not clear isSpam when adding articles to channels', async () => {
     await atomService.update({
       table: 'article',
       where: { id: articleId },
@@ -229,15 +234,14 @@ describe('setArticleChannels', () => {
       channelIds: [channel.id],
     })
 
-    // Verify article is no longer marked as spam
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: articleId },
     })
-    expect(article.isSpam).toBe(false)
+    expect(article.isSpam).toBe(true)
   })
 
-  test('sets isSpam to false when re-adding articles to channels', async () => {
+  test('does not clear isSpam when re-adding articles to channels', async () => {
     const channel = await channelService.createTopicChannel(channelData)
 
     // First add article to channel
@@ -265,12 +269,11 @@ describe('setArticleChannels', () => {
       channelIds: [channel.id],
     })
 
-    // Verify article is no longer marked as spam
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: articleId },
     })
-    expect(article.isSpam).toBe(false)
+    expect(article.isSpam).toBe(true)
   })
 
   test('removes existing channels when setting empty array', async () => {
@@ -361,6 +364,13 @@ describe('setArticleChannels', () => {
 })
 
 describe('channel classifier', () => {
+  // These tests create article_channel_job rows; clean them up so the FK from
+  // article_channel_job -> article does not block `delete from article` in
+  // other test suites that share the same database.
+  afterEach(async () => {
+    await atomService.deleteMany({ table: 'article_channel_job' })
+  })
+
   test('classify article channels', async () => {
     const articleId = '1'
 
@@ -381,6 +391,35 @@ describe('channel classifier', () => {
 
     expect(result).toBeDefined()
     expect(result?.[0].state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
+  })
+
+  test('records a retryable error job when the classification API fails', async () => {
+    const articleId = '1'
+    await atomService.deleteMany({ table: 'article_channel_job' })
+
+    // simulate a configured API that then fails (classify returns null); error
+    // jobs are only recorded when the API is configured, not when it is unset
+    const originalApiUrl = environment.channelClassificationApiUrl
+    environment.channelClassificationApiUrl = 'http://test-classifier'
+    try {
+      const mockClassifier = { classify: jest.fn(() => null) }
+      // @ts-ignore
+      await channelService._classifyArticlesChannels(
+        [{ id: articleId, title: 'test', content: 'test' }],
+        mockClassifier as any
+      )
+
+      // the article must not be silently dropped: an error job is recorded so
+      // retry-error-jobs can pick it up once the API recovers
+      const jobs = await atomService.findMany({
+        table: 'article_channel_job',
+        where: { articleId },
+      })
+      expect(jobs).toHaveLength(1)
+      expect(jobs[0].state).toBe(ARTICLE_CHANNEL_JOB_STATE.error)
+    } finally {
+      environment.channelClassificationApiUrl = originalApiUrl
+    }
   })
 })
 

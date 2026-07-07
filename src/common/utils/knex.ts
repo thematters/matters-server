@@ -4,6 +4,7 @@ import type { Knex } from 'knex'
 import {
   USER_FEATURE_FLAG_TYPE,
   USER_RESTRICTION_TYPE,
+  USER_STATE,
 } from '#common/enums/index.js'
 
 /**
@@ -46,19 +47,77 @@ export const excludeSpam = (
   }
 }
 
+// `spamRing` is excluded by default alongside `articleNewest`: rows of that
+// type only exist while the spam_ring_restriction flag is on, so default call
+// sites (channels / newest) are zero-diff until the feature launches.
+// `frozen` rows are written by freezeUser / removed by unfreezeUser — this
+// data-path keeps frozen authors out of default call sites without adding
+// any per-row user-table probe (the #4920 approach that timed out on prod).
 export const excludeRestrictedAuthors = (
   builder: Knex.QueryBuilder,
   table = 'article',
-  type: ValueOf<
-    typeof USER_RESTRICTION_TYPE
-  > = USER_RESTRICTION_TYPE.articleNewest
+  types:
+    | ValueOf<typeof USER_RESTRICTION_TYPE>
+    | Array<ValueOf<typeof USER_RESTRICTION_TYPE>> = [
+    USER_RESTRICTION_TYPE.articleNewest,
+    USER_RESTRICTION_TYPE.spamRing,
+    USER_RESTRICTION_TYPE.frozen,
+  ]
 ) => {
+  const typeList = Array.isArray(types) ? types : [types]
   builder.whereNotExists((qb) =>
     qb
       .select(1)
       .from('user_restriction')
-      .where('user_restriction.type', type)
+      .whereIn('user_restriction.type', typeList)
       .where('user_restriction.user_id', qb.client.ref(`${table}.author_id`))
+  )
+}
+
+/**
+ * Exclude articles whose author is in a restricted state (frozen / banned /
+ * archived). Freezing a spam-ring account sets user.state=frozen but does NOT
+ * change its articles' state, so without this its content still surfaces in
+ * public feeds (channels, etc.). Mirrors the frozen/archived exclusion already
+ * applied in recommendations.
+ */
+export const excludeStateRestrictedAuthors = (
+  builder: Knex.QueryBuilder,
+  states: Array<ValueOf<typeof USER_STATE>> = [
+    USER_STATE.frozen,
+    USER_STATE.banned,
+    USER_STATE.archived,
+  ],
+  table = 'article'
+) => {
+  builder.whereNotExists((qb) =>
+    qb
+      .select(1)
+      .from('user')
+      .where('user.id', qb.client.ref(`${table}.author_id`))
+      .whereIn('user.state', states)
+  )
+}
+
+/**
+ * Exclude articles whose author account is younger than `days` days
+ * (discovery probation). Applied only to discovery surfaces (hottest /
+ * newest / icymi / tag / channel feeds); direct links, profile pages,
+ * followee feeds and search are intentionally untouched so anonymous
+ * whistleblower accounts can still be reached and followed.
+ */
+export const excludeProbationAuthors = (
+  builder: Knex.QueryBuilder,
+  days: number,
+  table = 'article'
+) => {
+  builder.whereNotExists((qb) =>
+    qb
+      .select(1)
+      .from('user')
+      .where('user.id', qb.client.ref(`${table}.author_id`))
+      // "user" must be quoted in raw SQL — unquoted it parses as the USER keyword
+      .whereRaw(`"user".created_at >= now() - interval '1 day' * ?`, [days])
   )
 }
 

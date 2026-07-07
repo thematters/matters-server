@@ -38,7 +38,7 @@ import {
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
 } from '#common/enums/index.js'
-import { isTest } from '#common/environment.js'
+import { environment, isTest } from '#common/environment.js'
 import { AssetNotFoundError, UserInputError } from '#common/errors.js'
 import { getLogger, auditLog } from '#common/logger.js'
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -194,6 +194,38 @@ export class SystemService extends BaseService<BaseDBSchema> {
       return null
     }
     return threshold.value
+  }
+
+  /**
+   * Get the discovery probation window (days) from the `discovery_probation`
+   * feature flag. Returns `null` when the flag is off or missing, which means
+   * discovery feeds behave exactly as before (dark launch, zero diff).
+   * `feature_flag.value` overrides the env default when set.
+   */
+  public getDiscoveryProbationDays = async (): Promise<number | null> => {
+    const cache = new Cache(
+      CACHE_PREFIX.DISCOVERY_PROBATION_DAYS,
+      this.connections.objectCacheRedis
+    )
+    const value = (await cache.getObject({
+      keys: { id: 'discovery_probation_days' },
+      getter: this._getDiscoveryProbationDays,
+      expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
+    })) as number | null
+    return value
+  }
+  private _getDiscoveryProbationDays = async (): Promise<number | null> => {
+    const featureFlag = await this.models.findFirst({
+      table: 'feature_flag',
+      where: {
+        name: FEATURE_NAME.discovery_probation,
+        flag: FEATURE_FLAG.on,
+      },
+    })
+    if (!featureFlag) {
+      return null
+    }
+    return featureFlag.value || environment.discoveryProbationDays
   }
 
   /**
@@ -794,6 +826,126 @@ export class SystemService extends BaseService<BaseDBSchema> {
 
       return updatedCase
     })
+  }
+
+  /**
+   * Record an account-level enforcement (freeze) as a moderation case so it
+   * enters transparency metrics. Re-freezing with the same source/reason
+   * reuses the case (unique on source/targetType/targetId/reason).
+   */
+  public recordAccountRestrictionCase = async ({
+    userId,
+    reason,
+    source,
+    automationRole = 'none',
+    actorId,
+    noticeSent = false,
+    metadata,
+  }: {
+    userId: string
+    reason: string
+    source: ModerationCaseSource
+    automationRole?: ModerationAutomationRole
+    actorId?: string | null
+    noticeSent?: boolean
+    metadata?: Record<string, unknown>
+  }): Promise<ModerationCase> => {
+    const { moderationCase, created } = await this.findOrCreateModerationCase({
+      source,
+      targetType: 'user',
+      targetId: userId,
+      reason,
+      automationRole,
+    })
+
+    if (created) {
+      await this.createModerationEvent({
+        caseId: moderationCase.id,
+        eventType: 'created',
+        actorType: actorId ? 'admin' : 'system',
+        actorId,
+        toStatus: 'received',
+        metadata: metadata ?? null,
+      })
+    }
+
+    const [updatedCase] = await this.knex<ModerationCase>('moderation_case')
+      .where({ id: moderationCase.id })
+      .update({
+        status: 'action_taken',
+        outcome: 'account_limited',
+        ...(noticeSent ? { noticeState: 'sent' } : {}),
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning('*')
+
+    await this.createModerationEvent({
+      caseId: moderationCase.id,
+      eventType: 'actioned',
+      actorType: actorId ? 'admin' : 'system',
+      actorId,
+      publicReason: reason,
+      fromStatus: moderationCase.status,
+      toStatus: 'action_taken',
+      fromOutcome: moderationCase.outcome,
+      toOutcome: 'account_limited',
+      metadata: metadata ?? null,
+    })
+
+    return updatedCase
+  }
+
+  /**
+   * Resolve the open account-restriction case when the account is unfrozen
+   * (appeal accepted or staff reversal). No-op when no open case exists,
+   * e.g. freezes that predate case recording.
+   */
+  public resolveAccountRestrictionCase = async ({
+    userId,
+    actorId,
+    metadata,
+  }: {
+    userId: string
+    actorId?: string | null
+    metadata?: Record<string, unknown>
+  }): Promise<ModerationCase | null> => {
+    const moderationCase = await this.knex<ModerationCase>('moderation_case')
+      .where({
+        targetType: 'user',
+        targetId: userId,
+        outcome: 'account_limited',
+      })
+      .whereNull('resolvedAt')
+      .orderBy('id', 'desc')
+      .first()
+
+    if (!moderationCase) {
+      return null
+    }
+
+    const [updatedCase] = await this.knex<ModerationCase>('moderation_case')
+      .where({ id: moderationCase.id })
+      .update({
+        status: 'resolved',
+        outcome: 'restored',
+        resolvedAt: this.knex.fn.now(),
+        updatedAt: this.knex.fn.now(),
+      })
+      .returning('*')
+
+    await this.createModerationEvent({
+      caseId: moderationCase.id,
+      eventType: 'restored',
+      actorType: actorId ? 'admin' : 'system',
+      actorId,
+      fromStatus: moderationCase.status,
+      toStatus: 'resolved',
+      fromOutcome: moderationCase.outcome,
+      toOutcome: 'restored',
+      metadata: metadata ?? null,
+    })
+
+    return updatedCase
   }
 
   private toModerationTargetType = (

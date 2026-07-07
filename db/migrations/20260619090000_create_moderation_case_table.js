@@ -52,12 +52,7 @@ export const up = async (knex) => {
       'partially_restored',
       'upheld',
     ])
-    t.enu('automation_role', [
-      'none',
-      'suggested',
-      'assisted',
-      'automated',
-    ])
+    t.enu('automation_role', ['none', 'suggested', 'assisted', 'automated'])
       .notNullable()
       .defaultTo('none')
     t.string('model_name')
@@ -95,7 +90,10 @@ export const up = async (knex) => {
 
     t.foreign('case_id').references('id').inTable(caseTable).onDelete('CASCADE')
     t.foreign('reporter_id').references('id').inTable('user')
-    t.foreign('report_id').references('id').inTable('report').onDelete('SET NULL')
+    t.foreign('report_id')
+      .references('id')
+      .inTable('report')
+      .onDelete('SET NULL')
     t.unique(['case_id', 'reporter_id'])
     t.index(['reporter_id', 'reported_at'])
     t.index(['report_id'])

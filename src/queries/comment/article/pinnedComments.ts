@@ -1,13 +1,13 @@
-import type { GQLArticleResolvers } from '#definitions/index.js'
+import type { Comment, GQLArticleResolvers } from '#definitions/index.js'
 
 import { COMMENT_STATE, COMMENT_TYPE } from '#common/enums/index.js'
 
 const resolver: GQLArticleResolvers['pinnedComments'] = (
   { id: articleId },
   _,
-  { dataSources: { atomService } }
-) =>
-  atomService.findMany({
+  { viewer, dataSources: { atomService, commentService } }
+) => {
+  const comments = atomService.findMany({
     table: 'comment',
     where: {
       pinned: true,
@@ -17,5 +17,19 @@ const resolver: GQLArticleResolvers['pinnedComments'] = (
     },
     orderBy: [{ column: 'pinned_at', order: 'desc' }],
   })
+
+  if (viewer.hasRole('admin')) {
+    return comments
+  }
+
+  return comments.then(async (records) => {
+    const visible = await Promise.all(
+      records.map(async (comment) =>
+        (await commentService.isAuthorRestricted(comment)) ? null : comment
+      )
+    )
+    return visible.filter((comment): comment is Comment => Boolean(comment))
+  })
+}
 
 export default resolver

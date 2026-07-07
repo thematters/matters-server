@@ -35,6 +35,7 @@ export const CACHE_PREFIX = {
   TAG_COVERS: 'cache-tag-covers',
   SPAM_THRESHOLD: 'cache-spam-threshold',
   TOPIC_CHANNEL_SPAM_THRESHOLD: 'cache-topic-channel-spam-threshold',
+  DISCOVERY_PROBATION_DAYS: 'cache-discovery-probation-days',
   ARTICLE_CHANNEL_THRESHOLD: 'cache-article-channel-threshold',
   RECOMMENDATION_TAGS: 'cache-recommendation-tags',
   RECOMMENDATION_AUTHORS: 'cache-recommendation-authors',

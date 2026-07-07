@@ -1894,6 +1894,7 @@ export type GQLFeatureName =
   | 'article_channel'
   | 'circle_interact'
   | 'circle_management'
+  | 'discovery_probation'
   | 'fingerprint'
   | 'hottest_moment_feed'
   | 'moment_tag'
@@ -1901,6 +1902,7 @@ export type GQLFeatureName =
   | 'payment'
   | 'payout'
   | 'spam_detection'
+  | 'spam_ring_restriction'
   | 'tag_adoption'
   | 'topic_channel_spam_filter'
   | 'verify_appreciate'
@@ -1975,6 +1977,8 @@ export type GQLFollowingActivityEdge = {
 
 export type GQLFreezeSpamRingInput = {
   id: Scalars['ID']['input']
+  /** Restrict this freeze to these members (raw DB user ids, same semantics as SpamRingCandidateInput.memberUserIds). Members not listed are skipped, not frozen. Omit to process all members. Must be non-empty when provided. */
+  memberUserIds?: InputMaybe<Array<Scalars['String']['input']>>
   remark?: InputMaybe<Scalars['String']['input']>
 }
 

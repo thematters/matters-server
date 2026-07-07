@@ -11,6 +11,7 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   DEFAULT_TAKE_PER_PAGE,
+  USER_STATE,
 } from '#common/enums/index.js'
 import {
   AtomService,
@@ -18,6 +19,7 @@ import {
   PublicationService,
   PaymentService,
   CampaignService,
+  RecommendationService,
   SystemService,
   UserService,
 } from '#connectors/index.js'
@@ -130,6 +132,34 @@ describe('hottest articles', () => {
     })
     expect(scorePrev * _.clamp(tagBoostEff, 0.5, 2)).toBe(score)
   })
+  test('banned authors are excluded from the hottest pool', async () => {
+    // hit the pool query directly: the resolver caches ids in redis and the
+    // rest of this suite relies on that cache staying warm
+    const recommendationService = new RecommendationService(connections)
+    const poolArgs = { readersThreshold: 1, commentsThreshold: 1 }
+
+    const before = await recommendationService.findHottestArticles(poolArgs)
+    expect(before.map(({ articleId }) => articleId)).toContain(article.id)
+
+    await atomService.update({
+      table: 'user',
+      where: { id: article.authorId },
+      data: { state: USER_STATE.banned },
+    })
+    try {
+      const excluded = await recommendationService.findHottestArticles(poolArgs)
+      expect(excluded.map(({ articleId }) => articleId)).not.toContain(
+        article.id
+      )
+    } finally {
+      await atomService.update({
+        table: 'user',
+        where: { id: article.authorId },
+        data: { state: USER_STATE.active },
+      })
+    }
+  })
+
   test('campaign_boost works', async () => {
     const [campaign] = await createCampaign(campaignService, article)
     const boost = 10

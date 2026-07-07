@@ -4,6 +4,11 @@ import { USER_STATE } from '#common/enums/index.js'
 import { ActionFailedError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
+import {
+  invalidateRecommendationCaches,
+  invalidateUserContentCaches,
+} from './utils.js'
+
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
   { input: { id: globalId, state, banDays, password, emails } },
@@ -11,13 +16,23 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     viewer,
     dataSources: {
       userService,
+      articleService,
       notificationService,
       atomService,
+      connections: { redis, objectCacheRedis },
       queues: { userQueue },
     },
   }
 ) => {
   const id = globalId ? fromGlobalId(globalId).id : undefined
+
+  const invalidateUserCaches = async (userId: string) => {
+    await invalidateUserContentCaches(userId, { articleService, redis })
+    await invalidateRecommendationCaches({
+      atomService,
+      objectCacheRedis,
+    })
+  }
 
   /**
    * archive
@@ -40,6 +55,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     // sync
     const user = await atomService.userIdLoader.load(id)
     const archivedUser = await userService.archive(id)
+    await invalidateUserCaches(id)
 
     // async
     userQueue.archiveUser({ userId: id })
@@ -61,12 +77,37 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
    * active, banned, frozen
    */
   const handleUpdateUserState = async (user: User) => {
+    let updatedUser: User
     if (state === USER_STATE.banned) {
-      return await userService.banUser(user.id, { banDays })
+      // leaving frozen for banned: freeze-time spam marks no longer apply
+      if (user.state === USER_STATE.frozen) {
+        await userService.revertUserContentSpamMarks(user.id)
+      }
+      updatedUser = await userService.banUser(user.id, { banDays })
+    } else if (state === USER_STATE.frozen) {
+      // clean up punish records so the daily unban job cannot flip a
+      // frozen user back to active
+      if (user.state === USER_STATE.banned) {
+        await userService.archivePunishRecordsByUserId({
+          userId: user.id,
+          state: USER_STATE.banned,
+        })
+      }
+      // freezeUser also sends the user_frozen appeal notice and records an
+      // admin moderation case for transparency metrics
+      updatedUser = (await userService.freezeUser(user.id, {
+        actorId: viewer.id,
+        source: 'admin',
+      })) as User
     } else if (state !== user.state && user.state === USER_STATE.banned) {
-      return await userService.unbanUser(user.id, state)
+      updatedUser = await userService.unbanUser(user.id, state)
+    } else if (state !== user.state && user.state === USER_STATE.frozen) {
+      // unfreeze resolves the open account-restriction case (appeal accepted)
+      updatedUser = (await userService.unfreezeUser(user.id, state, undefined, {
+        actorId: viewer.id,
+      })) as User
     } else {
-      return await atomService.update({
+      updatedUser = await atomService.update({
         table: 'user',
         where: { id: user.id },
         data: {
@@ -74,6 +115,8 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
         },
       })
     }
+    await invalidateUserCaches(user.id)
+    return updatedUser
   }
   const validateUserState = (user: User) => {
     if (

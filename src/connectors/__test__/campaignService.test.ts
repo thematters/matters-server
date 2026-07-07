@@ -259,6 +259,26 @@ describe('find and count articles', () => {
       data: { state: ARTICLE_STATE.active },
     })
   })
+  test('state-restricted authors are excluded', async () => {
+    const before = await campaignService.findArticles(campaign.id)
+    expect(before.length).toBeGreaterThan(0)
+
+    await atomService.update({
+      table: 'user',
+      where: { id: '1' },
+      data: { state: USER_STATE.frozen },
+    })
+    const excluded = await campaignService.findArticles(campaign.id)
+    expect(excluded.length).toBe(0)
+
+    await atomService.update({
+      table: 'user',
+      where: { id: '1' },
+      data: { state: USER_STATE.active },
+    })
+    const restored = await campaignService.findArticles(campaign.id)
+    expect(restored.length).toBe(before.length)
+  })
   // test('spam are excluded', async () => {
   //   const spamThreshold = 0.5
   //   const _articles1 = await campaignService.findArticles(campaign.id)
