@@ -650,6 +650,9 @@ type Tag implements Node & Channel {
   """Articles and moments were attached with this tag."""
   writings(input: WritingInput!): TagWritingConnection!
 
+  """List of moments were attached with this tag."""
+  moments(input: ConnectionArgs!): MomentConnection!
+
   """Time of this tag was created."""
   createdAt: DateTime!
 
@@ -2431,6 +2434,11 @@ type Feature {
   name: FeatureName!
   enabled: Boolean!
   value: Float
+
+  """
+  Admin-only raw phase. Public consumers (matters-web etc.) must not select this field, otherwise the anonymous official.features query fails with ForbiddenError.
+  """
+  flag: FeatureFlag
 }
 
 type Announcement {
@@ -3017,6 +3025,8 @@ enum FeatureName {
   hottest_moment_feed
   discovery_probation
   spam_ring_restriction
+  moment_tag
+  moment_tag_display
 }
 
 enum FeatureFlag {

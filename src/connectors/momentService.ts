@@ -221,7 +221,6 @@ export class MomentService {
     data: {
       content: string
       assetIds?: string[]
-      // only first tag/article will be linked due to unique(moment_id)
       tagIds?: string[]
       articleIds?: string[]
     },
@@ -261,67 +260,73 @@ export class MomentService {
       }
     }
 
-    const moment = await this.models.create({
-      table: 'moment',
-      data: {
-        shortHash: shortHash(),
-        authorId: user.id,
-        content: normalizeMomentHTML(
-          sanitizeHTML(data.content, {
-            maxHardBreaks: 1,
-            maxSoftBreaks: 2,
-          }),
-          {
-            truncate: {
-              maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
-              keepProtocol: false,
-            },
-          }
-        ),
-        state: MOMENT_STATE.active,
-      },
-    })
-    if (data.assetIds && data.assetIds.length > 0) {
-      await Promise.all(
-        data.assetIds.map((assetId) =>
-          this.models.create({
-            table: 'moment_asset',
-            data: { assetId, momentId: moment.id },
-          })
-        )
-      )
-    }
-
-    // link one article if provided and valid
+    // resolve at most one valid article to link, before opening the transaction
+    let articleIdToLink: string | undefined
     if (data.articleIds && data.articleIds.length > 0) {
-      const articleId = data.articleIds[0]
       const article = await this.models.findUnique({
         table: 'article',
-        where: { id: articleId },
+        where: { id: data.articleIds[0] },
       })
       if (article && article.state === ARTICLE_STATE.active) {
-        await this.models.upsert({
-          table: 'moment_article',
-          where: { momentId: moment.id },
-          create: { momentId: moment.id, articleId },
-          update: { articleId },
-        })
+        articleIdToLink = article.id
       }
     }
 
-    // link one tag if provided
-    if (data.tagIds && data.tagIds.length > 0) {
-      await this.models.upsert({
-        table: 'moment_tag',
-        where: { momentId: moment.id },
-        create: { momentId: moment.id, tagId: data.tagIds[0] },
-        update: { tagId: data.tagIds[0] },
-      })
+    const content = normalizeMomentHTML(
+      sanitizeHTML(data.content, {
+        maxHardBreaks: 1,
+        maxSoftBreaks: 2,
+      }),
+      {
+        truncate: {
+          maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+          keepProtocol: false,
+        },
+      }
+    )
+    const tagIds = data.tagIds ?? []
+
+    // atomic write: moment main row, assets, article link and tag links.
+    // atomService does not accept a trx, so use a raw knex transaction
+    // (see commentService.ts:323). Side-effects run only after commit.
+    const moment = await this.connections.knex.transaction(async (trx) => {
+      const [created] = await trx('moment')
+        .insert({
+          shortHash: shortHash(),
+          authorId: user.id,
+          content,
+          state: MOMENT_STATE.active,
+        })
+        .returning('*')
+
+      if (data.assetIds && data.assetIds.length > 0) {
+        await trx('moment_asset').insert(
+          data.assetIds.map((assetId) => ({ assetId, momentId: created.id }))
+        )
+      }
+      if (articleIdToLink) {
+        await trx('moment_article').insert({
+          momentId: created.id,
+          articleId: articleIdToLink,
+        })
+      }
+      if (tagIds.length > 0) {
+        await trx('moment_tag').insert(
+          tagIds.map((tagId) => ({ momentId: created.id, tagId }))
+        )
+      }
+
+      return created
+    })
+
+    // invalidate each linked tag cache after commit
+    for (const tagId of tagIds) {
       invalidateFQC({
-        node: { type: NODE_TYPES.Tag, id: data.tagIds[0] },
+        node: { type: NODE_TYPES.Tag, id: tagId },
         redis: this.connections.redis,
       })
     }
+
     // notify mentioned users
     const notificationService = new NotificationService(this.connections)
     const mentionedUserIds = extractMentionIds(data.content)
@@ -363,11 +368,23 @@ export class MomentService {
         `moment ${momentId} is not created by user ${user.id}`
       )
     }
-    return this.models.update({
+    const momentTags = await this.models.findMany({
+      table: 'moment_tag',
+      where: { momentId },
+    })
+    const updated = await this.models.update({
       table: 'moment',
       where: { id: momentId, authorId: user.id },
       data: { state: MOMENT_STATE.archived },
     })
+    // invalidate each linked tag cache
+    for (const { tagId } of momentTags) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Tag, id: tagId },
+        redis: this.connections.redis,
+      })
+    }
+    return updated
   }
 
   public like = async (momentId: string, user: Pick<User, 'id' | 'state'>) => {
@@ -445,13 +462,18 @@ export class MomentService {
   }
 
   public getTags = async (momentId: string) => {
-    const record = await this.models.findFirst({
+    const records = await this.models.findMany({
       table: 'moment_tag',
       where: { momentId },
+      orderBy: [{ column: 'createdAt', order: 'asc' }],
     })
-    if (!record) return []
-    const tag = await this.models.tagIdLoader.load(record.tagId)
-    return tag ? [tag] : []
+    if (records.length === 0) {
+      return []
+    }
+    const tags = await this.models.tagIdLoader.loadMany(
+      records.map((record) => record.tagId)
+    )
+    return tags.filter(Boolean)
   }
 
   public detectSpam = async ({

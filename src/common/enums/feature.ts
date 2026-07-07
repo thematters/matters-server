@@ -13,6 +13,8 @@ export const FEATURE_NAME = {
   hottest_moment_feed: 'hottest_moment_feed',
   discovery_probation: 'discovery_probation',
   spam_ring_restriction: 'spam_ring_restriction',
+  moment_tag: 'moment_tag',
+  moment_tag_display: 'moment_tag_display',
 } as const
 
 export const FEATURE_FLAG = {

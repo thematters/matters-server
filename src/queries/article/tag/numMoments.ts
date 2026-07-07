@@ -3,9 +3,10 @@ import type { GQLTagResolvers } from '#definitions/index.js'
 const resolver: GQLTagResolvers['numMoments'] = async (
   { id },
   _,
-  { dataSources: { tagService } }
+  { dataSources: { tagService, systemService } }
 ) => {
-  return tagService.countMoments({ id })
+  const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
+  return tagService.countMoments({ id, spamThreshold })
 }
 
 export default resolver

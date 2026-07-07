@@ -322,6 +322,9 @@ export default /* GraphQL */ `
     "Articles and moments were attached with this tag."
     writings(input: WritingInput!): TagWritingConnection! @complexity(multipliers: ["input.first"], value: 1)
 
+    "List of moments were attached with this tag."
+    moments(input: ConnectionArgs!): MomentConnection! @complexity(multipliers: ["input.first"], value: 1)
+
     "Time of this tag was created."
     createdAt: DateTime!
 
