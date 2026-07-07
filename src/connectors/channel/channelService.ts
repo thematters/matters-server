@@ -55,6 +55,11 @@ import { ChannelClassifier } from './channelClassifier.js'
 
 const logger = getLogger('service-channel')
 
+// Sentinel job_id used when the classification API fails before returning a
+// real job id. Lets us record a retryable error job (article_channel_job
+// requires a non-null job_id and is unique on [article_id, job_id]).
+const CLASSIFICATION_FAILED_JOB_ID = 'classification-failed'
+
 export class ChannelService {
   private connections: Connections
   private models: AtomService
@@ -671,6 +676,32 @@ export class ChannelService {
     const result = await classifier.classify(texts)
 
     if (!result) {
+      // classify() returns null both when the API is unconfigured and when it
+      // fails. If the API isn't configured there was nothing to attempt, so keep
+      // the original quiet no-op (also avoids spurious jobs in tests/dev).
+      if (!environment.channelClassificationApiUrl) {
+        return
+      }
+      // The classification API failed for the whole batch. Do NOT drop
+      // silently: without a job row these articles are never classified and
+      // never retried. Record an error job per article so retry-error-jobs can
+      // pick them up once the API recovers.
+      logger.error(
+        `Channel classification API failed for ${articles.length} article(s); recording error jobs for retry`
+      )
+      await Promise.all(
+        articles.map((article) =>
+          this.models.upsertOnConflict({
+            table: 'article_channel_job',
+            create: {
+              articleId: article.id,
+              jobId: CLASSIFICATION_FAILED_JOB_ID,
+              state: ARTICLE_CHANNEL_JOB_STATE.error,
+            },
+            onConflict: ['articleId', 'jobId'],
+          })
+        )
+      )
       return
     }
 
