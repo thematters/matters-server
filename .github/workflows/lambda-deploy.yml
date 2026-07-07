@@ -575,6 +575,7 @@ jobs:
             cronExpression="cron(0 1 * * ? *)"
 
   deploy-spam-ring-digest:
+    if: inputs.environment == 'production'
     needs: build-lambda-image
     runs-on: ubuntu-latest
     steps:

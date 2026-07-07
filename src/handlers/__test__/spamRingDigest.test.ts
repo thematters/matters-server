@@ -17,9 +17,33 @@ const makeBuilder = (result: unknown) => {
   return qb
 }
 const knexRO = jest.fn((_table: unknown) => makeBuilder(queuedResults.shift()))
+const redisStore = new Map<string, string>()
+const redis = {
+  get: jest.fn(async (key: unknown) => redisStore.get(key as string) ?? null),
+  set: jest.fn(
+    async (
+      key: unknown,
+      value: unknown,
+      _ex?: unknown,
+      _ttl?: unknown,
+      nx?: unknown
+    ) => {
+      const normalizedKey = key as string
+      if (nx === 'NX' && redisStore.has(normalizedKey)) {
+        return null
+      }
+      redisStore.set(normalizedKey, value as string)
+      return 'OK'
+    }
+  ),
+  del: jest.fn(async (key: unknown) => {
+    redisStore.delete(key as string)
+    return 1
+  }),
+}
 
 jest.unstable_mockModule('../../connections.js', () => ({
-  connections: { knexRO },
+  connections: { knexRO, redis },
 }))
 
 // Mock axios BEFORE importing the SUT (ESM rule); the shared telegram
@@ -117,6 +141,7 @@ describe('formatDigest', () => {
 })
 
 describe('handler', () => {
+  const originalEnv = environment.env
   const originalTelegramBotToken = environment.telegramBotToken
   const originalTelegramAlertChatId = environment.telegramAlertChatId
   const originalTelegramAlertThreadId = environment.telegramAlertThreadId
@@ -124,7 +149,12 @@ describe('handler', () => {
   beforeEach(() => {
     axios.post.mockReset()
     knexRO.mockClear()
+    redis.get.mockClear()
+    redis.set.mockClear()
+    redis.del.mockClear()
+    redisStore.clear()
     queuedResults.length = 0
+    ;(environment as { env: string }).env = 'production'
     ;(environment as { telegramBotToken: string }).telegramBotToken = 'tkn'
     ;(environment as { telegramAlertChatId: string }).telegramAlertChatId =
       '-100'
@@ -133,6 +163,8 @@ describe('handler', () => {
   })
 
   afterEach(() => {
+    jest.useRealTimers()
+    ;(environment as { env: string | undefined }).env = originalEnv
     ;(environment as { telegramBotToken: string }).telegramBotToken =
       originalTelegramBotToken
     ;(environment as { telegramAlertChatId: string }).telegramAlertChatId =
@@ -150,7 +182,38 @@ describe('handler', () => {
     expect(axios.post).not.toHaveBeenCalled()
   })
 
+  it('skips in non-production environments', async () => {
+    ;(environment as { env: string }).env = 'development'
+
+    await handler()
+
+    expect(knexRO).not.toHaveBeenCalled()
+    expect(redis.get).not.toHaveBeenCalled()
+    expect(axios.post).not.toHaveBeenCalled()
+  })
+
+  it('skips when the daily digest was already sent', async () => {
+    redisStore.set('spam-ring-digest:sent:2026-07-07', '1')
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-07T01:00:00Z'))
+
+    await handler()
+
+    expect(knexRO).not.toHaveBeenCalled()
+    expect(axios.post).not.toHaveBeenCalled()
+  })
+
+  it('skips when another digest send is in progress', async () => {
+    redisStore.set('spam-ring-digest:lock:2026-07-07', '1')
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-07T01:00:00Z'))
+
+    await handler()
+
+    expect(knexRO).not.toHaveBeenCalled()
+    expect(axios.post).not.toHaveBeenCalled()
+  })
+
   it('collects stats and posts the digest with thread id', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-07T01:00:00Z'))
     // query order in collectStats: pending / detected / frozen / top rows
     queuedResults.push({ count: '3' }, { count: '2' }, { count: '1' }, [
       {
@@ -184,5 +247,7 @@ describe('handler', () => {
     expect(text).toContain('<code>abcdef01</code>')
     // pg numeric string is normalized before formatting
     expect(text).toContain('新帳號比 92%')
+    expect(redisStore.get('spam-ring-digest:sent:2026-07-07')).toBe('1')
+    expect(redisStore.has('spam-ring-digest:lock:2026-07-07')).toBe(false)
   })
 })
