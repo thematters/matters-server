@@ -6,6 +6,7 @@ import {
   NODE_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
   LANGUAGE,
+  USER_RESTRICTION_TYPE,
 } from '#common/enums/index.js'
 import { RecommendationService, AtomService } from '#connectors/index.js'
 import { toGlobalId } from '#common/utils/index.js'
@@ -70,6 +71,55 @@ describe('icymi', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.viewer.recommendation.icymi.totalCount).toBeGreaterThan(0)
+  })
+
+  test('articles by restricted (frozen) authors are excluded', async () => {
+    const server = await testClient({ connections })
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
+    })
+    await atomService.upsert({
+      table: 'matters_choice',
+      where: { articleId: article.id },
+      create: { articleId: article.id },
+      update: {},
+    })
+
+    // the freeze-time restriction row is what icymi filters on — the
+    // data-path replacement for the reverted per-row user-state probe
+    await atomService.create({
+      table: 'user_restriction',
+      data: { userId: article.authorId, type: USER_RESTRICTION_TYPE.frozen },
+    })
+
+    const { errors, data } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_ICYMI,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeUndefined()
+    const ids = data.viewer.recommendation.icymi.edges.map(
+      ({ node }: { node: { id: string } }) => node.id
+    )
+    expect(ids).not.toContain(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
+
+    // lifting the restriction restores the curated pick
+    await atomService.deleteMany({
+      table: 'user_restriction',
+      where: { userId: article.authorId, type: USER_RESTRICTION_TYPE.frozen },
+    })
+    const { data: restoredData } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_ICYMI,
+      variables: { input: { first: 10 } },
+    })
+    const restoredIds = restoredData.viewer.recommendation.icymi.edges.map(
+      ({ node }: { node: { id: string } }) => node.id
+    )
+    expect(restoredIds).toContain(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
   })
 })
 

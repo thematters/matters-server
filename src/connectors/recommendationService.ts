@@ -25,7 +25,10 @@ import {
   ActionFailedError,
 } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
-import { excludeProbationAuthors as excludeProbationModifier } from '#common/utils/index.js'
+import {
+  excludeProbationAuthors as excludeProbationModifier,
+  excludeRestrictedAuthors as excludeRestrictedModifier,
+} from '#common/utils/index.js'
 import { daysToDatetimeRange } from '#common/utils/time.js'
 import { quantile, median } from 'd3-array'
 import keyBy from 'lodash/keyBy.js'
@@ -374,6 +377,7 @@ export class RecommendationService {
                 excludeRestrictedAuthors: [
                   USER_RESTRICTION_TYPE.articleHottest,
                   USER_RESTRICTION_TYPE.spamRing,
+                  USER_RESTRICTION_TYPE.frozen,
                 ],
                 excludeExclusiveCampaignArticles: true,
                 excludeComplaintAreaArticles: true,
@@ -921,6 +925,10 @@ export class RecommendationService {
       )
       .leftJoin('article', 'choice.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
+      // curation happens before an author may get frozen; the restriction-row
+      // anti-join is bounded by the curated window (≤ MAX_ITEM_COUNT rows) —
+      // unlike the per-row user-state probe #4927 had to revert
+      .modify((builder) => excludeRestrictedModifier(builder))
       .modify((builder) => {
         if (probationDays) {
           builder.modify(excludeProbationModifier, probationDays)

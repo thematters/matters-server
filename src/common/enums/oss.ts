@@ -4,6 +4,11 @@ export const USER_RESTRICTION_TYPE = {
   // internal-only: set/removed by spam-ring detection, NOT part of the
   // GraphQL UserRestrictionType enum nor admin-editable via putRestrictedUsers
   spamRing: 'spamRing',
+  // internal-only: written by freezeUser / removed by unfreezeUser, so the
+  // already-deployed user_restriction filters keep frozen authors out of
+  // newest / icymi / channels without touching hot-path query shapes
+  // (SPEC-frozen-newest-icymi-recovery)
+  frozen: 'frozen',
 } as const
 
 // the subset admins manage via putRestrictedUsers / OSS restricted-user list
