@@ -220,6 +220,7 @@ export class ArticleService extends BaseService<Article> {
       excludeRestrictedAuthors: [
         USER_RESTRICTION_TYPE.articleNewest,
         USER_RESTRICTION_TYPE.spamRing,
+        USER_RESTRICTION_TYPE.frozen,
       ],
       excludeChannelArticles,
       excludeExclusiveCampaignArticles,
