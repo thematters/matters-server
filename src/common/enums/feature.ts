@@ -12,6 +12,7 @@ export const FEATURE_NAME = {
   article_channel: 'article_channel',
   hottest_moment_feed: 'hottest_moment_feed',
   discovery_probation: 'discovery_probation',
+  spam_ring_restriction: 'spam_ring_restriction',
 } as const
 
 export const FEATURE_FLAG = {

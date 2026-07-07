@@ -371,7 +371,10 @@ export class RecommendationService {
                   USER_STATE.banned,
                   USER_STATE.archived,
                 ],
-                excludeRestrictedAuthors: USER_RESTRICTION_TYPE.articleHottest,
+                excludeRestrictedAuthors: [
+                  USER_RESTRICTION_TYPE.articleHottest,
+                  USER_RESTRICTION_TYPE.spamRing,
+                ],
                 excludeExclusiveCampaignArticles: true,
                 excludeComplaintAreaArticles: true,
                 excludeProbationAuthors: probationDays ?? undefined,

@@ -30,6 +30,10 @@ const makeConnections = ({
       orderBy: () => b,
       transacting: () => b,
       forUpdate: () => b,
+      select: () => b,
+      whereIn: () => b,
+      whereNot: () => b,
+      del: () => b,
       modify: (fn?: any) => {
         if (fn) fn(b)
         return b
@@ -157,7 +161,13 @@ describe('SpamRingService.freezeRing', () => {
     expect(userService.freezeUser).toHaveBeenCalledTimes(1)
     expect(userService.freezeUser).toHaveBeenCalledWith(
       'u1',
-      expect.objectContaining({ remark: USER_BAN_REMARK.spamRing })
+      expect.objectContaining({
+        remark: USER_BAN_REMARK.spamRing,
+        source: 'model_assisted',
+        automationRole: 'assisted',
+        reason: 'spam',
+        actorId: '9',
+      })
     )
     expect(userService.banUser).not.toHaveBeenCalled()
     expect(result.frozen.map((u: any) => u.id)).toEqual(['u1'])
@@ -463,7 +473,8 @@ describe('SpamRingService.unfreezeRing', () => {
     expect(userService.unfreezeUser).toHaveBeenCalledWith(
       'u1',
       USER_STATE.active,
-      expect.anything()
+      expect.anything(),
+      { actorId: '9' }
     )
     expect(result.unbanned.map((u: any) => u.id)).toEqual(['u1'])
     expect(result.skipped.map((s: any) => s.user.id)).toEqual(['u3'])
@@ -557,6 +568,8 @@ const makeImportConnections = ({
         rec.whereInCalls.push({ table, column, values })
         return b
       },
+      whereNot: () => b,
+      del: () => b,
       select: () => b,
       orderBy: (...args: any[]) => {
         rec.orderByCalls.push({ table, args })

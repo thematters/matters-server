@@ -452,6 +452,90 @@ describe('findTopicChannelArticles', () => {
 
       await atomService.deleteMany({ table: 'user_restriction' })
     })
+
+    test('pinned articles ARE excluded for spam-ring-detected authors', async () => {
+      // spamRing is a hard exclusion — unlike articleNewest, pinning does not
+      // override it
+      await atomService.create({
+        table: 'user_restriction',
+        data: {
+          userId: articles[0].authorId,
+          type: 'spamRing',
+        },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+
+      await atomService.deleteMany({ table: 'user_restriction' })
+    })
+  })
+
+  describe('frozen / spam hard exclusions', () => {
+    afterEach(async () => {
+      await atomService.update({
+        table: 'user',
+        where: { id: articles[0].authorId },
+        data: { state: 'active' },
+      })
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[0].id },
+        data: { isSpam: null },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [] },
+      })
+    })
+
+    test('excludes pinned article whose author is frozen', async () => {
+      await atomService.update({
+        table: 'user',
+        where: { id: articles[0].authorId },
+        data: { state: 'frozen' },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+    })
+
+    test('excludes pinned article marked is_spam=true', async () => {
+      await atomService.update({
+        table: 'article',
+        where: { id: articles[0].id },
+        data: { isSpam: true },
+      })
+      await atomService.update({
+        table: 'topic_channel',
+        where: { id: channel.id },
+        data: { pinnedArticles: [articles[0].id] },
+      })
+
+      const { query } = await channelService.findTopicChannelArticles(
+        channel.id
+      )
+      const results = await query
+      expect(results.map((a) => a.id)).not.toContain(articles[0].id)
+    })
   })
 
   describe('discovery probation', () => {
