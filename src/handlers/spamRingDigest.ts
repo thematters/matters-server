@@ -12,6 +12,8 @@ const OSS_RINGS_URL = 'https://oss.matters.town/next/rings'
 const LOOKBACK_MS = 24 * 60 * 60 * 1000
 const TOP_PENDING_LIMIT = 5
 const FINGERPRINT_DISPLAY_LENGTH = 8
+const DEDUPE_TTL_SECONDS = 30 * 60 * 60
+const LOCK_TTL_SECONDS = 10 * 60
 
 export type SpamRingDigestTopRing = {
   fingerprint: string
@@ -86,6 +88,15 @@ export const formatDigest = (stats: SpamRingDigestStats): string => {
 const toCount = (row: unknown): number =>
   Number((row as { count?: string | number } | undefined)?.count ?? 0)
 
+const digestDateKey = (date = new Date()): string =>
+  date.toISOString().slice(0, 10)
+
+const sentKey = (date = new Date()): string =>
+  `spam-ring-digest:sent:${digestDateKey(date)}`
+
+const lockKey = (date = new Date()): string =>
+  `spam-ring-digest:lock:${digestDateKey(date)}`
+
 /** Read-only aggregation over the spam_ring table (replica connection). */
 export const collectStats = async (): Promise<SpamRingDigestStats> => {
   const knexRO = connections.knexRO
@@ -130,6 +141,11 @@ export const collectStats = async (): Promise<SpamRingDigestStats> => {
  * the infra side and is NOT part of this repo.
  */
 export const handler = async (): Promise<void> => {
+  if (environment.env !== 'production') {
+    logger.info('spam-ring-digest: non-production environment; skipped')
+    return
+  }
+
   const botToken = environment.telegramBotToken
   const chatId = environment.telegramAlertChatId
   const threadId = environment.telegramAlertThreadId
@@ -140,16 +156,40 @@ export const handler = async (): Promise<void> => {
     return
   }
 
-  const stats = await collectStats()
-  await sendTelegramMessage({
-    botToken,
-    chatId,
-    threadId,
-    text: formatDigest(stats),
-  })
-  logger.info('spam-ring-digest sent: %j', {
-    pendingTotal: stats.pendingTotal,
-    detectedLast24h: stats.detectedLast24h,
-    frozenLast24h: stats.frozenLast24h,
-  })
+  const redis = connections.redis
+  const now = new Date()
+  const dedupeKey = sentKey(now)
+  const inFlightKey = lockKey(now)
+
+  if (await redis.get(dedupeKey)) {
+    logger.info('spam-ring-digest: already sent for %s; skipped', dedupeKey)
+    return
+  }
+
+  const lock = await redis.set(inFlightKey, '1', 'EX', LOCK_TTL_SECONDS, 'NX')
+  if (lock !== 'OK') {
+    logger.info('spam-ring-digest: send already in progress; skipped')
+    return
+  }
+
+  try {
+    const stats = await collectStats()
+    await sendTelegramMessage({
+      botToken,
+      chatId,
+      threadId,
+      text: formatDigest(stats),
+    })
+    await redis.set(dedupeKey, '1', 'EX', DEDUPE_TTL_SECONDS)
+    logger.info('spam-ring-digest sent: %j', {
+      pendingTotal: stats.pendingTotal,
+      detectedLast24h: stats.detectedLast24h,
+      frozenLast24h: stats.frozenLast24h,
+    })
+  } catch (error) {
+    await redis.del(inFlightKey)
+    throw error
+  }
+
+  await redis.del(inFlightKey)
 }
