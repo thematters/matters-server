@@ -363,6 +363,13 @@ describe('setArticleChannels', () => {
 })
 
 describe('channel classifier', () => {
+  // These tests create article_channel_job rows; clean them up so the FK from
+  // article_channel_job -> article does not block `delete from article` in
+  // other test suites that share the same database.
+  afterEach(async () => {
+    await atomService.deleteMany({ table: 'article_channel_job' })
+  })
+
   test('classify article channels', async () => {
     const articleId = '1'
 
