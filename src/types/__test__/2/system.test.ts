@@ -722,7 +722,10 @@ describe('manage feature flag', () => {
       query: QUERY_FEATURES_WITH_FLAG,
     })
     const features = (data?.official?.features || []).reduce(
-      (result: Record<string, any>, feature: { name: string; flag: string }) => ({
+      (
+        result: Record<string, any>,
+        feature: { name: string; flag: string }
+      ) => ({
         ...result,
         [feature.name]: feature.flag,
       }),
