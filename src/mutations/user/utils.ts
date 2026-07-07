@@ -27,18 +27,16 @@ export const invalidateUserContentCaches = async (
   }
 }
 
-// the recommended-authors pool (值得追蹤) is cached outside FQC with
-// CACHE_TTL.LONG, one key per channel plus a sitewide one; drop all of them
-// after a state change so a frozen author leaves (or an unfrozen one
-// re-enters) the pool without waiting out the TTL
-export const invalidateRecommendationAuthorsCache = async ({
+// recommendation pools are cached outside FQC with CACHE_TTL.LONG, one key per
+// channel plus a sitewide one; drop all of them after a state change so
+// frozen/restored authors are reflected without waiting out the TTL
+export const invalidateRecommendationCaches = async ({
   atomService,
   objectCacheRedis,
 }: {
   atomService: AtomService
   objectCacheRedis: Redis
 }) => {
-  const cache = new Cache(CACHE_PREFIX.RECOMMENDATION_AUTHORS, objectCacheRedis)
   const channels = await atomService.findMany({
     table: 'topic_channel',
     select: ['id'],
@@ -47,9 +45,21 @@ export const invalidateRecommendationAuthorsCache = async ({
     undefined, // sitewide key
     ...channels.map(({ id }) => id),
   ]
+  const caches = [
+    {
+      cache: new Cache(CACHE_PREFIX.RECOMMENDATION_AUTHORS, objectCacheRedis),
+      type: 'recommendationAuthors',
+    },
+    {
+      cache: new Cache(CACHE_PREFIX.RECOMMENDATION_TAGS, objectCacheRedis),
+      type: 'recommendationTags',
+    },
+  ]
   for (const channelId of channelIds) {
-    await cache.removeObject({
-      keys: { type: 'recommendationAuthors', args: { channelId } },
-    })
+    for (const { cache, type } of caches) {
+      await cache.removeObject({
+        keys: { type, args: { channelId } },
+      })
+    }
   }
 }

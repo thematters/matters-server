@@ -209,6 +209,9 @@ export class ArticleService extends BaseService<Article> {
     excludeExclusiveCampaignArticles?: boolean
     probationDays?: number
   } = {}): Knex.QueryBuilder<Article, Article[]> => {
+    // Keep user state checks out of this request-time public feed query.
+    // Frozen/archived author suppression for discovery surfaces must be
+    // handled by precomputed/cached data, not by joining user state here.
     const query = this.findArticles({
       state: ARTICLE_STATE.active,
       spam: spamThreshold

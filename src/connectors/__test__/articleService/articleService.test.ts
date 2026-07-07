@@ -424,6 +424,12 @@ describe('latestArticles', () => {
     expect(articles[0].authorId).toBeDefined()
     expect(articles[0].state).toBeDefined()
   })
+  test('does not filter author state at request time', () => {
+    const sql = articleService.findNewestArticles().toSQL().sql
+
+    expect(sql).not.toContain('from "user"')
+    expect(sql).not.toContain('"user"."state"')
+  })
   test('spam are excluded', async () => {
     const articles = await articleService.findNewestArticles({
       spamThreshold: 0.5,

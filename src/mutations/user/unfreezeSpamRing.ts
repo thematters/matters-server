@@ -4,7 +4,7 @@ import { ForbiddenError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 import {
-  invalidateRecommendationAuthorsCache,
+  invalidateRecommendationCaches,
   invalidateUserContentCaches,
 } from './utils.js'
 
@@ -38,7 +38,7 @@ const resolver: GQLMutationResolvers['unfreezeSpamRing'] = async (
     await invalidateUserContentCaches(user.id, { articleService, redis })
   }
   if (result.unbanned.length > 0) {
-    await invalidateRecommendationAuthorsCache({
+    await invalidateRecommendationCaches({
       atomService,
       objectCacheRedis,
     })

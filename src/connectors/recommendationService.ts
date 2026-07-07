@@ -901,6 +901,9 @@ export class RecommendationService {
     skip?: number
   }) => {
     const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
+    // Keep user state checks out of this request-time public feed query.
+    // Frozen/archived author suppression for ICYMI must be handled before
+    // articles enter matters_choice or by a cache-ahead path.
     // dark-launched discovery probation: `null` while flag is off (zero diff)
     const probationDays = await this.systemService.getDiscoveryProbationDays()
     const records = await this.knexRO
