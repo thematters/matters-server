@@ -528,6 +528,10 @@ const makeImportConnections = ({
     offsets: [] as number[],
     limits: [] as number[],
     orderByCalls: [] as any[],
+    whereExistsCalls: [] as any[],
+    joinCalls: [] as any[],
+    whereRawCalls: [] as any[],
+    whereNotInCalls: [] as any[],
     ringInserts: [] as any[],
     ringUpdates: [] as any[],
     memberInserts: [] as any[],
@@ -569,6 +573,27 @@ const makeImportConnections = ({
         return b
       },
       whereNot: () => b,
+      whereNotIn: (column: string, values: any[]) => {
+        rec.whereNotInCalls.push({ table, column, values })
+        return b
+      },
+      whereExists: (fn: any) => {
+        rec.whereExistsCalls.push({ table })
+        fn.call(b)
+        return b
+      },
+      from: (fromTable: string) => {
+        ctx.table = fromTable
+        return b
+      },
+      join: (...args: any[]) => {
+        rec.joinCalls.push({ table: ctx.table, args })
+        return b
+      },
+      whereRaw: (...args: any[]) => {
+        rec.whereRawCalls.push({ table: ctx.table, args })
+        return b
+      },
       del: () => b,
       select: () => b,
       orderBy: (...args: any[]) => {
@@ -689,6 +714,57 @@ describe('SpamRingService query helpers', () => {
       expect.arrayContaining([
         { table: 'spam_ring_member', args: ['id', 'asc'] },
         { table: 'spam_ring_event', args: ['createdAt', 'desc'] },
+      ])
+    )
+  })
+
+  test('findRings can filter to actionable pending rings', async () => {
+    const { connections, rec } = makeImportConnections({
+      rings: [{ id: 'r1', status: 'pending' }],
+    })
+    const service = new SpamRingService(connections)
+
+    await (service.findRings({
+      status: 'pending',
+      actionable: true,
+    }) as any)
+
+    expect(rec.whereCalls).toEqual(
+      expect.arrayContaining([
+        { table: 'spam_ring', where: { status: 'pending' } },
+      ])
+    )
+    expect(rec.whereExistsCalls).toEqual([{ table: 'spam_ring' }])
+    expect(rec.joinCalls).toEqual(
+      expect.arrayContaining([
+        {
+          table: 'spam_ring_member',
+          args: ['user', 'user.id', 'spam_ring_member.userId'],
+        },
+      ])
+    )
+    expect(rec.whereRawCalls).toEqual(
+      expect.arrayContaining([
+        {
+          table: 'spam_ring_member',
+          args: ['"spam_ring_member"."ring_id" = "spam_ring"."id"'],
+        },
+      ])
+    )
+    expect(rec.whereInCalls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          column: 'spam_ring_member.status',
+          values: ['pending', 'restored'],
+        }),
+      ])
+    )
+    expect(rec.whereNotInCalls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          column: 'user.state',
+          values: [USER_STATE.banned, USER_STATE.frozen, USER_STATE.archived],
+        }),
       ])
     )
   })

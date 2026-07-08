@@ -3359,6 +3359,8 @@ export type GQLOssSpamDatetimeFilterInput = {
 }
 
 export type GQLOssSpamRingsFilter = {
+  /** Only include rings that still have at least one member eligible for handling. */
+  actionable?: InputMaybe<Scalars['Boolean']['input']>
   status?: InputMaybe<GQLSpamRingStatus>
 }
 
