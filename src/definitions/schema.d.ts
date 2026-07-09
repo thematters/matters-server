@@ -1881,6 +1881,8 @@ export type GQLExchangeRatesInput = {
 export type GQLFeature = {
   __typename?: 'Feature'
   enabled: Scalars['Boolean']['output']
+  /** Admin-only raw phase. Public consumers (matters-web etc.) must not select this field, otherwise the anonymous official.features query fails with ForbiddenError. */
+  flag?: Maybe<GQLFeatureFlag>
   name: GQLFeatureName
   value?: Maybe<Scalars['Float']['output']>
 }
@@ -1895,6 +1897,8 @@ export type GQLFeatureName =
   | 'discovery_probation'
   | 'fingerprint'
   | 'hottest_moment_feed'
+  | 'moment_tag'
+  | 'moment_tag_display'
   | 'payment'
   | 'payout'
   | 'spam_detection'
@@ -4543,6 +4547,8 @@ export type GQLTag = GQLChannel &
     id: Scalars['ID']['output']
     /** This value determines if current viewer is following or not. */
     isFollower?: Maybe<Scalars['Boolean']['output']>
+    /** List of moments were attached with this tag. */
+    moments: GQLMomentConnection
     /** Navbar title for this tag channel */
     navbarTitle: Scalars['String']['output']
     /** Counts of this tag. */
@@ -4564,6 +4570,11 @@ export type GQLTag = GQLChannel &
 /** This type contains content, count and related data of an article tag. */
 export type GQLTagArticlesArgs = {
   input: GQLTagArticlesInput
+}
+
+/** This type contains content, count and related data of an article tag. */
+export type GQLTagMomentsArgs = {
+  input: GQLConnectionArgs
 }
 
 /** This type contains content, count and related data of an article tag. */
@@ -9448,6 +9459,11 @@ export type GQLFeatureResolvers<
   ParentType extends GQLResolversParentTypes['Feature'] = GQLResolversParentTypes['Feature']
 > = ResolversObject<{
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  flag?: Resolver<
+    Maybe<GQLResolversTypes['FeatureFlag']>,
+    ParentType,
+    ContextType
+  >
   name?: Resolver<GQLResolversTypes['FeatureName'], ParentType, ContextType>
   value?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
@@ -11884,6 +11900,12 @@ export type GQLTagResolvers<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
+  >
+  moments?: Resolver<
+    GQLResolversTypes['MomentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLTagMomentsArgs, 'input'>
   >
   navbarTitle?: Resolver<
     GQLResolversTypes['String'],

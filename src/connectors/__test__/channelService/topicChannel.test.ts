@@ -5,6 +5,7 @@ import { AtomService } from '../../atomService.js'
 import { ChannelService } from '../../channel/channelService.js'
 import { genConnections, closeConnections } from '../utils.js'
 import { ARTICLE_CHANNEL_JOB_STATE } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 
 import { jest } from '@jest/globals'
 
@@ -363,6 +364,13 @@ describe('setArticleChannels', () => {
 })
 
 describe('channel classifier', () => {
+  // These tests create article_channel_job rows; clean them up so the FK from
+  // article_channel_job -> article does not block `delete from article` in
+  // other test suites that share the same database.
+  afterEach(async () => {
+    await atomService.deleteMany({ table: 'article_channel_job' })
+  })
+
   test('classify article channels', async () => {
     const articleId = '1'
 
@@ -383,6 +391,35 @@ describe('channel classifier', () => {
 
     expect(result).toBeDefined()
     expect(result?.[0].state).toBe(ARTICLE_CHANNEL_JOB_STATE.finished)
+  })
+
+  test('records a retryable error job when the classification API fails', async () => {
+    const articleId = '1'
+    await atomService.deleteMany({ table: 'article_channel_job' })
+
+    // simulate a configured API that then fails (classify returns null); error
+    // jobs are only recorded when the API is configured, not when it is unset
+    const originalApiUrl = environment.channelClassificationApiUrl
+    environment.channelClassificationApiUrl = 'http://test-classifier'
+    try {
+      const mockClassifier = { classify: jest.fn(() => null) }
+      // @ts-ignore
+      await channelService._classifyArticlesChannels(
+        [{ id: articleId, title: 'test', content: 'test' }],
+        mockClassifier as any
+      )
+
+      // the article must not be silently dropped: an error job is recorded so
+      // retry-error-jobs can pick it up once the API recovers
+      const jobs = await atomService.findMany({
+        table: 'article_channel_job',
+        where: { articleId },
+      })
+      expect(jobs).toHaveLength(1)
+      expect(jobs[0].state).toBe(ARTICLE_CHANNEL_JOB_STATE.error)
+    } finally {
+      environment.channelClassificationApiUrl = originalApiUrl
+    }
   })
 })
 

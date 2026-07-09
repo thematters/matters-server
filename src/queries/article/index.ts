@@ -61,6 +61,7 @@ import summaryCustomized from './summaryCustomized.js'
 import tagArticles from './tag/articles.js'
 import tagChannelEnabled from './tag/channelEnabled.js'
 import tagIsFollower from './tag/isFollower.js'
+import tagMoments from './tag/moments.js'
 import tagNavbarTitle from './tag/navbarTitle.js'
 import tagNumArticles from './tag/numArticles.js'
 import tagNumAuthors from './tag/numAuthors.js'
@@ -163,6 +164,7 @@ const schema: GQLResolvers = {
     channelEnabled: tagChannelEnabled,
     articles: tagArticles,
     writings: tagWritings,
+    moments: tagMoments,
     isFollower: tagIsFollower,
     numArticles: tagNumArticles,
     numMoments: tagNumMoments,

@@ -7,7 +7,12 @@ const resolver: GQLMutationResolvers['setFeature'] = async (
 ) => {
   const updated = await systemService.setFeatureFlag({ name, flag, value })
   const enabled = await systemService.isFeatureEnabled(updated.flag, viewer)
-  return { name: updated.name, enabled, value: updated.value }
+  return {
+    name: updated.name,
+    enabled,
+    value: updated.value,
+    flag: updated.flag,
+  }
 }
 
 export default resolver

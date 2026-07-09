@@ -160,7 +160,7 @@ describe('authors', () => {
     })
   })
 
-  test('freezing a user purges the recommended-authors cache', async () => {
+  test('freezing a user purges recommendation authors and tags caches', async () => {
     const atomService = new AtomService(connections)
     const target = await atomService.findUnique({
       table: 'user',
@@ -171,17 +171,30 @@ describe('authors', () => {
       where: { id: target.id },
       data: { state: USER_STATE.active },
     })
-    const cache = new Cache(
+    const authorsCache = new Cache(
       CACHE_PREFIX.RECOMMENDATION_AUTHORS,
       connections.objectCacheRedis
     )
-    const sitewideKey = cache.genKey({
+    const tagsCache = new Cache(
+      CACHE_PREFIX.RECOMMENDATION_TAGS,
+      connections.objectCacheRedis
+    )
+    const authorsSitewideKey = authorsCache.genKey({
       type: 'recommendationAuthors',
       args: { channelId: undefined },
     })
-    await cache.storeObject({
+    const tagsSitewideKey = tagsCache.genKey({
+      type: 'recommendationTags',
+      args: { channelId: undefined },
+    })
+    await authorsCache.storeObject({
       keys: { type: 'recommendationAuthors', args: { channelId: undefined } },
       data: [{ authorId: target.id }],
+      expire: 60,
+    })
+    await tagsCache.storeObject({
+      keys: { type: 'recommendationTags', args: { channelId: undefined } },
+      data: [{ tagId: '1' }],
       expire: 60,
     })
 
@@ -210,7 +223,10 @@ describe('authors', () => {
       },
     })
     expect(errors).toBeUndefined()
-    expect(await connections.objectCacheRedis.get(sitewideKey)).toBeNull()
+    expect(
+      await connections.objectCacheRedis.get(authorsSitewideKey)
+    ).toBeNull()
+    expect(await connections.objectCacheRedis.get(tagsSitewideKey)).toBeNull()
 
     await atomService.update({
       table: 'user',

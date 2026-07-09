@@ -11,6 +11,7 @@ export const features: GQLOfficialResolvers['features'] = async (
       name,
       enabled: await systemService.isFeatureEnabled(flag, viewer),
       value,
+      flag,
     }))
   )
 }

@@ -197,6 +197,30 @@ const SET_FEATURE = /* GraphQL */ `
   }
 `
 
+const QUERY_FEATURES_WITH_FLAG = /* GraphQL */ `
+  query {
+    official {
+      features {
+        name
+        enabled
+        value
+        flag
+      }
+    }
+  }
+`
+
+const SET_FEATURE_WITH_FLAG = /* GraphQL */ `
+  mutation ($input: SetFeatureInput!) {
+    setFeature(input: $input) {
+      name
+      enabled
+      value
+      flag
+    }
+  }
+`
+
 const QUERY_SEEDING_USERS = `
   query($input: ConnectionArgs!) {
     oss {
@@ -690,6 +714,55 @@ describe('manage feature flag', () => {
       variables: { input: { ids: [seedingUser.id], enabled: false } },
     })
     expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('admin can query raw flag', async () => {
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const { data } = await serverAdmin.executeOperation({
+      query: QUERY_FEATURES_WITH_FLAG,
+    })
+    const features = (data?.official?.features || []).reduce(
+      (
+        result: Record<string, any>,
+        feature: { name: string; flag: string }
+      ) => ({
+        ...result,
+        [feature.name]: feature.flag,
+      }),
+      {}
+    )
+    expect(features.add_credit).toBe('on')
+  })
+
+  test('admin can select flag on setFeature', async () => {
+    const serverAdmin = await testClient({ ...adminClient, connections })
+    const updateData = await serverAdmin.executeOperation({
+      query: SET_FEATURE_WITH_FLAG,
+      variables: { input: { name: 'circle_management', flag: 'admin' } },
+    })
+    expect(_get(updateData, 'data.setFeature.flag')).toBe('admin')
+
+    // reset
+    await serverAdmin.executeOperation({
+      query: SET_FEATURE_WITH_FLAG,
+      variables: { input: { name: 'circle_management', flag: 'on' } },
+    })
+  })
+
+  test('anonymous select flag gets ForbiddenError', async () => {
+    const serverAnonymous = await testClient({ connections })
+    const result = await serverAnonymous.executeOperation({
+      query: QUERY_FEATURES_WITH_FLAG,
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('authed non-admin select flag gets ForbiddenError', async () => {
+    const serverUser = await testClient({ ...userClient, connections })
+    const result = await serverUser.executeOperation({
+      query: QUERY_FEATURES_WITH_FLAG,
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN')
   })
 })
 

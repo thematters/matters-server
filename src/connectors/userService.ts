@@ -1857,11 +1857,19 @@ export class UserService extends BaseService<User> {
       })
       if (articles.length > 0) {
         const publicationService = new PublicationService(this.connections)
-        await Promise.all(
-          articles.map((article) =>
-            publicationService.runPostProcessing(article, false)
+        // Re-run post-processing (which re-classifies channels) in bounded
+        // batches. A prolific author can have thousands of articles; firing
+        // them all at once floods the classification API and can take the
+        // whole pipeline down. Process chunks sequentially to cap concurrency.
+        const reclassifyBatchSize = 20
+        const batches = _.chunk(articles, reclassifyBatchSize)
+        for (const batch of batches) {
+          await Promise.all(
+            batch.map((article) =>
+              publicationService.runPostProcessing(article, false)
+            )
           )
-        )
+        }
       }
     }
   }

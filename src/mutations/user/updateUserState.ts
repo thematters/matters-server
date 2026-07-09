@@ -5,7 +5,7 @@ import { ActionFailedError, UserInputError } from '#common/errors.js'
 import { fromGlobalId } from '#common/utils/index.js'
 
 import {
-  invalidateRecommendationAuthorsCache,
+  invalidateRecommendationCaches,
   invalidateUserContentCaches,
 } from './utils.js'
 
@@ -28,7 +28,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
 
   const invalidateUserCaches = async (userId: string) => {
     await invalidateUserContentCaches(userId, { articleService, redis })
-    await invalidateRecommendationAuthorsCache({
+    await invalidateRecommendationCaches({
       atomService,
       objectCacheRedis,
     })

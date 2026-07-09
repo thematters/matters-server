@@ -58,5 +58,13 @@ export const seed = async (knex) => {
       name: 'spam_ring_restriction',
       flag: 'off',
     },
+    {
+      name: 'moment_tag',
+      flag: 'on',
+    },
+    {
+      name: 'moment_tag_display',
+      flag: 'on',
+    },
   ])
 }

@@ -18,6 +18,7 @@ import {
   USER_RESTRICTION_TYPE,
   USER_STATE,
   USER_ACTION,
+  USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
 import {
   UserInputError,
@@ -1120,6 +1121,125 @@ export class RecommendationService {
     return { query }
   }
 
+  // Moment-side tag_id query with its own WITH so it can be a UNION member.
+  // Sitewide only; an empty or all-spam pool yields no rows.
+  private buildMomentRecommendTagsSql = async ({
+    percentile,
+    decayDays,
+    decayFactor,
+    spamThreshold,
+  }: {
+    percentile: number
+    decayDays: number
+    decayFactor: number
+    spamThreshold: number | null
+  }): Promise<{
+    sql: string
+    bindings: Array<string | number | Date | null>
+  }> => {
+    const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
+      'moment'
+    )
+    const { start, end } = daysToDatetimeRange(decayDays)
+    const decaySeconds = decayDays * 24 * 3600
+    // NULL threshold disables spam filtering
+    const threshold = spamThreshold ?? null
+
+    const sql = `
+      with with_moment_score as (
+        select
+          moment.id as moment_id,
+          (0.6 * coalesce(mc.comment_count, 0) + 0.4 * coalesce(ml.like_count, 0)) *
+            (1 - least(?, ? * (extract(epoch from now() - moment.created_at) / ?))) as score
+        from moment
+        left join (
+          select c.target_id, count(c.id) as comment_count
+          from comment as c
+          join moment as m on m.id = c.target_id
+          where c.type = 'moment'
+            and c.target_type_id = ?
+            and c.state = 'active'
+            and c.author_id != m.author_id
+            and (
+              ?::float is null
+              or c.author_id in (select user_id from user_feature_flag where type = ?)
+              or c.is_spam = false
+              or (c.is_spam is null and (c.spam_score < ? or c.spam_score is null))
+            )
+          group by c.target_id
+        ) as mc on mc.target_id = moment.id
+        left join (
+          select target_id, count(*) as like_count
+          from action_moment
+          where action = 'like'
+          group by target_id
+        ) as ml on ml.target_id = moment.id
+        where moment.created_at >= ?
+          and moment.created_at < ?
+          and moment.state = 'active'
+          and (
+            ?::float is null
+            or moment.author_id in (select user_id from user_feature_flag where type = ?)
+            or moment.is_spam = false
+            or (moment.is_spam is null and (moment.spam_score < ? or moment.spam_score is null))
+          )
+      ),
+      moment_median_score as (
+        select percentile_cont(0.5) within group (order by score desc) as median_score
+        from with_moment_score
+        limit 1
+      ),
+      moment_top as (
+        select moment_id
+        from with_moment_score
+        cross join (select median_score from moment_median_score limit 1) as median_score_table
+        where score > median_score
+      ),
+      moment_tags as (
+        select distinct tag_id
+        from moment_tag
+        where moment_id in (select moment_id from moment_top)
+      ),
+      moment_author_avg_count as (
+        select moment_tags.tag_id, avg(mt.count) as count
+        from (
+          select tag_id, count(distinct author_id) as count
+          from moment_tag
+          join moment on moment_tag.moment_id = moment.id
+          where moment_tag.created_at > now() - interval '3 months'
+          group by tag_id, date_trunc('month', moment_tag.created_at)
+        ) as mt
+        join moment_tags on mt.tag_id = moment_tags.tag_id
+        group by moment_tags.tag_id
+      ),
+      moment_percentile_author_count as (
+        select percentile_cont(?) within group (order by count desc) as percentile_count
+        from moment_author_avg_count
+        limit 1
+      )
+      select tag_id
+      from moment_author_avg_count
+      cross join (select percentile_count from moment_percentile_author_count limit 1) as percentile_count_table
+      where count > percentile_count
+      `
+    const bindings = [
+      decayFactor,
+      decayFactor,
+      decaySeconds,
+      targetTypeId,
+      threshold,
+      USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+      threshold,
+      start,
+      end,
+      threshold,
+      USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+      threshold,
+      percentile,
+    ]
+    return { sql, bindings }
+  }
+
   public recommendTags = async (
     channelId?: string
   ): Promise<{ query: Knex.QueryBuilder<any, Array<{ tagId: string }>> }> => {
@@ -1236,6 +1356,38 @@ export class RecommendationService {
       .whereRaw('count > percentile_count')
       .select('tag_id')
 
-    return { query }
+    // Channel context skips the moment side entirely
+    if (channelId) {
+      return { query }
+    }
+
+    // Sitewide: UNION-distinct the article-side and moment-side tag_id sets
+    const { sql: momentSql, bindings: momentBindings } =
+      await this.buildMomentRecommendTagsSql({
+        percentile,
+        decayDays,
+        decayFactor,
+        spamThreshold: spamThreshold ?? null,
+      })
+    const momentTagsQuery = knex.client
+      .queryBuilder()
+      .select('tag_id')
+      .from(
+        knex.client.raw(
+          `(${momentSql}) as moment_recommend_tags`,
+          momentBindings
+        )
+      )
+    const unionedQuery = knex.client
+      .queryBuilder()
+      .select('tag_id')
+      .from(
+        knex.client.raw('((?) union (?)) as recommend_tags', [
+          query,
+          momentTagsQuery,
+        ])
+      )
+
+    return { query: unionedQuery }
   }
 }
