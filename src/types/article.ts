@@ -389,6 +389,18 @@ export default /* GraphQL */ `
 
     "Whether this work is labeled as spam by human, null for not labeled yet. "
     isSpam: Boolean
+
+    "Raw detector decision, if returned by the spam detector."
+    decision: String @auth(mode: "${AUTH_MODE.admin}")
+
+    "Raw detector reason, if returned by the spam detector."
+    reason: String @auth(mode: "${AUTH_MODE.admin}")
+
+    "Raw detector spam probability, if returned by the spam detector."
+    pSpam: Float @auth(mode: "${AUTH_MODE.admin}")
+
+    "Raw detector ham probability, if returned by the spam detector."
+    pHam: Float @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type AdStatus {

@@ -4461,8 +4461,16 @@ export type GQLSpamRingsSort = 'detectedAt' | 'frozenAt' | 'nAuthors' | 'score'
 
 export type GQLSpamStatus = {
   __typename?: 'SpamStatus'
+  /** Raw detector decision, if returned by the spam detector. */
+  decision?: Maybe<Scalars['String']['output']>
   /** Whether this work is labeled as spam by human, null for not labeled yet.  */
   isSpam?: Maybe<Scalars['Boolean']['output']>
+  /** Raw detector ham probability, if returned by the spam detector. */
+  pHam?: Maybe<Scalars['Float']['output']>
+  /** Raw detector spam probability, if returned by the spam detector. */
+  pSpam?: Maybe<Scalars['Float']['output']>
+  /** Raw detector reason, if returned by the spam detector. */
+  reason?: Maybe<Scalars['String']['output']>
   /** Spam confident score by machine, null for not checked yet.  */
   score?: Maybe<Scalars['Float']['output']>
 }
@@ -11848,11 +11856,19 @@ export type GQLSpamStatusResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SpamStatus'] = GQLResolversParentTypes['SpamStatus']
 > = ResolversObject<{
+  decision?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   isSpam?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
     ContextType
   >
+  pHam?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
+  pSpam?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
+  reason?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
