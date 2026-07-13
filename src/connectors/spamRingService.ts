@@ -322,21 +322,41 @@ export class SpamRingService extends BaseService<SpamRing> {
       if (ring.status === 'dismissed') {
         throw new UserInputError('cannot freeze a dismissed ring')
       }
-      if (ring.status === 'frozen') {
-        // 已在鎖內確認凍結 → idempotent no-op（成員早已處理）
-        return ring
-      }
 
       const members = (await this.knex('spam_ring_member')
         .transacting(trx)
         .where({ ringId })
         .orderBy('id', 'asc')) as SpamRingMember[]
+      if (
+        ring.status === 'frozen' &&
+        !members.some(
+          (member) =>
+            member.status === 'pending' &&
+            (!memberScope || memberScope.has(String(member.userId)))
+        )
+      ) {
+        // 已凍結 ring 沒有本輪可處理的新成員，維持完全冪等。
+        return ring
+      }
       // informational only: a high-confidence ring no longer bypasses the
       // old-account / high-karma guard — established accounts always go to
       // human review even in high-confidence rings.
       const highConfidence = isHighConfidenceFreezeRing(ring)
 
       for (const member of members) {
+        if (ring.status === 'frozen' && member.status !== 'pending') {
+          // refresh 只處理 upsert 後新增的 pending 成員，既有 frozen/skipped/restored
+          // 成員不重跑，也不重複寫事件。
+          continue
+        }
+        if (
+          ring.status === 'frozen' &&
+          memberScope &&
+          !memberScope.has(String(member.userId))
+        ) {
+          // 可能是另一層偵測剛加入的成員，留給持有該層驗證名單的 run 處理。
+          continue
+        }
         const user = (await this.knex('user')
           .transacting(trx)
           .forUpdate()
@@ -458,15 +478,19 @@ export class SpamRingService extends BaseService<SpamRing> {
       }
 
       const now = new Date()
+      const ringPatch =
+        ring.status === 'frozen'
+          ? { updatedAt: now }
+          : {
+              status: 'frozen',
+              frozenAt: now,
+              frozenBy: actorId,
+              updatedAt: now,
+            }
       const [ring2] = await this.knex('spam_ring')
         .transacting(trx)
         .where({ id: ringId })
-        .update({
-          status: 'frozen',
-          frozenAt: now,
-          frozenBy: actorId,
-          updatedAt: now,
-        })
+        .update(ringPatch)
         .returning('*')
       await this.insertEvents(
         [
@@ -479,6 +503,7 @@ export class SpamRingService extends BaseService<SpamRing> {
               frozen: frozen.length,
               skipped: skipped.length,
               highConfidence,
+              refresh: ring.status === 'frozen',
             },
           },
         ],

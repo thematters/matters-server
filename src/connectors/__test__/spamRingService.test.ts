@@ -278,12 +278,12 @@ describe('SpamRingService.freezeRing', () => {
     expect(result.skipped.map((s: any) => s.reason)).toEqual(['already frozen'])
   })
 
-  test('idempotent no-op when the ring is already frozen under the lock', async () => {
+  test('idempotent no-op when a frozen ring has no new pending member', async () => {
     // concurrency guard (audit F4): a second freeze that finds the ring already
     // frozen inside the transaction must not re-process members.
     const ring = { id: '1', status: 'frozen', signals: { nearDupRingSize: 1 } }
     const members = [
-      { id: 'm1', userId: 'u1', status: 'pending', bannedByThisRing: false },
+      { id: 'm1', userId: 'u1', status: 'frozen', bannedByThisRing: true },
     ]
     const users: Record<string, any> = {
       u1: {
@@ -305,6 +305,61 @@ describe('SpamRingService.freezeRing', () => {
     expect(userService.freezeUser).not.toHaveBeenCalled()
     expect(result.frozen).toEqual([])
     expect(result.ring.status).toBe('frozen')
+  })
+
+  test('a frozen ring processes only newly appended pending members', async () => {
+    const frozenAt = new Date(Date.now() - DAY)
+    const ring = {
+      id: '1',
+      status: 'frozen',
+      frozenAt,
+      frozenBy: 'original-admin',
+      signals: { nearDupRingSize: 3 },
+    }
+    const members = [
+      { id: 'm1', userId: 'u1', status: 'frozen', bannedByThisRing: true },
+      { id: 'm2', userId: 'u2', status: 'pending', bannedByThisRing: false },
+      { id: 'm3', userId: 'u3', status: 'pending', bannedByThisRing: false },
+    ]
+    const users: Record<string, any> = {
+      u1: {
+        id: 'u1',
+        state: USER_STATE.frozen,
+        createdAt: new Date(Date.now() - DAY),
+      },
+      u2: {
+        id: 'u2',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY),
+      },
+      u3: {
+        id: 'u3',
+        state: USER_STATE.active,
+        createdAt: new Date(Date.now() - DAY),
+      },
+    }
+    const { connections, rec } = makeConnections({ ring, members, users })
+    const service = makeService(connections, users)
+    const userService = makeUserService(users)
+
+    const result = await service.freezeRing({
+      ringId: '1',
+      actorId: 'refresh-job',
+      memberUserIds: ['u2'],
+      userService: userService as any,
+    })
+
+    expect(userService.freezeUser).toHaveBeenCalledTimes(1)
+    expect(userService.freezeUser).toHaveBeenCalledWith(
+      'u2',
+      expect.objectContaining({ actorId: 'refresh-job' })
+    )
+    expect(result.frozen.map((user: any) => user.id)).toEqual(['u2'])
+    expect(rec.memberUpdates.map((update) => update.where.id)).toEqual(['m2'])
+    expect(rec.ringUpdates.at(-1)).not.toHaveProperty('frozenAt')
+    expect(rec.ringUpdates.at(-1)).not.toHaveProperty('frozenBy')
+    const event = rec.eventInserts.find((item) => item.action === 'frozen')
+    expect(JSON.parse(event.detail)).toMatchObject({ refresh: true, frozen: 1 })
   })
 
   test('memberUserIds restricts the freeze to verified members; others are skipped untouched', async () => {
