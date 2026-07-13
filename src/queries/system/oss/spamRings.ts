@@ -10,6 +10,7 @@ export const spamRings: GQLOssResolvers['spamRings'] = async (
 ) => {
   const query: Knex.QueryBuilder = spamRingService.findRings({
     status: input?.filter?.status ?? undefined,
+    actionable: input?.filter?.actionable ?? undefined,
   })
 
   let orderBy: { column: string; order: 'asc' | 'desc' }
@@ -24,8 +25,10 @@ export const spamRings: GQLOssResolvers['spamRings'] = async (
       orderBy = { column: 'nAuthors', order: 'desc' }
       break
     case 'score':
-    default:
       orderBy = { column: 'score', order: 'desc' }
+      break
+    default:
+      orderBy = { column: 'detectedAt', order: 'desc' }
       break
   }
 

@@ -99,12 +99,28 @@ export class SpamRingService extends BaseService<SpamRing> {
   // --- 查詢 ---
   public findRings = ({
     status,
+    actionable,
   }: {
     status?: SpamRingStatus
+    actionable?: boolean | null
   }): Knex.QueryBuilder => {
     const query = this.knexRO('spam_ring')
     if (status) {
       query.where({ status })
+    }
+    if (actionable) {
+      query.whereExists(function (this: Knex.QueryBuilder) {
+        this.select(1)
+          .from('spam_ring_member')
+          .join('user', 'user.id', 'spam_ring_member.userId')
+          .whereRaw('"spam_ring_member"."ring_id" = "spam_ring"."id"')
+          .whereIn('spam_ring_member.status', ['pending', 'restored'])
+          .whereNotIn('user.state', [
+            USER_STATE.banned,
+            USER_STATE.frozen,
+            USER_STATE.archived,
+          ])
+      })
     }
     return query
   }
