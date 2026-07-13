@@ -45,17 +45,18 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     channelId = channel?.id
   }
 
-  const tagIds = await cache.getObject({
-    keys: {
-      type: 'recommendationTags',
-      args: { channelId: channelId },
-    },
-    getter: async () => {
-      const { query } = await recommendationService.recommendTags(channelId)
-      return query.limit(limit)
-    },
-    expire: CACHE_TTL.LONG,
-  })
+  const tagIds =
+    (await cache.getObjectOrWarm({
+      keys: {
+        type: 'recommendationTags',
+        args: { channelId: channelId },
+      },
+      getter: async () => {
+        const { query } = await recommendationService.recommendTags(channelId)
+        return query.limit(limit)
+      },
+      expire: CACHE_TTL.LONG,
+    })) ?? []
   const chunks = circleChunk(tagIds, draw)
   const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
   const randomTagIds = chunks[index] || []

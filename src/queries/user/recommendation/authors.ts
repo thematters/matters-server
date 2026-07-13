@@ -60,19 +60,22 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     channelId = channel?.id
   }
 
-  const authorIds = await cache.getObject({
-    keys: {
-      type: 'recommendationAuthors',
-      args: {
-        channelId,
+  const authorIds =
+    (await cache.getObjectOrWarm({
+      keys: {
+        type: 'recommendationAuthors',
+        args: {
+          channelId,
+        },
       },
-    },
-    getter: async () => {
-      const { query } = await recommendationService.recommendAuthors(channelId)
-      return query
-    },
-    expire: CACHE_TTL.LONG,
-  })
+      getter: async () => {
+        const { query } = await recommendationService.recommendAuthors(
+          channelId
+        )
+        return query
+      },
+      expire: CACHE_TTL.LONG,
+    })) ?? []
   const filtered = authorIds.filter(({ authorId }) => !notIn.includes(authorId))
   const chunks = circleChunk(filtered, draw)
   const index = Math.min(filter?.random || 0, limit, chunks.length - 1)
