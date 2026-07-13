@@ -121,6 +121,89 @@ export class Cache {
   }
 
   /**
+   * Get object from cache; on miss return null immediately and trigger a
+   * single-flight background recompute so the request never runs the getter.
+   */
+  public getObjectOrWarm = async <T>({
+    keys,
+    getter,
+    expire = CACHE_TTL.SHORT,
+  }: {
+    keys: KeyInfo
+    getter: () => Promise<T>
+    expire?: number
+  }): Promise<T | null> => {
+    const key = this.genKey(keys)
+
+    const raw = await this.redis.get(key)
+    if (raw !== null) {
+      return JSON.parse(raw) as T
+    }
+
+    // miss: never block the request, try to become the sole warmer.
+    // 300s auto-expire is a fallback longer than the slowest recompute.
+    const lockKey = `${key}:warm-lock`
+    const locked = await this.redis.set(lockKey, '1', 'EX', 300, 'NX')
+    if (locked === 'OK') {
+      // fire-and-forget; warm() swallows all errors so it never rejects
+      this.warm({ key, lockKey, keys, getter, expire }).catch(() => undefined)
+    }
+
+    return null
+  }
+
+  private warm = async <T>({
+    key,
+    lockKey,
+    keys,
+    getter,
+    expire,
+  }: {
+    key: string
+    lockKey: string
+    keys: KeyInfo
+    getter: () => Promise<T>
+    expire: number
+  }): Promise<void> => {
+    try {
+      // re-check to avoid recompute if another writer already filled it
+      const raw = await this.redis.get(key)
+      if (raw !== null) {
+        return
+      }
+      const data = await getter()
+      if (!this.isNilOrEmpty(data)) {
+        await this.storeObject({ keys, data, expire })
+      }
+    } catch {
+      // silent by request: no logger yet
+    } finally {
+      try {
+        await this.redis.del(lockKey)
+      } catch {
+        // silent by request: no logger yet
+      }
+    }
+  }
+
+  // same emptiness check as getObject, extracted for warm()
+  private isNilOrEmpty = (tested: any): boolean => {
+    if (_.isNil(tested)) {
+      return true
+    }
+
+    // avoid empty object
+    if (typeof tested === 'object') {
+      if (tested instanceof Date) {
+        return false
+      }
+      return Object.values(tested).length === 0
+    }
+
+    return false
+  }
+
+  /**
    * Remove object from cache
    */
   public removeObject = async ({
