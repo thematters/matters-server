@@ -216,6 +216,99 @@ test('exports aggregated transparency metrics without sensitive fields', async (
   expect(receivedCase.id).toBeDefined()
 })
 
+test('excludes proactive reviews from appeal outcomes', async () => {
+  const actionStates = [
+    ['restored', 'none', 'reversed'],
+    ['restored', 'resolved', 'reversed'],
+    ['active', 'none', 'upheld'],
+    ['active', 'resolved', 'upheld'],
+  ] as const
+  const actions = await connections
+    .knex('community_watch_action')
+    .insert(
+      actionStates.map(([actionState, appealState, reviewState], index) => ({
+        uuid: v4(),
+        commentId: String(index + 1),
+        commentType: 'article',
+        targetType: 'article',
+        targetId: '1',
+        reason: 'spam_ad',
+        actorId: '1',
+        commentAuthorId: '2',
+        originalState: 'active',
+        actionState,
+        appealState,
+        reviewState,
+        reviewerId: '1',
+        reviewedAt: new Date(`2026-01-${10 + index}T12:00:00.000+08:00`),
+        createdAt: new Date(`2026-01-${10 + index}T00:00:00.000+08:00`),
+        updatedAt: new Date(`2026-01-${10 + index}T12:00:00.000+08:00`),
+      }))
+    )
+    .returning('*')
+
+  await connections.knex('community_watch_review_event').insert([
+    {
+      uuid: v4(),
+      actionId: actions[0].id,
+      eventType: 'comment_restored',
+      actorId: '1',
+      createdAt: new Date('2026-01-10T12:00:00.000+08:00'),
+    },
+    {
+      uuid: v4(),
+      actionId: actions[1].id,
+      eventType: 'appeal_received',
+      actorId: '2',
+      createdAt: new Date('2026-01-11T06:00:00.000+08:00'),
+    },
+    {
+      uuid: v4(),
+      actionId: actions[1].id,
+      eventType: 'comment_restored',
+      actorId: '1',
+      createdAt: new Date('2026-01-11T12:00:00.000+08:00'),
+    },
+    {
+      uuid: v4(),
+      actionId: actions[2].id,
+      eventType: 'review_upheld',
+      actorId: '1',
+      createdAt: new Date('2026-01-12T12:00:00.000+08:00'),
+    },
+    {
+      uuid: v4(),
+      actionId: actions[3].id,
+      eventType: 'appeal_received',
+      actorId: '2',
+      createdAt: new Date('2026-01-13T06:00:00.000+08:00'),
+    },
+    {
+      uuid: v4(),
+      actionId: actions[3].id,
+      eventType: 'review_upheld',
+      actorId: '1',
+      createdAt: new Date('2026-01-13T12:00:00.000+08:00'),
+    },
+  ])
+
+  const metrics = await service.exportMetrics({
+    start: '2026-01-01',
+    end: '2026-06-30',
+    timezone: 'Asia/Taipei',
+  })
+
+  expect(metrics.appeals).toEqual({
+    total: 2,
+    upheld: 1,
+    reversed: 1,
+    partially_reversed: 0,
+    pending: 0,
+    restored_content: 1,
+  })
+  expect(metrics.community_watch.restored).toBe(2)
+})
+
 test('serializes stable CSV rows with not recorded gaps', async () => {
   const metrics = await service.exportMetrics({
     start: '2026-01-01',
