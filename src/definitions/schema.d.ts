@@ -11868,11 +11868,7 @@ export type GQLSpamStatusResolvers<
   >
   pHam?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   pSpam?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
-  reason?: Resolver<
-    Maybe<GQLResolversTypes['String']>,
-    ParentType,
-    ContextType
-  >
+  reason?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
