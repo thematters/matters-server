@@ -168,6 +168,37 @@ export class SystemService extends BaseService<BaseDBSchema> {
   }
 
   /**
+   * Get the public discovery spam threshold from `feature_flag` table.
+   * Falls back to the global spam threshold so discovery feeds stay compatible
+   * when the dedicated flag is missing or off.
+   */
+  public getDiscoverySpamThreshold = async (): Promise<number | null> => {
+    const cache = new Cache(
+      CACHE_PREFIX.DISCOVERY_SPAM_THRESHOLD,
+      this.connections.objectCacheRedis
+    )
+    const value = (await cache.getObject({
+      keys: { id: 'discovery_spam_threshold' },
+      getter: this._getDiscoverySpamThreshold,
+      expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
+    })) as number | null
+    return value
+  }
+  private _getDiscoverySpamThreshold = async (): Promise<number | null> => {
+    const threshold = await this.models.findFirst({
+      table: 'feature_flag',
+      where: {
+        name: FEATURE_NAME.discovery_spam_filter,
+        flag: FEATURE_FLAG.on,
+      },
+    })
+    if (threshold?.value) {
+      return threshold.value
+    }
+    return this._getSpamThreshold()
+  }
+
+  /**
    * Get the topic-channel-only spam threshold from `feature_flag` table.
    */
   public getTopicChannelSpamThreshold = async (): Promise<number | null> => {

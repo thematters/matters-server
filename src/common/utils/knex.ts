@@ -7,8 +7,11 @@ import {
   USER_STATE,
 } from '#common/enums/index.js'
 
+const DETECTOR_BLOCK_DECISION = 'block'
+const DETECTOR_HAM_CONFIDENCE_FLOOR = 0.02
+
 /**
- * Exclude spam articles
+ * Exclude spam articles from public discovery surfaces.
  */
 export const excludeSpam = (
   builder: Knex.QueryBuilder,
@@ -28,12 +31,30 @@ export const excludeSpam = (
         .orWhere((qb) => {
           qb.whereNotIn(`${table}.author_id`, whitelistedAuthors).andWhere(
             (whereBuilder) => {
-              // if (`is_spam` is false) or (`is_spam` is null and (`spam_score` is less than the threshold or `spam_score` is null))
+              // Manual non-spam labels stay visible. Unlabeled articles must
+              // pass score, detector decision, and ham-confidence gates.
               whereBuilder
                 .andWhere(`${table}.is_spam`, false)
                 .orWhere((orWhereBuilder) => {
                   orWhereBuilder
                     .whereNull(`${table}.is_spam`)
+                    .andWhere((decisionWhereBuilder) => {
+                      decisionWhereBuilder
+                        .whereNull(`${table}.decision`)
+                        .orWhereNot(
+                          `${table}.decision`,
+                          DETECTOR_BLOCK_DECISION
+                        )
+                    })
+                    .andWhere((pHamWhereBuilder) => {
+                      pHamWhereBuilder
+                        .whereNull(`${table}.p_ham`)
+                        .orWhere(
+                          `${table}.p_ham`,
+                          '>',
+                          DETECTOR_HAM_CONFIDENCE_FLOOR
+                        )
+                    })
                     .andWhere((spamScoreWhereBuilder) => {
                       spamScoreWhereBuilder
                         .where(`${table}.spam_score`, '<', spamThreshold)

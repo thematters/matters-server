@@ -351,7 +351,7 @@ export class RecommendationService {
     const { id: targetTypeId } = await this.systemService.baseFindEntityTypeId(
       'article'
     )
-    const spamThreshold = await this.systemService.getSpamThreshold()
+    const spamThreshold = await this.systemService.getDiscoverySpamThreshold()
     // dark-launched discovery probation: `null` while flag is off (zero diff)
     const probationDays = await this.systemService.getDiscoveryProbationDays()
     const startDate = new Date()
@@ -1053,7 +1053,7 @@ export class RecommendationService {
       ? RECOMMENDATION_TOP_PERCENTILE_CHANNEL_AUTHOR
       : RECOMMENDATION_TOP_PERCENTILE
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
-    const spamThreshold = await this.systemService.getSpamThreshold()
+    const spamThreshold = await this.systemService.getDiscoverySpamThreshold()
     const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
     let articlesQuery
     if (channelId) {
@@ -1253,7 +1253,7 @@ export class RecommendationService {
       : RECOMMENDATION_DECAY_DAYS
     const percentile = RECOMMENDATION_TOP_PERCENTILE_CHANNEL_TAG
     const decayFactor = RECOMMENDATION_DECAY_FACTOR
-    const spamThreshold = await this.systemService.getSpamThreshold()
+    const spamThreshold = await this.systemService.getDiscoverySpamThreshold()
     const dateColumn = channelId ? 'channel_article_created_at' : 'created_at'
     let articlesQuery
     if (channelId) {

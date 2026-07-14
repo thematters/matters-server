@@ -32,7 +32,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
     }
   }
 
-  const spamThreshold = await systemService.getSpamThreshold()
+  const spamThreshold = await systemService.getDiscoverySpamThreshold()
   // dark-launched discovery probation: `null` while flag is off (zero diff)
   const probationDays = await systemService.getDiscoveryProbationDays()
   const query = articleService.findNewestArticles({

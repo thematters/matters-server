@@ -12,6 +12,8 @@ import {
   TRANSACTION_STATE,
   DEFAULT_TAKE_PER_PAGE,
   USER_STATE,
+  FEATURE_FLAG,
+  FEATURE_NAME,
 } from '#common/enums/index.js'
 import {
   AtomService,
@@ -345,6 +347,59 @@ describe('user recommendations', () => {
     await knex('user_restriction')
       .where({ userId: '1', type: 'articleNewest' })
       .delete()
+  })
+
+  test('newest uses discovery spam threshold instead of global threshold', async () => {
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: 0.94,
+    })
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.discovery_spam_filter,
+      flag: FEATURE_FLAG.on,
+      value: 0.6,
+    })
+
+    const [article] = await articleService.findNewestArticles({
+      excludeChannelArticles: true,
+      excludeExclusiveCampaignArticles: true,
+    })
+    const original = await atomService.findUnique({
+      table: 'article',
+      where: { id: article.id },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { isSpam: null, spamScore: 0.7, decision: null, pHam: null },
+    })
+
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { first: 20 },
+    })
+    expect(errors).toBeUndefined()
+
+    const ids = data.viewer.recommendation.newest.edges.map(
+      ({ node }: { node: { id: GlobalId } }) => fromGlobalId(node.id).id
+    )
+    expect(ids).not.toContain(article.id)
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: {
+        isSpam: original?.isSpam,
+        spamScore: original?.spamScore,
+        decision: original?.decision,
+        pHam: original?.pHam,
+      },
+    })
   })
 
   test('newest respects maxTake limit for regular users', async () => {
