@@ -13,10 +13,12 @@ beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   channelService = new ChannelService(connections)
-}, 30000)
+}, 60000)
 
 afterAll(async () => {
-  await closeConnections(connections)
+  if (connections) {
+    await closeConnections(connections)
+  }
 })
 
 describe('query oss articles', () => {

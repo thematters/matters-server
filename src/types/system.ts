@@ -688,6 +688,7 @@ export default /* GraphQL */ `
     circle_management
     circle_interact
     spam_detection
+    discovery_spam_filter
     topic_channel_spam_filter
     article_channel
     hottest_moment_feed

@@ -13,6 +13,7 @@ import {
   PUBLISH_STATE,
   USER_STATE,
   USER_RESTRICTION_TYPE,
+  USER_FEATURE_FLAG_TYPE,
 } from '#common/enums/index.js'
 import { ArticleService } from '../../article/articleService.js'
 import { PublicationService } from '../../article/publicationService.js'
@@ -431,15 +432,26 @@ describe('latestArticles', () => {
     expect(sql).not.toContain('"user"."state"')
   })
   test('spam are excluded', async () => {
-    const articles = await articleService.findNewestArticles({
-      spamThreshold: 0.5,
-    })
     const spamThreshold = 0.5
+    const createdArticles = await Promise.all(
+      ['1', '1', '1', '1', '2'].map((authorId, index) =>
+        publicationService.createArticle({
+          title: `spam filter test ${index}`,
+          content: `spam filter test content ${index}`,
+          authorId,
+        })
+      )
+    )
+    const articles = createdArticles.map(([article]) => article)
+
     // spam flag is on but no detected articles
     const articles1 = await articleService.findNewestArticles({
-      spamThreshold: 0.5,
+      spamThreshold,
     })
-    expect(articles1).toEqual(articles)
+    const articleIds1 = articles1.map(({ id }) => id)
+    for (const article of articles) {
+      expect(articleIds1).toContain(article.id)
+    }
 
     // spam detected
     await atomService.update({
@@ -448,7 +460,7 @@ describe('latestArticles', () => {
       data: { spamScore: spamThreshold + 0.1 },
     })
     const articles2 = await articleService.findNewestArticles({
-      spamThreshold: 0.5,
+      spamThreshold,
     })
     expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
 
@@ -459,7 +471,7 @@ describe('latestArticles', () => {
       data: { isSpam: false },
     })
     const articles3 = await articleService.findNewestArticles({
-      spamThreshold: 0.5,
+      spamThreshold,
     })
     expect(articles3.map(({ id }) => id)).toContain(articles[0].id)
 
@@ -470,7 +482,7 @@ describe('latestArticles', () => {
       data: { spamScore: spamThreshold - 0.1 },
     })
     const articles4 = await articleService.findNewestArticles({
-      spamThreshold: 0.5,
+      spamThreshold,
     })
     expect(articles4.map(({ id }) => id)).toContain(articles[1].id)
 
@@ -481,9 +493,78 @@ describe('latestArticles', () => {
       data: { isSpam: true },
     })
     const articles5 = await articleService.findNewestArticles({
-      spamThreshold: 0.5,
+      spamThreshold,
     })
     expect(articles5.map(({ id }) => id)).not.toContain(articles[1].id)
+
+    // detector block decision is excluded even when score is below threshold
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: {
+        isSpam: null,
+        spamScore: spamThreshold - 0.1,
+        decision: 'block',
+        pHam: 0.5,
+      },
+    })
+    const articles6 = await articleService.findNewestArticles({
+      spamThreshold,
+    })
+    expect(articles6.map(({ id }) => id)).not.toContain(articles[2].id)
+
+    // very low ham confidence is excluded even without a block decision
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[3].id },
+      data: {
+        isSpam: null,
+        spamScore: spamThreshold - 0.1,
+        decision: 'review',
+        pHam: 0.02,
+      },
+    })
+    const articles7 = await articleService.findNewestArticles({
+      spamThreshold,
+    })
+    expect(articles7.map(({ id }) => id)).not.toContain(articles[3].id)
+
+    // manual non-spam label still rescues detector false positives
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: { isSpam: false },
+    })
+    const articles8 = await articleService.findNewestArticles({
+      spamThreshold,
+    })
+    expect(articles8.map(({ id }) => id)).toContain(articles[2].id)
+
+    // bypassSpamDetection remains an explicit discovery allowlist
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[4].id },
+      data: {
+        isSpam: null,
+        spamScore: spamThreshold + 0.1,
+        decision: 'block',
+        pHam: 0.01,
+      },
+    })
+    await userService.updateFeatureFlags(articles[4].authorId, [
+      USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+    ])
+    const articles9 = await articleService.findNewestArticles({
+      spamThreshold,
+    })
+    expect(articles9.map(({ id }) => id)).toContain(articles[4].id)
+    await atomService.deleteMany({
+      table: 'user_feature_flag',
+      where: {
+        userId: articles[4].authorId,
+        type: USER_FEATURE_FLAG_TYPE.bypassSpamDetection,
+      },
+    })
   })
 
   test('channel articles are excluded', async () => {

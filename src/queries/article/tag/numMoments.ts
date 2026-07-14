@@ -5,7 +5,8 @@ const resolver: GQLTagResolvers['numMoments'] = async (
   _,
   { dataSources: { tagService, systemService } }
 ) => {
-  const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
+  const spamThreshold =
+    (await systemService.getDiscoverySpamThreshold()) ?? undefined
   return tagService.countMoments({ id, spamThreshold })
 }
 

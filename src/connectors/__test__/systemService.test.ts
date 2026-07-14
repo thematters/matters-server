@@ -380,6 +380,26 @@ test('get topic channel spam threshold', async () => {
   expect(threshold).toBe(0.8)
 })
 
+test('get discovery spam threshold', async () => {
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.spam_detection,
+    flag: FEATURE_FLAG.on,
+    value: 0.94,
+  })
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_spam_filter,
+    flag: FEATURE_FLAG.on,
+    value: 0.6,
+  })
+  expect(await systemService.getDiscoverySpamThreshold()).toBe(0.6)
+
+  await systemService.setFeatureFlag({
+    name: FEATURE_NAME.discovery_spam_filter,
+    flag: FEATURE_FLAG.off,
+  })
+  expect(await systemService.getDiscoverySpamThreshold()).toBe(0.94)
+})
+
 test('get discovery probation days', async () => {
   // flag off (seed default): null, discovery feeds stay unchanged
   expect(await systemService.getDiscoveryProbationDays()).toBeNull()

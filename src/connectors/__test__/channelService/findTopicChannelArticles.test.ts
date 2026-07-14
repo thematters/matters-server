@@ -298,6 +298,38 @@ describe('findTopicChannelArticles', () => {
     expect(resultIds).toContain(articles[1].id)
   })
 
+  test('excludes detector block decisions and very low ham confidence', async () => {
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.topic_channel_spam_filter,
+      flag: FEATURE_FLAG.on,
+      value: 0.6,
+    })
+
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { isSpam: null, spamScore: 0.2, decision: 'block', pHam: 0.5 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[1].id },
+      data: { isSpam: null, spamScore: 0.2, decision: 'review', pHam: 0.02 },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[2].id },
+      data: { isSpam: null, spamScore: 0.2, decision: 'review', pHam: 0.03 },
+    })
+
+    const { query } = await channelService.findTopicChannelArticles(channel.id)
+    const results = await query
+    const resultIds = results.map((article) => article.id)
+
+    expect(resultIds).not.toContain(articles[0].id)
+    expect(resultIds).not.toContain(articles[1].id)
+    expect(resultIds).toContain(articles[2].id)
+  })
+
   describe('datetimeRange filtering', () => {
     const baseTime = new Date('2024-01-01T00:00:00Z')
     const oneDayBefore = new Date(baseTime.getTime() - 86400000)
