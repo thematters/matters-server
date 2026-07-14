@@ -13,6 +13,8 @@
 
 Moderators and readers are seeing a recent surge of spam in `https://matters.town/newest` and topic channels such as `生活事` and `性別／愛`. The current production `spam_detection` threshold is `0.94`, so articles with `spam_score < 0.94` can remain visible or be collected into topic channels even when the content is clearly spam.
 
+Update: `/newest` and other public discovery surfaces are now covered by `docs/specs/discovery-spam-filter.md`; this older spec remains the topic-channel threshold audit record.
+
 The user-visible goal is to reduce spam collected by topic channels with a more aggressive channel-only threshold while keeping account-state and global visibility decisions conservative.
 
 ## 2. Goal & Non-Goals

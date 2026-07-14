@@ -8,7 +8,8 @@ const resolver: GQLTagResolvers['articles'] = async (
   { dataSources: { tagService, systemService } }
 ) => {
   const { sortBy } = input
-  const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
+  const spamThreshold =
+    (await systemService.getDiscoverySpamThreshold()) ?? undefined
   // dark-launched discovery probation: `undefined` while flag is off (zero diff)
   const probationDays =
     (await systemService.getDiscoveryProbationDays()) ?? undefined

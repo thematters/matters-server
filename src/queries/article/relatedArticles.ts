@@ -11,7 +11,8 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
 ) => {
   // return 3 recommendations by default
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 3 })
-  const spamThreshold = (await systemService.getSpamThreshold()) ?? undefined
+  const spamThreshold =
+    (await systemService.getDiscoverySpamThreshold()) ?? undefined
 
   // buffer for archived article and random draw
   const buffer = 7
