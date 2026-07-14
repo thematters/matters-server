@@ -19,6 +19,7 @@ export const excludeSpam = (
   table = 'article'
 ) => {
   if (spamThreshold) {
+    const hasDetectorMetadata = table === 'article'
     const knex = builder.client.queryBuilder()
     const whitelistedAuthors = knex
       .select('user_id')
@@ -36,30 +37,34 @@ export const excludeSpam = (
               whereBuilder
                 .andWhere(`${table}.is_spam`, false)
                 .orWhere((orWhereBuilder) => {
-                  orWhereBuilder
-                    .whereNull(`${table}.is_spam`)
-                    .andWhere((decisionWhereBuilder) => {
-                      decisionWhereBuilder
-                        .whereNull(`${table}.decision`)
-                        .orWhereNot(
-                          `${table}.decision`,
-                          DETECTOR_BLOCK_DECISION
-                        )
-                    })
-                    .andWhere((pHamWhereBuilder) => {
-                      pHamWhereBuilder
-                        .whereNull(`${table}.p_ham`)
-                        .orWhere(
-                          `${table}.p_ham`,
-                          '>',
-                          DETECTOR_HAM_CONFIDENCE_FLOOR
-                        )
-                    })
-                    .andWhere((spamScoreWhereBuilder) => {
-                      spamScoreWhereBuilder
-                        .where(`${table}.spam_score`, '<', spamThreshold)
-                        .orWhereNull(`${table}.spam_score`)
-                    })
+                  orWhereBuilder.whereNull(`${table}.is_spam`)
+
+                  if (hasDetectorMetadata) {
+                    orWhereBuilder
+                      .andWhere((decisionWhereBuilder) => {
+                        decisionWhereBuilder
+                          .whereNull(`${table}.decision`)
+                          .orWhereNot(
+                            `${table}.decision`,
+                            DETECTOR_BLOCK_DECISION
+                          )
+                      })
+                      .andWhere((pHamWhereBuilder) => {
+                        pHamWhereBuilder
+                          .whereNull(`${table}.p_ham`)
+                          .orWhere(
+                            `${table}.p_ham`,
+                            '>',
+                            DETECTOR_HAM_CONFIDENCE_FLOOR
+                          )
+                      })
+                  }
+
+                  orWhereBuilder.andWhere((spamScoreWhereBuilder) => {
+                    spamScoreWhereBuilder
+                      .where(`${table}.spam_score`, '<', spamThreshold)
+                      .orWhereNull(`${table}.spam_score`)
+                  })
                 })
             }
           )

@@ -1,10 +1,6 @@
 import type { Connections, Article, TopicChannel } from '#definitions/index.js'
 
-import {
-  FEATURE_FLAG,
-  FEATURE_NAME,
-  USER_STATE,
-} from '#common/enums/index.js'
+import { FEATURE_FLAG, FEATURE_NAME, USER_STATE } from '#common/enums/index.js'
 import { AtomService } from '../../atomService.js'
 import { CampaignService } from '../../campaignService.js'
 import { ChannelService } from '../../channel/channelService.js'
