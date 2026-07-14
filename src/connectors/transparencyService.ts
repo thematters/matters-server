@@ -994,6 +994,31 @@ export class TransparencyService {
   private getAppeals = async (
     period: Period
   ): Promise<TransparencyMetrics['appeals']> => {
+    const moderationCaseOutcomeAfterAppeal = (outcome: string) =>
+      this.periodQuery('moderation_case', period)
+        .where({ outcome })
+        .whereExists(
+          this.knexRO('moderation_event as appeal_event')
+            .select(this.knexRO.raw('1'))
+            .whereRaw('appeal_event.case_id = moderation_case.id')
+            .whereRaw('appeal_event.event_type = ?', ['appealed'])
+        )
+
+    const communityWatchOutcomeAfterAppeal = (eventType: string) =>
+      this.periodQuery('community_watch_review_event', period)
+        .where({ eventType })
+        .whereExists(
+          this.knexRO('community_watch_review_event as appeal_event')
+            .select(this.knexRO.raw('1'))
+            .whereRaw(
+              'appeal_event.action_id = community_watch_review_event.action_id'
+            )
+            .whereRaw('appeal_event.event_type = ?', ['appeal_received'])
+            .whereRaw(
+              'appeal_event.created_at <= community_watch_review_event.created_at'
+            )
+        )
+
     const [
       moderationAppeals,
       communityAppeals,
@@ -1015,29 +1040,11 @@ export class TransparencyService {
           eventType: 'appeal_received',
         })
       ),
-      countRows(
-        this.periodQuery('moderation_case', period).where({ outcome: 'upheld' })
-      ),
-      countRows(
-        this.periodQuery('community_watch_review_event', period).where({
-          eventType: 'review_upheld',
-        })
-      ),
-      countRows(
-        this.periodQuery('moderation_case', period).where({
-          outcome: 'restored',
-        })
-      ),
-      countRows(
-        this.periodQuery('community_watch_review_event', period).where({
-          eventType: 'comment_restored',
-        })
-      ),
-      countRows(
-        this.periodQuery('moderation_case', period).where({
-          outcome: 'partially_restored',
-        })
-      ),
+      countRows(moderationCaseOutcomeAfterAppeal('upheld')),
+      countRows(communityWatchOutcomeAfterAppeal('review_upheld')),
+      countRows(moderationCaseOutcomeAfterAppeal('restored')),
+      countRows(communityWatchOutcomeAfterAppeal('comment_restored')),
+      countRows(moderationCaseOutcomeAfterAppeal('partially_restored')),
       countRows(
         this.periodQuery('moderation_case', period).where({
           status: 'appealed',

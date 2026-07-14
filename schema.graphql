@@ -2751,11 +2751,13 @@ enum SpamRingsSort {
 input OSSSpamRingsInput {
   after: String
   first: Int
-  sort: SpamRingsSort = score
+  sort: SpamRingsSort = detectedAt
   filter: OSSSpamRingsFilter
 }
 
 input OSSSpamRingsFilter {
+  """Only include rings that still have at least one member eligible for handling."""
+  actionable: Boolean
   status: SpamRingStatus
 }
 

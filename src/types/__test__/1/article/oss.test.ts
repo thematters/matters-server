@@ -290,6 +290,10 @@ describe('query article oss', () => {
           spamStatus {
             score
             isSpam
+            decision
+            reason
+            pSpam
+            pHam
           }
         }
       }
@@ -312,6 +316,16 @@ describe('query article oss', () => {
     const article = await atomService.findUnique({
       table: 'article',
       where: { id: '1' },
+    })
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: {
+        decision: 'review',
+        reason: 'commercial solicitation',
+        pSpam: 0.7,
+        pHam: 0.02,
+      },
     })
     const anonymousServer = await testClient({ connections })
     const { errors } = await anonymousServer.executeOperation({
@@ -343,6 +357,10 @@ describe('query article oss', () => {
     expect(data.article.oss.spamStatus).toBeDefined()
     expect(data.article.oss.spamStatus.score).toBeDefined()
     expect(data.article.oss.spamStatus.isSpam).toBeDefined()
+    expect(data.article.oss.spamStatus.decision).toBe('review')
+    expect(data.article.oss.spamStatus.reason).toBe('commercial solicitation')
+    expect(data.article.oss.spamStatus.pSpam).toBe(0.7)
+    expect(data.article.oss.spamStatus.pHam).toBe(0.02)
   })
 
   test('users with readSpamStatus flag can view spam status', async () => {

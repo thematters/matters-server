@@ -286,13 +286,14 @@ describe('spam ring query resolvers', () => {
     const input = {
       first: 20,
       sort: 'nAuthors',
-      filter: { status: 'pending' },
+      filter: { status: 'pending', actionable: true },
     }
 
     await (spamRings as any)(null, { input }, ctx)
 
     expect(ctx.dataSources.spamRingService.findRings).toHaveBeenCalledWith({
       status: 'pending',
+      actionable: true,
     })
     expect(connectionFromQuery).toHaveBeenCalledWith({
       query,
@@ -301,7 +302,7 @@ describe('spam ring query resolvers', () => {
     })
   })
 
-  test('oss.spamRings defaults to score sorting and no status filter', async () => {
+  test('oss.spamRings defaults to detectedAt sorting and no status filter', async () => {
     const query = { __query: 'score-query' }
     const ctx = {
       dataSources: {
@@ -315,11 +316,12 @@ describe('spam ring query resolvers', () => {
 
     expect(ctx.dataSources.spamRingService.findRings).toHaveBeenCalledWith({
       status: undefined,
+      actionable: undefined,
     })
     expect(connectionFromQuery).toHaveBeenCalledWith({
       query,
       args: { first: 10 },
-      orderBy: { column: 'score', order: 'desc' },
+      orderBy: { column: 'detectedAt', order: 'desc' },
     })
   })
 

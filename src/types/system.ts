@@ -414,12 +414,14 @@ export default /* GraphQL */ `
   input OSSSpamRingsInput {
     after: String
     first: Int @constraint(min: 0)
-    sort: SpamRingsSort = score
+    sort: SpamRingsSort = detectedAt
     filter: OSSSpamRingsFilter
   }
 
   input OSSSpamRingsFilter {
     status: SpamRingStatus
+    "Only include rings that still have at least one member eligible for handling."
+    actionable: Boolean
   }
 
   input UpdateModerationCaseInput {

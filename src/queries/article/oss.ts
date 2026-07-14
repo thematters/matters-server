@@ -87,7 +87,7 @@ export const inSearch: GQLArticleOssResolvers['inSearch'] = async (
 }
 
 export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
-  { id, spamScore, isSpam },
+  { id, spamScore, isSpam, decision, reason, pSpam, pHam },
   _,
   { viewer, dataSources: { publicationService, userService } }
 ) => {
@@ -112,7 +112,7 @@ export const spamStatus: GQLArticleOssResolvers['spamStatus'] = async (
     publicationService.detectSpam(id)
   }
 
-  return { score: spamScore, isSpam }
+  return { score: spamScore, isSpam, decision, reason, pSpam, pHam }
 }
 
 export const adStatus: GQLArticleOssResolvers['adStatus'] = async ({
