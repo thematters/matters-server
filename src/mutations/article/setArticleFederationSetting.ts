@@ -5,13 +5,20 @@ import type {
 } from '#definitions/index.js'
 import type { GlobalId } from '#definitions/nominal.js'
 
-import { NODE_TYPES, USER_FEATURE_FLAG_TYPE } from '#common/enums/index.js'
+import { NODE_TYPES } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
 import {
   ArticleNotFoundError,
   ForbiddenError,
   UserInputError,
 } from '#common/errors.js'
 import { fromGlobalId, toGlobalId } from '#common/utils/index.js'
+import {
+  FEDERATION_ARTICLE_SETTING,
+  FEDERATION_EXPORT_ACTION,
+  FEDERATION_EXPORT_TRIGGER,
+  FEDERATION_EXPORT_TRIGGER_MODE,
+} from '#connectors/article/federationExportService.js'
 
 type SetArticleFederationSettingState = 'inherit' | 'enabled' | 'disabled'
 
@@ -26,15 +33,6 @@ const resolver = async (
   }: Context
 ) => {
   userService.validateUserState(viewer)
-
-  const featureFlags = await userService.findFeatureFlags(viewer.id)
-  const isFediverseBeta = featureFlags
-    .map(({ type: featureFlagType }) => featureFlagType)
-    .includes(USER_FEATURE_FLAG_TYPE.fediverseBeta)
-
-  if (!isFediverseBeta) {
-    throw new ForbiddenError('viewer is not in Fediverse beta')
-  }
 
   const { id: articleId, type } = fromGlobalId(id)
 
@@ -59,6 +57,22 @@ const resolver = async (
     state,
     updatedBy: viewer.id,
   })
+
+  if (
+    environment.federationExportTriggerMode ===
+    FEDERATION_EXPORT_TRIGGER_MODE.sqs
+  ) {
+    await federationExportService.recordExportTriggerDecision({
+      articleId,
+      actorId: viewer.id,
+      trigger: FEDERATION_EXPORT_TRIGGER.settingChange,
+      mode: FEDERATION_EXPORT_TRIGGER_MODE.sqs,
+      action:
+        state === FEDERATION_ARTICLE_SETTING.disabled
+          ? FEDERATION_EXPORT_ACTION.delete
+          : FEDERATION_EXPORT_ACTION.update,
+    })
+  }
 
   return {
     ...updated,

@@ -53,6 +53,8 @@ export const environment = {
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
   awsReportAlertQueueUrl: process.env.MATTERS_AWS_REPORT_ALERT_QUEUE_URL || '',
+  awsFederationExportQueueUrl:
+    process.env.MATTERS_AWS_FEDERATION_EXPORT_QUEUE_URL || '',
   // Spam training-sample capture (axis-2 L2): de-identified moderation events
   // for the spam-model training corpus. Best-effort; off when unset.
   awsSpamSampleQueueUrl: process.env.MATTERS_AWS_SPAM_SAMPLE_QUEUE_URL || '',
@@ -332,6 +334,11 @@ export const environment = {
     process.env.MATTERS_COMPLAINT_AREA_ARTICLE_ID || '8079',
   federationExportTriggerMode:
     process.env.MATTERS_FEDERATION_EXPORT_TRIGGER_MODE || 'off',
+  federationExportWebfDomain:
+    process.env.MATTERS_FEDERATION_WEBF_DOMAIN || 'matters.town',
+  federationGatewayUrl: process.env.MATTERS_FEDERATION_GATEWAY_URL || '',
+  federationGatewayOperatorToken:
+    process.env.MATTERS_FEDERATION_GATEWAY_OPERATOR_TOKEN || '',
 }
 
 export const contract = {

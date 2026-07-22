@@ -173,6 +173,8 @@ type Mutation {
   putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]!
   putUserFederationSetting(input: PutUserFederationSettingInput!): UserFederationSetting!
   putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting!
+  replayFediverseDeadLetter(input: ReplayFediverseDeadLetterInput!): Boolean!
+  resolveFediverseDeadLetter(input: ResolveFediverseDeadLetterInput!): Boolean!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   updateModerationCase(input: UpdateModerationCaseInput!): ModerationCase!
   setSpamStatus(input: SetSpamStatusInput!): Writing!
@@ -2486,7 +2488,47 @@ type OSS {
   spamRings(input: OSSSpamRingsInput!): SpamRingConnection!
   icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
+  fediverseGateway: FediverseGatewayDashboard!
   momentFeedUsers(input: MomentFeedUsersInput!): UserConnection!
+}
+
+type FediverseGatewayDashboard {
+  generatedAt: DateTime!
+  queue: FediverseGatewayQueue!
+  deadLetters: [FediverseGatewayDeadLetter!]!
+  auditEvents: [FediverseGatewayAuditEvent!]!
+}
+
+type FediverseGatewayQueue {
+  total: Int!
+  pending: Int!
+  processing: Int!
+  delivered: Int!
+  deadLetter: Int!
+  resolved: Int!
+  retryPending: Int!
+  openDeadLetters: Int!
+  replayedDeadLetters: Int!
+  resolvedDeadLetters: Int!
+  oldestPendingAt: DateTime
+}
+
+type FediverseGatewayDeadLetter {
+  id: ID!
+  status: String!
+  actorHandle: String
+  targetActorId: String
+  activityId: String
+  activityType: String
+  recordedAt: DateTime
+}
+
+type FediverseGatewayAuditEvent {
+  timestamp: DateTime
+  event: String!
+  actorHandle: String
+  itemId: String
+  reason: String
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2923,6 +2965,16 @@ input PutUserFederationSettingInput {
 input PutArticleFederationSettingInput {
   id: ID!
   state: FederationArticleSettingState!
+}
+
+input ReplayFediverseDeadLetterInput {
+  id: ID!
+  reason: String
+}
+
+input ResolveFediverseDeadLetterInput {
+  id: ID!
+  reason: String!
 }
 
 input SubmitReportInput {

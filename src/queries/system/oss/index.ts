@@ -1,6 +1,7 @@
 import { articles } from './articles.js'
 import { badgedUsers } from './badgedUsers.js'
 import { comments } from './comments.js'
+import { fediverseGateway } from './fediverseGateway.js'
 import { icymiTopics } from './icymiTopics.js'
 import { momentFeedUsers } from './momentFeedUsers.js'
 import { moments } from './moments.js'
@@ -30,4 +31,5 @@ export default {
   spamRings,
   icymiTopics,
   topicChannelFeedbacks,
+  fediverseGateway,
 }
