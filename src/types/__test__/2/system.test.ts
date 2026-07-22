@@ -1326,28 +1326,12 @@ describe('federation settings', () => {
     })
   })
 
-  test('pilot viewer can update own author federation setting', async () => {
+  test('any active viewer can update own author federation setting', async () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: false,
       connections,
     })
-    const { errors } = await server.executeOperation({
-      query: SET_VIEWER_FEDERATION_SETTING,
-      variables: { input: { state: 'enabled' } },
-    })
-    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
-
-    const adminServer = await testClient({
-      isAuth: true,
-      isAdmin: true,
-      connections,
-    })
-    await adminServer.executeOperation({
-      query: PUT_USER_FEATURE_FLAGS,
-      variables: { input: { ids: [viewerId], flags: ['fediverseBeta'] } },
-    })
-
     const { data } = await server.executeOperation({
       query: SET_VIEWER_FEDERATION_SETTING,
       variables: { input: { state: 'enabled' } },
@@ -1359,19 +1343,7 @@ describe('federation settings', () => {
     })
   })
 
-  test('pilot author can update own article federation setting', async () => {
-    const adminServer = await testClient({
-      isAuth: true,
-      isAdmin: true,
-      connections,
-    })
-    await adminServer.executeOperation({
-      query: PUT_USER_FEATURE_FLAGS,
-      variables: {
-        input: { ids: [viewerId, userId], flags: ['fediverseBeta'] },
-      },
-    })
-
+  test('any active author can update own article federation setting', async () => {
     const nonAuthorServer = await testClient({
       userId: '2',
       isAuth: true,

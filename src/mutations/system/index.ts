@@ -12,6 +12,8 @@ import putSkippedListItem from './putSkippedListItem.js'
 import putUserFeatureFlags from './putUserFeatureFlags.js'
 import putUserFederationSetting from './putUserFederationSetting.js'
 import reviewTopicChannelFeedback from './reviewTopicChannelFeedback.js'
+import replayFediverseDeadLetter from './replayFediverseDeadLetter.js'
+import resolveFediverseDeadLetter from './resolveFediverseDeadLetter.js'
 import setAdStatus from './setAdStatus.js'
 import setBoost from './setBoost.js'
 import setFeature from './setFeature.js'
@@ -47,5 +49,7 @@ export default {
     setAdStatus,
     setWritingAdStatus,
     reviewTopicChannelFeedback,
+    replayFediverseDeadLetter,
+    resolveFediverseDeadLetter,
   },
 }

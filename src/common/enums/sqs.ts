@@ -9,6 +9,9 @@ export const QUEUE_URL = {
   // report alert (Telegram side-channel)
   reportAlert: environment?.awsReportAlertQueueUrl,
 
+  // public article federation delivery
+  federationExport: environment?.awsFederationExportQueueUrl,
+
   // spam training-sample capture (axis-2 L2)
   spamSample: environment?.awsSpamSampleQueueUrl,
 

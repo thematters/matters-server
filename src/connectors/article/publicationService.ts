@@ -56,6 +56,11 @@ import { UserService } from '../userService.js'
 
 import { ArticleService } from './articleService.js'
 import { IPFSPublicationService } from './ipfsPublicationService.js'
+import {
+  FEDERATION_EXPORT_TRIGGER,
+  FEDERATION_EXPORT_TRIGGER_MODE,
+  FederationExportService,
+} from './federationExportService.js'
 
 const require = createRequire(import.meta.url)
 const { html2md } = require('@matters/matters-editor/transformers')
@@ -250,6 +255,31 @@ export class PublicationService extends BaseService<Article> {
         redis: this.connections.redis,
       }),
     ])
+
+    if (
+      environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly ||
+      environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.sqs
+    ) {
+      try {
+        const federationExportService = new FederationExportService(
+          this.connections
+        )
+        await federationExportService.recordExportTriggerDecision({
+          articleId: article.id,
+          actorId: article.authorId,
+          trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+          mode: environment.federationExportTriggerMode,
+        })
+      } catch (error) {
+        logger.error('Failed to enqueue published article for federation', {
+          articleId: article.id,
+          actorId: article.authorId,
+          error,
+        })
+      }
+    }
 
     return draft
   }

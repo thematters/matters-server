@@ -20,7 +20,7 @@ const resolver = async (
   const types = flags.map(({ type }) => type)
 
   return {
-    fediverseBeta: types.includes(USER_FEATURE_FLAG_TYPE.fediverseBeta),
+    fediverseBeta: true,
     communityWatch: types.includes(USER_FEATURE_FLAG_TYPE.communityWatch),
   }
 }
