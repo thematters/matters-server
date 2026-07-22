@@ -1,11 +1,18 @@
-import type { Connections } from '#definitions/index.js'
+import type { Connections, GlobalId } from '#definitions/index.js'
 import type { Knex } from 'knex'
 
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
+  QUEUE_URL,
   USER_STATE,
 } from '#common/enums/index.js'
+import { environment } from '#common/environment.js'
+import { ServerError } from '#common/errors.js'
+import { getLogger } from '#common/logger.js'
+import axios from 'axios'
+
+import { aws } from '../aws/index.js'
 
 export type FederationExportAuthor = {
   id: string
@@ -48,6 +55,7 @@ export const FEDERATION_ARTICLE_SETTING = {
 export const FEDERATION_EXPORT_TRIGGER = {
   publishArticle: 'publish_article',
   reviseArticle: 'revise_article',
+  archiveArticle: 'archive_article',
   manual: 'manual',
   settingChange: 'setting_change',
 } as const
@@ -55,6 +63,13 @@ export const FEDERATION_EXPORT_TRIGGER = {
 export const FEDERATION_EXPORT_TRIGGER_MODE = {
   off: 'off',
   recordOnly: 'record_only',
+  sqs: 'sqs',
+} as const
+
+export const FEDERATION_EXPORT_ACTION = {
+  create: 'create',
+  update: 'update',
+  delete: 'delete',
 } as const
 
 export type FederationAuthorSetting =
@@ -68,6 +83,9 @@ export type FederationExportTrigger =
 
 export type FederationExportTriggerMode =
   (typeof FEDERATION_EXPORT_TRIGGER_MODE)[keyof typeof FEDERATION_EXPORT_TRIGGER_MODE]
+
+export type FederationExportAction =
+  (typeof FEDERATION_EXPORT_ACTION)[keyof typeof FEDERATION_EXPORT_ACTION]
 
 export type FederationExportGateInput = {
   row: FederationExportArticleRow
@@ -104,14 +122,48 @@ export type FederationExportEvent = {
   articleId: string
   actorId: string | null
   trigger: FederationExportTrigger
-  mode: typeof FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
-  status: 'recorded'
+  mode: FederationExportTriggerMode
+  action: FederationExportAction
+  status: 'recorded' | 'queued' | 'skipped' | 'failed'
   eligible: boolean
   reason: FederationExportDecision['reason']
   authorSetting: FederationAuthorSetting | null
   articleSetting: FederationArticleSetting | null
   effectiveArticleSetting: FederationArticleSetting
   decisionReport: FederationExportDecisionReport
+}
+
+export type FederationGatewayDashboard = {
+  generatedAt: string
+  queue: {
+    total: number
+    pending: number
+    processing: number
+    delivered: number
+    deadLetter: number
+    resolved: number
+    retryPending: number
+    openDeadLetters: number
+    replayedDeadLetters: number
+    resolvedDeadLetters: number
+    oldestPendingAt: string | null
+  }
+  deadLetters: Array<{
+    id: GlobalId
+    status: string
+    actorHandle: string | null
+    targetActorId: string | null
+    activityId: string | null
+    activityType: string | null
+    recordedAt: string | null
+  }>
+  auditEvents: Array<{
+    timestamp: string | null
+    event: string
+    actorHandle: string | null
+    itemId: string | null
+    reason: string | null
+  }>
 }
 
 export type FederationAuthorSettingRow = {
@@ -130,7 +182,17 @@ export type RecordFederationExportTriggerInput = {
   articleId: string
   actorId?: string | null
   trigger: FederationExportTrigger
-  mode?: typeof FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+  mode?: FederationExportTriggerMode
+  action?: FederationExportAction
+}
+
+type FederationQueue = {
+  sqsSendMessage: (input: {
+    messageBody: unknown
+    queueUrl: string
+    messageGroupId?: string
+    messageDeduplicationId?: string
+  }) => Promise<unknown> | unknown
 }
 
 type ArticleExportQueryRow = {
@@ -260,10 +322,12 @@ export const buildMattersArticleUrl = ({
 export class FederationExportService {
   private knex: Knex
   private knexRO: Knex
+  private queue: FederationQueue
 
-  public constructor(connections: Connections) {
+  public constructor(connections: Connections, queue: FederationQueue = aws) {
     this.knex = connections.knex
     this.knexRO = connections.knexRO
+    this.queue = queue
   }
 
   public async upsertAuthorFederationSetting({
@@ -423,8 +487,12 @@ export class FederationExportService {
     actorId = null,
     trigger,
     mode = FEDERATION_EXPORT_TRIGGER_MODE.recordOnly,
+    action = resolveFederationExportAction(trigger),
   }: RecordFederationExportTriggerInput): Promise<FederationExportEvent> {
-    if (mode !== FEDERATION_EXPORT_TRIGGER_MODE.recordOnly) {
+    if (
+      mode !== FEDERATION_EXPORT_TRIGGER_MODE.recordOnly &&
+      mode !== FEDERATION_EXPORT_TRIGGER_MODE.sqs
+    ) {
       throw new Error(`Unsupported federation export trigger mode: ${mode}`)
     }
 
@@ -445,6 +513,15 @@ export class FederationExportService {
       enforceFederationGate: true,
     })
     const [decision] = decisionReport.decisions
+    const shouldQueue =
+      mode === FEDERATION_EXPORT_TRIGGER_MODE.sqs &&
+      (decision.eligible || action === FEDERATION_EXPORT_ACTION.delete)
+    const status =
+      mode === FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
+        ? 'recorded'
+        : shouldQueue
+        ? 'queued'
+        : 'skipped'
 
     const [row] = await this.knex('federation_export_event')
       .insert({
@@ -452,7 +529,8 @@ export class FederationExportService {
         actorId,
         trigger,
         mode,
-        status: 'recorded',
+        action,
+        status,
         eligible: decision.eligible,
         reason: decision.reason,
         authorSetting: decision.authorSetting,
@@ -466,6 +544,7 @@ export class FederationExportService {
         'actorId',
         'trigger',
         'mode',
+        'action',
         'status',
         'eligible',
         'reason',
@@ -475,6 +554,222 @@ export class FederationExportService {
         'decisionReport',
       ])
 
+    if (shouldQueue) {
+      try {
+        if (!QUEUE_URL.federationExport) {
+          throw new ServerError(
+            'MATTERS_AWS_FEDERATION_EXPORT_QUEUE_URL is required'
+          )
+        }
+        await this.queue.sqsSendMessage({
+          queueUrl: QUEUE_URL.federationExport,
+          messageGroupId: articleId,
+          messageDeduplicationId: row.id,
+          messageBody: {
+            version: 1,
+            eventId: row.id,
+            articleId,
+            action,
+            siteDomain: environment.siteDomain,
+            webfDomain: environment.federationExportWebfDomain,
+          },
+        })
+      } catch (error) {
+        await this.knex('federation_export_event')
+          .where({ id: row.id })
+          .update({
+            status: 'failed',
+            updatedAt: this.knex.fn.now(),
+          })
+        logger.error('Failed to enqueue federation export event', {
+          eventId: row.id,
+          articleId,
+          action,
+          error,
+        })
+        throw new ServerError('Failed to enqueue federation export event')
+      }
+    }
+
     return row
   }
+
+  public async recordAuthorDisableTriggers({
+    userId,
+    actorId,
+    mode,
+  }: {
+    userId: string
+    actorId: string
+    mode: FederationExportTriggerMode
+  }): Promise<FederationExportEvent[]> {
+    const rows = await this.knexRO('federation_export_event as exportEvent')
+      .join('article', { 'article.id': 'exportEvent.articleId' })
+      .where({ 'article.authorId': userId })
+      .whereIn('exportEvent.action', [
+        FEDERATION_EXPORT_ACTION.create,
+        FEDERATION_EXPORT_ACTION.update,
+      ])
+      .whereIn('exportEvent.status', ['queued', 'processing', 'delivered'])
+      .distinct('exportEvent.articleId as articleId')
+
+    const events: FederationExportEvent[] = []
+    for (const { articleId } of rows) {
+      events.push(
+        await this.recordExportTriggerDecision({
+          articleId,
+          actorId,
+          trigger: FEDERATION_EXPORT_TRIGGER.settingChange,
+          mode,
+          action: FEDERATION_EXPORT_ACTION.delete,
+        })
+      )
+    }
+
+    return events
+  }
+
+  public async loadGatewayDashboard(): Promise<FederationGatewayDashboard> {
+    const [queueResponse, deadLetterResponse, auditResponse] =
+      await Promise.all([
+        this.gatewayRequest<{
+          queue?: {
+            summary?: Record<string, unknown>
+            deadLetters?: Record<string, unknown>
+          }
+        }>('/admin/queues/outbound?traceLimit=20'),
+        this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
+          '/admin/dead-letters?status=open&limit=50'
+        ),
+        this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
+          '/admin/audit-log?limit=50'
+        ),
+      ])
+
+    const summary = queueResponse.queue?.summary ?? {}
+    const deadLetterSummary = queueResponse.queue?.deadLetters ?? {}
+    const numberValue = (value: unknown) =>
+      typeof value === 'number' ? value : 0
+    const stringValue = (value: unknown) =>
+      typeof value === 'string' ? value : null
+
+    return {
+      generatedAt: new Date().toISOString(),
+      queue: {
+        total: numberValue(summary.total),
+        pending: numberValue(summary.pending),
+        processing: numberValue(summary.processing),
+        delivered: numberValue(summary.delivered),
+        deadLetter: numberValue(summary.deadLetter),
+        resolved: numberValue(summary.resolved),
+        retryPending: numberValue(summary.retryPending),
+        openDeadLetters: numberValue(deadLetterSummary.open),
+        replayedDeadLetters: numberValue(deadLetterSummary.replayed),
+        resolvedDeadLetters: numberValue(deadLetterSummary.resolved),
+        oldestPendingAt: stringValue(summary.oldestPendingAt),
+      },
+      deadLetters: (deadLetterResponse.items ?? []).map((item) => ({
+        id: (stringValue(item.id) ?? '') as GlobalId,
+        status: stringValue(item.status) ?? 'unknown',
+        actorHandle: stringValue(item.actorHandle),
+        targetActorId: stringValue(item.targetActorId),
+        activityId: stringValue(item.activityId),
+        activityType: stringValue(item.activityType),
+        recordedAt: stringValue(item.recordedAt),
+      })),
+      auditEvents: (auditResponse.items ?? []).map((item) => ({
+        timestamp: stringValue(item.timestamp),
+        event: stringValue(item.event) ?? 'unknown',
+        actorHandle: stringValue(item.actorHandle),
+        itemId: stringValue(item.itemId),
+        reason: stringValue(item.reason),
+      })),
+    }
+  }
+
+  public async replayGatewayDeadLetter({
+    id,
+    operatorId,
+    reason,
+  }: {
+    id: string
+    operatorId: string
+    reason?: string | null
+  }): Promise<boolean> {
+    await this.gatewayRequest('/admin/dead-letters/replay', {
+      method: 'POST',
+      data: {
+        id,
+        replayedBy: `oss:${operatorId}`,
+        reason: reason?.trim() || 'OSS manual replay',
+      },
+    })
+    return true
+  }
+
+  public async resolveGatewayDeadLetter({
+    id,
+    operatorId,
+    reason,
+  }: {
+    id: string
+    operatorId: string
+    reason: string
+  }): Promise<boolean> {
+    await this.gatewayRequest('/admin/dead-letters/resolve', {
+      method: 'POST',
+      data: {
+        id,
+        resolvedBy: `oss:${operatorId}`,
+        reason,
+      },
+    })
+    return true
+  }
+
+  private async gatewayRequest<T = unknown>(
+    path: string,
+    options: { method?: 'GET' | 'POST'; data?: unknown } = {}
+  ): Promise<T> {
+    if (
+      !environment.federationGatewayUrl ||
+      !environment.federationGatewayOperatorToken
+    ) {
+      throw new ServerError('Federation gateway admin access is not configured')
+    }
+
+    try {
+      const response = await axios.request<T>({
+        baseURL: environment.federationGatewayUrl,
+        url: path,
+        method: options.method ?? 'GET',
+        data: options.data,
+        headers: {
+          authorization: `Bearer ${environment.federationGatewayOperatorToken}`,
+        },
+        timeout: 5000,
+      })
+      return response.data
+    } catch (error) {
+      logger.error('Federation gateway admin request failed', {
+        path,
+        error,
+      })
+      throw new ServerError('Federation gateway admin request failed')
+    }
+  }
+}
+
+const logger = getLogger('federation-export-trigger')
+
+const resolveFederationExportAction = (
+  trigger: FederationExportTrigger
+): FederationExportAction => {
+  if (trigger === FEDERATION_EXPORT_TRIGGER.publishArticle) {
+    return FEDERATION_EXPORT_ACTION.create
+  }
+  if (trigger === FEDERATION_EXPORT_TRIGGER.archiveArticle) {
+    return FEDERATION_EXPORT_ACTION.delete
+  }
+  return FEDERATION_EXPORT_ACTION.update
 }

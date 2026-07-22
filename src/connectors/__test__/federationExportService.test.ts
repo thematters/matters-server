@@ -1,6 +1,7 @@
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
+  QUEUE_URL,
   USER_STATE,
 } from '#common/enums/index.js'
 import { jest } from '@jest/globals'
@@ -10,6 +11,7 @@ import {
   FEDERATION_ARTICLE_SETTING,
   FEDERATION_AUTHOR_SETTING,
   FEDERATION_EXPORT_TRIGGER,
+  FEDERATION_EXPORT_ACTION,
   FEDERATION_EXPORT_TRIGGER_MODE,
   FederationExportService,
   isFederationPublicArticleRow,
@@ -616,6 +618,7 @@ describe('federationExportService', () => {
       'actorId',
       'trigger',
       'mode',
+      'action',
       'status',
       'eligible',
       'reason',
@@ -628,6 +631,68 @@ describe('federationExportService', () => {
       articleId: '101',
       eligible: true,
       reason: 'eligible',
+    })
+  })
+
+  test('queues eligible production events with article-level FIFO ordering', async () => {
+    const { knex } = createKnexInsert([
+      {
+        id: 'event-1',
+        articleId: '101',
+        actorId: '99',
+        trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+        mode: FEDERATION_EXPORT_TRIGGER_MODE.sqs,
+        action: FEDERATION_EXPORT_ACTION.create,
+        status: 'queued',
+        eligible: true,
+        reason: 'eligible',
+        authorSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        articleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        effectiveArticleSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        decisionReport: {},
+      },
+    ])
+    const queue = { sqsSendMessage: jest.fn(async () => undefined) }
+    const service = new FederationExportService(
+      { knex, knexRO: jest.fn() } as any,
+      queue
+    )
+    jest.spyOn(service, 'loadSelectedArticleRows').mockResolvedValue([
+      publicRow({
+        federationSetting: FEDERATION_ARTICLE_SETTING.inherit,
+        author: {
+          ...publicRow().author,
+          federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+        },
+      }),
+    ])
+
+    const originalQueueUrl = QUEUE_URL.federationExport
+    ;(QUEUE_URL as { federationExport: string }).federationExport =
+      'https://sqs.example/federation-export.fifo'
+    try {
+      await service.recordExportTriggerDecision({
+        articleId: '101',
+        actorId: '99',
+        trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
+        mode: FEDERATION_EXPORT_TRIGGER_MODE.sqs,
+      })
+    } finally {
+      ;(
+        QUEUE_URL as { federationExport: string | undefined }
+      ).federationExport = originalQueueUrl
+    }
+
+    expect(queue.sqsSendMessage).toHaveBeenCalledWith({
+      queueUrl: 'https://sqs.example/federation-export.fifo',
+      messageGroupId: '101',
+      messageDeduplicationId: 'event-1',
+      messageBody: expect.objectContaining({
+        version: 1,
+        eventId: 'event-1',
+        articleId: '101',
+        action: FEDERATION_EXPORT_ACTION.create,
+      }),
     })
   })
 

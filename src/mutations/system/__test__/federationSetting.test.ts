@@ -120,7 +120,7 @@ describe('federation setting mutations', () => {
     ).rejects.toMatchObject({ extensions: { code: 'BAD_USER_INPUT' } })
   })
 
-  test('lets Fediverse beta viewers update their own author setting', async () => {
+  test('lets any active viewer update their own author setting', async () => {
     const upsertAuthorFederationSetting = jest.fn(async () => ({
       userId: '9',
       state: 'enabled',
@@ -135,7 +135,6 @@ describe('federation setting mutations', () => {
         dataSources: {
           federationExportService: { upsertAuthorFederationSetting },
           userService: {
-            findFeatureFlags: jest.fn(async () => [{ type: 'fediverseBeta' }]),
             validateUserState: jest.fn(),
           },
         },
@@ -154,28 +153,7 @@ describe('federation setting mutations', () => {
     })
   })
 
-  test('requires Fediverse beta flag for viewer author setting', async () => {
-    await expect(
-      (setViewerFederationSetting as any)(
-        {},
-        { input: { state: 'enabled' } },
-        {
-          viewer: { id: '9' },
-          dataSources: {
-            federationExportService: {
-              upsertAuthorFederationSetting: jest.fn(),
-            },
-            userService: {
-              findFeatureFlags: jest.fn(async () => []),
-              validateUserState: jest.fn(),
-            },
-          },
-        }
-      )
-    ).rejects.toMatchObject({ extensions: { code: 'FORBIDDEN' } })
-  })
-
-  test('lets Fediverse beta authors update their own article setting', async () => {
+  test('lets any active author update their own article setting', async () => {
     const upsertArticleFederationSetting = jest.fn(async () => ({
       articleId: '101',
       state: 'disabled',
@@ -198,7 +176,6 @@ describe('federation setting mutations', () => {
           },
           federationExportService: { upsertArticleFederationSetting },
           userService: {
-            findFeatureFlags: jest.fn(async () => [{ type: 'fediverseBeta' }]),
             validateUserState: jest.fn(),
           },
         },
@@ -237,9 +214,6 @@ describe('federation setting mutations', () => {
               upsertArticleFederationSetting: jest.fn(),
             },
             userService: {
-              findFeatureFlags: jest.fn(async () => [
-                { type: 'fediverseBeta' },
-              ]),
               validateUserState: jest.fn(),
             },
           },

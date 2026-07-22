@@ -43,7 +43,7 @@ describe('article federation export trigger scaffold', () => {
     jest.clearAllMocks()
   })
 
-  test('publishArticle records the strict export decision in record-only mode without blocking publish errors', async () => {
+  test('publishArticle leaves federation enqueueing to PublicationService', async () => {
     environment.federationExportTriggerMode =
       FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
 
@@ -88,11 +88,7 @@ describe('article federation export trigger scaffold', () => {
     expect(result).toBe(publishedDraft)
     expect(
       federationExportService.recordExportTriggerDecision
-    ).toHaveBeenCalledWith({
-      articleId: '101',
-      actorId: viewer.id,
-      trigger: 'publish_article',
-    })
+    ).not.toHaveBeenCalled()
   })
 
   test('editArticle records the strict export decision for content revisions in record-only mode without blocking edits', async () => {
@@ -185,6 +181,7 @@ describe('article federation export trigger scaffold', () => {
       articleId: article.id,
       actorId: viewer.id,
       trigger: 'revise_article',
+      mode: 'record_only',
     })
   })
 })

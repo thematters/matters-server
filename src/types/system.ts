@@ -48,6 +48,8 @@ export default /* GraphQL */ `
     putUserFeatureFlags(input: PutUserFeatureFlagsInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putUserFederationSetting(input: PutUserFederationSettingInput!): UserFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
     putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
+    replayFediverseDeadLetter(input: ReplayFediverseDeadLetterInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    resolveFediverseDeadLetter(input: ResolveFediverseDeadLetterInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
     updateModerationCase(input: UpdateModerationCaseInput!): ModerationCase! @auth(mode: "${AUTH_MODE.admin}")
     setSpamStatus(input: SetSpamStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
@@ -160,6 +162,56 @@ export default /* GraphQL */ `
     spamRings(input: OSSSpamRingsInput!): SpamRingConnection!
     icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
     topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
+    fediverseGateway: FediverseGatewayDashboard!
+  }
+
+  type FediverseGatewayDashboard {
+    generatedAt: DateTime!
+    queue: FediverseGatewayQueue!
+    deadLetters: [FediverseGatewayDeadLetter!]!
+    auditEvents: [FediverseGatewayAuditEvent!]!
+  }
+
+  type FediverseGatewayQueue {
+    total: Int!
+    pending: Int!
+    processing: Int!
+    delivered: Int!
+    deadLetter: Int!
+    resolved: Int!
+    retryPending: Int!
+    openDeadLetters: Int!
+    replayedDeadLetters: Int!
+    resolvedDeadLetters: Int!
+    oldestPendingAt: DateTime
+  }
+
+  type FediverseGatewayDeadLetter {
+    id: ID!
+    status: String!
+    actorHandle: String
+    targetActorId: String
+    activityId: String
+    activityType: String
+    recordedAt: DateTime
+  }
+
+  type FediverseGatewayAuditEvent {
+    timestamp: DateTime
+    event: String!
+    actorHandle: String
+    itemId: String
+    reason: String
+  }
+
+  input ReplayFediverseDeadLetterInput {
+    id: ID!
+    reason: String
+  }
+
+  input ResolveFediverseDeadLetterInput {
+    id: ID!
+    reason: String! @constraint(minLength: 3, maxLength: 500)
   }
 
 

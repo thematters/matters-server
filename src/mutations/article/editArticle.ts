@@ -128,7 +128,29 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       node: { type: NODE_TYPES.User, id: article.authorId },
       redis,
     })
-    return articleService.archive(id)
+    const archived = await articleService.archive(id)
+    if (
+      environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly ||
+      environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.sqs
+    ) {
+      try {
+        await federationExportService.recordExportTriggerDecision({
+          articleId: article.id,
+          actorId: viewer.id,
+          trigger: FEDERATION_EXPORT_TRIGGER.archiveArticle,
+          mode: environment.federationExportTriggerMode,
+        })
+      } catch (error) {
+        logger.error('Failed to enqueue archived article for federation', {
+          articleId: article.id,
+          actorId: viewer.id,
+          error,
+        })
+      }
+    }
+    return archived
   }
 
   /**
@@ -241,24 +263,28 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
         oldArticleVersionId: articleVersion.id,
         iscnPublish,
       })
+    }
 
-      if (
+    if (
+      updateRevisionCount &&
+      (environment.federationExportTriggerMode ===
+        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly ||
         environment.federationExportTriggerMode ===
-        FEDERATION_EXPORT_TRIGGER_MODE.recordOnly
-      ) {
-        try {
-          await federationExportService.recordExportTriggerDecision({
-            articleId: article.id,
-            actorId: viewer.id,
-            trigger: FEDERATION_EXPORT_TRIGGER.reviseArticle,
-          })
-        } catch (error) {
-          logger.error('Failed to record federation export trigger decision', {
-            articleId: article.id,
-            actorId: viewer.id,
-            error,
-          })
-        }
+          FEDERATION_EXPORT_TRIGGER_MODE.sqs)
+    ) {
+      try {
+        await federationExportService.recordExportTriggerDecision({
+          articleId: article.id,
+          actorId: viewer.id,
+          trigger: FEDERATION_EXPORT_TRIGGER.reviseArticle,
+          mode: environment.federationExportTriggerMode,
+        })
+      } catch (error) {
+        logger.error('Failed to record federation export trigger decision', {
+          articleId: article.id,
+          actorId: viewer.id,
+          error,
+        })
       }
     }
   }
