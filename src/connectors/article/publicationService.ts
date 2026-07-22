@@ -55,12 +55,12 @@ import { TagService } from '../tagService.js'
 import { UserService } from '../userService.js'
 
 import { ArticleService } from './articleService.js'
-import { IPFSPublicationService } from './ipfsPublicationService.js'
 import {
   FEDERATION_EXPORT_TRIGGER,
   FEDERATION_EXPORT_TRIGGER_MODE,
   FederationExportService,
 } from './federationExportService.js'
+import { IPFSPublicationService } from './ipfsPublicationService.js'
 
 const require = createRequire(import.meta.url)
 const { html2md } = require('@matters/matters-editor/transformers')
