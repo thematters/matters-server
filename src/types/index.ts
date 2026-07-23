@@ -5,6 +5,7 @@ import circle from './circle.js'
 import collection from './collection.js'
 import comment from './comment.js'
 import draft from './draft.js'
+import fediverse from './fediverse.js'
 import moment from './moment.js'
 import notice from './notice.js'
 import oauthClient from './oauthClient.js'
@@ -32,6 +33,7 @@ export default [
   circle,
   comment,
   draft,
+  fediverse,
   notice,
   scalars,
   system,

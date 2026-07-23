@@ -13,6 +13,7 @@ import putUserFeatureFlags from './putUserFeatureFlags.js'
 import putUserFederationSetting from './putUserFederationSetting.js'
 import replayFediverseDeadLetter from './replayFediverseDeadLetter.js'
 import resolveFediverseDeadLetter from './resolveFediverseDeadLetter.js'
+import resolveFediverseReport from './resolveFediverseReport.js'
 import reviewTopicChannelFeedback from './reviewTopicChannelFeedback.js'
 import setAdStatus from './setAdStatus.js'
 import setBoost from './setBoost.js'
@@ -51,5 +52,6 @@ export default {
     reviewTopicChannelFeedback,
     replayFediverseDeadLetter,
     resolveFediverseDeadLetter,
+    resolveFediverseReport,
   },
 }
