@@ -11,8 +11,10 @@ import { environment } from '#common/environment.js'
 import { ServerError } from '#common/errors.js'
 import { getLogger } from '#common/logger.js'
 import axios from 'axios'
+import { randomUUID } from 'node:crypto'
 
 import { aws } from '../aws/index.js'
+import { CloudflareService } from '../cloudflare/index.js'
 
 export type FederationExportAuthor = {
   id: string
@@ -21,6 +23,8 @@ export type FederationExportAuthor = {
   description?: string | null
   state?: string | null
   ipnsKey?: string | null
+  avatarUrl?: string | null
+  headerUrl?: string | null
   federationSetting?: FederationAuthorSetting | null
 }
 
@@ -164,6 +168,131 @@ export type FederationGatewayDashboard = {
     itemId: string | null
     reason: string | null
   }>
+  reports: Array<{
+    id: GlobalId
+    status: string
+    category: string
+    actorHandle: string | null
+    remoteActorId: string | null
+    remoteDomain: string | null
+    objectId: string | null
+    reason: string | null
+    createdAt: string | null
+  }>
+  social: {
+    actors: number
+    followers: number
+    following: number
+    pendingFollowing: number
+    blocked: number
+    unreadNotifications: number
+    inboundObjects: number
+    inboundEngagements: number
+    openReports: number
+    maxFollowingPerActor: number
+    timelineRetentionDays: number
+    timelineMaxItems: number
+  }
+}
+
+export type FederationSocialRemoteActor = {
+  actorId: string
+  account: string | null
+  preferredUsername: string | null
+  name: string | null
+  summary: string
+  url: string
+  avatarUrl: string | null
+  status: string | null
+}
+
+export type FederationSocialNotification = {
+  id: string
+  category: string
+  contentId: string | null
+  objectId: string | null
+  remoteActorIds: string[]
+  headline: string | null
+  preview: string | null
+  eventCount: number
+  unreadCount: number
+  publishedAt: string | null
+}
+
+export type FederationSocialPost = {
+  objectId: string
+  content: string
+  summary: string
+  url: string | null
+  inReplyTo: string | null
+  publishedAt: string | null
+  liked: boolean
+  announced: boolean
+  likeActivityId: string | null
+  announceActivityId: string | null
+  remoteActor: FederationSocialRemoteActor
+}
+
+export type FederationSocialProfile = {
+  actorId: string
+  handle: string
+  account: string
+  displayName: string
+  summary: string
+  profileUrl: string
+  avatarUrl: string | null
+  headerUrl: string | null
+  followersCount: number
+  followingCount: number
+  pendingFollowingCount: number
+  unreadNotificationsCount: number
+  maxFollowing: number
+  retentionDays: number
+  timelineMaxItems: number
+  following: FederationSocialRemoteActor[]
+  notifications: FederationSocialNotification[]
+  timeline: FederationSocialPost[]
+}
+
+export type FederationArticleSocial = {
+  contentId: string | null
+  repliesCount: number
+  likesCount: number
+  announcesCount: number
+  notificationsCount: number
+  unreadNotificationsCount: number
+  replies: FederationSocialPost[]
+}
+
+export type FederationSocialAction =
+  | 'follow'
+  | 'unfollow'
+  | 'reply'
+  | 'like'
+  | 'unlike'
+  | 'announce'
+  | 'unannounce'
+  | 'block'
+  | 'unblock'
+  | 'report'
+  | 'mark_read'
+
+export type FederationSocialActionInput = {
+  action: FederationSocialAction
+  account?: string | null
+  remoteActorId?: string | null
+  objectId?: string | null
+  content?: string | null
+  activityId?: string | null
+  notificationIds?: string[] | null
+  reason?: string | null
+}
+
+export type FederationSocialActionResult = {
+  status: string
+  mapping: string | null
+  activityId: string | null
+  remoteActorId: string | null
 }
 
 export type FederationAuthorSettingRow = {
@@ -213,9 +342,109 @@ type ArticleExportQueryRow = {
   authorDescription: string | null
   authorState: string | null
   ipnsKey: string | null
+  authorAvatarPath: string | null
+  authorProfileCoverPath: string | null
   authorFederationSetting?: FederationAuthorSetting | null
   articleFederationSetting?: FederationArticleSetting | null
 }
+
+type GatewayRemoteActorRecord = {
+  actorId?: string
+  remoteActorId?: string
+  account?: string | null
+  preferredUsername?: string | null
+  name?: string | null
+  summary?: string | null
+  url?: string | null
+  avatarUrl?: string | null
+  status?: string | null
+}
+
+type GatewayInboundObjectRecord = {
+  objectId?: string
+  content?: string | null
+  summary?: string | null
+  url?: string | null
+  inReplyTo?: string | null
+  publishedAt?: string | null
+  receivedAt?: string | null
+  viewerEngagement?: {
+    liked?: boolean
+    announced?: boolean
+    likeActivityId?: string | null
+    announceActivityId?: string | null
+  }
+  remoteActor?: GatewayRemoteActorRecord
+}
+
+type GatewayNotificationRecord = {
+  notificationId?: string
+  primaryCategory?: string
+  contentId?: string | null
+  objectId?: string | null
+  remoteActorIds?: string[]
+  headline?: string | null
+  preview?: string | null
+  eventCount?: number
+  unreadCount?: number
+  publishedAt?: string | null
+  receivedAt?: string | null
+}
+
+const mapRemoteActor = (
+  actor: GatewayRemoteActorRecord
+): FederationSocialRemoteActor => {
+  const actorId = actor.actorId ?? actor.remoteActorId ?? ''
+  return {
+    actorId,
+    account: actor.account ?? null,
+    preferredUsername: actor.preferredUsername ?? null,
+    name: actor.name ?? actor.preferredUsername ?? null,
+    summary: actor.summary ?? '',
+    url: actor.url ?? actorId,
+    avatarUrl: actor.avatarUrl ?? null,
+    status: actor.status ?? null,
+  }
+}
+
+const mapSocialPost = (
+  record: GatewayInboundObjectRecord
+): FederationSocialPost => ({
+  objectId: record.objectId ?? '',
+  content: record.content ?? '',
+  summary: record.summary ?? '',
+  url: record.url ?? null,
+  inReplyTo: record.inReplyTo ?? null,
+  publishedAt: record.publishedAt ?? record.receivedAt ?? null,
+  liked: record.viewerEngagement?.liked ?? false,
+  announced: record.viewerEngagement?.announced ?? false,
+  likeActivityId: record.viewerEngagement?.likeActivityId ?? null,
+  announceActivityId: record.viewerEngagement?.announceActivityId ?? null,
+  remoteActor: mapRemoteActor(record.remoteActor ?? {}),
+})
+
+const mapNotification = (
+  record: GatewayNotificationRecord
+): FederationSocialNotification => ({
+  id: record.notificationId ?? '',
+  category: record.primaryCategory ?? 'unknown',
+  contentId: record.contentId ?? null,
+  objectId: record.objectId ?? null,
+  remoteActorIds: record.remoteActorIds ?? [],
+  headline: record.headline ?? null,
+  preview: record.preview ?? null,
+  eventCount: record.eventCount ?? 0,
+  unreadCount: record.unreadCount ?? 0,
+  publishedAt: record.publishedAt ?? record.receivedAt ?? null,
+})
+
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
 
 export const isFederationPublicArticleRow = (row: FederationExportArticleRow) =>
   row.articleState === ARTICLE_STATE.active &&
@@ -323,6 +552,7 @@ export class FederationExportService {
   private knex: Knex
   private knexRO: Knex
   private queue: FederationQueue
+  private cloudflare = new CloudflareService()
 
   public constructor(connections: Connections, queue: FederationQueue = aws) {
     this.knex = connections.knex
@@ -415,6 +645,12 @@ export class FederationExportService {
       .leftJoin('user_ipns_keys as ipnsKey', {
         'ipnsKey.userId': 'author.id',
       })
+      .leftJoin('asset as authorAvatar', {
+        'authorAvatar.id': 'author.avatar',
+      })
+      .leftJoin('asset as authorProfileCover', {
+        'authorProfileCover.id': 'author.profileCover',
+      })
       .whereIn('article.id', articleIds)
       .select([
         'article.id as articleId',
@@ -434,6 +670,8 @@ export class FederationExportService {
         'author.description as authorDescription',
         'author.state as authorState',
         'ipnsKey.ipnsKey as ipnsKey',
+        'authorAvatar.path as authorAvatarPath',
+        'authorProfileCover.path as authorProfileCoverPath',
       ])
 
     if (options.includeFederationSettings) {
@@ -477,6 +715,12 @@ export class FederationExportService {
           description: row.authorDescription,
           state: row.authorState,
           ipnsKey: row.ipnsKey,
+          avatarUrl: row.authorAvatarPath
+            ? this.cloudflare.genUrl(row.authorAvatarPath)
+            : null,
+          headerUrl: row.authorProfileCoverPath
+            ? this.cloudflare.genUrl(row.authorProfileCoverPath)
+            : null,
           federationSetting: row.authorFederationSetting,
         },
       }))
@@ -629,22 +873,365 @@ export class FederationExportService {
     return events
   }
 
-  public async loadGatewayDashboard(): Promise<FederationGatewayDashboard> {
-    const [queueResponse, deadLetterResponse, auditResponse] =
-      await Promise.all([
-        this.gatewayRequest<{
-          queue?: {
-            summary?: Record<string, unknown>
-            deadLetters?: Record<string, unknown>
-          }
-        }>('/admin/queues/outbound?traceLimit=20'),
-        this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
-          '/admin/dead-letters?status=open&limit=50'
-        ),
-        this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
-          '/admin/audit-log?limit=50'
-        ),
+  public async loadSocialProfile(
+    actorHandle: string
+  ): Promise<FederationSocialProfile> {
+    const encodedHandle = encodeURIComponent(actorHandle)
+    const [profileResponse, timelineResponse] = await Promise.all([
+      this.gatewayRequest<{
+        actor?: {
+          id?: string
+          preferredUsername?: string
+          name?: string
+          summary?: string
+          url?: string
+          icon?: { url?: string }
+          image?: { url?: string }
+        }
+        counts?: {
+          followers?: number
+          following?: number
+          pendingFollowing?: number
+          unreadNotifications?: number
+        }
+        limits?: {
+          maxFollowingPerActor?: number
+          timelineRetentionDays?: number
+          timelineMaxItems?: number
+        }
+        following?: GatewayRemoteActorRecord[]
+        notifications?: GatewayNotificationRecord[]
+      }>(`/admin/social/profile?actorHandle=${encodedHandle}`),
+      this.gatewayRequest<{ items?: GatewayInboundObjectRecord[] }>(
+        `/admin/social/timeline?actorHandle=${encodedHandle}&limit=40`
+      ),
+    ])
+    const actor = profileResponse.actor ?? {}
+
+    return {
+      actorId: actor.id ?? '',
+      handle: actor.preferredUsername ?? actorHandle,
+      account: `${actor.preferredUsername ?? actorHandle}@${
+        environment.federationExportWebfDomain || environment.siteDomain
+      }`,
+      displayName: actor.name ?? actor.preferredUsername ?? actorHandle,
+      summary: actor.summary ?? '',
+      profileUrl:
+        actor.url ?? `https://${environment.siteDomain}/@${actorHandle}`,
+      avatarUrl: actor.icon?.url ?? null,
+      headerUrl: actor.image?.url ?? null,
+      followersCount: profileResponse.counts?.followers ?? 0,
+      followingCount: profileResponse.counts?.following ?? 0,
+      pendingFollowingCount: profileResponse.counts?.pendingFollowing ?? 0,
+      unreadNotificationsCount:
+        profileResponse.counts?.unreadNotifications ?? 0,
+      maxFollowing: profileResponse.limits?.maxFollowingPerActor ?? 200,
+      retentionDays: profileResponse.limits?.timelineRetentionDays ?? 30,
+      timelineMaxItems: profileResponse.limits?.timelineMaxItems ?? 1_000,
+      following: (profileResponse.following ?? [])
+        .filter((entry) => entry.status !== 'blocked')
+        .map(mapRemoteActor),
+      notifications: (profileResponse.notifications ?? []).map(mapNotification),
+      timeline: (timelineResponse.items ?? []).map(mapSocialPost),
+    }
+  }
+
+  public async loadSocialUnreadCount(actorHandle: string): Promise<number> {
+    const response = await this.gatewayRequest<{
+      unreadNotificationsCount?: number
+    }>(
+      `/admin/social/unread-count?actorHandle=${encodeURIComponent(
+        actorHandle
+      )}`
+    )
+    return response.unreadNotificationsCount ?? 0
+  }
+
+  public async refreshSocialProfile(userId: string): Promise<boolean> {
+    const setting = await this.loadAuthorFederationSetting(userId)
+    if (setting?.state !== FEDERATION_AUTHOR_SETTING.enabled) {
+      return false
+    }
+
+    const row = await this.knexRO('user as author')
+      .leftJoin('asset as authorAvatar', {
+        'authorAvatar.id': 'author.avatar',
+      })
+      .leftJoin('asset as authorProfileCover', {
+        'authorProfileCover.id': 'author.profileCover',
+      })
+      .where('author.id', userId)
+      .first([
+        'author.id as authorId',
+        'author.userName as userName',
+        'author.displayName as displayName',
+        'author.description as description',
+        'author.state as state',
+        'authorAvatar.path as avatarPath',
+        'authorProfileCover.path as headerPath',
       ])
+
+    if (
+      !row?.userName ||
+      !row.displayName ||
+      row.state === USER_STATE.archived
+    ) {
+      return false
+    }
+
+    const handle = row.userName.trim().toLowerCase()
+    const profileUrl = `https://${environment.siteDomain}/@${handle}`
+    await this.gatewayRequest('/admin/actors', {
+      method: 'POST',
+      data: {
+        handle,
+        displayName: row.displayName.trim(),
+        summary: row.description ?? '',
+        profileUrl,
+        avatarUrl: row.avatarPath
+          ? this.cloudflare.genUrl(row.avatarPath)
+          : null,
+        headerUrl: row.headerPath
+          ? this.cloudflare.genUrl(row.headerPath)
+          : null,
+        aliases: [profileUrl],
+        updatedBy: `server-user:${userId}`,
+      },
+    })
+    return true
+  }
+
+  public async loadArticleSocial({
+    actorHandle,
+    contentRef,
+  }: {
+    actorHandle: string
+    contentRef: string
+  }): Promise<FederationArticleSocial> {
+    const response = await this.gatewayRequest<{
+      contentId?: string | null
+      content?: {
+        metrics?: {
+          replies?: number
+          likes?: number
+          announces?: number
+        }
+        notifications?: {
+          total?: number
+          unreadTotal?: number
+        }
+      } | null
+      notifications?: GatewayNotificationRecord[]
+      replies?: GatewayInboundObjectRecord[]
+    }>(
+      `/admin/social/article?actorHandle=${encodeURIComponent(
+        actorHandle
+      )}&contentRef=${encodeURIComponent(contentRef)}`
+    )
+
+    return {
+      contentId: response.contentId ?? null,
+      repliesCount: response.content?.metrics?.replies ?? 0,
+      likesCount: response.content?.metrics?.likes ?? 0,
+      announcesCount: response.content?.metrics?.announces ?? 0,
+      notificationsCount:
+        response.content?.notifications?.total ??
+        response.notifications?.reduce(
+          (total, item) => total + (item.eventCount ?? 0),
+          0
+        ) ??
+        0,
+      unreadNotificationsCount:
+        response.content?.notifications?.unreadTotal ??
+        response.notifications?.reduce(
+          (total, item) => total + (item.unreadCount ?? 0),
+          0
+        ) ??
+        0,
+      replies: (response.replies ?? []).map(mapSocialPost),
+    }
+  }
+
+  public async resolveSocialRemoteActor({
+    account,
+    actorId,
+  }: {
+    account?: string | null
+    actorId?: string | null
+  }): Promise<FederationSocialRemoteActor> {
+    const params = new URLSearchParams()
+    if (account) {
+      params.set('account', account)
+    }
+    if (actorId) {
+      params.set('actorId', actorId)
+    }
+    const response = await this.gatewayRequest<{
+      item?: GatewayRemoteActorRecord
+    }>(`/admin/social/remote-actor?${params.toString()}`)
+    return mapRemoteActor(response.item ?? {})
+  }
+
+  public async runSocialAction({
+    actorHandle,
+    actorId,
+    input,
+  }: {
+    actorHandle: string
+    actorId: string
+    input: FederationSocialActionInput
+  }): Promise<FederationSocialActionResult> {
+    const handle = encodeURIComponent(actorHandle)
+    const commonPayload = {
+      actorId: input.remoteActorId?.trim() || undefined,
+      targetActorId: input.remoteActorId?.trim() || undefined,
+      objectId: input.objectId?.trim() || undefined,
+    }
+    let path: string
+    let data: Record<string, unknown>
+
+    switch (input.action) {
+      case 'follow':
+        path = `/users/${handle}/outbox/follow`
+        data = {
+          account: input.account?.trim() || undefined,
+          actorId: input.remoteActorId?.trim() || undefined,
+          idempotencyKey: `follow:${actorId}:${
+            input.remoteActorId?.trim() || input.account?.trim()
+          }`,
+        }
+        break
+      case 'unfollow':
+        path = `/users/${handle}/outbox/undo`
+        data = {
+          activityId: input.activityId?.trim() || undefined,
+          mapping: 'follow',
+          objectId: input.remoteActorId?.trim() || undefined,
+          targetActorId: input.remoteActorId?.trim() || undefined,
+        }
+        break
+      case 'reply': {
+        if (!input.content?.trim() || !input.objectId?.trim()) {
+          throw new ServerError('Reply content and object are required')
+        }
+        const noteId = `https://${
+          environment.siteDomain
+        }/ap/notes/${randomUUID()}`
+        path = `/users/${handle}/outbox/create`
+        data = {
+          object: {
+            id: noteId,
+            type: 'Note',
+            content: `<p>${escapeHtml(input.content.trim())}</p>`,
+            inReplyTo: input.objectId.trim(),
+            published: new Date().toISOString(),
+          },
+          targetActorIds: input.remoteActorId
+            ? [input.remoteActorId.trim()]
+            : [],
+          replyToActorId: input.remoteActorId?.trim() || undefined,
+          includeFollowers: false,
+          idempotencyKey: noteId,
+        }
+        break
+      }
+      case 'like':
+      case 'announce':
+        path = `/users/${handle}/outbox/engagement`
+        data = {
+          ...commonPayload,
+          type: input.action === 'like' ? 'Like' : 'Announce',
+          idempotencyKey: `${
+            input.action
+          }:${actorId}:${input.objectId?.trim()}`,
+        }
+        break
+      case 'unlike':
+      case 'unannounce':
+        path = `/users/${handle}/outbox/undo`
+        data = {
+          activityId: input.activityId?.trim() || undefined,
+          mapping: input.action === 'unlike' ? 'like' : 'announce',
+          ...commonPayload,
+        }
+        break
+      case 'block':
+      case 'unblock':
+        path = `/admin/social/${input.action}`
+        data = {
+          actorHandle,
+          remoteActorId: input.remoteActorId?.trim(),
+          reason: input.reason?.trim() || undefined,
+          createdBy: `user:${actorId}`,
+          updatedBy: `user:${actorId}`,
+        }
+        break
+      case 'report':
+        path = '/admin/social/report'
+        data = {
+          actorHandle,
+          remoteActorId: input.remoteActorId?.trim(),
+          objectId: input.objectId?.trim() || undefined,
+          reason: input.reason?.trim(),
+          createdBy: `user:${actorId}`,
+        }
+        break
+      case 'mark_read':
+        path = '/admin/local-notifications/read'
+        data = {
+          actorHandle,
+          notificationIds: input.notificationIds ?? [],
+          read: true,
+          updatedBy: `user:${actorId}`,
+        }
+        break
+      default:
+        throw new ServerError('Unsupported Fediverse action')
+    }
+
+    const response = await this.gatewayRequest<{
+      status?: string
+      mapping?: string
+      activityId?: string
+      remoteActorId?: string
+    }>(path, { method: 'POST', data })
+    return {
+      status: response.status ?? 'ok',
+      mapping: response.mapping ?? null,
+      activityId: response.activityId ?? null,
+      remoteActorId:
+        response.remoteActorId ?? input.remoteActorId?.trim() ?? null,
+    }
+  }
+
+  public async loadGatewayDashboard(): Promise<FederationGatewayDashboard> {
+    const [
+      queueResponse,
+      deadLetterResponse,
+      auditResponse,
+      socialResponse,
+      reportResponse,
+    ] = await Promise.all([
+      this.gatewayRequest<{
+        queue?: {
+          summary?: Record<string, unknown>
+          deadLetters?: Record<string, unknown>
+        }
+      }>('/admin/queues/outbound?traceLimit=20'),
+      this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
+        '/admin/dead-letters?status=open&limit=50'
+      ),
+      this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
+        '/admin/audit-log?limit=50'
+      ),
+      this.gatewayRequest<{
+        totals?: Record<string, unknown>
+        limits?: Record<string, unknown>
+      }>('/admin/social/summary'),
+      this.gatewayRequest<{ items?: Array<Record<string, unknown>> }>(
+        '/admin/abuse-queue?status=open'
+      ),
+    ])
 
     const summary = queueResponse.queue?.summary ?? {}
     const deadLetterSummary = queueResponse.queue?.deadLetters ?? {}
@@ -684,7 +1271,81 @@ export class FederationExportService {
         itemId: stringValue(item.itemId),
         reason: stringValue(item.reason),
       })),
+      reports: (reportResponse.items ?? [])
+        .filter((item) => item.category === 'user-report')
+        .map((item) => ({
+          id: (stringValue(item.id) ?? '') as GlobalId,
+          status: stringValue(item.status) ?? 'open',
+          category: stringValue(item.category) ?? 'user-report',
+          actorHandle: stringValue(item.actorHandle),
+          remoteActorId: stringValue(item.remoteActorId),
+          remoteDomain: stringValue(item.remoteDomain),
+          objectId: stringValue(item.objectId),
+          reason: stringValue(item.reason),
+          createdAt: stringValue(item.createdAt),
+        })),
+      social: {
+        actors: numberValue(socialResponse.totals?.actors),
+        followers: numberValue(socialResponse.totals?.followers),
+        following: numberValue(socialResponse.totals?.following),
+        pendingFollowing: numberValue(socialResponse.totals?.pendingFollowing),
+        blocked: numberValue(socialResponse.totals?.blocked),
+        unreadNotifications: numberValue(
+          socialResponse.totals?.unreadNotifications
+        ),
+        inboundObjects: numberValue(socialResponse.totals?.inboundObjects),
+        inboundEngagements: numberValue(
+          socialResponse.totals?.inboundEngagements
+        ),
+        openReports: numberValue(socialResponse.totals?.openReports),
+        maxFollowingPerActor:
+          numberValue(socialResponse.limits?.maxFollowingPerActor) || 200,
+        timelineRetentionDays:
+          numberValue(socialResponse.limits?.timelineRetentionDays) || 30,
+        timelineMaxItems:
+          numberValue(socialResponse.limits?.timelineMaxItems) || 1_000,
+      },
     }
+  }
+
+  public async pruneGatewaySocialData({
+    operatorId,
+    retentionDays,
+    maxItems,
+  }: {
+    operatorId: string
+    retentionDays?: number | null
+    maxItems?: number | null
+  }): Promise<boolean> {
+    await this.gatewayRequest('/admin/social/prune', {
+      method: 'POST',
+      data: {
+        retentionDays: retentionDays ?? undefined,
+        maxItems: maxItems ?? undefined,
+        requestedBy: `oss:${operatorId}`,
+      },
+    })
+    return true
+  }
+
+  public async resolveGatewayAbuseCase({
+    id,
+    operatorId,
+    resolution,
+  }: {
+    id: string
+    operatorId: string
+    resolution: string
+  }): Promise<boolean> {
+    await this.gatewayRequest('/admin/abuse-queue/resolve', {
+      method: 'POST',
+      data: {
+        id,
+        resolvedBy: `oss:${operatorId}`,
+        resolution,
+      },
+    })
+    return true
   }
 
   public async replayGatewayDeadLetter({

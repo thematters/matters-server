@@ -50,6 +50,7 @@ export default /* GraphQL */ `
     putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting! @auth(mode: "${AUTH_MODE.admin}")
     replayFediverseDeadLetter(input: ReplayFediverseDeadLetterInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     resolveFediverseDeadLetter(input: ResolveFediverseDeadLetterInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    resolveFediverseReport(input: ResolveFediverseReportInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.IcymiTopic}")
     updateModerationCase(input: UpdateModerationCaseInput!): ModerationCase! @auth(mode: "${AUTH_MODE.admin}")
     setSpamStatus(input: SetSpamStatusInput!): Writing! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Writing}")
@@ -170,6 +171,23 @@ export default /* GraphQL */ `
     queue: FediverseGatewayQueue!
     deadLetters: [FediverseGatewayDeadLetter!]!
     auditEvents: [FediverseGatewayAuditEvent!]!
+    reports: [FediverseGatewayReport!]!
+    social: FediverseGatewaySocial!
+  }
+
+  type FediverseGatewaySocial {
+    actors: Int!
+    followers: Int!
+    following: Int!
+    pendingFollowing: Int!
+    blocked: Int!
+    unreadNotifications: Int!
+    inboundObjects: Int!
+    inboundEngagements: Int!
+    openReports: Int!
+    maxFollowingPerActor: Int!
+    timelineRetentionDays: Int!
+    timelineMaxItems: Int!
   }
 
   type FediverseGatewayQueue {
@@ -204,6 +222,18 @@ export default /* GraphQL */ `
     reason: String
   }
 
+  type FediverseGatewayReport {
+    id: ID!
+    status: String!
+    category: String!
+    actorHandle: String
+    remoteActorId: String
+    remoteDomain: String
+    objectId: String
+    reason: String
+    createdAt: DateTime
+  }
+
   input ReplayFediverseDeadLetterInput {
     id: ID!
     reason: String
@@ -212,6 +242,11 @@ export default /* GraphQL */ `
   input ResolveFediverseDeadLetterInput {
     id: ID!
     reason: String! @constraint(minLength: 3, maxLength: 500)
+  }
+
+  input ResolveFediverseReportInput {
+    id: ID!
+    resolution: String! @constraint(minLength: 3, maxLength: 500)
   }
 
 

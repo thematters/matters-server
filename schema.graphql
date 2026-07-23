@@ -29,6 +29,10 @@ type Query {
 
   """One public Community Watch audit record."""
   communityWatchAction(input: CommunityWatchActionInput!): CommunityWatchAction
+  viewerFediverse: FediverseProfile!
+  viewerFediverseUnreadCount: Int!
+  fediverseArticle(input: FediverseArticleInput!): FediverseArticle!
+  fediverseRemoteActor(input: FediverseRemoteActorInput!): FediverseRemoteActor!
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
   frequentSearch(input: FrequentSearchInput!): [String!]
@@ -143,6 +147,9 @@ type Mutation {
 
   """Remove a draft."""
   deleteDraft(input: DeleteDraftInput!): Boolean
+  actFediverse(input: FediverseActionInput!): FediverseActionResult!
+  refreshFediverseProfile: Boolean!
+  pruneFediverseSocialData(input: PruneFediverseSocialDataInput): Boolean!
 
   """Mark all received notices as read."""
   markAllNoticesAsRead: Boolean
@@ -175,6 +182,7 @@ type Mutation {
   putArticleFederationSetting(input: PutArticleFederationSettingInput!): ArticleFederationSetting!
   replayFediverseDeadLetter(input: ReplayFediverseDeadLetterInput!): Boolean!
   resolveFediverseDeadLetter(input: ResolveFediverseDeadLetterInput!): Boolean!
+  resolveFediverseReport(input: ResolveFediverseReportInput!): Boolean!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
   updateModerationCase(input: UpdateModerationCaseInput!): ModerationCase!
   setSpamStatus(input: SetSpamStatusInput!): Writing!
@@ -717,6 +725,18 @@ type SpamStatus {
   Whether this work is labeled as spam by human, null for not labeled yet. 
   """
   isSpam: Boolean
+
+  """Raw detector decision, if returned by the spam detector."""
+  decision: String
+
+  """Raw detector reason, if returned by the spam detector."""
+  reason: String
+
+  """Raw detector spam probability, if returned by the spam detector."""
+  pSpam: Float
+
+  """Raw detector ham probability, if returned by the spam detector."""
+  pHam: Float
 }
 
 type AdStatus {
@@ -2121,6 +2141,121 @@ enum PublishState {
   published
 }
 
+type FediverseProfile {
+  actorId: String!
+  handle: String!
+  account: String!
+  displayName: String!
+  summary: String!
+  profileUrl: String!
+  avatarUrl: String
+  headerUrl: String
+  followersCount: Int!
+  followingCount: Int!
+  pendingFollowingCount: Int!
+  unreadNotificationsCount: Int!
+  maxFollowing: Int!
+  retentionDays: Int!
+  timelineMaxItems: Int!
+  following: [FediverseRemoteActor!]!
+  notifications: [FediverseNotification!]!
+  timeline: [FediversePost!]!
+}
+
+type FediverseRemoteActor {
+  actorId: String!
+  account: String
+  preferredUsername: String
+  name: String
+  summary: String!
+  url: String!
+  avatarUrl: String
+  status: String
+}
+
+type FediverseNotification {
+  id: ID!
+  category: String!
+  contentId: String
+  objectId: String
+  remoteActorIds: [String!]!
+  headline: String
+  preview: String
+  eventCount: Int!
+  unreadCount: Int!
+  publishedAt: DateTime
+}
+
+type FediversePost {
+  objectId: String!
+  content: String!
+  summary: String!
+  url: String
+  inReplyTo: String
+  publishedAt: DateTime
+  liked: Boolean!
+  announced: Boolean!
+  likeActivityId: String
+  announceActivityId: String
+  remoteActor: FediverseRemoteActor!
+}
+
+type FediverseArticle {
+  contentId: String
+  repliesCount: Int!
+  likesCount: Int!
+  announcesCount: Int!
+  notificationsCount: Int!
+  unreadNotificationsCount: Int!
+  replies: [FediversePost!]!
+}
+
+type FediverseActionResult {
+  status: String!
+  mapping: String
+  activityId: String
+  remoteActorId: String
+}
+
+enum FediverseAction {
+  follow
+  unfollow
+  reply
+  like
+  unlike
+  announce
+  unannounce
+  block
+  unblock
+  report
+  mark_read
+}
+
+input FediverseArticleInput {
+  id: ID!
+}
+
+input FediverseRemoteActorInput {
+  account: String
+  actorId: String
+}
+
+input FediverseActionInput {
+  action: FediverseAction!
+  account: String
+  remoteActorId: String
+  objectId: String
+  content: String
+  activityId: String
+  notificationIds: [ID!]
+  reason: String
+}
+
+input PruneFediverseSocialDataInput {
+  retentionDays: Int
+  maxItems: Int
+}
+
 """This interface contains common fields of a notice."""
 interface Notice {
   """Unique ID of this notice."""
@@ -2497,6 +2632,23 @@ type FediverseGatewayDashboard {
   queue: FediverseGatewayQueue!
   deadLetters: [FediverseGatewayDeadLetter!]!
   auditEvents: [FediverseGatewayAuditEvent!]!
+  reports: [FediverseGatewayReport!]!
+  social: FediverseGatewaySocial!
+}
+
+type FediverseGatewaySocial {
+  actors: Int!
+  followers: Int!
+  following: Int!
+  pendingFollowing: Int!
+  blocked: Int!
+  unreadNotifications: Int!
+  inboundObjects: Int!
+  inboundEngagements: Int!
+  openReports: Int!
+  maxFollowingPerActor: Int!
+  timelineRetentionDays: Int!
+  timelineMaxItems: Int!
 }
 
 type FediverseGatewayQueue {
@@ -2529,6 +2681,33 @@ type FediverseGatewayAuditEvent {
   actorHandle: String
   itemId: String
   reason: String
+}
+
+type FediverseGatewayReport {
+  id: ID!
+  status: String!
+  category: String!
+  actorHandle: String
+  remoteActorId: String
+  remoteDomain: String
+  objectId: String
+  reason: String
+  createdAt: DateTime
+}
+
+input ReplayFediverseDeadLetterInput {
+  id: ID!
+  reason: String
+}
+
+input ResolveFediverseDeadLetterInput {
+  id: ID!
+  reason: String!
+}
+
+input ResolveFediverseReportInput {
+  id: ID!
+  resolution: String!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2798,9 +2977,12 @@ input OSSSpamRingsInput {
 }
 
 input OSSSpamRingsFilter {
-  """Only include rings that still have at least one member eligible for handling."""
-  actionable: Boolean
   status: SpamRingStatus
+
+  """
+  Only include rings that still have at least one member eligible for handling.
+  """
+  actionable: Boolean
 }
 
 input UpdateModerationCaseInput {
@@ -2965,16 +3147,6 @@ input PutUserFederationSettingInput {
 input PutArticleFederationSettingInput {
   id: ID!
   state: FederationArticleSettingState!
-}
-
-input ReplayFediverseDeadLetterInput {
-  id: ID!
-  reason: String
-}
-
-input ResolveFediverseDeadLetterInput {
-  id: ID!
-  reason: String!
 }
 
 input SubmitReportInput {
