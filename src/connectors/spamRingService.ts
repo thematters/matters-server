@@ -91,6 +91,22 @@ interface RingEventInput {
   detail?: Record<string, any>
 }
 
+export const filterActionableSpamRings = (
+  query: Knex.QueryBuilder
+): Knex.QueryBuilder =>
+  query.whereExists(function (this: Knex.QueryBuilder) {
+    this.select(1)
+      .from('spam_ring_member')
+      .join('user', 'user.id', 'spam_ring_member.userId')
+      .whereRaw('"spam_ring_member"."ring_id" = "spam_ring"."id"')
+      .whereIn('spam_ring_member.status', ['pending', 'restored'])
+      .whereNotIn('user.state', [
+        USER_STATE.banned,
+        USER_STATE.frozen,
+        USER_STATE.archived,
+      ])
+  })
+
 export class SpamRingService extends BaseService<SpamRing> {
   public constructor(connections: Connections) {
     super('spam_ring', connections)
@@ -109,18 +125,7 @@ export class SpamRingService extends BaseService<SpamRing> {
       query.where({ status })
     }
     if (actionable) {
-      query.whereExists(function (this: Knex.QueryBuilder) {
-        this.select(1)
-          .from('spam_ring_member')
-          .join('user', 'user.id', 'spam_ring_member.userId')
-          .whereRaw('"spam_ring_member"."ring_id" = "spam_ring"."id"')
-          .whereIn('spam_ring_member.status', ['pending', 'restored'])
-          .whereNotIn('user.state', [
-            USER_STATE.banned,
-            USER_STATE.frozen,
-            USER_STATE.archived,
-          ])
-      })
+      filterActionableSpamRings(query)
     }
     return query
   }
