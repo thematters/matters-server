@@ -26,6 +26,7 @@
     "test:handlers": "npm run testcmd -- build/handlers/ --forceExit --coverageDirectory coverage/handlers",
     "test:utils": "npm run testcmd -- build/common/utils/ --coverageDirectory coverage/utils",
     "test:routes": "npm run testcmd -- build/routes/ --forceExit --coverageDirectory coverage/routes",
+    "test:queries": "npm run testcmd -- build/queries/ --forceExit --coverageDirectory coverage/queries",
     "test:types:1": "npm run testcmd -- build/types/__test__/1/ --forceExit --coverageDirectory coverage/types-1",
     "test:types:2": "npm run testcmd -- build/types/__test__/2/ --forceExit --coverageDirectory coverage/types-2",
     "test": "run-s build test:* test:types:* && codecov",
