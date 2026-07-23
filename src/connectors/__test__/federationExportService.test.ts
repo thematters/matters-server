@@ -888,6 +888,51 @@ describe('federationExportService', () => {
     )
   })
 
+  test('skips profile refresh when publishing is disabled or identity is incomplete', async () => {
+    const disabledSettingQuery: any = {
+      where: jest.fn(() => disabledSettingQuery),
+      first: jest.fn(async () => ({
+        userId: '1',
+        state: FEDERATION_AUTHOR_SETTING.disabled,
+      })),
+    }
+    const disabledKnexRO = jest.fn(() => disabledSettingQuery)
+    const disabledService = new FederationExportService({
+      knexRO: disabledKnexRO,
+    } as any)
+
+    await expect(disabledService.refreshSocialProfile('1')).resolves.toBe(false)
+    expect(disabledKnexRO).toHaveBeenCalledTimes(1)
+
+    const enabledSettingQuery: any = {
+      where: jest.fn(() => enabledSettingQuery),
+      first: jest.fn(async () => ({
+        userId: '2',
+        state: FEDERATION_AUTHOR_SETTING.enabled,
+      })),
+    }
+    const incompleteProfileQuery: any = {
+      leftJoin: jest.fn(() => incompleteProfileQuery),
+      where: jest.fn(() => incompleteProfileQuery),
+      first: jest.fn(async () => ({
+        authorId: '2',
+        userName: null,
+        displayName: 'Incomplete',
+        state: USER_STATE.active,
+      })),
+    }
+    const enabledKnexRO = jest.fn((table: string) =>
+      table === 'user_federation_setting'
+        ? enabledSettingQuery
+        : incompleteProfileQuery
+    )
+    const enabledService = new FederationExportService({
+      knexRO: enabledKnexRO,
+    } as any)
+
+    await expect(enabledService.refreshSocialProfile('2')).resolves.toBe(false)
+  })
+
   test('builds safe outbound follow and reply gateway requests', async () => {
     const service = new FederationExportService({} as any)
     const gatewayRequest = jest.fn(async () => ({
@@ -959,6 +1004,287 @@ describe('federationExportService', () => {
         }),
       })
     )
+  })
+
+  test('maps article social state and resolves remote actors', async () => {
+    const service = new FederationExportService({} as any)
+    const gatewayRequest = jest.fn(async (path: string) => {
+      if (path.startsWith('/admin/social/article')) {
+        return {
+          contentId: 'article-101',
+          content: {
+            metrics: {
+              replies: 1,
+              likes: 2,
+              announces: 3,
+            },
+          },
+          notifications: [
+            {
+              notificationId: 'notice-1',
+              eventCount: 2,
+              unreadCount: 1,
+            },
+          ],
+          replies: [
+            {
+              objectId: 'https://social.example/notes/reply-1',
+              content: '<p>Reply</p>',
+              remoteActor: {
+                actorId: 'https://social.example/users/alice',
+                account: 'alice@social.example',
+              },
+            },
+          ],
+        }
+      }
+      return {
+        item: {
+          actorId: 'https://social.example/users/alice',
+          account: 'alice@social.example',
+          name: 'Alice',
+          status: 'accepted',
+        },
+      }
+    })
+    ;(service as any).gatewayRequest = gatewayRequest
+
+    await expect(
+      service.loadArticleSocial({
+        actorHandle: 'mashbean',
+        contentRef: 'https://matters.town/a/abc123',
+      })
+    ).resolves.toMatchObject({
+      contentId: 'article-101',
+      repliesCount: 1,
+      likesCount: 2,
+      announcesCount: 3,
+      notificationsCount: 2,
+      unreadNotificationsCount: 1,
+      replies: [
+        {
+          objectId: 'https://social.example/notes/reply-1',
+          remoteActor: {
+            account: 'alice@social.example',
+          },
+        },
+      ],
+    })
+    await expect(
+      service.resolveSocialRemoteActor({
+        account: '@alice@social.example',
+        actorId: 'https://social.example/users/alice',
+      })
+    ).resolves.toMatchObject({
+      actorId: 'https://social.example/users/alice',
+      account: 'alice@social.example',
+      status: 'accepted',
+    })
+
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      1,
+      '/admin/social/article?actorHandle=mashbean&contentRef=https%3A%2F%2Fmatters.town%2Fa%2Fabc123'
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      2,
+      '/admin/social/remote-actor?account=%40alice%40social.example&actorId=https%3A%2F%2Fsocial.example%2Fusers%2Falice'
+    )
+  })
+
+  test('builds reversible moderation and notification gateway requests', async () => {
+    const service = new FederationExportService({} as any)
+    const gatewayRequest = jest.fn(async () => ({
+      status: 'ok',
+      mapping: 'saved',
+    }))
+    ;(service as any).gatewayRequest = gatewayRequest
+    const remoteActorId = 'https://social.example/users/alice'
+    const objectId = 'https://social.example/notes/1'
+
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'unfollow',
+        remoteActorId,
+        activityId: 'https://matters.town/ap/activities/follow-1',
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'announce',
+        remoteActorId,
+        objectId,
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'unlike',
+        remoteActorId,
+        objectId,
+        activityId: 'https://matters.town/ap/activities/like-1',
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'unannounce',
+        remoteActorId,
+        objectId,
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'block',
+        remoteActorId,
+        reason: 'spam',
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'unblock',
+        remoteActorId,
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'report',
+        remoteActorId,
+        objectId,
+        reason: 'spam',
+      },
+    })
+    const result = await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'mark_read',
+        notificationIds: ['notice-1', 'notice-2'],
+      },
+    })
+
+    expect(result).toEqual({
+      status: 'ok',
+      mapping: 'saved',
+      activityId: null,
+      remoteActorId: null,
+    })
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      1,
+      '/users/mashbean/outbox/undo',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          mapping: 'follow',
+          objectId: remoteActorId,
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      2,
+      '/users/mashbean/outbox/engagement',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: 'Announce',
+          objectId,
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      3,
+      '/users/mashbean/outbox/undo',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          mapping: 'like',
+          objectId,
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      4,
+      '/users/mashbean/outbox/undo',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          mapping: 'announce',
+          objectId,
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      5,
+      '/admin/social/block',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          remoteActorId,
+          reason: 'spam',
+          createdBy: 'user:1',
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      6,
+      '/admin/social/unblock',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          remoteActorId,
+          updatedBy: 'user:1',
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      7,
+      '/admin/social/report',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          remoteActorId,
+          objectId,
+          reason: 'spam',
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      8,
+      '/admin/local-notifications/read',
+      expect.objectContaining({
+        data: {
+          actorHandle: 'mashbean',
+          notificationIds: ['notice-1', 'notice-2'],
+          read: true,
+          updatedBy: 'user:1',
+        },
+      })
+    )
+
+    await expect(
+      service.runSocialAction({
+        actorHandle: 'mashbean',
+        actorId: '1',
+        input: {
+          action: 'reply',
+          objectId,
+        },
+      })
+    ).rejects.toThrow('Reply content and object are required')
+    await expect(
+      service.runSocialAction({
+        actorHandle: 'mashbean',
+        actorId: '1',
+        input: {
+          action: 'unsupported' as any,
+        },
+      })
+    ).rejects.toThrow('Unsupported Fediverse action')
   })
 
   test('maps social operations data and resolves user reports', async () => {
