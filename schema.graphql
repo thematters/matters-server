@@ -30,6 +30,7 @@ type Query {
   """One public Community Watch audit record."""
   communityWatchAction(input: CommunityWatchActionInput!): CommunityWatchAction
   viewerFediverse: FediverseProfile!
+  viewerFediverseUnreadCount: Int!
   fediverseArticle(input: FediverseArticleInput!): FediverseArticle!
   fediverseRemoteActor(input: FediverseRemoteActorInput!): FediverseRemoteActor!
   node(input: NodeInput!): Node
@@ -2192,6 +2193,10 @@ type FediversePost {
   url: String
   inReplyTo: String
   publishedAt: DateTime
+  liked: Boolean!
+  announced: Boolean!
+  likeActivityId: String
+  announceActivityId: String
   remoteActor: FediverseRemoteActor!
 }
 

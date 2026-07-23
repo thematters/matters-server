@@ -3,6 +3,7 @@ import { AUTH_MODE, SCOPE_GROUP } from '#common/enums/index.js'
 export default /* GraphQL */ `
   extend type Query {
     viewerFediverse: FediverseProfile! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @privateCache
+    viewerFediverseUnreadCount: Int! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @privateCache
     fediverseArticle(input: FediverseArticleInput!): FediverseArticle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @privateCache
     fediverseRemoteActor(input: FediverseRemoteActorInput!): FediverseRemoteActor! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @privateCache
   }
@@ -65,6 +66,10 @@ export default /* GraphQL */ `
     url: String
     inReplyTo: String
     publishedAt: DateTime
+    liked: Boolean!
+    announced: Boolean!
+    likeActivityId: String
+    announceActivityId: String
     remoteActor: FediverseRemoteActor!
   }
 

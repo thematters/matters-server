@@ -786,6 +786,11 @@ describe('federationExportService', () => {
           {
             objectId: 'https://social.example/notes/1',
             content: '<p>Hello</p>',
+            viewerEngagement: {
+              liked: true,
+              announced: false,
+              likeActivityId: 'https://matters.town/ap/activities/like-note-1',
+            },
             remoteActor: {
               actorId: 'https://social.example/users/alice',
               account: 'alice@social.example',
@@ -817,8 +822,25 @@ describe('federationExportService', () => {
     })
     expect(profile.timeline[0]).toMatchObject({
       objectId: 'https://social.example/notes/1',
+      liked: true,
+      announced: false,
+      likeActivityId: 'https://matters.town/ap/activities/like-note-1',
+      announceActivityId: null,
       remoteActor: { account: 'alice@social.example' },
     })
+  })
+
+  test('loads the unread count without loading the full social profile', async () => {
+    const service = new FederationExportService({} as any)
+    const gatewayRequest = jest.fn(async () => ({
+      unreadNotificationsCount: 7,
+    }))
+    ;(service as any).gatewayRequest = gatewayRequest
+
+    await expect(service.loadSocialUnreadCount('mashbean')).resolves.toBe(7)
+    expect(gatewayRequest).toHaveBeenCalledWith(
+      '/admin/social/unread-count?actorHandle=mashbean'
+    )
   })
 
   test('refreshes an enabled author profile with current avatar and cover', async () => {
@@ -892,6 +914,15 @@ describe('federationExportService', () => {
         content: '<script>alert(1)</script>',
       },
     })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'like',
+        objectId: 'https://social.example/notes/1',
+        remoteActorId: 'https://social.example/users/alice',
+      },
+    })
 
     expect(gatewayRequest).toHaveBeenNthCalledWith(
       1,
@@ -913,6 +944,18 @@ describe('federationExportService', () => {
             content: '<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>',
             inReplyTo: 'https://social.example/notes/1',
           }),
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      3,
+      '/users/mashbean/outbox/engagement',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          idempotencyKey: 'like:1:https://social.example/notes/1',
+          objectId: 'https://social.example/notes/1',
+          type: 'Like',
         }),
       })
     )
