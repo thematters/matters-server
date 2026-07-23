@@ -226,6 +226,10 @@ export type FederationSocialPost = {
   url: string | null
   inReplyTo: string | null
   publishedAt: string | null
+  liked: boolean
+  announced: boolean
+  likeActivityId: string | null
+  announceActivityId: string | null
   remoteActor: FederationSocialRemoteActor
 }
 
@@ -364,6 +368,12 @@ type GatewayInboundObjectRecord = {
   inReplyTo?: string | null
   publishedAt?: string | null
   receivedAt?: string | null
+  viewerEngagement?: {
+    liked?: boolean
+    announced?: boolean
+    likeActivityId?: string | null
+    announceActivityId?: string | null
+  }
   remoteActor?: GatewayRemoteActorRecord
 }
 
@@ -406,6 +416,10 @@ const mapSocialPost = (
   url: record.url ?? null,
   inReplyTo: record.inReplyTo ?? null,
   publishedAt: record.publishedAt ?? record.receivedAt ?? null,
+  liked: record.viewerEngagement?.liked ?? false,
+  announced: record.viewerEngagement?.announced ?? false,
+  likeActivityId: record.viewerEngagement?.likeActivityId ?? null,
+  announceActivityId: record.viewerEngagement?.announceActivityId ?? null,
   remoteActor: mapRemoteActor(record.remoteActor ?? {}),
 })
 
@@ -922,6 +936,17 @@ export class FederationExportService {
     }
   }
 
+  public async loadSocialUnreadCount(actorHandle: string): Promise<number> {
+    const response = await this.gatewayRequest<{
+      unreadNotificationsCount?: number
+    }>(
+      `/admin/social/unread-count?actorHandle=${encodeURIComponent(
+        actorHandle
+      )}`
+    )
+    return response.unreadNotificationsCount ?? 0
+  }
+
   public async refreshSocialProfile(userId: string): Promise<boolean> {
     const setting = await this.loadAuthorFederationSetting(userId)
     if (setting?.state !== FEDERATION_AUTHOR_SETTING.enabled) {
@@ -1116,6 +1141,9 @@ export class FederationExportService {
         data = {
           ...commonPayload,
           type: input.action === 'like' ? 'Like' : 'Announce',
+          idempotencyKey: `${
+            input.action
+          }:${actorId}:${input.objectId?.trim()}`,
         }
         break
       case 'unlike':

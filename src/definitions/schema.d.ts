@@ -2069,8 +2069,12 @@ export type GQLFediverseNotification = {
 
 export type GQLFediversePost = {
   __typename?: 'FediversePost'
+  announceActivityId?: Maybe<Scalars['String']['output']>
+  announced: Scalars['Boolean']['output']
   content: Scalars['String']['output']
   inReplyTo?: Maybe<Scalars['String']['output']>
+  likeActivityId?: Maybe<Scalars['String']['output']>
+  liked: Scalars['Boolean']['output']
   objectId: Scalars['String']['output']
   publishedAt?: Maybe<Scalars['DateTime']['output']>
   remoteActor: GQLFediverseRemoteActor
@@ -3957,6 +3961,7 @@ export type GQLQuery = {
   user?: Maybe<GQLUser>
   viewer?: Maybe<GQLUser>
   viewerFediverse: GQLFediverseProfile
+  viewerFediverseUnreadCount: Scalars['Int']['output']
 }
 
 export type GQLQueryArticleArgs = {
@@ -10048,12 +10053,24 @@ export type GQLFediversePostResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['FediversePost'] = GQLResolversParentTypes['FediversePost']
 > = ResolversObject<{
+  announceActivityId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  announced?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   inReplyTo?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
     ContextType
   >
+  likeActivityId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   objectId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   publishedAt?: Resolver<
     Maybe<GQLResolversTypes['DateTime']>,
@@ -12039,6 +12056,11 @@ export type GQLQueryResolvers<
   viewer?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
   viewerFediverse?: Resolver<
     GQLResolversTypes['FediverseProfile'],
+    ParentType,
+    ContextType
+  >
+  viewerFediverseUnreadCount?: Resolver<
+    GQLResolversTypes['Int'],
     ParentType,
     ContextType
   >
