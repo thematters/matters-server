@@ -1894,8 +1894,8 @@ export type GQLFeatureName =
   | 'article_channel'
   | 'circle_interact'
   | 'circle_management'
-  | 'discovery_spam_filter'
   | 'discovery_probation'
+  | 'discovery_spam_filter'
   | 'fingerprint'
   | 'hottest_moment_feed'
   | 'moment_tag'
@@ -1931,6 +1931,191 @@ export type GQLFederationExportDecisionReason =
   | 'article_not_public'
   | 'author_not_opted_in'
   | 'eligible'
+
+export type GQLFediverseAction =
+  | 'announce'
+  | 'block'
+  | 'follow'
+  | 'like'
+  | 'mark_read'
+  | 'reply'
+  | 'report'
+  | 'unannounce'
+  | 'unblock'
+  | 'unfollow'
+  | 'unlike'
+
+export type GQLFediverseActionInput = {
+  account?: InputMaybe<Scalars['String']['input']>
+  action: GQLFediverseAction
+  activityId?: InputMaybe<Scalars['String']['input']>
+  content?: InputMaybe<Scalars['String']['input']>
+  notificationIds?: InputMaybe<Array<Scalars['ID']['input']>>
+  objectId?: InputMaybe<Scalars['String']['input']>
+  reason?: InputMaybe<Scalars['String']['input']>
+  remoteActorId?: InputMaybe<Scalars['String']['input']>
+}
+
+export type GQLFediverseActionResult = {
+  __typename?: 'FediverseActionResult'
+  activityId?: Maybe<Scalars['String']['output']>
+  mapping?: Maybe<Scalars['String']['output']>
+  remoteActorId?: Maybe<Scalars['String']['output']>
+  status: Scalars['String']['output']
+}
+
+export type GQLFediverseArticle = {
+  __typename?: 'FediverseArticle'
+  announcesCount: Scalars['Int']['output']
+  contentId?: Maybe<Scalars['String']['output']>
+  likesCount: Scalars['Int']['output']
+  notificationsCount: Scalars['Int']['output']
+  replies: Array<GQLFediversePost>
+  repliesCount: Scalars['Int']['output']
+  unreadNotificationsCount: Scalars['Int']['output']
+}
+
+export type GQLFediverseArticleInput = {
+  id: Scalars['ID']['input']
+}
+
+export type GQLFediverseGatewayAuditEvent = {
+  __typename?: 'FediverseGatewayAuditEvent'
+  actorHandle?: Maybe<Scalars['String']['output']>
+  event: Scalars['String']['output']
+  itemId?: Maybe<Scalars['String']['output']>
+  reason?: Maybe<Scalars['String']['output']>
+  timestamp?: Maybe<Scalars['DateTime']['output']>
+}
+
+export type GQLFediverseGatewayDashboard = {
+  __typename?: 'FediverseGatewayDashboard'
+  auditEvents: Array<GQLFediverseGatewayAuditEvent>
+  deadLetters: Array<GQLFediverseGatewayDeadLetter>
+  generatedAt: Scalars['DateTime']['output']
+  queue: GQLFediverseGatewayQueue
+  reports: Array<GQLFediverseGatewayReport>
+  social: GQLFediverseGatewaySocial
+}
+
+export type GQLFediverseGatewayDeadLetter = {
+  __typename?: 'FediverseGatewayDeadLetter'
+  activityId?: Maybe<Scalars['String']['output']>
+  activityType?: Maybe<Scalars['String']['output']>
+  actorHandle?: Maybe<Scalars['String']['output']>
+  id: Scalars['ID']['output']
+  recordedAt?: Maybe<Scalars['DateTime']['output']>
+  status: Scalars['String']['output']
+  targetActorId?: Maybe<Scalars['String']['output']>
+}
+
+export type GQLFediverseGatewayQueue = {
+  __typename?: 'FediverseGatewayQueue'
+  deadLetter: Scalars['Int']['output']
+  delivered: Scalars['Int']['output']
+  oldestPendingAt?: Maybe<Scalars['DateTime']['output']>
+  openDeadLetters: Scalars['Int']['output']
+  pending: Scalars['Int']['output']
+  processing: Scalars['Int']['output']
+  replayedDeadLetters: Scalars['Int']['output']
+  resolved: Scalars['Int']['output']
+  resolvedDeadLetters: Scalars['Int']['output']
+  retryPending: Scalars['Int']['output']
+  total: Scalars['Int']['output']
+}
+
+export type GQLFediverseGatewayReport = {
+  __typename?: 'FediverseGatewayReport'
+  actorHandle?: Maybe<Scalars['String']['output']>
+  category: Scalars['String']['output']
+  createdAt?: Maybe<Scalars['DateTime']['output']>
+  id: Scalars['ID']['output']
+  objectId?: Maybe<Scalars['String']['output']>
+  reason?: Maybe<Scalars['String']['output']>
+  remoteActorId?: Maybe<Scalars['String']['output']>
+  remoteDomain?: Maybe<Scalars['String']['output']>
+  status: Scalars['String']['output']
+}
+
+export type GQLFediverseGatewaySocial = {
+  __typename?: 'FediverseGatewaySocial'
+  actors: Scalars['Int']['output']
+  blocked: Scalars['Int']['output']
+  followers: Scalars['Int']['output']
+  following: Scalars['Int']['output']
+  inboundEngagements: Scalars['Int']['output']
+  inboundObjects: Scalars['Int']['output']
+  maxFollowingPerActor: Scalars['Int']['output']
+  openReports: Scalars['Int']['output']
+  pendingFollowing: Scalars['Int']['output']
+  timelineMaxItems: Scalars['Int']['output']
+  timelineRetentionDays: Scalars['Int']['output']
+  unreadNotifications: Scalars['Int']['output']
+}
+
+export type GQLFediverseNotification = {
+  __typename?: 'FediverseNotification'
+  category: Scalars['String']['output']
+  contentId?: Maybe<Scalars['String']['output']>
+  eventCount: Scalars['Int']['output']
+  headline?: Maybe<Scalars['String']['output']>
+  id: Scalars['ID']['output']
+  objectId?: Maybe<Scalars['String']['output']>
+  preview?: Maybe<Scalars['String']['output']>
+  publishedAt?: Maybe<Scalars['DateTime']['output']>
+  remoteActorIds: Array<Scalars['String']['output']>
+  unreadCount: Scalars['Int']['output']
+}
+
+export type GQLFediversePost = {
+  __typename?: 'FediversePost'
+  content: Scalars['String']['output']
+  inReplyTo?: Maybe<Scalars['String']['output']>
+  objectId: Scalars['String']['output']
+  publishedAt?: Maybe<Scalars['DateTime']['output']>
+  remoteActor: GQLFediverseRemoteActor
+  summary: Scalars['String']['output']
+  url?: Maybe<Scalars['String']['output']>
+}
+
+export type GQLFediverseProfile = {
+  __typename?: 'FediverseProfile'
+  account: Scalars['String']['output']
+  actorId: Scalars['String']['output']
+  avatarUrl?: Maybe<Scalars['String']['output']>
+  displayName: Scalars['String']['output']
+  followersCount: Scalars['Int']['output']
+  following: Array<GQLFediverseRemoteActor>
+  followingCount: Scalars['Int']['output']
+  handle: Scalars['String']['output']
+  headerUrl?: Maybe<Scalars['String']['output']>
+  maxFollowing: Scalars['Int']['output']
+  notifications: Array<GQLFediverseNotification>
+  pendingFollowingCount: Scalars['Int']['output']
+  profileUrl: Scalars['String']['output']
+  retentionDays: Scalars['Int']['output']
+  summary: Scalars['String']['output']
+  timeline: Array<GQLFediversePost>
+  timelineMaxItems: Scalars['Int']['output']
+  unreadNotificationsCount: Scalars['Int']['output']
+}
+
+export type GQLFediverseRemoteActor = {
+  __typename?: 'FediverseRemoteActor'
+  account?: Maybe<Scalars['String']['output']>
+  actorId: Scalars['String']['output']
+  avatarUrl?: Maybe<Scalars['String']['output']>
+  name?: Maybe<Scalars['String']['output']>
+  preferredUsername?: Maybe<Scalars['String']['output']>
+  status?: Maybe<Scalars['String']['output']>
+  summary: Scalars['String']['output']
+  url: Scalars['String']['output']
+}
+
+export type GQLFediverseRemoteActorInput = {
+  account?: InputMaybe<Scalars['String']['input']>
+  actorId?: InputMaybe<Scalars['String']['input']>
+}
 
 export type GQLFilterInput = {
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
@@ -2338,6 +2523,7 @@ export type GQLMonthlyDatum = {
 
 export type GQLMutation = {
   __typename?: 'Mutation'
+  actFediverse: GQLFediverseActionResult
   /** Add blocked search keyword to blocked_search_word db */
   addBlockedSearchKeyword: GQLBlockedSearchKeyword
   /** Add articles to the begining of the collections. */
@@ -2418,6 +2604,7 @@ export type GQLMutation = {
   payout: GQLTransaction
   /** Pin a comment. */
   pinComment: GQLComment
+  pruneFediverseSocialData: Scalars['Boolean']['output']
   /** Publish an article onto IPFS. */
   publishArticle: GQLDraft
   putAnnouncement: GQLAnnouncement
@@ -2453,6 +2640,7 @@ export type GQLMutation = {
   putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
+  refreshFediverseProfile: Scalars['Boolean']['output']
   /** Remove a social login from current user. */
   removeSocialLogin: GQLUser
   /** Remove a wallet login from current user. */
@@ -2461,10 +2649,13 @@ export type GQLMutation = {
   reorderChannels: Scalars['Boolean']['output']
   /** Reorder articles in the collection. */
   reorderCollectionArticles: GQLCollection
+  replayFediverseDeadLetter: Scalars['Boolean']['output']
   /** Reset Liker ID */
   resetLikerId: GQLUser
   /** Reset user or payment password. */
   resetPassword?: Maybe<Scalars['Boolean']['output']>
+  resolveFediverseDeadLetter: Scalars['Boolean']['output']
+  resolveFediverseReport: Scalars['Boolean']['output']
   /** Restore a comment removed by Community Watch as staff. */
   restoreCommunityWatchComment: GQLCommunityWatchAction
   reviewTopicChannelFeedback: GQLTopicChannelFeedback
@@ -2569,6 +2760,10 @@ export type GQLMutation = {
   walletLogin: GQLAuthResult
   /** Withdraw locked ERC20/native token from donation vault */
   withdrawLockedTokens: GQLWithdrawLockedTokensResult
+}
+
+export type GQLMutationActFediverseArgs = {
+  input: GQLFediverseActionInput
 }
 
 export type GQLMutationAddBlockedSearchKeywordArgs = {
@@ -2747,6 +2942,10 @@ export type GQLMutationPinCommentArgs = {
   input: GQLPinCommentInput
 }
 
+export type GQLMutationPruneFediverseSocialDataArgs = {
+  input?: InputMaybe<GQLPruneFediverseSocialDataInput>
+}
+
 export type GQLMutationPublishArticleArgs = {
   input: GQLPublishArticleInput
 }
@@ -2855,12 +3054,24 @@ export type GQLMutationReorderCollectionArticlesArgs = {
   input: GQLReorderCollectionArticlesInput
 }
 
+export type GQLMutationReplayFediverseDeadLetterArgs = {
+  input: GQLReplayFediverseDeadLetterInput
+}
+
 export type GQLMutationResetLikerIdArgs = {
   input: GQLResetLikerIdInput
 }
 
 export type GQLMutationResetPasswordArgs = {
   input: GQLResetPasswordInput
+}
+
+export type GQLMutationResolveFediverseDeadLetterArgs = {
+  input: GQLResolveFediverseDeadLetterInput
+}
+
+export type GQLMutationResolveFediverseReportArgs = {
+  input: GQLResolveFediverseReportInput
 }
 
 export type GQLMutationRestoreCommunityWatchCommentArgs = {
@@ -3239,6 +3450,7 @@ export type GQLOss = {
   articles: GQLArticleConnection
   badgedUsers: GQLUserConnection
   comments: GQLCommentConnection
+  fediverseGateway: GQLFediverseGatewayDashboard
   icymiTopics: GQLIcymiTopicConnection
   momentFeedUsers: GQLUserConnection
   moments: GQLMomentConnection
@@ -3495,6 +3707,11 @@ export type GQLPrice = {
 
 export type GQLPriceState = 'active' | 'archived'
 
+export type GQLPruneFediverseSocialDataInput = {
+  maxItems?: InputMaybe<Scalars['Int']['input']>
+  retentionDays?: InputMaybe<Scalars['Int']['input']>
+}
+
 export type GQLPublishArticleInput = {
   id: Scalars['ID']['input']
   /** whether publish to ISCN */
@@ -3726,6 +3943,8 @@ export type GQLQuery = {
   /** Recent public Community Watch audit records. */
   communityWatchActions: GQLCommunityWatchActionConnection
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
+  fediverseArticle: GQLFediverseArticle
+  fediverseRemoteActor: GQLFediverseRemoteActor
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
   moment?: Maybe<GQLMoment>
   node?: Maybe<GQLNode>
@@ -3737,6 +3956,7 @@ export type GQLQuery = {
   search: GQLSearchResultConnection
   user?: Maybe<GQLUser>
   viewer?: Maybe<GQLUser>
+  viewerFediverse: GQLFediverseProfile
 }
 
 export type GQLQueryArticleArgs = {
@@ -3777,6 +3997,14 @@ export type GQLQueryCommunityWatchActionsArgs = {
 
 export type GQLQueryExchangeRatesArgs = {
   input?: InputMaybe<GQLExchangeRatesInput>
+}
+
+export type GQLQueryFediverseArticleArgs = {
+  input: GQLFediverseArticleInput
+}
+
+export type GQLQueryFediverseRemoteActorArgs = {
+  input: GQLFediverseRemoteActorInput
 }
 
 export type GQLQueryFrequentSearchArgs = {
@@ -4007,6 +4235,11 @@ export type GQLReorderMoveInput = {
   newPosition: Scalars['Int']['input']
 }
 
+export type GQLReplayFediverseDeadLetterInput = {
+  id: Scalars['ID']['input']
+  reason?: InputMaybe<Scalars['String']['input']>
+}
+
 export type GQLReport = GQLNode & {
   __typename?: 'Report'
   /** The audit record when this report originates from a community watch action. */
@@ -4063,6 +4296,16 @@ export type GQLResetPasswordInput = {
 }
 
 export type GQLResetPasswordType = 'account' | 'payment'
+
+export type GQLResolveFediverseDeadLetterInput = {
+  id: Scalars['ID']['input']
+  reason: Scalars['String']['input']
+}
+
+export type GQLResolveFediverseReportInput = {
+  id: Scalars['ID']['input']
+  resolution: Scalars['String']['input']
+}
 
 export type GQLResponse = GQLArticle | GQLComment
 
@@ -6244,6 +6487,22 @@ export type GQLResolversTypes = ResolversObject<{
   FederationArticleSettingState: GQLFederationArticleSettingState
   FederationAuthorSettingState: GQLFederationAuthorSettingState
   FederationExportDecisionReason: GQLFederationExportDecisionReason
+  FediverseAction: GQLFediverseAction
+  FediverseActionInput: GQLFediverseActionInput
+  FediverseActionResult: ResolverTypeWrapper<GQLFediverseActionResult>
+  FediverseArticle: ResolverTypeWrapper<GQLFediverseArticle>
+  FediverseArticleInput: GQLFediverseArticleInput
+  FediverseGatewayAuditEvent: ResolverTypeWrapper<GQLFediverseGatewayAuditEvent>
+  FediverseGatewayDashboard: ResolverTypeWrapper<GQLFediverseGatewayDashboard>
+  FediverseGatewayDeadLetter: ResolverTypeWrapper<GQLFediverseGatewayDeadLetter>
+  FediverseGatewayQueue: ResolverTypeWrapper<GQLFediverseGatewayQueue>
+  FediverseGatewayReport: ResolverTypeWrapper<GQLFediverseGatewayReport>
+  FediverseGatewaySocial: ResolverTypeWrapper<GQLFediverseGatewaySocial>
+  FediverseNotification: ResolverTypeWrapper<GQLFediverseNotification>
+  FediversePost: ResolverTypeWrapper<GQLFediversePost>
+  FediverseProfile: ResolverTypeWrapper<GQLFediverseProfile>
+  FediverseRemoteActor: ResolverTypeWrapper<GQLFediverseRemoteActor>
+  FediverseRemoteActorInput: GQLFediverseRemoteActorInput
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
   Following: ResolverTypeWrapper<UserModel>
@@ -6444,6 +6703,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   Price: ResolverTypeWrapper<CirclePriceModel>
   PriceState: GQLPriceState
+  PruneFediverseSocialDataInput: GQLPruneFediverseSocialDataInput
   PublishArticleInput: GQLPublishArticleInput
   PublishState: GQLPublishState
   PutAnnouncementInput: GQLPutAnnouncementInput
@@ -6511,6 +6771,7 @@ export type GQLResolversTypes = ResolversObject<{
   ReorderChannelsInput: GQLReorderChannelsInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
+  ReplayFediverseDeadLetterInput: GQLReplayFediverseDeadLetterInput
   Report: ResolverTypeWrapper<ReportModel>
   ReportConnection: ResolverTypeWrapper<
     Omit<GQLReportConnection, 'edges'> & {
@@ -6525,6 +6786,8 @@ export type GQLResolversTypes = ResolversObject<{
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetPasswordType: GQLResetPasswordType
+  ResolveFediverseDeadLetterInput: GQLResolveFediverseDeadLetterInput
+  ResolveFediverseReportInput: GQLResolveFediverseReportInput
   Response: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['Response']
   >
@@ -7068,6 +7331,21 @@ export type GQLResolversParentTypes = ResolversObject<{
   Feature: GQLFeature
   FeaturedCommentsInput: GQLFeaturedCommentsInput
   FeaturedTagsInput: GQLFeaturedTagsInput
+  FediverseActionInput: GQLFediverseActionInput
+  FediverseActionResult: GQLFediverseActionResult
+  FediverseArticle: GQLFediverseArticle
+  FediverseArticleInput: GQLFediverseArticleInput
+  FediverseGatewayAuditEvent: GQLFediverseGatewayAuditEvent
+  FediverseGatewayDashboard: GQLFediverseGatewayDashboard
+  FediverseGatewayDeadLetter: GQLFediverseGatewayDeadLetter
+  FediverseGatewayQueue: GQLFediverseGatewayQueue
+  FediverseGatewayReport: GQLFediverseGatewayReport
+  FediverseGatewaySocial: GQLFediverseGatewaySocial
+  FediverseNotification: GQLFediverseNotification
+  FediversePost: GQLFediversePost
+  FediverseProfile: GQLFediverseProfile
+  FediverseRemoteActor: GQLFediverseRemoteActor
+  FediverseRemoteActorInput: GQLFediverseRemoteActorInput
   FilterInput: GQLFilterInput
   Float: Scalars['Float']['output']
   Following: UserModel
@@ -7219,6 +7497,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   PinnableWork: GQLResolversInterfaceTypes<GQLResolversParentTypes>['PinnableWork']
   Price: CirclePriceModel
+  PruneFediverseSocialDataInput: GQLPruneFediverseSocialDataInput
   PublishArticleInput: GQLPublishArticleInput
   PutAnnouncementInput: GQLPutAnnouncementInput
   PutArticleFederationSettingInput: GQLPutArticleFederationSettingInput
@@ -7274,6 +7553,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ReorderChannelsInput: GQLReorderChannelsInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
+  ReplayFediverseDeadLetterInput: GQLReplayFediverseDeadLetterInput
   Report: ReportModel
   ReportConnection: Omit<GQLReportConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ReportEdge']>>
@@ -7283,6 +7563,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
+  ResolveFediverseDeadLetterInput: GQLResolveFediverseDeadLetterInput
+  ResolveFediverseReportInput: GQLResolveFediverseReportInput
   Response: GQLResolversUnionTypes<GQLResolversParentTypes>['Response']
   ResponseConnection: Omit<GQLResponseConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ResponseEdge']>>
@@ -9480,6 +9762,394 @@ export type GQLFeatureResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLFediverseActionResultResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseActionResult'] = GQLResolversParentTypes['FediverseActionResult']
+> = ResolversObject<{
+  activityId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  mapping?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  remoteActorId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  status?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseArticleResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseArticle'] = GQLResolversParentTypes['FediverseArticle']
+> = ResolversObject<{
+  announcesCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  contentId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  likesCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  notificationsCount?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  replies?: Resolver<
+    Array<GQLResolversTypes['FediversePost']>,
+    ParentType,
+    ContextType
+  >
+  repliesCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  unreadNotificationsCount?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseGatewayAuditEventResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseGatewayAuditEvent'] = GQLResolversParentTypes['FediverseGatewayAuditEvent']
+> = ResolversObject<{
+  actorHandle?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  event?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  itemId?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  reason?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  timestamp?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseGatewayDashboardResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseGatewayDashboard'] = GQLResolversParentTypes['FediverseGatewayDashboard']
+> = ResolversObject<{
+  auditEvents?: Resolver<
+    Array<GQLResolversTypes['FediverseGatewayAuditEvent']>,
+    ParentType,
+    ContextType
+  >
+  deadLetters?: Resolver<
+    Array<GQLResolversTypes['FediverseGatewayDeadLetter']>,
+    ParentType,
+    ContextType
+  >
+  generatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  queue?: Resolver<
+    GQLResolversTypes['FediverseGatewayQueue'],
+    ParentType,
+    ContextType
+  >
+  reports?: Resolver<
+    Array<GQLResolversTypes['FediverseGatewayReport']>,
+    ParentType,
+    ContextType
+  >
+  social?: Resolver<
+    GQLResolversTypes['FediverseGatewaySocial'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseGatewayDeadLetterResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseGatewayDeadLetter'] = GQLResolversParentTypes['FediverseGatewayDeadLetter']
+> = ResolversObject<{
+  activityId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  activityType?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  actorHandle?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  recordedAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  status?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  targetActorId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseGatewayQueueResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseGatewayQueue'] = GQLResolversParentTypes['FediverseGatewayQueue']
+> = ResolversObject<{
+  deadLetter?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  delivered?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  oldestPendingAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  openDeadLetters?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  pending?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  processing?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  replayedDeadLetters?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  resolved?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  resolvedDeadLetters?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  retryPending?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  total?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseGatewayReportResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseGatewayReport'] = GQLResolversParentTypes['FediverseGatewayReport']
+> = ResolversObject<{
+  actorHandle?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  category?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  createdAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  objectId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  reason?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  remoteActorId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  remoteDomain?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  status?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseGatewaySocialResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseGatewaySocial'] = GQLResolversParentTypes['FediverseGatewaySocial']
+> = ResolversObject<{
+  actors?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  blocked?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  followers?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  following?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  inboundEngagements?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  inboundObjects?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  maxFollowingPerActor?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  openReports?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  pendingFollowing?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  timelineMaxItems?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  timelineRetentionDays?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  unreadNotifications?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseNotificationResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseNotification'] = GQLResolversParentTypes['FediverseNotification']
+> = ResolversObject<{
+  category?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  contentId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  eventCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  headline?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  objectId?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  preview?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  publishedAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  remoteActorIds?: Resolver<
+    Array<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  unreadCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediversePostResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediversePost'] = GQLResolversParentTypes['FediversePost']
+> = ResolversObject<{
+  content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  inReplyTo?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  objectId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  publishedAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  remoteActor?: Resolver<
+    GQLResolversTypes['FediverseRemoteActor'],
+    ParentType,
+    ContextType
+  >
+  summary?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  url?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseProfileResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseProfile'] = GQLResolversParentTypes['FediverseProfile']
+> = ResolversObject<{
+  account?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  actorId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  avatarUrl?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  displayName?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  followersCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  following?: Resolver<
+    Array<GQLResolversTypes['FediverseRemoteActor']>,
+    ParentType,
+    ContextType
+  >
+  followingCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  handle?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  headerUrl?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  maxFollowing?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  notifications?: Resolver<
+    Array<GQLResolversTypes['FediverseNotification']>,
+    ParentType,
+    ContextType
+  >
+  pendingFollowingCount?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  profileUrl?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  retentionDays?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  summary?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  timeline?: Resolver<
+    Array<GQLResolversTypes['FediversePost']>,
+    ParentType,
+    ContextType
+  >
+  timelineMaxItems?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  unreadNotificationsCount?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLFediverseRemoteActorResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['FediverseRemoteActor'] = GQLResolversParentTypes['FediverseRemoteActor']
+> = ResolversObject<{
+  account?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  actorId?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  avatarUrl?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  name?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  preferredUsername?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  status?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  summary?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  url?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLFollowingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Following'] = GQLResolversParentTypes['Following']
@@ -9921,6 +10591,12 @@ export type GQLMutationResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Mutation'] = GQLResolversParentTypes['Mutation']
 > = ResolversObject<{
+  actFediverse?: Resolver<
+    GQLResolversTypes['FediverseActionResult'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationActFediverseArgs, 'input'>
+  >
   addBlockedSearchKeyword?: Resolver<
     GQLResolversTypes['BlockedSearchKeyword'],
     ParentType,
@@ -10196,6 +10872,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPinCommentArgs, 'input'>
   >
+  pruneFediverseSocialData?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    Partial<GQLMutationPruneFediverseSocialDataArgs>
+  >
   publishArticle?: Resolver<
     GQLResolversTypes['Draft'],
     ParentType,
@@ -10334,6 +11016,11 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationReadArticleArgs, 'input'>
   >
+  refreshFediverseProfile?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   removeSocialLogin?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -10363,6 +11050,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationReorderCollectionArticlesArgs, 'input'>
   >
+  replayFediverseDeadLetter?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationReplayFediverseDeadLetterArgs, 'input'>
+  >
   resetLikerId?: Resolver<
     GQLResolversTypes['User'],
     ParentType,
@@ -10374,6 +11067,18 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationResetPasswordArgs, 'input'>
+  >
+  resolveFediverseDeadLetter?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationResolveFediverseDeadLetterArgs, 'input'>
+  >
+  resolveFediverseReport?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationResolveFediverseReportArgs, 'input'>
   >
   restoreCommunityWatchComment?: Resolver<
     GQLResolversTypes['CommunityWatchAction'],
@@ -11001,6 +11706,11 @@ export type GQLOssResolvers<
     ContextType,
     RequireFields<GQLOssCommentsArgs, 'input'>
   >
+  fediverseGateway?: Resolver<
+    GQLResolversTypes['FediverseGatewayDashboard'],
+    ParentType,
+    ContextType
+  >
   icymiTopics?: Resolver<
     GQLResolversTypes['IcymiTopicConnection'],
     ParentType,
@@ -11265,6 +11975,18 @@ export type GQLQueryResolvers<
     ContextType,
     Partial<GQLQueryExchangeRatesArgs>
   >
+  fediverseArticle?: Resolver<
+    GQLResolversTypes['FediverseArticle'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryFediverseArticleArgs, 'input'>
+  >
+  fediverseRemoteActor?: Resolver<
+    GQLResolversTypes['FediverseRemoteActor'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryFediverseRemoteActorArgs, 'input'>
+  >
   frequentSearch?: Resolver<
     Maybe<Array<GQLResolversTypes['String']>>,
     ParentType,
@@ -11315,6 +12037,11 @@ export type GQLQueryResolvers<
     RequireFields<GQLQueryUserArgs, 'input'>
   >
   viewer?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
+  viewerFediverse?: Resolver<
+    GQLResolversTypes['FediverseProfile'],
+    ParentType,
+    ContextType
+  >
 }>
 
 export type GQLQuoteResolvers<
@@ -13140,6 +13867,18 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   DraftEdge?: GQLDraftEdgeResolvers<ContextType>
   ExchangeRate?: GQLExchangeRateResolvers<ContextType>
   Feature?: GQLFeatureResolvers<ContextType>
+  FediverseActionResult?: GQLFediverseActionResultResolvers<ContextType>
+  FediverseArticle?: GQLFediverseArticleResolvers<ContextType>
+  FediverseGatewayAuditEvent?: GQLFediverseGatewayAuditEventResolvers<ContextType>
+  FediverseGatewayDashboard?: GQLFediverseGatewayDashboardResolvers<ContextType>
+  FediverseGatewayDeadLetter?: GQLFediverseGatewayDeadLetterResolvers<ContextType>
+  FediverseGatewayQueue?: GQLFediverseGatewayQueueResolvers<ContextType>
+  FediverseGatewayReport?: GQLFediverseGatewayReportResolvers<ContextType>
+  FediverseGatewaySocial?: GQLFediverseGatewaySocialResolvers<ContextType>
+  FediverseNotification?: GQLFediverseNotificationResolvers<ContextType>
+  FediversePost?: GQLFediversePostResolvers<ContextType>
+  FediverseProfile?: GQLFediverseProfileResolvers<ContextType>
+  FediverseRemoteActor?: GQLFediverseRemoteActorResolvers<ContextType>
   Following?: GQLFollowingResolvers<ContextType>
   FollowingActivity?: GQLFollowingActivityResolvers<ContextType>
   FollowingActivityConnection?: GQLFollowingActivityConnectionResolvers<ContextType>

@@ -7,6 +7,7 @@ import circle from './circle/index.js'
 import comment from './comment/index.js'
 import draft from './draft/index.js'
 import exchangeRates from './exchangeRates.js'
+import fediverse from './fediverse/index.js'
 import moment from './moment/index.js'
 import notice from './notice/index.js'
 import oauthClient from './oauthClient/index.js'
@@ -31,6 +32,7 @@ export default merge(
   oauthClient,
   oauthRequestToken,
   exchangeRates,
+  fediverse,
   recommendation,
   moment,
   quote,

@@ -318,9 +318,15 @@ describe('federationExportService', () => {
 
     expect(knexRO).toHaveBeenCalledWith('article')
     expect(query.whereIn).toHaveBeenCalledWith('article.id', ['101', '102'])
-    expect(query.leftJoin).toHaveBeenCalledTimes(1)
+    expect(query.leftJoin).toHaveBeenCalledTimes(3)
     expect(query.leftJoin).toHaveBeenCalledWith('user_ipns_keys as ipnsKey', {
       'ipnsKey.userId': 'author.id',
+    })
+    expect(query.leftJoin).toHaveBeenCalledWith('asset as authorAvatar', {
+      'authorAvatar.id': 'author.avatar',
+    })
+    expect(query.leftJoin).toHaveBeenCalledWith('asset as authorProfileCover', {
+      'authorProfileCover.id': 'author.profileCover',
     })
     expect(rows.map((row) => row.articleId)).toEqual(['101', '102'])
     expect(rows[0]).toMatchObject({
@@ -735,5 +741,258 @@ describe('federationExportService', () => {
       })
     ).rejects.toThrow('Article not found for federation export')
     expect(knex).not.toHaveBeenCalled()
+  })
+
+  test('maps gateway profile, notification, and timeline records for Matters', async () => {
+    const service = new FederationExportService({} as any)
+    const gatewayRequest = jest.fn(async (path: string) => {
+      if (path.startsWith('/admin/social/profile')) {
+        return {
+          actor: {
+            id: 'https://matters.town/ap/users/mashbean',
+            preferredUsername: 'mashbean',
+            name: 'Mashbean',
+            summary: 'Writer',
+            url: 'https://matters.town/@mashbean',
+            icon: { url: 'https://images.example/avatar.jpg' },
+            image: { url: 'https://images.example/header.jpg' },
+          },
+          counts: {
+            followers: 2,
+            following: 1,
+            pendingFollowing: 1,
+            unreadNotifications: 3,
+          },
+          following: [
+            {
+              actorId: 'https://social.example/users/alice',
+              account: 'alice@social.example',
+              name: 'Alice',
+              status: 'accepted',
+            },
+          ],
+          notifications: [
+            {
+              notificationId: 'notice-1',
+              primaryCategory: 'reply',
+              eventCount: 1,
+              unreadCount: 1,
+            },
+          ],
+        }
+      }
+      return {
+        items: [
+          {
+            objectId: 'https://social.example/notes/1',
+            content: '<p>Hello</p>',
+            remoteActor: {
+              actorId: 'https://social.example/users/alice',
+              account: 'alice@social.example',
+            },
+          },
+        ],
+      }
+    })
+    ;(service as any).gatewayRequest = gatewayRequest
+
+    const profile = await service.loadSocialProfile('mashbean')
+
+    expect(profile).toMatchObject({
+      handle: 'mashbean',
+      avatarUrl: 'https://images.example/avatar.jpg',
+      headerUrl: 'https://images.example/header.jpg',
+      followersCount: 2,
+      followingCount: 1,
+      pendingFollowingCount: 1,
+      unreadNotificationsCount: 3,
+    })
+    expect(profile.following[0]).toMatchObject({
+      account: 'alice@social.example',
+      status: 'accepted',
+    })
+    expect(profile.notifications[0]).toMatchObject({
+      id: 'notice-1',
+      category: 'reply',
+    })
+    expect(profile.timeline[0]).toMatchObject({
+      objectId: 'https://social.example/notes/1',
+      remoteActor: { account: 'alice@social.example' },
+    })
+  })
+
+  test('refreshes an enabled author profile with current avatar and cover', async () => {
+    const settingQuery: any = {
+      where: jest.fn(() => settingQuery),
+      first: jest.fn(async () => ({
+        userId: '1',
+        state: FEDERATION_AUTHOR_SETTING.enabled,
+      })),
+    }
+    const profileQuery: any = {
+      leftJoin: jest.fn(() => profileQuery),
+      where: jest.fn(() => profileQuery),
+      first: jest.fn(async () => ({
+        authorId: '1',
+        userName: 'Mashbean',
+        displayName: 'Mashbean',
+        description: 'Writer',
+        state: USER_STATE.active,
+        avatarPath: 'avatar/mashbean.jpg',
+        headerPath: 'profileCover/mashbean.jpg',
+      })),
+    }
+    const knexRO = jest.fn((table: string) =>
+      table === 'user_federation_setting' ? settingQuery : profileQuery
+    )
+    const service = new FederationExportService({ knexRO } as any)
+    const gatewayRequest = jest.fn(async () => ({ status: 'updated' }))
+    ;(service as any).gatewayRequest = gatewayRequest
+
+    await expect(service.refreshSocialProfile('1')).resolves.toBe(true)
+    expect(gatewayRequest).toHaveBeenCalledWith(
+      '/admin/actors',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          handle: 'mashbean',
+          displayName: 'Mashbean',
+          avatarUrl: expect.stringContaining('/avatar/mashbean.jpg/public'),
+          headerUrl: expect.stringContaining(
+            '/profileCover/mashbean.jpg/public'
+          ),
+        }),
+      })
+    )
+  })
+
+  test('builds safe outbound follow and reply gateway requests', async () => {
+    const service = new FederationExportService({} as any)
+    const gatewayRequest = jest.fn(async () => ({
+      status: 'queued',
+      activityId: 'https://matters.town/ap/activities/1',
+    }))
+    ;(service as any).gatewayRequest = gatewayRequest
+
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'follow',
+        account: '@alice@social.example',
+      },
+    })
+    await service.runSocialAction({
+      actorHandle: 'mashbean',
+      actorId: '1',
+      input: {
+        action: 'reply',
+        objectId: 'https://social.example/notes/1',
+        remoteActorId: 'https://social.example/users/alice',
+        content: '<script>alert(1)</script>',
+      },
+    })
+
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      1,
+      '/users/mashbean/outbox/follow',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          account: '@alice@social.example',
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenNthCalledWith(
+      2,
+      '/users/mashbean/outbox/create',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          object: expect.objectContaining({
+            content: '<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>',
+            inReplyTo: 'https://social.example/notes/1',
+          }),
+        }),
+      })
+    )
+  })
+
+  test('maps social operations data and resolves user reports', async () => {
+    const service = new FederationExportService({} as any)
+    const gatewayRequest = jest.fn(async (path: string) => {
+      if (path === '/admin/queues/outbound?traceLimit=20') {
+        return { queue: { summary: {}, deadLetters: {} } }
+      }
+      if (path.startsWith('/admin/dead-letters')) {
+        return { items: [] }
+      }
+      if (path.startsWith('/admin/audit-log')) {
+        return { items: [] }
+      }
+      if (path === '/admin/social/summary') {
+        return {
+          totals: { actors: 4, following: 2, openReports: 1 },
+          limits: { timelineRetentionDays: 30, timelineMaxItems: 1000 },
+        }
+      }
+      if (path.startsWith('/admin/abuse-queue')) {
+        return {
+          items: [
+            {
+              id: 'report-1',
+              status: 'open',
+              category: 'user-report',
+              actorHandle: 'mashbean',
+              remoteActorId: 'https://social.example/users/alice',
+              reason: 'spam',
+            },
+          ],
+        }
+      }
+      return { status: 'ok' }
+    })
+    ;(service as any).gatewayRequest = gatewayRequest
+
+    const dashboard = await service.loadGatewayDashboard()
+    await service.pruneGatewaySocialData({
+      operatorId: '99',
+      retentionDays: 14,
+      maxItems: 500,
+    })
+    await service.resolveGatewayAbuseCase({
+      id: 'report-1',
+      operatorId: '99',
+      resolution: 'reviewed',
+    })
+
+    expect(dashboard.social).toMatchObject({
+      actors: 4,
+      following: 2,
+      openReports: 1,
+      timelineRetentionDays: 30,
+      timelineMaxItems: 1000,
+    })
+    expect(dashboard.reports).toHaveLength(1)
+    expect(gatewayRequest).toHaveBeenCalledWith(
+      '/admin/social/prune',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          retentionDays: 14,
+          maxItems: 500,
+        }),
+      })
+    )
+    expect(gatewayRequest).toHaveBeenCalledWith(
+      '/admin/abuse-queue/resolve',
+      expect.objectContaining({
+        method: 'POST',
+        data: expect.objectContaining({
+          id: 'report-1',
+          resolution: 'reviewed',
+        }),
+      })
+    )
   })
 })
