@@ -5,14 +5,26 @@ import { jest } from '@jest/globals'
 // Minimal knex query-builder stub: each `knexRO('spam_ring')` call gets
 // the next queued result, matching the query order inside collectStats.
 const queuedResults: unknown[] = []
+let actionableFilterCalls = 0
 const makeBuilder = (result: unknown) => {
   const qb: any = {
     where: () => qb,
+    whereExists: (callback: (this: unknown) => void) => {
+      actionableFilterCalls += 1
+      callback.call(qb)
+      return qb
+    },
+    whereIn: () => qb,
+    whereNotIn: () => qb,
+    whereRaw: () => qb,
+    from: () => qb,
+    join: () => qb,
     count: () => qb,
     orderBy: () => qb,
     limit: () => qb,
     first: async () => result,
-    select: async () => result,
+    select: (...columns: unknown[]) =>
+      columns.length === 1 && columns[0] === 1 ? qb : Promise.resolve(result),
   }
   return qb
 }
@@ -154,6 +166,7 @@ describe('handler', () => {
     redis.del.mockClear()
     redisStore.clear()
     queuedResults.length = 0
+    actionableFilterCalls = 0
     ;(environment as { env: string }).env = 'production'
     ;(environment as { telegramBotToken: string }).telegramBotToken = 'tkn'
     ;(environment as { telegramAlertChatId: string }).telegramAlertChatId =
@@ -245,6 +258,7 @@ describe('handler', () => {
     const text = (body as { text: string }).text
     expect(text).toContain('待處理 ring：3')
     expect(text).toContain('<code>abcdef01</code>')
+    expect(actionableFilterCalls).toBe(2)
     // pg numeric string is normalized before formatting
     expect(text).toContain('新帳號比 92%')
     expect(redisStore.get('spam-ring-digest:sent:2026-07-07')).toBe('1')

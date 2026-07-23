@@ -3,6 +3,7 @@ import type { SpamRingSeverity } from '#definitions/index.js'
 import { environment } from '#common/environment.js'
 import { getLogger } from '#common/logger.js'
 import { sendTelegramMessage } from '#common/notifications/telegram.js'
+import { filterActionableSpamRings } from '#connectors/spamRingService.js'
 
 import { connections } from '../connections.js'
 
@@ -101,13 +102,14 @@ const lockKey = (date = new Date()): string =>
 export const collectStats = async (): Promise<SpamRingDigestStats> => {
   const knexRO = connections.knexRO
   const since = new Date(Date.now() - LOOKBACK_MS)
+  const actionablePendingQuery = () =>
+    filterActionableSpamRings(knexRO('spam_ring').where({ status: 'pending' }))
 
   const [pendingRow, detectedRow, frozenRow, topRows] = await Promise.all([
-    knexRO('spam_ring').where({ status: 'pending' }).count().first(),
+    actionablePendingQuery().count().first(),
     knexRO('spam_ring').where('detectedAt', '>=', since).count().first(),
     knexRO('spam_ring').where('frozenAt', '>=', since).count().first(),
-    knexRO('spam_ring')
-      .where({ status: 'pending' })
+    actionablePendingQuery()
       .orderBy('nAuthors', 'desc')
       .limit(TOP_PENDING_LIMIT)
       .select(
