@@ -626,13 +626,17 @@ export class FederationExportService {
 
   public async loadSelectedArticleRows(
     articleIds: string[],
-    options: { includeFederationSettings?: boolean } = {}
+    options: {
+      includeFederationSettings?: boolean
+      usePrimary?: boolean
+    } = {}
   ): Promise<FederationExportArticleRow[]> {
     if (articleIds.length === 0) {
       throw new Error('Explicit articleIds are required for federation export')
     }
 
-    const query = this.knexRO<ArticleExportQueryRow>('article')
+    const connection = options.usePrimary ? this.knex : this.knexRO
+    const query = connection<ArticleExportQueryRow>('article')
       .join('article_version_newest as articleVersion', {
         'articleVersion.articleId': 'article.id',
       })
@@ -746,6 +750,7 @@ export class FederationExportService {
 
     const rows = await this.loadSelectedArticleRows([articleId], {
       includeFederationSettings: true,
+      usePrimary: true,
     })
 
     if (rows.length === 0) {
