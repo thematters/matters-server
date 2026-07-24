@@ -391,6 +391,44 @@ describe('federationExportService', () => {
     expect(rows[0].federationSetting).toBe(FEDERATION_ARTICLE_SETTING.inherit)
   })
 
+  test('loads consistency-sensitive export rows from the primary DB', async () => {
+    const { knexRO: knex } = createKnexRO([
+      {
+        articleId: '101',
+        articleState: ARTICLE_STATE.active,
+        shortHash: 'abc123',
+        title: '最新公開長文',
+        summary: '最新摘要',
+        content: '<p>最新內容</p>',
+        tags: ['Fediverse'],
+        access: ARTICLE_ACCESS_TYPE.public,
+        circleId: null,
+        createdAt: new Date('2026-05-02T00:00:00.000Z'),
+        updatedAt: new Date('2026-05-02T02:00:00.000Z'),
+        authorId: '1',
+        userName: 'mashbean',
+        displayName: 'Mashbean',
+        authorDescription: 'Matters author',
+        authorState: USER_STATE.active,
+        ipnsKey: 'k51example',
+      },
+    ])
+    const knexRO = jest.fn()
+    const service = new FederationExportService({ knex, knexRO } as any)
+
+    const rows = await service.loadSelectedArticleRows(['101'], {
+      usePrimary: true,
+    })
+
+    expect(knex).toHaveBeenCalledWith('article')
+    expect(knexRO).not.toHaveBeenCalled()
+    expect(rows[0]).toMatchObject({
+      title: '最新公開長文',
+      summary: '最新摘要',
+      content: '<p>最新內容</p>',
+    })
+  })
+
   test('requires explicit article IDs for DB-backed federation export', async () => {
     const { knexRO } = createKnexRO([])
     const service = new FederationExportService({ knexRO } as any)
@@ -544,29 +582,6 @@ describe('federationExportService', () => {
   })
 
   test('records a strict export trigger decision without invoking external delivery', async () => {
-    const { knexRO } = createKnexRO([
-      {
-        articleId: '101',
-        articleState: ARTICLE_STATE.active,
-        shortHash: 'abc123',
-        title: '公開長文',
-        summary: '一篇公開長文摘要',
-        content: '<p>公開內容</p>',
-        tags: ['Fediverse'],
-        access: ARTICLE_ACCESS_TYPE.public,
-        circleId: null,
-        createdAt: new Date('2026-05-02T00:00:00.000Z'),
-        updatedAt: new Date('2026-05-02T01:00:00.000Z'),
-        authorId: '1',
-        userName: 'mashbean',
-        displayName: 'Mashbean',
-        authorDescription: 'Matters author',
-        authorState: USER_STATE.active,
-        ipnsKey: 'k51example',
-        authorFederationSetting: FEDERATION_AUTHOR_SETTING.enabled,
-        articleFederationSetting: FEDERATION_ARTICLE_SETTING.inherit,
-      },
-    ])
     const { knex, query } = createKnexInsert([
       {
         id: '1',
@@ -589,7 +604,21 @@ describe('federationExportService', () => {
         },
       },
     ])
-    const service = new FederationExportService({ knex, knexRO } as any)
+    const service = new FederationExportService({
+      knex,
+      knexRO: jest.fn(),
+    } as any)
+    const loadRows = jest
+      .spyOn(service, 'loadSelectedArticleRows')
+      .mockResolvedValue([
+        publicRow({
+          federationSetting: FEDERATION_ARTICLE_SETTING.inherit,
+          author: {
+            ...publicRow().author,
+            federationSetting: FEDERATION_AUTHOR_SETTING.enabled,
+          },
+        }),
+      ])
 
     const row = await service.recordExportTriggerDecision({
       articleId: '101',
@@ -597,6 +626,10 @@ describe('federationExportService', () => {
       trigger: FEDERATION_EXPORT_TRIGGER.publishArticle,
     })
 
+    expect(loadRows).toHaveBeenCalledWith(['101'], {
+      includeFederationSettings: true,
+      usePrimary: true,
+    })
     expect(knex).toHaveBeenCalledWith('federation_export_event')
     expect(query.insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -730,9 +763,12 @@ describe('federationExportService', () => {
   })
 
   test('rejects missing articles before writing an event', async () => {
-    const { knexRO } = createKnexRO([])
     const { knex } = createKnexInsert([])
-    const service = new FederationExportService({ knex, knexRO } as any)
+    const service = new FederationExportService({
+      knex,
+      knexRO: jest.fn(),
+    } as any)
+    jest.spyOn(service, 'loadSelectedArticleRows').mockResolvedValue([])
 
     await expect(
       service.recordExportTriggerDecision({
