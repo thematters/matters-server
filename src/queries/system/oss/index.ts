@@ -13,9 +13,10 @@ import { skippedListItems } from './skippedListItems.js'
 import { spamRings } from './spamRings.js'
 import { tags } from './tags.js'
 import { topicChannelFeedbacks } from './topicChannelFeedbacks.js'
-import { users } from './users.js'
+import { user, users } from './users.js'
 
 export default {
+  user,
   users,
   articles,
   comments,
