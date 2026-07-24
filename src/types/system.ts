@@ -149,6 +149,8 @@ export default /* GraphQL */ `
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+    "Look up one user by global ID, Matters ID, or email."
+    user(input: OSSUserInput!): User
     users(input: ConnectionArgs!): UserConnection!
     comments(input: OSSCommentsInput!): CommentConnection!
     moments(input: OSSMomentsInput!): MomentConnection!
@@ -164,6 +166,12 @@ export default /* GraphQL */ `
     icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
     topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
     fediverseGateway: FediverseGatewayDashboard!
+  }
+
+  input OSSUserInput {
+    id: ID
+    userName: String
+    email: String @constraint(format: "email")
   }
 
   type FediverseGatewayDashboard {
@@ -357,6 +365,17 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     resolvedAt: DateTime
     closedAt: DateTime
+  }
+
+  type ModerationCaseConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [ModerationCaseEdge!]!
+  }
+
+  type ModerationCaseEdge {
+    cursor: String!
+    node: ModerationCase!
   }
 
   type ReportConnection implements Connection {

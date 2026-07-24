@@ -1,4 +1,21 @@
-import type { GQLUserOssResolvers } from '#definitions/index.js'
+import type {
+  GQLModerationCaseConnection,
+  GQLUserOssResolvers,
+  ModerationCase,
+} from '#definitions/index.js'
+
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from '#common/utils/index.js'
+
+export const ossEmail: GQLUserOssResolvers['email'] = ({
+  email: accountEmail,
+}) => (accountEmail ? accountEmail.replace(/#/g, '@') : null)
+
+export const ossEmailVerified: GQLUserOssResolvers['emailVerified'] = ({
+  emailVerified: accountEmailVerified,
+}) => accountEmailVerified || false
 
 export const boost: GQLUserOssResolvers['boost'] = (
   { id },
@@ -30,3 +47,28 @@ export const momentFeedApplication: GQLUserOssResolvers['momentFeedApplication']
       table: 'moment_feed_user',
       where: { userId: id },
     })
+
+export const moderationCases: GQLUserOssResolvers['moderationCases'] = async (
+  { id },
+  { input },
+  { dataSources: { systemService } }
+) => {
+  const { take, skip } = fromConnectionArgs(input)
+  const where = {
+    targetType: 'user',
+    targetId: id,
+  }
+  const totalCount = await systemService.baseCount(where, 'moderation_case')
+
+  return (await connectionFromPromisedArray(
+    systemService.baseFind({
+      table: 'moderation_case',
+      where,
+      orderBy: [{ column: 'createdAt', order: 'desc' }],
+      skip,
+      take,
+    }) as Promise<ModerationCase[]>,
+    input,
+    totalCount
+  )) as unknown as GQLModerationCaseConnection
+}

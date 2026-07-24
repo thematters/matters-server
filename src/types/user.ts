@@ -449,11 +449,16 @@ export default /* GraphQL */ `
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+    "Account email for staff support and appeal matching."
+    email: String @constraint(format: "email")
+    emailVerified: Boolean!
     boost: Float!
     score: Float!
     restrictions: [UserRestriction!]!
     featureFlags: [UserFeatureFlag!]!
     momentFeedApplication: MomentFeedApplication
+    "Account-level moderation cases for staff review."
+    moderationCases(input: ConnectionArgs!): ModerationCaseConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
   type UserFeatures @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
