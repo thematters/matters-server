@@ -10,9 +10,7 @@ type ClearCommunityWatchOriginalContentInput = {
 
 const resolver = async (
   _: unknown,
-  {
-    input: { uuid, note },
-  }: { input: ClearCommunityWatchOriginalContentInput },
+  { input: { uuid, note } }: { input: ClearCommunityWatchOriginalContentInput },
   { viewer, dataSources: { commentService } }: Context
 ) => {
   if (!viewer.hasRole('admin')) {

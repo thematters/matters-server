@@ -120,7 +120,10 @@ describe('processRecord', () => {
     await processRecord(makePayload(), 'tkn', '-100', '', redis)
 
     expect(axios.post).toHaveBeenCalledTimes(1)
-    const [url, body] = axios.post.mock.calls[0] as [string, Record<string, unknown>]
+    const [url, body] = axios.post.mock.calls[0] as [
+      string,
+      Record<string, unknown>
+    ]
     expect(url).toContain('/sendMessage')
     expect(body).toMatchObject({
       chat_id: '-100',
@@ -144,7 +147,10 @@ describe('processRecord', () => {
     await processRecord(makePayload(), 'tkn', '-100', '', redis)
 
     expect(axios.post).toHaveBeenCalledTimes(1)
-    const [url, body] = axios.post.mock.calls[0] as [string, Record<string, unknown>]
+    const [url, body] = axios.post.mock.calls[0] as [
+      string,
+      Record<string, unknown>
+    ]
     expect(url).toContain('/editMessageText')
     expect(body).toMatchObject({ message_id: 7 })
     expect((body as { text: string }).text).toContain('累積次數：2')
@@ -187,7 +193,10 @@ describe('processRecord', () => {
 
     await processRecord(makePayload(), 'tkn', '-100', '42', makeRedis())
 
-    const [, body] = axios.post.mock.calls[0] as [string, Record<string, unknown>]
+    const [, body] = axios.post.mock.calls[0] as [
+      string,
+      Record<string, unknown>
+    ]
     expect(body).toMatchObject({ message_thread_id: 42 })
   })
 })
@@ -245,10 +254,7 @@ describe('handler', () => {
     }
     const res = await handler(event)
     expect(res).toEqual({
-      batchItemFailures: [
-        { itemIdentifier: 'm1' },
-        { itemIdentifier: 'm2' },
-      ],
+      batchItemFailures: [{ itemIdentifier: 'm1' }, { itemIdentifier: 'm2' }],
     })
     expect(axios.post).not.toHaveBeenCalled()
   })

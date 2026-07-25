@@ -1,7 +1,4 @@
-import type {
-  Context,
-  GQLQueryResolvers,
-} from '#definitions/index.js'
+import type { Context, GQLQueryResolvers } from '#definitions/index.js'
 
 const resolver: GQLQueryResolvers['communityWatchAction'] = (
   _: unknown,

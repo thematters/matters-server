@@ -23,8 +23,7 @@ const original = [
   'other',
 ]
 
-const toCheck = (values) =>
-  values.map((v) => `'${v}'`).join(', ')
+const toCheck = (values) => values.map((v) => `'${v}'`).join(', ')
 
 export const up = async (knex) => {
   await knex.raw(`ALTER TABLE report DROP CONSTRAINT IF EXISTS ${constraint}`)

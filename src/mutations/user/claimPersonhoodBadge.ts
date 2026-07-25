@@ -51,8 +51,8 @@ const resolver: GQLMutationResolvers['claimPersonhoodBadge'] = async (
       typeof result.reason === 'string'
         ? result.reason
         : typeof result.error === 'string'
-          ? result.error
-          : 'personhood proof verification failed'
+        ? result.error
+        : 'personhood proof verification failed'
     throw new UserInputError(reason)
   }
 
@@ -132,8 +132,8 @@ const verifyProof = async ({
       typeof body.error === 'string'
         ? body.error
         : typeof body.reason === 'string'
-          ? body.reason
-          : 'personhood verifier rejected proof'
+        ? body.reason
+        : 'personhood verifier rejected proof'
     throw new UserInputError(message)
   }
 
