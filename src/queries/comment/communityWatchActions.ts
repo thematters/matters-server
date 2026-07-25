@@ -1,7 +1,4 @@
-import type {
-  Context,
-  GQLQueryResolvers,
-} from '#definitions/index.js'
+import type { Context, GQLQueryResolvers } from '#definitions/index.js'
 
 import { connectionFromArray, fromConnectionArgs } from '#common/utils/index.js'
 
@@ -35,11 +32,7 @@ const resolver: GQLQueryResolvers['communityWatchActions'] = async (
     take,
   })
 
-  return connectionFromArray(
-    actions,
-    connectionArgs,
-    totalCount
-  )
+  return connectionFromArray(actions, connectionArgs, totalCount)
 }
 
 export default resolver

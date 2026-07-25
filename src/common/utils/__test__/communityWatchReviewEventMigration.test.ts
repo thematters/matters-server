@@ -82,7 +82,13 @@ const createKnex = () => {
     },
   }
 
-  return { knex, entityTypeInserts, entityTypeDeletes, tableCalls, droppedTables }
+  return {
+    knex,
+    entityTypeInserts,
+    entityTypeDeletes,
+    tableCalls,
+    droppedTables,
+  }
 }
 
 describe('community watch review event migration', () => {

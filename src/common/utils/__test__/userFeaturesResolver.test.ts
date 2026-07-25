@@ -13,14 +13,10 @@ describe('user public-safe features resolver', () => {
       ]),
     }
 
-    const result = await features(
-      { id: '1' } as any,
-      {},
-      {
-        viewer: { id: '1' },
-        dataSources: { userService },
-      } as any
-    )
+    const result = await features({ id: '1' } as any, {}, {
+      viewer: { id: '1' },
+      dataSources: { userService },
+    } as any)
 
     expect(result).toEqual({
       fediverseBeta: true,
@@ -33,14 +29,10 @@ describe('user public-safe features resolver', () => {
       findFeatureFlags: jest.fn(),
     }
 
-    const result = await features(
-      { id: '2' } as any,
-      {},
-      {
-        viewer: { id: '1' },
-        dataSources: { userService },
-      } as any
-    )
+    const result = await features({ id: '2' } as any, {}, {
+      viewer: { id: '1' },
+      dataSources: { userService },
+    } as any)
 
     expect(result).toEqual({
       fediverseBeta: false,
@@ -54,14 +46,10 @@ describe('user public-safe features resolver', () => {
       findFeatureFlags: jest.fn(),
     }
 
-    const result = await features(
-      { id: '1' } as any,
-      {},
-      {
-        viewer: {},
-        dataSources: { userService },
-      } as any
-    )
+    const result = await features({ id: '1' } as any, {}, {
+      viewer: {},
+      dataSources: { userService },
+    } as any)
 
     expect(result).toEqual({
       fediverseBeta: false,
