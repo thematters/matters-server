@@ -2609,6 +2609,8 @@ type TranslatedAnnouncement {
 }
 
 type OSS {
+  """Look up one user by global ID, Matters ID, or email."""
+  user(input: OSSUserInput!): User
   users(input: ConnectionArgs!): UserConnection!
   comments(input: OSSCommentsInput!): CommentConnection!
   moments(input: OSSMomentsInput!): MomentConnection!
@@ -2625,6 +2627,12 @@ type OSS {
   topicChannelFeedbacks(input: TopicChannelFeedbacksInput!): TopicChannelFeedbackConnection!
   fediverseGateway: FediverseGatewayDashboard!
   momentFeedUsers(input: MomentFeedUsersInput!): UserConnection!
+}
+
+input OSSUserInput {
+  id: ID
+  userName: String
+  email: String
 }
 
 type FediverseGatewayDashboard {
@@ -2823,6 +2831,17 @@ type ModerationCase {
   createdAt: DateTime!
   resolvedAt: DateTime
   closedAt: DateTime
+}
+
+type ModerationCaseConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ModerationCaseEdge!]!
+}
+
+type ModerationCaseEdge {
+  cursor: String!
+  node: ModerationCase!
 }
 
 type ReportConnection implements Connection {
@@ -3770,11 +3789,17 @@ type Liker {
 }
 
 type UserOSS {
+  """Account email for staff support and appeal matching."""
+  email: String
+  emailVerified: Boolean!
   boost: Float!
   score: Float!
   restrictions: [UserRestriction!]!
   featureFlags: [UserFeatureFlag!]!
   momentFeedApplication: MomentFeedApplication
+
+  """Account-level moderation cases for staff review."""
+  moderationCases(input: ConnectionArgs!): ModerationCaseConnection!
 }
 
 type UserFeatures {

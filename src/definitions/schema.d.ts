@@ -2392,6 +2392,19 @@ export type GQLModerationCase = {
   targetType: GQLModerationTargetType
 }
 
+export type GQLModerationCaseConnection = GQLConnection & {
+  __typename?: 'ModerationCaseConnection'
+  edges: Array<GQLModerationCaseEdge>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLModerationCaseEdge = {
+  __typename?: 'ModerationCaseEdge'
+  cursor: Scalars['String']['output']
+  node: GQLModerationCase
+}
+
 export type GQLModerationCaseOutcome =
   | 'account_limited'
   | 'content_collapsed'
@@ -3466,6 +3479,8 @@ export type GQLOss = {
   spamRings: GQLSpamRingConnection
   tags: GQLTagConnection
   topicChannelFeedbacks: GQLTopicChannelFeedbackConnection
+  /** Look up one user by global ID, Matters ID, or email. */
+  user?: Maybe<GQLUser>
   users: GQLUserConnection
 }
 
@@ -3523,6 +3538,10 @@ export type GQLOssTagsArgs = {
 
 export type GQLOssTopicChannelFeedbacksArgs = {
   input: GQLTopicChannelFeedbacksInput
+}
+
+export type GQLOssUserArgs = {
+  input: GQLOssUserInput
 }
 
 export type GQLOssUsersArgs = {
@@ -3586,6 +3605,12 @@ export type GQLOssSpamRingsInput = {
   filter?: InputMaybe<GQLOssSpamRingsFilter>
   first?: InputMaybe<Scalars['Int']['input']>
   sort?: InputMaybe<GQLSpamRingsSort>
+}
+
+export type GQLOssUserInput = {
+  email?: InputMaybe<Scalars['String']['input']>
+  id?: InputMaybe<Scalars['ID']['input']>
+  userName?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLOauth1CredentialInput = {
@@ -5642,10 +5667,19 @@ export type GQLUserNoticeType = 'MomentFeedApproved' | 'UserNewFollower'
 export type GQLUserOss = {
   __typename?: 'UserOSS'
   boost: Scalars['Float']['output']
+  /** Account email for staff support and appeal matching. */
+  email?: Maybe<Scalars['String']['output']>
+  emailVerified: Scalars['Boolean']['output']
   featureFlags: Array<GQLUserFeatureFlag>
+  /** Account-level moderation cases for staff review. */
+  moderationCases: GQLModerationCaseConnection
   momentFeedApplication?: Maybe<GQLMomentFeedApplication>
   restrictions: Array<GQLUserRestriction>
   score: Scalars['Float']['output']
+}
+
+export type GQLUserOssModerationCasesArgs = {
+  input: GQLConnectionArgs
 }
 
 export type GQLUserPostMomentActivity = {
@@ -6079,6 +6113,7 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLMemberConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['MemberEdge']>>
       })
+    | GQLModerationCaseConnection
     | (Omit<GQLMomentConnection, 'edges'> & {
         edges?: Maybe<Array<_RefType['MomentEdge']>>
       })
@@ -6585,6 +6620,8 @@ export type GQLResolversTypes = ResolversObject<{
   MigrationType: GQLMigrationType
   ModerationAutomationRole: GQLModerationAutomationRole
   ModerationCase: ResolverTypeWrapper<GQLModerationCase>
+  ModerationCaseConnection: ResolverTypeWrapper<GQLModerationCaseConnection>
+  ModerationCaseEdge: ResolverTypeWrapper<GQLModerationCaseEdge>
   ModerationCaseOutcome: GQLModerationCaseOutcome
   ModerationCaseSource: GQLModerationCaseSource
   ModerationCaseStatus: GQLModerationCaseStatus
@@ -6654,6 +6691,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'spamRings'
       | 'tags'
       | 'topicChannelFeedbacks'
+      | 'user'
       | 'users'
     > & {
       articles: GQLResolversTypes['ArticleConnection']
@@ -6669,6 +6707,7 @@ export type GQLResolversTypes = ResolversObject<{
       spamRings: GQLResolversTypes['SpamRingConnection']
       tags: GQLResolversTypes['TagConnection']
       topicChannelFeedbacks: GQLResolversTypes['TopicChannelFeedbackConnection']
+      user?: Maybe<GQLResolversTypes['User']>
       users: GQLResolversTypes['UserConnection']
     }
   >
@@ -6682,6 +6721,7 @@ export type GQLResolversTypes = ResolversObject<{
   OSSSpamDatetimeFilterInput: GQLOssSpamDatetimeFilterInput
   OSSSpamRingsFilter: GQLOssSpamRingsFilter
   OSSSpamRingsInput: GQLOssSpamRingsInput
+  OSSUserInput: GQLOssUserInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: ResolverTypeWrapper<
     Omit<GQLOfficial, 'announcements'> & {
@@ -7409,6 +7449,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   MergeTagsInput: GQLMergeTagsInput
   MigrationInput: GQLMigrationInput
   ModerationCase: GQLModerationCase
+  ModerationCaseConnection: GQLModerationCaseConnection
+  ModerationCaseEdge: GQLModerationCaseEdge
   Moment: MomentModel
   MomentConnection: Omit<GQLMomentConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['MomentEdge']>>
@@ -7457,6 +7499,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'spamRings'
     | 'tags'
     | 'topicChannelFeedbacks'
+    | 'user'
     | 'users'
   > & {
     articles: GQLResolversParentTypes['ArticleConnection']
@@ -7472,6 +7515,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     spamRings: GQLResolversParentTypes['SpamRingConnection']
     tags: GQLResolversParentTypes['TagConnection']
     topicChannelFeedbacks: GQLResolversParentTypes['TopicChannelFeedbackConnection']
+    user?: Maybe<GQLResolversParentTypes['User']>
     users: GQLResolversParentTypes['UserConnection']
   }
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
@@ -7483,6 +7527,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   OSSSpamDatetimeFilterInput: GQLOssSpamDatetimeFilterInput
   OSSSpamRingsFilter: GQLOssSpamRingsFilter
   OSSSpamRingsInput: GQLOssSpamRingsInput
+  OSSUserInput: GQLOssUserInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: Omit<GQLOfficial, 'announcements'> & {
     announcements?: Maybe<Array<GQLResolversParentTypes['Announcement']>>
@@ -9481,6 +9526,7 @@ export type GQLConnectionResolvers<
     | 'IcymiTopicConnection'
     | 'InvitationConnection'
     | 'MemberConnection'
+    | 'ModerationCaseConnection'
     | 'MomentConnection'
     | 'NoticeConnection'
     | 'OAuthClientConnection'
@@ -10480,6 +10526,29 @@ export type GQLModerationCaseResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLModerationCaseConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ModerationCaseConnection'] = GQLResolversParentTypes['ModerationCaseConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Array<GQLResolversTypes['ModerationCaseEdge']>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLModerationCaseEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ModerationCaseEdge'] = GQLResolversParentTypes['ModerationCaseEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['ModerationCase'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -11793,6 +11862,12 @@ export type GQLOssResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLOssTopicChannelFeedbacksArgs, 'input'>
+  >
+  user?: Resolver<
+    Maybe<GQLResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssUserArgs, 'input'>
   >
   users?: Resolver<
     GQLResolversTypes['UserConnection'],
@@ -13475,10 +13550,22 @@ export type GQLUserOssResolvers<
   ParentType extends GQLResolversParentTypes['UserOSS'] = GQLResolversParentTypes['UserOSS']
 > = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  email?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  emailVerified?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   featureFlags?: Resolver<
     Array<GQLResolversTypes['UserFeatureFlag']>,
     ParentType,
     ContextType
+  >
+  moderationCases?: Resolver<
+    GQLResolversTypes['ModerationCaseConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLUserOssModerationCasesArgs, 'input'>
   >
   momentFeedApplication?: Resolver<
     Maybe<GQLResolversTypes['MomentFeedApplication']>,
@@ -13919,6 +14006,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   MemberConnection?: GQLMemberConnectionResolvers<ContextType>
   MemberEdge?: GQLMemberEdgeResolvers<ContextType>
   ModerationCase?: GQLModerationCaseResolvers<ContextType>
+  ModerationCaseConnection?: GQLModerationCaseConnectionResolvers<ContextType>
+  ModerationCaseEdge?: GQLModerationCaseEdgeResolvers<ContextType>
   Moment?: GQLMomentResolvers<ContextType>
   MomentConnection?: GQLMomentConnectionResolvers<ContextType>
   MomentEdge?: GQLMomentEdgeResolvers<ContextType>

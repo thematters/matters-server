@@ -65,7 +65,10 @@ import notification from './notification.js'
 import {
   boost,
   featureFlags,
+  moderationCases,
   momentFeedApplication,
+  ossEmail,
+  ossEmailVerified,
   restrictions,
   score,
 } from './oss.js'
@@ -211,11 +214,14 @@ const user: {
 
   // OSS
   UserOSS: {
+    email: ossEmail,
+    emailVerified: ossEmailVerified,
     boost,
     score,
     restrictions,
     featureFlags,
     momentFeedApplication,
+    moderationCases,
   },
 
   // Payment
