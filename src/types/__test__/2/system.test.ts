@@ -2317,7 +2317,9 @@ describe('query OSS comments', () => {
     })
     const { data, errors } = await serverAdmin.executeOperation({
       query: QUERY_COMMENTS,
-      variables: { input: { first: 10, filter: { keyword: 'TEST COMMENT 2' } } },
+      variables: {
+        input: { first: 10, filter: { keyword: 'TEST COMMENT 2' } },
+      },
     })
     expect(errors).toBeUndefined()
     const edges = _get(data, 'oss.comments.edges')
