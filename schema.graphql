@@ -3550,7 +3550,15 @@ input OSSCommentsInput {
   after: String
   first: Int
   sort: OSSContentSpamSort = newest
-  filter: OSSSpamDatetimeFilterInput
+  filter: OSSCommentsFilterInput
+}
+
+input OSSCommentsFilterInput {
+  datetimeRange: DatetimeRangeInput
+
+  """Case-insensitive substring match on comment content."""
+  keyword: String
+  state: CommentState
 }
 
 input OSSMomentsInput {

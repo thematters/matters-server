@@ -17,6 +17,18 @@ export const comments: GQLOssResolvers['comments'] = async (
     query = query.where('created_at', '<=', range.end)
   }
 
+  const keyword = input?.filter?.keyword?.trim()
+  if (keyword) {
+    // match the keyword literally: escape LIKE wildcards and the escape char
+    const escaped = keyword.replace(/[\\%_]/g, '\\$&')
+    query = query.whereILike('content', `%${escaped}%`)
+  }
+
+  const state = input?.filter?.state
+  if (state) {
+    query = query.where('state', state)
+  }
+
   let orderBy: { column: string; order: 'asc' | 'desc' } = {
     column: 'id',
     order: 'desc',
