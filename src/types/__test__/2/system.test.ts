@@ -2266,6 +2266,7 @@ describe('query OSS comments', () => {
             node {
               id
               content
+              state
               createdAt
             }
           }
@@ -2306,6 +2307,58 @@ describe('query OSS comments', () => {
     })
     expect(errors).toBeUndefined()
     expect(_get(data, 'oss.comments.edges')).toBeDefined()
+  })
+
+  test('query comments by keyword', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_COMMENTS,
+      variables: {
+        input: { first: 10, filter: { keyword: 'TEST COMMENT 2' } },
+      },
+    })
+    expect(errors).toBeUndefined()
+    const edges = _get(data, 'oss.comments.edges')
+    expect(edges.length).toBeGreaterThan(0)
+    edges.forEach(({ node }: { node: { content: string } }) => {
+      expect(node.content.toLowerCase()).toContain('test comment 2')
+    })
+  })
+
+  test('query comments by state', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_COMMENTS,
+      variables: { input: { first: 10, filter: { state: 'active' } } },
+    })
+    expect(errors).toBeUndefined()
+    const edges = _get(data, 'oss.comments.edges')
+    expect(edges.length).toBeGreaterThan(0)
+    edges.forEach(({ node }: { node: { state: string } }) => {
+      expect(node.state).toBe('active')
+    })
+  })
+
+  test('query comments by keyword matches wildcards literally', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data, errors } = await serverAdmin.executeOperation({
+      query: QUERY_COMMENTS,
+      variables: { input: { first: 10, filter: { keyword: '%' } } },
+    })
+    expect(errors).toBeUndefined()
+    expect(_get(data, 'oss.comments.totalCount')).toBe(0)
   })
 
   test('non-admin user cannot query comments', async () => {
