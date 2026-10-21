@@ -1074,7 +1074,14 @@ export default /* GraphQL */ `
     after: String
     first: Int @constraint(min: 0)
     sort: OSSContentSpamSort = newest
-    filter: OSSSpamDatetimeFilterInput
+    filter: OSSCommentsFilterInput
+  }
+
+  input OSSCommentsFilterInput {
+    datetimeRange: DatetimeRangeInput
+    "Case-insensitive substring match on comment content."
+    keyword: String
+    state: CommentState
   }
 
   input OSSMomentsInput {

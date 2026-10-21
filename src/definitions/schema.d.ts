@@ -3561,9 +3561,16 @@ export type GQLOssArticlesInput = {
   sort?: InputMaybe<GQLArticlesSort>
 }
 
+export type GQLOssCommentsFilterInput = {
+  datetimeRange?: InputMaybe<GQLDatetimeRangeInput>
+  /** Case-insensitive substring match on comment content. */
+  keyword?: InputMaybe<Scalars['String']['input']>
+  state?: InputMaybe<GQLCommentState>
+}
+
 export type GQLOssCommentsInput = {
   after?: InputMaybe<Scalars['String']['input']>
-  filter?: InputMaybe<GQLOssSpamDatetimeFilterInput>
+  filter?: InputMaybe<GQLOssCommentsFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
   sort?: InputMaybe<GQLOssContentSpamSort>
 }
@@ -6713,6 +6720,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
+  OSSCommentsFilterInput: GQLOssCommentsFilterInput
   OSSCommentsInput: GQLOssCommentsInput
   OSSContentSpamSort: GQLOssContentSpamSort
   OSSMomentsInput: GQLOssMomentsInput
@@ -7520,6 +7528,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   OSSArticlesFilterInput: GQLOssArticlesFilterInput
   OSSArticlesInput: GQLOssArticlesInput
+  OSSCommentsFilterInput: GQLOssCommentsFilterInput
   OSSCommentsInput: GQLOssCommentsInput
   OSSMomentsInput: GQLOssMomentsInput
   OSSReportsFilter: GQLOssReportsFilter
