@@ -118,7 +118,10 @@ export const environment = {
   newFeatureTagId: process.env.MATTERS_NEW_FEATURE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
-  sentryDsn: process.env.MATTERS_SENTRY_DSN,
+  // TODO: restore to process.env.MATTERS_SENTRY_DSN once the server env is updated
+  sentryDsn: isProd
+    ? 'https://af9d68fa38925b4af40ba0caf90d60e3@o4506149764595712.ingest.us.sentry.io/4512442404306944'
+    : 'https://6bee37371b1b606309ca68501f01db59@o4506149764595712.ingest.us.sentry.io/4512442405355520',
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
   OICDPrivateKey: process.env.MATTERS_OICD_PRIVATE_KEY || '',
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
