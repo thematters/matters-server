@@ -211,6 +211,11 @@ export default [
   },
   {
     files: ['**/*.cjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       'import/no-commonjs': 'off',

@@ -14,9 +14,16 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - '18'
+          - '24'
     uses: ./.github/workflows/build.yml
     with:
       environment: ''
       skip_tests: false
       skip_docker: true
+      node_version: ${{ matrix.node-version }}
     secrets: {}
